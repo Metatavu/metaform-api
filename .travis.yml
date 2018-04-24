@@ -12,8 +12,11 @@ addons:
       - oracle-java8-installer
       
 install: true
+  
+script:
+  - . travis.sh
 
 notifications:
   email: false
   webhooks:
-- http://travis.metatavu.io:7333/travisping
+    - http://travis.metatavu.io:7333/travisping
