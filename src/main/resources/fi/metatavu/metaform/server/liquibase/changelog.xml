@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet id="initial" author="antti.leppa">
+    <createTable tableName="metaform">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="realmid" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="reply">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="userid" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="metaform_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_REPLY_METAFORM_ID" referencedTableName="metaform" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="replyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="reply_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_REPLY_FIELD_REPLY_ID" referencedTableName="reply" referencedColumnNames="id"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="stringreplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_STRING_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+      <column name="value" type="longtext"/>
+    </createTable>
+
+    <createTable tableName="booleanreplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_BOOLEAN_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+      <column name="value" type="boolean"/>
+    </createTable>
+
+    <createTable tableName="numberreplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_NUMBER_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+      <column name="value" type="double"/>
+    </createTable>
+    
+  </changeSet>
+    
+</databaseChangeLog>

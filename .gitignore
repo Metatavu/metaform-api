@@ -1,0 +1,8 @@
+/target/
+/keycloak-3.4.3.Final/
+/.settings/
+/config/
+/.project
+/.classpath
+/.factorypath
+/keycloak.log

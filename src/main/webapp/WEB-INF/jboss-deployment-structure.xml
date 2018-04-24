@@ -1,0 +1,19 @@
+<jboss-deployment-structure>
+    <deployment>
+        <dependencies>
+            <module name="org.infinispan" services="export" />
+            <module name="org.apache.httpcomponents"/>
+            <module name="org.apache.commons.io"/>
+            <module name="org.apache.commons.lang3"/>
+            <module name="com.fasterxml.jackson.core.jackson-annotations"/>
+            <module name="com.fasterxml.jackson.core.jackson-databind"/>
+            <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
+            <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+            <module name="org.slf4j"/>
+            <module name="org.jsoup"/>
+            <module name="org.keycloak.keycloak-adapter-core"/>
+            <module name="org.keycloak.keycloak-adapter-spi"/>
+            <module name="org.wildfly.clustering.api" services="export" />
+        </dependencies>
+    </deployment>
+</jboss-deployment-structure>
