@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,11 +49,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Inject
   private ReplyTranslator replyTranslator;
   
-  @Context
-  private HttpServletRequest request;
-  
   @Override
   public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting) throws Exception {
+    
     UUID loggedUserId = getLoggerUserId();
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -63,7 +59,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
     
     UUID userId = payload.getUserId();
-    if (!isRealmMetaformAdmin(request) || userId == null) {
+    if (!isRealmMetaformAdmin() || userId == null) {
       userId = loggedUserId;
     }
     
@@ -109,7 +105,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     // TODO: Permission check
     
     if (userId == null || !userId.equals(getLoggerUserId())) {
-      if (!hasRealmRole(request, ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE)) {
+      if (!hasRealmRole(ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE)) {
         return createForbidden("You are not allowed to view these replies");
       }
     }
@@ -165,7 +161,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createBadRequest("Invalid Metaform JSON");  
     }
     
-    if (!isRealmMetaformAdmin(request)) {
+    if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to create Metaforms");
     }
 
@@ -199,7 +195,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response updateMetaform(String realmId, UUID metaformId, Metaform payload) throws Exception {
-    if (!isRealmMetaformAdmin(request)) {
+    if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to update Metaforms");
     }
 

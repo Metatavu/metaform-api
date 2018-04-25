@@ -28,13 +28,23 @@ public abstract class AbstractApi {
   protected static final String ADMIN_ROLE = "metaform-admin";
   protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
   
+  
+  /**
+   * Return current HttpServletRequest
+   * 
+   * @return current http servlet request
+   */
+  protected HttpServletRequest getHttpServletRequest() {
+    return ResteasyProviderFactory.getContextData(HttpServletRequest.class);
+  }
+  
   /**
    * Returns logged user id
    * 
    * @return logged user id
    */
   protected UUID getLoggerUserId() {
-    HttpServletRequest httpServletRequest = ResteasyProviderFactory.getContextData(HttpServletRequest.class);
+    HttpServletRequest httpServletRequest = getHttpServletRequest();
     String remoteUser = httpServletRequest.getRemoteUser();
     if (remoteUser == null) {
       return null;
@@ -42,7 +52,7 @@ public abstract class AbstractApi {
     
     return UUID.fromString(remoteUser);
   }
-
+  
   /**
    * Constructs ok response
    * 
@@ -150,21 +160,20 @@ public abstract class AbstractApi {
   /**
    * Returns whether logged user is realm Metaform admin
    * 
-   * @param request http request
    * @return whether logged user is realm Metaform admin
    */
-  protected boolean isRealmMetaformAdmin(HttpServletRequest request) {
-    return hasRealmRole(request, ADMIN_ROLE);
+  protected boolean isRealmMetaformAdmin() {
+    return hasRealmRole(ADMIN_ROLE);
   }
   
   /**
    * Returns whether logged user has at least one of specified realm roles
    * 
-   * @param request http request
    * @param role role
    * @return whether logged user has specified realm role or not
    */
-  protected boolean hasRealmRole(HttpServletRequest request, String... roles) {
+  protected boolean hasRealmRole(String... roles) {
+    HttpServletRequest request = getHttpServletRequest();
     Principal userPrincipal = request.getUserPrincipal();
     KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
     KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
