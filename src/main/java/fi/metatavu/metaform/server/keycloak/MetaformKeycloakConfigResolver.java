@@ -10,6 +10,7 @@ import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.KeycloakDeploymentBuilder;
 import org.keycloak.adapters.spi.HttpFacade.Request;
+import org.keycloak.representations.adapters.config.AdapterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,12 @@ public class MetaformKeycloakConfigResolver implements KeycloakConfigResolver {
       return null;
     }
     
-    return null;
+    AdapterConfig adapterConfig = new AdapterConfig();
+    adapterConfig.setRealm("unauthorized");
+    adapterConfig.setResource("unauthorized");
+    adapterConfig.setAuthServerUrl("http://localhost:123");
+    
+    return KeycloakDeploymentBuilder.build(adapterConfig);
   }
 
 }

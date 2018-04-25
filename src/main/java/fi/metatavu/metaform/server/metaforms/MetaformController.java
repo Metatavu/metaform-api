@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.metaforms;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -42,6 +43,16 @@ public class MetaformController {
   }
   
   /**
+   * Lists Metaform from realm
+   * 
+   * @param realmId realm
+   * @return list of Metaforms
+   */
+  public List<Metaform> listMetaforms(String realmId) {
+     return metaformDAO.listByRealmId(realmId);
+  }
+  
+  /**
    * Updates Metaform
    * 
    * @param metaform Metaform
@@ -51,5 +62,5 @@ public class MetaformController {
   public Metaform updateMetaform(Metaform metaform, String data) {
     return metaformDAO.updateData(metaform, data);
   }
-
+  
 }

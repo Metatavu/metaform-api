@@ -6,12 +6,17 @@ import fi.metatavu.metaform.server.rest.model.InternalServerError;
 import fi.metatavu.metaform.server.rest.model.NotImplemented;
 import fi.metatavu.metaform.server.rest.model.NotFound;
 
+import java.security.Principal;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.AccessToken.Access;
 
 /**
  * Abstract base class for all API services
@@ -19,6 +24,9 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
  * @author Antti Leppä
  */
 public abstract class AbstractApi {
+  
+  protected static final String ADMIN_ROLE = "metaform-admin";
+  protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
   
   /**
    * Returns logged user id
@@ -43,7 +51,7 @@ public abstract class AbstractApi {
    */
   protected Response createOk(Object entity) {
     return Response
-      .status(Response.Status.BAD_REQUEST)
+      .status(Response.Status.OK)
       .entity(entity)
       .build();
   }
@@ -139,5 +147,39 @@ public abstract class AbstractApi {
       .build();
   }
 
+  /**
+   * Returns whether logged user is realm Metaform admin
+   * 
+   * @param request http request
+   * @return whether logged user is realm Metaform admin
+   */
+  protected boolean isRealmMetaformAdmin(HttpServletRequest request) {
+    return hasRealmRole(request, ADMIN_ROLE);
+  }
+  
+  /**
+   * Returns whether logged user has at least one of specified realm roles
+   * 
+   * @param request http request
+   * @param role role
+   * @return whether logged user has specified realm role or not
+   */
+  protected boolean hasRealmRole(HttpServletRequest request, String... roles) {
+    Principal userPrincipal = request.getUserPrincipal();
+    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
+    KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
+    AccessToken token = keycloakSecurityContext.getToken();
+    Access realmAccess = token.getRealmAccess();
+    
+    for (int i = 0; i < roles.length; i++) {
+      if (realmAccess.isUserInRole(roles[i])) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  
 }
 

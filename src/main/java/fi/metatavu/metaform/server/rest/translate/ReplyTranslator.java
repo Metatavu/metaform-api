@@ -57,6 +57,7 @@ public class ReplyTranslator {
     Reply reply = new Reply();
     reply.setId(entity.getId());
     reply.setData(replyData);
+    reply.setUserId(entity.getUserId());
     
     return reply;
   }
@@ -75,7 +76,6 @@ public class ReplyTranslator {
     ReplyMeta replyMeta = new ReplyMeta();
     replyMeta.setCreatedAt(reply.getCreatedAt());
     replyMeta.setModifiedAt(reply.getModifiedAt());
-    replyMeta.setUserId(reply.getUserId());
     
     return replyMeta;
   }

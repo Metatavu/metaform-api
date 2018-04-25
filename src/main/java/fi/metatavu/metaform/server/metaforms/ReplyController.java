@@ -77,6 +77,18 @@ public class ReplyController {
   public Reply findReplyById(UUID replyId) {
     return replyDAO.findById(replyId);
   }
+  
+  /**
+   * Fields reply by metaform and user id
+   * 
+   * @param metaform metaform
+   * @param userId user id
+   * @return found reply
+   */
+  public Reply findReplyByMetaformAndUserId(Metaform metaform, UUID userId) {
+    return replyDAO.findByMetaformAndUserId(metaform, userId);
+  }
+
 
   /**
    * Sets reply field value
@@ -182,13 +194,14 @@ public class ReplyController {
   }
 
   /**
-   * Lists replies by Metaform
+   * Lists replies
    * 
    * @param metaform Metaform
+   * @param userId userId
    * @return replies
    */
-  public List<Reply> listReplies(Metaform metaform) {
-    return replyDAO.listByMetaform(metaform);
+  public List<Reply> listReplies(Metaform metaform, UUID userId) {
+    return replyDAO.list(metaform, userId);
   }
 
   /**

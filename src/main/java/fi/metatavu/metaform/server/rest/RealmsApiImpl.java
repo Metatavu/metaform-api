@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +23,7 @@ import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.Reply;
+import fi.metatavu.metaform.server.rest.model.ReplyData;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 
@@ -47,24 +50,43 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private ReplyTranslator replyTranslator;
-
-  public Response createReply(String realmId, UUID metaformId, Reply payload) throws Exception {
+  
+  @Context
+  private HttpServletRequest request;
+  
+  @Override
+  public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting) throws Exception {
     UUID loggedUserId = getLoggerUserId();
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound("Not found");
     }
     
+    UUID userId = payload.getUserId();
+    if (!isRealmMetaformAdmin(request) || userId == null) {
+      userId = loggedUserId;
+    }
+    
     // TODO: Permission check
+    // TODO: Support multiple
+    // TODO: Implement update existing 
     
-    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.createReply(loggedUserId, metaform);
+    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyByMetaformAndUserId(metaform, userId);
+    if (reply == null) {
+      reply = replyController.createReply(userId, metaform);
+    }
     
-    for (Entry<String, Object> entry : payload.getData().entrySet()) {
-      String fieldName = entry.getKey();
-      Object fieldValue = entry.getValue();
-      
-      if (fieldValue != null) {
-        replyController.setReplyField(reply, fieldName, fieldValue);
+    ReplyData data = payload.getData();
+    if (data == null) {
+      logger.warn("Received a reply with null data");
+    } else {
+      for (Entry<String, Object> entry : data.entrySet()) {
+        String fieldName = entry.getKey();
+        Object fieldValue = entry.getValue();
+        
+        if (fieldValue != null) {
+          replyController.setReplyField(reply, fieldName, fieldValue);
+        }
       }
     }
     
@@ -86,12 +108,18 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   public Response listReplies(String realmId, UUID metaformId, UUID userId) throws Exception {
     // TODO: Permission check
     
+    if (userId == null || !userId.equals(getLoggerUserId())) {
+      if (!hasRealmRole(request, ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE)) {
+        return createForbidden("You are not allowed to view these replies");
+      }
+    }
+    
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound("Not found");
     }
 
-    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform);
+    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, userId);
     
     List<Reply> result = replies.stream().map((entity) -> {
      return replyTranslator.translateReply(entity);
@@ -136,6 +164,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (data == null) {
       return createBadRequest("Invalid Metaform JSON");  
     }
+    
+    if (!isRealmMetaformAdmin(request)) {
+      return createForbidden("You are not allowed to create Metaforms");
+    }
 
     // TODO: Permission check
     
@@ -144,7 +176,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   public Response listMetaforms(String realmId) throws Exception {
    // TODO: Permission check
-    
+
    return createOk(metaformController.listMetaforms(realmId).stream().map((entity) -> {
      return metaformTranslator.translateMetaform(entity);
    }).collect(Collectors.toList()));
@@ -167,6 +199,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response updateMetaform(String realmId, UUID metaformId, Metaform payload) throws Exception {
+    if (!isRealmMetaformAdmin(request)) {
+      return createForbidden("You are not allowed to update Metaforms");
+    }
+
     String data = serializeMetaform(payload);
     if (data == null) {
       return createBadRequest("Invalid Metaform JSON");  
