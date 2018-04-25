@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.rest;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -100,9 +101,16 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
     return createOk(replyTranslator.translateReply(reply));
   }
-
-  public Response listReplies(String realmId, UUID metaformId, UUID userId) throws Exception {
+  
+  @Override
+  public Response listReplies(String realmId, UUID metaformId, UUID userId, 
+      String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam) throws Exception {
     // TODO: Permission check
+    
+    OffsetDateTime createdBefore = parseTime(createdBeforeParam);
+    OffsetDateTime createdAfter = parseTime(createdAfterParam);
+    OffsetDateTime modifiedBefore = parseTime(modifiedBeforeParam);
+    OffsetDateTime modifiedAfter = parseTime(modifiedAfterParam);
     
     if (userId == null || !userId.equals(getLoggerUserId())) {
       if (!hasRealmRole(ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE)) {
@@ -115,7 +123,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound("Not found");
     }
 
-    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, userId);
+    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
     
     List<Reply> result = replies.stream().map((entity) -> {
      return replyTranslator.translateReply(entity);

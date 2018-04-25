@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.persistence.dao;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -89,9 +90,9 @@ public class ReplyDAO extends AbstractDAO<Reply> {
    * 
    * @param metaform Metaform
    * @param userId userId
-   * @return
+   * @return replies
    */
-  public List<Reply> list(Metaform metaform, UUID userId) {
+  public List<Reply> list(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter) {
     EntityManager entityManager = getEntityManager();
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Reply> criteria = criteriaBuilder.createQuery(Reply.class);
@@ -105,6 +106,22 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     
     if (userId != null) {
       restrictions.add(criteriaBuilder.equal(root.get(Reply_.userId), userId));
+    }
+    
+    if (createdBefore != null) {
+      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(Reply_.createdAt), createdBefore));
+    }
+  
+    if (createdAfter != null) {
+      restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(Reply_.createdAt), createdAfter));
+    }
+    
+    if (modifiedBefore != null) {
+      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(Reply_.modifiedAt), modifiedBefore));
+    }
+  
+    if (modifiedAfter != null) {
+      restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(Reply_.modifiedAt), modifiedAfter));
     }
 
     criteria.select(root);    

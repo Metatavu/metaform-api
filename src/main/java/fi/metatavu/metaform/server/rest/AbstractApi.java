@@ -7,11 +7,13 @@ import fi.metatavu.metaform.server.rest.model.NotImplemented;
 import fi.metatavu.metaform.server.rest.model.NotFound;
 
 import java.security.Principal;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
@@ -189,6 +191,19 @@ public abstract class AbstractApi {
     return false;
   }
 
+  /**
+   * Parses date time from string
+   * 
+   * @param timeString
+   * @return
+   */
+  protected OffsetDateTime parseTime(String timeString) {
+    if (StringUtils.isEmpty(timeString)) {
+      return null;
+    }
+    
+    return OffsetDateTime.parse(timeString);
+  }
   
 }
 
