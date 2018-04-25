@@ -6,8 +6,12 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO;
+import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
+import fi.metatavu.metaform.server.persistence.model.Reply;
+import fi.metatavu.metaform.server.persistence.model.ReplyField;
 
 /**
  * Metaform controller
@@ -19,6 +23,12 @@ public class MetaformController {
  
   @Inject
   private MetaformDAO metaformDAO;
+
+  @Inject
+  private ReplyDAO replyDAO;
+
+  @Inject
+  private AnyReplyFieldDAO anyReplyFieldDAO;
   
   /**
    * Creates new Metaform
@@ -61,6 +71,23 @@ public class MetaformController {
    */
   public Metaform updateMetaform(Metaform metaform, String data) {
     return metaformDAO.updateData(metaform, data);
+  }
+
+  /**
+   * Delete Metaform
+   * 
+   * @param metaform Metaform
+   */
+  public void deleteMetaform(Metaform metaform) {
+    List<Reply> replies = replyDAO.listByMetaform(metaform);
+    
+    replies.stream().forEach(reply -> {
+      List<ReplyField> fields = anyReplyFieldDAO.listByReply(reply);
+      fields.stream().forEach(field -> anyReplyFieldDAO.delete(field));
+      replyDAO.delete(reply);
+    });
+    
+    metaformDAO.delete(metaform);
   }
   
 }
