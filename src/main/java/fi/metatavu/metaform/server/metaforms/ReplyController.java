@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.metaforms;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -106,7 +107,9 @@ public class ReplyController {
     } else if (value instanceof String) {
       return setReplyField(reply, name, (String) value);
     } else {
-      logger.error(String.format("Unsupported to type (%s) for field %s in reply %s", value.getClass().getName(), name, reply.getId().toString()));
+      if (logger.isErrorEnabled()) {
+        logger.error(String.format("Unsupported to type (%s) for field %s in reply %s", value.getClass().getName(), name, reply.getId().toString()));
+      }
     }
     
     return null;
@@ -200,8 +203,8 @@ public class ReplyController {
    * @param userId userId
    * @return replies
    */
-  public List<Reply> listReplies(Metaform metaform, UUID userId) {
-    return replyDAO.list(metaform, userId);
+  public List<Reply> listReplies(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter) {
+    return replyDAO.list(metaform, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
   }
 
   /**
