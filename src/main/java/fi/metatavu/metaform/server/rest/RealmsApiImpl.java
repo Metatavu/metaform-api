@@ -221,7 +221,25 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, data)));
   }
+  
+  @Override
+  public Response deleteMetaform(String realmId, UUID metaformId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to delete Metaforms");
+    }
 
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound("Not found");
+    }
+
+    // TODO: Permission check
+    
+    metaformController.deleteMetaform(metaform);
+    
+    return createNoContent();
+  }
+  
   public Response findReplyMeta(String realmId, UUID metaformId, UUID replyId) throws Exception {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
