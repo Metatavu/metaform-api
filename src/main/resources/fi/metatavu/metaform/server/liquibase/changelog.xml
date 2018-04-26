@@ -66,5 +66,30 @@
     </createTable>
     
   </changeSet>
+  
+  <changeSet id="indices" author="antti.leppa">
+    <createIndex indexName="IND_METAFORM_REALMID" tableName="metaform">
+      <column name="realmid" type="varchar(255)"/>
+    </createIndex>
+    
+    <createIndex indexName="IND_REPLY_USERID_METAFORM_ID" tableName="reply" unique="true">
+      <column name="userid" type="uuid"/>
+      <column name="metaform_id" type="uuid"/>
+    </createIndex>
+  
+    <createIndex indexName="IND_REPLY_METAFORM_ID" tableName="reply">
+      <column name="metaform_id" type="uuid"/>
+    </createIndex>
+  
+    <createIndex indexName="IND_REPLYFIELD_REPLY_ID_NAME" tableName="replyfield" unique="true">
+      <column name="reply_id" type="uuid"/>
+      <column name="name" type="varchar(255)"/>
+    </createIndex>
+   
+    <createIndex indexName="IND_REPLYFIELD_REPLY_ID" tableName="replyfield" >
+      <column name="reply_id" type="uuid"/>
+    </createIndex>
+    
+  </changeSet>
     
 </databaseChangeLog>
