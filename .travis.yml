@@ -10,7 +10,9 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
-      
+  sonarcloud:
+    organization: "metatavu-oy"
+          
 install: true
   
 script:
