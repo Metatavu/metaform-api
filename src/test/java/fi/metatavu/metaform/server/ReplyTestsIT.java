@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import static io.restassured.RestAssured.given;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -21,7 +23,27 @@ import fi.metatavu.metaform.client.ReplyData;
 public class ReplyTestsIT extends AbstractIntegrationTest {
   
   private static final String REALM_1 = "test-1";
-
+  
+  @Test
+  public void createReplyNotLoggedIn() throws IOException, URISyntaxException {
+    String adminToken = getAdminToken(REALM_1);
+    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
+    
+    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple"));
+    try {
+      given()
+        .baseUri(getBasePath())
+        .header("Content-Type", "application/json")
+        .post("/v1/realms/{realmId}/metaforms/{metaformId}/replies", "test-1", metaform.getId())
+        .then()
+        .assertThat()
+        .statusCode(403);
+      
+    } finally {
+      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+    }
+  }
+  
   @Test
   public void createReply() throws IOException, URISyntaxException {
     String adminToken = getAdminToken(REALM_1);
