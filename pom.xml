@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.11</metaform-api-spec.version>
+    <metaform-api-spec.version>0.0.14</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -67,10 +67,12 @@
     <!-- Keycloak admin client -->
     
     <keycloak-admin-client.version>3.4.3.Final</keycloak-admin-client.version>
+    <keycloak-adapter.version>4.0.0.Beta1</keycloak-adapter.version>
     
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
+    <metaform-api-client.version>0.0.1-SNAPSHOT</metaform-api-client.version>
     
   </properties>
 
@@ -116,7 +118,6 @@
       </plugin>
     </plugins>
   </build>
-
   <dependencies>
     <dependency>
       <groupId>org.jboss.spec.javax.servlet</groupId>
@@ -160,7 +161,7 @@
       <version>1.1.1</version>
     </dependency>
 
-  	<dependency>
+    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <scope>provided</scope>
@@ -301,6 +302,47 @@
     </dependency>
     
     <dependency>
+      <groupId>fi.metatavu.metaform</groupId>
+      <artifactId>metaform-api-client</artifactId>
+      <version>${metaform-api-client.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-multipart-provider</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-jackson-provider</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.github.joschi.jackson</groupId>
+          <artifactId>jackson-datatype-threetenbp</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-jsr310</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    
+    <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <version>${rest-assured.version}</version>
@@ -308,5 +350,235 @@
     </dependency>
     
   </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>itests</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      
+      <properties>
+        <h2.version>1.4.193</h2.version>
+        <it.port.http>58080</it.port.http>
+        <it.host>api-itest.metaform.fi</it.host>
+        <it.jdbc.driver>org.h2.jdbcx.JdbcDataSource</it.jdbc.driver>
+        <it.jdbc.url>jdbc:h2:file:${project.build.directory}/h2;AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE</it.jdbc.url>
+        <it.jdbc.properties>URL=jdbc:h2:file:${project.build.directory}/h2\;AUTO_SERVER=TRUE\;DB_CLOSE_ON_EXIT=FALSE</it.jdbc.properties>
+        <it.jdbc.jndi>java:jboss/datasources/metaform-api</it.jdbc.jndi>
+        <it.jdbc.username>sa</it.jdbc.username>
+        <it.jdbc.password>sa</it.jdbc.password>
+        <it.jdbc.type>javax.sql.XADataSource</it.jdbc.type>
+        <it.jdbc.transactionsupport>XA_TRANSACTION</it.jdbc.transactionsupport>
+        <it.skipdatabasedrop>true</it.skipdatabasedrop>
+        <it.hibernate.dialect>org.hibernate.dialect.H2Dialect</it.hibernate.dialect>
+        <jacoco.reportPath>${project.basedir}/target/jacoco.exec</jacoco.reportPath>
+      </properties>
+      
+      <dependencies>
+        <dependency>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+          <version>${h2.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>2.21.0</version>
+            <configuration>
+              <failIfNoTests>true</failIfNoTests>
+              <skipAfterFailureCount>1</skipAfterFailureCount>
+              <argLine>-Xmx2G</argLine>
+              <includes>
+                <include>${it.tests}</include>
+              </includes>
+              <systemPropertyVariables>
+                <java.util.logging.config.file>${project.basedir}/src/test/resources/logging.properties</java.util.logging.config.file>
+                <jboss.home>${wildfly.home}</jboss.home>
+                <module.path>${wildfly.home}/modules</module.path>
+                <it.host>${it.host}</it.host>
+                <it.port.http>${it.port.http}</it.port.http>
+                <it.jdbc.driver>${it.jdbc.driver}</it.jdbc.driver>
+                <it.jdbc.url>${it.jdbc.url}</it.jdbc.url>
+                <it.jdbc.jndi>${it.jdbc.jndi}</it.jdbc.jndi>
+                <it.jdbc.username>${it.jdbc.username}</it.jdbc.username>
+                <it.jdbc.password>${it.jdbc.password}</it.jdbc.password>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>integration-test</id>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>verify</id>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+         
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.1</version>
+            <configuration>
+              <destFile>${jacoco.reportPath}</destFile>
+              <dataFile>${jacoco.reportPath}</dataFile>
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+              <classDumpDir>${project.reporting.outputDirectory}/jacoco-it/classes</classDumpDir>
+              <excludes>
+                <exclude>**/*_.class</exclude>
+              </excludes>
+            </configuration>
+                
+            <executions>
+              <execution>
+                <id>jacoco-agent</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <destFile>${jacoco.reportPath}</destFile>
+                  <propertyName>jacoco.agent.itArgLine</propertyName>
+                </configuration>
+              </execution>
+              <execution>
+                <id>jacoco-report</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>dump</goal>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId>
+            <version>1.6.7</version>
+            <configuration>
+              <container>
+                <containerId>wildfly12x</containerId>
+                <log>${project.basedir}/target/cargo.log</log>
+                <output>${project.basedir}/target/wildfly.log</output>
+                <zipUrlInstaller>
+                  <url>https://www.dropbox.com/s/mash4itbsiwssb9/wildfly-12.0.0.Final-with-keycloak.zip?dl=1</url>
+                  <downloadDir>${project.basedir}/.cargo/downloads</downloadDir>
+                  <extractDir>${project.basedir}/.cargo/extracts</extractDir>
+                </zipUrlInstaller>
+                <dependencies>
+                  <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                  </dependency>
+                </dependencies>         
+              </container>
+              <configuration>
+                <properties>
+                  <cargo.servlet.port>${it.port.http}</cargo.servlet.port>
+                  <cargo.jboss.configuration>standalone</cargo.jboss.configuration>
+                  <cargo.jvmargs>${jacoco.agent.itArgLine},output=tcpserver,port=6300 -Xmx2G -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -Drunmode=TEST</cargo.jvmargs>
+                </properties>    
+              </configuration>
+              <deployer/>
+            </configuration>
+            <executions>
+              <execution>
+                <id>start-cargo</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>stop-cargo</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+                <configuration>
+                  <skip>${it.skipserverstop}</skip>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.wildfly.plugins</groupId>
+            <artifactId>wildfly-maven-plugin</artifactId>
+            <version>1.2.1.Final</version>
+            <executions>
+              <execution>
+                <id>wildfly-configure</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>execute-commands</goal>
+                </goals>
+                <configuration>
+                  <batch>true</batch>
+                  <commands>
+                    <command>xa-data-source add --name=ci --driver-name=h2 --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --xa-datasource-properties=${it.jdbc.properties}</command>
+                    <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
+                    <command>/system-property=it-test:add(value="true")</command>
+                    <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
+                  </commands>
+                </configuration>
+              </execution>
+              <execution>
+                <id>deploy</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+                <configuration>
+                  <filename>${project.build.finalName}.${project.packaging}</filename>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+                    
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>wait-maven-plugin</artifactId>
+            <version>1.0</version>
+            <executions>
+              <execution>
+                <id>wait</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>wait</goal>
+                </goals>      
+                <configuration>
+                  <protocol>http</protocol>
+                  <host>${it.host}</host>
+                  <port>${it.port.http}</port>
+                  <file>/v1/system/ping</file>
+                  <maxcount>20</maxcount>
+                  <timeout>10000</timeout>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          
+          <plugin>
+            <groupId>org.eluder.coveralls</groupId>
+            <artifactId>coveralls-maven-plugin</artifactId>
+            <version>4.3.0</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>  
+  </profiles>
   
 </project>
