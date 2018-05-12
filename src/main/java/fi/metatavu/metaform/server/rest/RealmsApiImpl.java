@@ -66,11 +66,17 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     // TODO: Permission check
     // TODO: Support multiple
-    // TODO: Implement update existing 
     
-    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyByMetaformAndUserId(metaform, userId);
+    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
     if (reply == null) {
       reply = replyController.createReply(userId, metaform);
+    } else {
+      if (!updateExisting) {
+        // If there is already an existing reply but we are not updating it
+        // We need to change the existing reply into a revision and create new reply
+        replyController.convertToRevision(reply);
+        reply = replyController.createReply(userId, metaform);
+      }
     }
     
     ReplyData data = payload.getData();
@@ -99,12 +105,20 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
     
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
+    if (reply == null) {
+      return createNotFound("Not found");
+    }
+    
+    if (!reply.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound("Not found");
+    }
+    
     return createOk(replyTranslator.translateReply(reply));
   }
   
   @Override
-  public Response listReplies(String realmId, UUID metaformId, UUID userId, 
-      String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam) throws Exception {
+  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam,
+      String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions) throws Exception {
     // TODO: Permission check
     
     OffsetDateTime createdBefore = parseTime(createdBeforeParam);
@@ -123,8 +137,14 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound("Not found");
     }
 
-    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
-    
+    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, 
+        userId, 
+        createdBefore, 
+        createdAfter, 
+        modifiedBefore, 
+        modifiedAfter,
+        includeRevisions == null ? false : includeRevisions);
+
     List<Reply> result = replies.stream().map((entity) -> {
      return replyTranslator.translateReply(entity);
     }).collect(Collectors.toList());
@@ -163,6 +183,31 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
+  public Response deleteReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to delete replies");
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound("Not found");
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
+    if (reply == null) {
+      return createNotFound("Not found");
+    }
+    
+    if (!reply.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound("Not found");
+    }
+    
+    replyController.deleteReply(reply);
+    
+    return null;
+  }
+
+  @Override
   public Response createMetaform(String realmId, Metaform payload) throws Exception {
     String data = serializeMetaform(payload);
     if (data == null) {
@@ -179,11 +224,12 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   public Response listMetaforms(String realmId) throws Exception {
-   // TODO: Permission check
+    // TODO: Permission check
+    System.out.println("Täällähän sitä ollaan");
 
-   return createOk(metaformController.listMetaforms(realmId).stream().map((entity) -> {
-     return metaformTranslator.translateMetaform(entity);
-   }).collect(Collectors.toList()));
+    return createOk(metaformController.listMetaforms(realmId).stream().map((entity) -> {
+      return metaformTranslator.translateMetaform(entity);
+    }).collect(Collectors.toList()));
   }
 
   public Response findMetaform(String realmId, UUID metaformId) throws Exception {

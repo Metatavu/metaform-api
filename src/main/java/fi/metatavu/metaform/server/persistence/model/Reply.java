@@ -32,6 +32,9 @@ public class Reply {
   @NotNull
   private UUID userId;
   
+  @Column
+  private OffsetDateTime revision;
+  
   @Column (nullable = false)
   private OffsetDateTime createdAt;
 
@@ -55,6 +58,14 @@ public class Reply {
 
   public void setUserId(UUID userId) {
     this.userId = userId;
+  }
+  
+  public OffsetDateTime getRevision() {
+    return revision;
+  }
+  
+  public void setRevision(OffsetDateTime revision) {
+    this.revision = revision;
   }
 
   public Metaform getMetaform() {

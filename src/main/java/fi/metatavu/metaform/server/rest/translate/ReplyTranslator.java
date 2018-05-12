@@ -58,6 +58,7 @@ public class ReplyTranslator {
     reply.setId(entity.getId());
     reply.setData(replyData);
     reply.setUserId(entity.getUserId());
+    reply.setRevision(entity.getRevision());
     
     return reply;
   }
