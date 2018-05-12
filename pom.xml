@@ -72,7 +72,7 @@
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.1-SNAPSHOT</metaform-api-client.version>
+    <metaform-api-client.version>0.0.1</metaform-api-client.version>
     
   </properties>
 
