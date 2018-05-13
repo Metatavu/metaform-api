@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar
+mvn clean verify jacoco:report coveralls:report -Pitests sonar:sonar -DrepoToken=$COVERALLS_TOKEN
