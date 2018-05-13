@@ -80,14 +80,14 @@ public class ReplyController {
   }
   
   /**
-   * Fields reply by metaform and user id
+   * Fields active (non revisioned) reply by metaform and user id
    * 
    * @param metaform metaform
    * @param userId user id
    * @return found reply
    */
-  public Reply findReplyByMetaformAndUserId(Metaform metaform, UUID userId) {
-    return replyDAO.findByMetaformAndUserId(metaform, userId);
+  public Reply findActiveReplyByMetaformAndUserId(Metaform metaform, UUID userId) {
+    return replyDAO.findByMetaformAndUserIdAndRevisionNull(metaform, userId);
   }
 
 
@@ -197,14 +197,32 @@ public class ReplyController {
   }
 
   /**
+   * Deletes a reply
+   * 
+   * @param reply reply
+   */
+  public void deleteReply(Reply reply) {
+    anyReplyFieldDAO.listByReply(reply).stream()
+      .forEach(field -> anyReplyFieldDAO.delete(field));
+    
+    replyDAO.delete(reply);
+  }
+
+  /**
    * Lists replies
    * 
    * @param metaform Metaform
    * @param userId userId
+   * @param createdBefore filter results by created before specified time.
+   * @param createdAfter filter results by created after specified time.
+   * @param modifiedBefore filter results by modified before specified time.
+   * @param modifiedAfter filter results by modified after specified time.
+   * @param includeRevisions 
+   * @return replies list of replies
    * @return replies
    */
-  public List<Reply> listReplies(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter) {
-    return replyDAO.list(metaform, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
+  public List<Reply> listReplies(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter, boolean includeRevisions) {
+    return replyDAO.list(metaform, userId, includeRevisions, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
   }
 
   /**
@@ -216,5 +234,14 @@ public class ReplyController {
   public List<ReplyField> listReplyFields(Reply reply) {
     return anyReplyFieldDAO.listByReply(reply);
   }
-  
+
+  /**
+   * Converts reply into a revision by updating the modifiedAt field into the revision field.
+   * 
+   * @param reply reply to be converted into a revision
+   */
+  public void convertToRevision(Reply reply) {
+    replyDAO.updateRevision(reply, reply.getModifiedAt());
+  }
+
 }

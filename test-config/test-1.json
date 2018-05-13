@@ -1,0 +1,9 @@
+{
+  "realm": "test-1",
+  "bearer-only": true,
+  "auth-server-url": "http://localhost:8280/auth",
+  "ssl-required": "external",
+  "resource": "metaform-api",
+  "use-resource-role-mappings": true,
+  "confidential-port": 0
+}
