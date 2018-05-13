@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar
+mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar
