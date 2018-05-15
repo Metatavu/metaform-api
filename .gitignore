@@ -6,3 +6,4 @@
 /.classpath
 /.factorypath
 /keycloak.log
+/.cargo

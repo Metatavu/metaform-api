@@ -1,0 +1,14 @@
+{
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        }
+      ]
+    }
+  ]
+}

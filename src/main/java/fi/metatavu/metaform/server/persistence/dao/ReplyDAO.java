@@ -42,13 +42,13 @@ public class ReplyDAO extends AbstractDAO<Reply> {
   }
   
   /**
-   * Finds reply by Metaform and user id
+   * Finds reply by Metaform, user id and null revision.
    * 
    * @param metaform Metaform
    * @param userId userId
    * @return reply
    */
-  public Reply findByMetaformAndUserId(Metaform metaform, UUID userId) {
+  public Reply findByMetaformAndUserIdAndRevisionNull(Metaform metaform, UUID userId) {
     EntityManager entityManager = getEntityManager();
 
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -58,7 +58,8 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     criteria.where(
       criteriaBuilder.and(
         criteriaBuilder.equal(root.get(Reply_.metaform), metaform),
-        criteriaBuilder.equal(root.get(Reply_.userId), userId)          
+        criteriaBuilder.equal(root.get(Reply_.userId), userId),
+        criteriaBuilder.isNull(root.get(Reply_.revision))
       ) 
     );
     
@@ -88,11 +89,18 @@ public class ReplyDAO extends AbstractDAO<Reply> {
   /**
    * List replies by multiple filters.
    * 
+   * All parameters can be nulled. Nulled parameters will be ignored.
+   * 
    * @param metaform Metaform
    * @param userId userId
-   * @return replies
+   * @param revisionNull true to include only null replies with null revision, false to only non null revisions.
+   * @param createdBefore filter results by created before specified time.
+   * @param createdAfter filter results by created after specified time.
+   * @param modifiedBefore filter results by modified before specified time.
+   * @param modifiedAfter filter results by modified after specified time.
+   * @return replies list of replies
    */
-  public List<Reply> list(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter) {
+  public List<Reply> list(Metaform metaform, UUID userId, boolean includeRevisions, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter) {
     EntityManager entityManager = getEntityManager();
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Reply> criteria = criteriaBuilder.createQuery(Reply.class);
@@ -106,6 +114,10 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     
     if (userId != null) {
       restrictions.add(criteriaBuilder.equal(root.get(Reply_.userId), userId));
+    }
+    
+    if (!includeRevisions) {
+      restrictions.add(criteriaBuilder.isNull(root.get(Reply_.revision)));
     }
     
     if (createdBefore != null) {
@@ -128,6 +140,18 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     criteria.where(criteriaBuilder.and(restrictions.toArray(new Predicate[0])));
     
     return entityManager.createQuery(criteria).getResultList();
+  }
+
+  /**
+   * Updates reply revision field
+   * 
+   * @param reply reply
+   * @param revision revision time
+   * @return updated reply
+   */
+  public Reply updateRevision(Reply reply, OffsetDateTime revision) {
+    reply.setRevision(revision);
+    return persist(reply);
   }
   
 }

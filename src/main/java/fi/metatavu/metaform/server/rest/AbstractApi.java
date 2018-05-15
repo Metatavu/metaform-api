@@ -26,7 +26,8 @@ import org.keycloak.representations.AccessToken.Access;
  * @author Antti Leppä
  */
 public abstract class AbstractApi {
-  
+
+  protected static final String USER_ROLE = "user";
   protected static final String ADMIN_ROLE = "metaform-admin";
   protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
   
@@ -160,6 +161,15 @@ public abstract class AbstractApi {
   }
 
   /**
+   * Returns whether logged user is realm user
+   * 
+   * @return whether logged user is realm user
+   */
+  protected boolean isRealmUser() {
+    return hasRealmRole(USER_ROLE);
+  }
+
+  /**
    * Returns whether logged user is realm Metaform admin
    * 
    * @return whether logged user is realm Metaform admin
@@ -178,9 +188,24 @@ public abstract class AbstractApi {
     HttpServletRequest request = getHttpServletRequest();
     Principal userPrincipal = request.getUserPrincipal();
     KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
+    if (kcPrincipal == null) {
+      return false;
+    }
+    
     KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return false;
+    }
+    
     AccessToken token = keycloakSecurityContext.getToken();
+    if (token == null) {
+      return false;
+    }
+
     Access realmAccess = token.getRealmAccess();
+    if (realmAccess == null) {
+      return false;
+    }
     
     for (int i = 0; i < roles.length; i++) {
       if (realmAccess.isUserInRole(roles[i])) {

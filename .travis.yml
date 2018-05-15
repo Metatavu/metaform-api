@@ -7,11 +7,18 @@ cache:
   - $HOME/.m2
   
 addons:
+  hosts:
+    - api-itest.metaform.fi
   apt:
     packages:
       - oracle-java8-installer
-      
+  sonarcloud:
+    organization: "metatavu-oy"
+          
 install: true
+  
+before_script:
+  - scripts/start-keycloak.sh
   
 script:
   - . travis.sh

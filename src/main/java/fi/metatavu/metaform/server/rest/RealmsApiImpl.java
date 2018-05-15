@@ -35,6 +35,13 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 @Stateful
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
+  private static final String ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE = "Anonymous users are not allowed to list Metaforms";
+  private static final String ANONYMOUS_USERS_FIND_METAFORM_MESSAGE = "Anonymous users are not allowed to find Metaforms";
+  private static final String NOT_ALLOWED_TO_VIEW_THESE_REPLIES = "You are not allowed to view these replies";
+  private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
+  private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
+  private static final String NOT_FOUND_MESSAGE = "Not found";
+
   @Inject
   private Logger logger;
   
@@ -52,11 +59,14 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
   @Override
   public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
     
     UUID loggedUserId = getLoggerUserId();
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     UUID userId = payload.getUserId();
@@ -66,11 +76,17 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     // TODO: Permission check
     // TODO: Support multiple
-    // TODO: Implement update existing 
     
-    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyByMetaformAndUserId(metaform, userId);
+    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
     if (reply == null) {
       reply = replyController.createReply(userId, metaform);
+    } else {
+      if (!updateExisting) {
+        // If there is already an existing reply but we are not updating it
+        // We need to change the existing reply into a revision and create new reply
+        replyController.convertToRevision(reply);
+        reply = replyController.createReply(userId, metaform);
+      }
     }
     
     ReplyData data = payload.getData();
@@ -91,40 +107,64 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   public Response findReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
     // TODO: Permission check
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
+    if (reply == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
+      return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
+    }
+    
+    if (!reply.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
     return createOk(replyTranslator.translateReply(reply));
   }
   
   @Override
-  public Response listReplies(String realmId, UUID metaformId, UUID userId, 
-      String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam) throws Exception {
+  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam,
+      String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions) throws Exception {
     // TODO: Permission check
     
     OffsetDateTime createdBefore = parseTime(createdBeforeParam);
     OffsetDateTime createdAfter = parseTime(createdAfterParam);
     OffsetDateTime modifiedBefore = parseTime(modifiedBeforeParam);
     OffsetDateTime modifiedAfter = parseTime(modifiedAfterParam);
+
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
     
-    if (userId == null || !userId.equals(getLoggerUserId())) {
-      if (!hasRealmRole(ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE)) {
-        return createForbidden("You are not allowed to view these replies");
-      }
+    if ((userId == null || !userId.equals(getLoggerUserId())) && (!hasRealmRole(ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE))) {
+      return createForbidden(NOT_ALLOWED_TO_VIEW_THESE_REPLIES);
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
-    
+    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, 
+        userId, 
+        createdBefore, 
+        createdAfter, 
+        modifiedBefore, 
+        modifiedAfter,
+        includeRevisions == null ? false : includeRevisions);
+
     List<Reply> result = replies.stream().map((entity) -> {
      return replyTranslator.translateReply(entity);
     }).collect(Collectors.toList());
@@ -134,19 +174,23 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   public Response updateReply(String realmId, UUID metaformId, UUID replyId, Reply payload) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
     UUID loggedUserId = getLoggerUserId();
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
     if (reply == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     if (!reply.getUserId().equals(loggedUserId)) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
 
     List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
@@ -163,39 +207,70 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
+  public Response deleteReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to delete replies");
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
+    if (reply == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!reply.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    replyController.deleteReply(reply);
+    
+    return null;
+  }
+
+  @Override
   public Response createMetaform(String realmId, Metaform payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to create Metaforms");
+    }
+
     String data = serializeMetaform(payload);
     if (data == null) {
       return createBadRequest("Invalid Metaform JSON");  
     }
     
-    if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to create Metaforms");
-    }
-
     // TODO: Permission check
     
     return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(realmId, data)));
   }
 
   public Response listMetaforms(String realmId) throws Exception {
-   // TODO: Permission check
+    // TODO: Permission check
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
+    }
 
-   return createOk(metaformController.listMetaforms(realmId).stream().map((entity) -> {
-     return metaformTranslator.translateMetaform(entity);
-   }).collect(Collectors.toList()));
+    return createOk(metaformController.listMetaforms(realmId).stream().map((entity) -> {
+      return metaformTranslator.translateMetaform(entity);
+    }).collect(Collectors.toList()));
   }
 
   public Response findMetaform(String realmId, UUID metaformId) throws Exception {
     // TODO: Permission check
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+    }
 
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     if (!StringUtils.equals(metaform.getRealmId(), realmId)) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     return createOk(metaformTranslator.translateMetaform(metaform));
@@ -214,7 +289,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     // TODO: Permission check
@@ -230,7 +305,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
 
     // TODO: Permission check
@@ -243,12 +318,16 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   public Response findReplyMeta(String realmId, UUID metaformId, UUID replyId) throws Exception {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
     
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
     if (reply == null) {
-      return createNotFound("Not found");
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
+      return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
     }
     
     // TODO: Permission check

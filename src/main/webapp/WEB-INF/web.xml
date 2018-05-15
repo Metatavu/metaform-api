@@ -10,21 +10,8 @@
     <param-value>fi.metatavu.metaform.server.keycloak.MetaformKeycloakConfigResolver</param-value>
   </context-param>
   
-  <security-constraint>
-    <web-resource-collection>
-      <url-pattern>/v1/realms/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-      <role-name>user</role-name>
-    </auth-constraint>
-  </security-constraint>
-
   <login-config>
     <auth-method>KEYCLOAK</auth-method>
   </login-config>
 
-  <security-role>
-    <role-name>user</role-name>
-  </security-role>
-  
 </web-app>

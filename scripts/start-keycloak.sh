@@ -40,7 +40,7 @@ $KEYCLOAK/bin/add-user-keycloak.sh -r master -u admin -p admin
 waitForServer
 
 # We have to restart the server for the admin user to load?
-$KEYCLOAK/bin/jboss-cli.sh --connect command=:reload
+$KEYCLOAK/bin/jboss-cli.sh --connect --controller=localhost:10190 command=:reload
 
 sleep 5
 

@@ -91,5 +91,20 @@
     </createIndex>
     
   </changeSet>
+  
+  <changeSet id="reply-revision" author="antti.leppa">
+    <addColumn tableName="reply">
+      <column name="revision" type="timestamp"/>
+    </addColumn>
+    
+    <dropIndex tableName="reply" indexName="IND_REPLY_USERID_METAFORM_ID"/>
+    
+    <createIndex indexName="IND_REPLY_USERID_METAFORM_ID_REVISION" tableName="reply" unique="true">
+      <column name="userid" type="uuid"/>
+      <column name="metaform_id" type="uuid"/>
+      <column name="revision" type="timestamp"/>
+    </createIndex>
+    
+  </changeSet>  
     
 </databaseChangeLog>
