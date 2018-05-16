@@ -42,8 +42,10 @@ These instructions assume that system is being installed on machine with Ubuntu 
 
 ### Configure Wildfly
 
-Start Wildfly in another console by running
+Start Wildfly in background by running
     
     cd $INSTALL_DIR/wildfly-12.0.0.Final/bin
-    sh standalone.sh
+    sh jboss-cli.sh
+    embed-server --server-config=standalone.xml
    
+
