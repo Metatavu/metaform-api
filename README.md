@@ -57,5 +57,7 @@ Start Wildfly in background by running
     cd $INSTALL_DIR/wildfly-12.0.0.Final/bin
     sh jboss-cli.sh
     embed-server --server-config=standalone.xml
-    
+    /subsystem=datasources/jdbc-driver=postgres:add(driver-module-name="org.postgres",driver-xa-datasource-class-name="org.postgresql.xa.PGXADataSource",driver-datasource-class-name="org.postgresql.ds.PGSimpleDataSource")
+
+
 
