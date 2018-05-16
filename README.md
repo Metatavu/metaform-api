@@ -111,5 +111,15 @@ Deploy by copying war-archive into the Wildfly deployments -folder:
 And start the Wildfly by running
 
     $INSTALL_DIR/wildfly-12.0.0.Final/bin/standalone.sh
-    
-And you're done, API should respond with "Forbidden" from port 8080 in your defined host e.g. http://dev.metaform.fi:8080/
+
+### Test your API
+
+Navigate into http://HOST:8080/v1/realms/REALM/metaforms (e.g. http://dev.metaform.fi:8080/v1/realms/test/metaforms). 
+
+If you see following error message, your API is good to go: 
+
+    {
+      "code": 403,
+      "message": "Anonymous users are not allowed to list Metaforms"
+    }
+
