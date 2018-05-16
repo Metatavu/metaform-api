@@ -32,6 +32,12 @@ These instructions assume that system is being installed on machine with Ubuntu 
     wget "http://download.jboss.org/wildfly/12.0.0.Final/wildfly-12.0.0.Final.zip"
     unzip wildfly-12.0.0.Final.zip
     
+### Install Wildfly Postgres Module
+
+    cd $INSTALL_DIR/wildfly-12.0.0.Final
+    wget https://www.dropbox.com/s/lt5r6r3grz8gl9s/postgresql-wildfly-module.zip?dl=1 -O postgresql-wildfly-module.zip
+    unzip postgresql-wildfly-module.zip
+    
 ### Install Wildfly Keycloak Adapter
 
     cd $INSTALL_DIR/wildfly-12.0.0.Final
