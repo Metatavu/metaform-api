@@ -17,6 +17,10 @@ These instructions assume that system is being installed on machine with Ubuntu 
 
     sudo -u postgres createuser -R -S metaformapi
     sudo -u postgres createdb -Ometaformapi -Ttemplate0 metaformapi
+    
+### Install Java
+  
+    sudo apt-get install openjdk-8-jdk openjdk-8-jre
 
 ### Install Wildfly
 
