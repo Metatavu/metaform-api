@@ -84,4 +84,4 @@ And start the Wildfly by running
 
     $INSTALL_DIR/wildfly-12.0.0.Final/bin/standalone.sh
     
-And you're done, navigate API should respond with "Forbidden" from port 8080 in your defined host e.g. http://dev.metaform.fi:8080/
+And you're done, API should respond with "Forbidden" from port 8080 in your defined host e.g. http://dev.metaform.fi:8080/
