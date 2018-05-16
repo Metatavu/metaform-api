@@ -56,6 +56,7 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
 
      cd $INSTALL_DIR
      wget https://downloads.jboss.org/keycloak/3.4.3.Final/keycloak-3.4.3.Final.zip
+     unzip keycloak-3.4.3.Final.zip
 
 ### Configure Wildfly
 
@@ -83,7 +84,6 @@ Compile application
 Deploy by copying war-archive into the Wildfly deployments -folder:
 
     cp $INSTALL_DIR/metaform-api/target/*.war $INSTALL_DIR/wildfly-12.0.0.Final/standalone/deployments/
-    
     
 And start the Wildfly by running
 
