@@ -17,3 +17,9 @@ These instructions assume that system is being installed on machine with Ubuntu 
 
     sudo -u postgres createuser -R -S metaformapi
     sudo -u postgres createdb -Ometaformapi -Ttemplate0 metaformapi
+
+### Install Wildfly
+
+    wget "http://download.jboss.org/wildfly/12.0.0.Final/wildfly-12.0.0.Final.zip"
+    unzip wildfly-12.0.0.Final.zip
+    
