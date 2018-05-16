@@ -80,13 +80,16 @@ In order to use the API, Keycloak must be running, so starting it in another con
   
 ### Configure Wildfly
 
-Start Wildfly in background by running
+Start Wildfly in background by running following script:
+
+*Note that you need to replace [INSTALL_FOLDER] with your installation folder and [PASSWORD] with your postgres user password.
     
     cd $INSTALL_DIR/wildfly-12.0.0.Final/bin
     sh jboss-cli.sh
     embed-server --server-config=standalone.xml
+    /system-property=metaform-api.config-path:add(value="[INSTALL_FOLDER]/realms")
     /subsystem=datasources/jdbc-driver=postgres:add(driver-module-name="org.postgres",driver-xa-datasource-class-name="org.postgresql.xa.PGXADataSource",driver-datasource-class-name="org.postgresql.ds.PGSimpleDataSource")
-    /subsystem=datasources/xa-data-source=metaform:add(jndi-name="java:jboss/datasources/metaform-api", user-name="username", password="password", driver-name="postgres")
+    /subsystem=datasources/xa-data-source=metaform:add(jndi-name="java:jboss/datasources/metaform-api", user-name="username", password="[PASSWORD]", driver-name="postgres")
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=ServerName:add(value="localhost")
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=DatabaseName:add(value="metaformapi")
     /subsystem=undertow/server=default-server/host=metaform-api:add(default-web-module="metaform-api.war",alias=["dev.metaform.fi"])
