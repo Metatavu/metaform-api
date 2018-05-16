@@ -6,7 +6,7 @@ API Service for Metaforms.
 
 ### Prerequisites
 
-These instructions assume that system is being installed on machine with Ubuntu 16.04 OS.
+These instructions assume that system is being installed on machine with Ubuntu 16.04 OS. 
 
 ### Set environment
 
@@ -64,6 +64,21 @@ Start Wildfly in background by running
     /subsystem=undertow/server=default-server/host=metaform-api:add(default-web-module="metaform-api.war",alias=["dev.metaform.fi"])
     exit
     
+### Compile and deploy Metaform API
 
+Compile application
 
+    sudo apt install git maven
+    cd $INSTALL_DIR
+    git clone https://github.com/Metatavu/metaform-api.git
+    mvn clean package
+    
+Deploy by copying war-archive into the Wildfly deployments -folder:
 
+    cp $INSTALL_DIR/metaform-api/target/*.war $INSTALL_DIR/wildfly-12.0.0.Final/standalone/deployments/
+
+And start the Wildfly by running
+
+    $INSTALL_DIR/wildfly-12.0.0.Final/bin/standalone.sh
+
+And you're done :)
