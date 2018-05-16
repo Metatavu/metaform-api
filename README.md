@@ -61,7 +61,7 @@ Start Wildfly in background by running
     /subsystem=datasources/xa-data-source=metaform:add(jndi-name="java:jboss/datasources/metaform-api", user-name="username", password="password", driver-name="postgres")
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=ServerName:add(value="127.0.0.1")
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=DatabaseName:add(value="metaformapi")
-    
+    /subsystem=undertow/server=default-server/host=metaform-api:add(default-web-module="metaform-api.war",alias=["dev.metaform.fi"])
     
 
 
