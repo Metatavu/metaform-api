@@ -12,7 +12,7 @@ These instructions assume that system is being installed on machine with Ubuntu 
 
 Choose installation directory
 
-   export INSTALL_DIR=[Where you want to install the application] 
+    export INSTALL_DIR=[Where you want to install the application] 
    
 Add desired hostname into hosts file and change it to point to 127.0.0.1. In this example we use dev.metaform.fi
 
@@ -57,5 +57,5 @@ Start Wildfly in background by running
     cd $INSTALL_DIR/wildfly-12.0.0.Final/bin
     sh jboss-cli.sh
     embed-server --server-config=standalone.xml
-   
+    
 
