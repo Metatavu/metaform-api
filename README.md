@@ -27,3 +27,10 @@ These instructions assume that system is being installed on machine with Ubuntu 
     wget "http://download.jboss.org/wildfly/12.0.0.Final/wildfly-12.0.0.Final.zip"
     unzip wildfly-12.0.0.Final.zip
     
+### Install Wildfly Keycloak Adapter
+
+    cd wildfly-12.0.0.Final
+    wget https://downloads.jboss.org/keycloak/4.0.0.Beta2/adapters/keycloak-oidc/keycloak-wildfly-adapter-dist-4.0.0.Beta2.zip
+    unzip keycloak-wildfly-adapter-dist-4.0.0.Beta2.zip
+    sh bin/jboss-cli.sh --file=bin/adapter-elytron-install-offline.cli
+    rm keycloak-wildfly-adapter-dist-4.0.0.Beta2.zip
