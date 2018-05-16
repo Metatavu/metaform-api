@@ -25,6 +25,8 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
 
     sudo -u postgres createuser -R -S metaformapi
     sudo -u postgres createdb -Ometaformapi -Ttemplate0 metaformapi
+    sudo -u postgres psql 
+    alter user postgres with password 'password';    
     
 ### Install Java
   
@@ -59,7 +61,7 @@ Start Wildfly in background by running
     embed-server --server-config=standalone.xml
     /subsystem=datasources/jdbc-driver=postgres:add(driver-module-name="org.postgres",driver-xa-datasource-class-name="org.postgresql.xa.PGXADataSource",driver-datasource-class-name="org.postgresql.ds.PGSimpleDataSource")
     /subsystem=datasources/xa-data-source=metaform:add(jndi-name="java:jboss/datasources/metaform-api", user-name="username", password="password", driver-name="postgres")
-    /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=ServerName:add(value="127.0.0.1")
+    /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=ServerName:add(value="localhost")
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=DatabaseName:add(value="metaformapi")
     /subsystem=undertow/server=default-server/host=metaform-api:add(default-web-module="metaform-api.war",alias=["dev.metaform.fi"])
     exit
