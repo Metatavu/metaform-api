@@ -58,6 +58,11 @@ Start Wildfly in background by running
     sh jboss-cli.sh
     embed-server --server-config=standalone.xml
     /subsystem=datasources/jdbc-driver=postgres:add(driver-module-name="org.postgres",driver-xa-datasource-class-name="org.postgresql.xa.PGXADataSource",driver-datasource-class-name="org.postgresql.ds.PGSimpleDataSource")
+    /subsystem=datasources/xa-data-source=metaform:add(jndi-name="java:jboss/datasources/metaform-api", user-name="username", password="password", driver-name="postgres")
+    /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=ServerName:add(value="127.0.0.1")
+    /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=DatabaseName:add(value="metaformapi")
+    
+    
 
 
 
