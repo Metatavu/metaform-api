@@ -60,6 +60,8 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
      
 ### Start Keycloak
 
+In order to use the API, Keycloak must be running, so starting it in another console would be a good idea.
+
      cd $INSTALL_DIR/keycloak-3.4.3.Final/bin/
      sh standalone.sh
 
