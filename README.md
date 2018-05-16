@@ -64,7 +64,20 @@ In order to use the API, Keycloak must be running, so starting it in another con
 
      cd $INSTALL_DIR/keycloak-3.4.3.Final/bin/
      sh standalone.sh -Djboss.socket.binding.port-offset=200
+     
+### Setup Keycloak realm
 
+- Navigate into *http://localhost:8280/auth*. 
+- Create admin user
+- Login with newly created user
+- Create new realm
+- Create new client with following settings:
+  - Client Protocol: openid-connect
+  - Access Type: bearer-only
+- Click installation tab
+- Select Keycloak OIDC JSON format
+- Download the configuration and save it into $INSTALL_FOLDER/realms -folder and name it as realm.json (where realm is your realm's name)
+  
 ### Configure Wildfly
 
 Start Wildfly in background by running
