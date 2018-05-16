@@ -57,6 +57,11 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
      cd $INSTALL_DIR
      wget https://downloads.jboss.org/keycloak/3.4.3.Final/keycloak-3.4.3.Final.zip
      unzip keycloak-3.4.3.Final.zip
+     
+### Start Keycloak
+
+     cd $INSTALL_DIR/keycloak-3.4.3.Final/bin/
+     sh standalone.sh
 
 ### Configure Wildfly
 
