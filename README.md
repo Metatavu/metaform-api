@@ -6,11 +6,15 @@ API Service for Metaforms.
 
 ### Prerequisites
 
-These instructions assume that system is being installed on machine with Ubuntu 16.04 OS and that you have DNS address pointing to your server.
+These instructions assume that system is being installed on machine with Ubuntu 16.04 OS.
 
-### Set environment variables
+### Set environment
+
+Choose installation directory
 
    export INSTALL_DIR=[Where you want to install the application] 
+   
+Add desired hostname into hosts file and change it to point to 127.0.0.1. In this example we use dev.metaform.fi
 
 ### Install Postgres
 
