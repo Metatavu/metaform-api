@@ -78,9 +78,10 @@ Compile application
 Deploy by copying war-archive into the Wildfly deployments -folder:
 
     cp $INSTALL_DIR/metaform-api/target/*.war $INSTALL_DIR/wildfly-12.0.0.Final/standalone/deployments/
-
+    
+    
 And start the Wildfly by running
 
     $INSTALL_DIR/wildfly-12.0.0.Final/bin/standalone.sh
-
-And you're done :)
+    
+And you're done, navigate API should respond with "Forbidden" from port 8080 in your defined host e.g. http://dev.metaform.fi:8080/
