@@ -67,6 +67,12 @@ In order to use the API, Keycloak must be running, so starting it in another con
      
 ### Setup Keycloak realm
 
+If you have an export file, you can configure your Keycloak from it by starting the Keycloak one time with following command:
+
+     sh $INSTALL_DIR/keycloak-3.4.3.Final/bin/standalone.sh -Djboss.socket.binding.port-offset=200 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=yourmigrationfile.json
+     
+If you don't have an export file, you need to do following steps to create new realm and client: 
+
 - Navigate into *http://localhost:8280/auth*. 
 - Create admin user
 - Login with newly created user
