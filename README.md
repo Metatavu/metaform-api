@@ -29,6 +29,8 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
     alter user metaformapi with password 'password';    
     
 ### Install Java
+
+*Note that application does not compile with Java 10*
   
     sudo apt-get install openjdk-8-jdk openjdk-8-jre
 
