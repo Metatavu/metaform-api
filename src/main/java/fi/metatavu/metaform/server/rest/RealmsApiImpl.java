@@ -41,6 +41,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String NOT_FOUND_MESSAGE = "Not found";
+  private static final String UNAUTHORIZED = "Unauthorized";
 
   @Inject
   private Logger logger;
@@ -59,14 +60,19 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
   @Override
   public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting) throws Exception {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    UUID loggedUserId = getLoggerUserId();
+    if (loggedUserId == null) {
+      return createForbidden(UNAUTHORIZED);
     }
     
-    UUID loggedUserId = getLoggerUserId();
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    boolean anonymous = !isRealmUser();
+    if (!metaform.getAllowAnonymous() && anonymous) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
     
     UUID userId = payload.getUserId();
@@ -77,15 +83,20 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     // TODO: Permission check
     // TODO: Support multiple
     
-    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
-    if (reply == null) {
+    fi.metatavu.metaform.server.persistence.model.Reply reply = null;
+    if (anonymous) {
       reply = replyController.createReply(userId, metaform);
     } else {
-      if (!updateExisting) {
-        // If there is already an existing reply but we are not updating it
-        // We need to change the existing reply into a revision and create new reply
-        replyController.convertToRevision(reply);
+      reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
+      if (reply == null) {
         reply = replyController.createReply(userId, metaform);
+      } else {
+        if (!updateExisting) {
+          // If there is already an existing reply but we are not updating it
+          // We need to change the existing reply into a revision and create new reply
+          replyController.convertToRevision(reply);
+          reply = replyController.createReply(userId, metaform);
+        }
       }
     }
     
@@ -242,9 +253,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createBadRequest("Invalid Metaform JSON");  
     }
     
+    Boolean allowAnonymous = payload.isAllowAnonymous();
+    
     // TODO: Permission check
     
-    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(realmId, data)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(realmId, allowAnonymous, data)));
   }
 
   public Response listMetaforms(String realmId) throws Exception {

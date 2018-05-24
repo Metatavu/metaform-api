@@ -106,5 +106,11 @@
     </createIndex>
     
   </changeSet>  
+  
+  <changeSet id="anonymous-replies" author="antti.leppa">
+    <addColumn tableName="metaform">
+      <column name="allowAnonymous" type="boolean" defaultValue="false"/>
+    </addColumn>
+  </changeSet> 
     
 </databaseChangeLog>

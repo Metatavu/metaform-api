@@ -37,9 +37,9 @@ public class MetaformController {
    * @param data form JSON
    * @return Metaform
    */
-  public Metaform createMetaform(String realmId, String data) {
+  public Metaform createMetaform(String realmId, Boolean allowAnonymous, String data) {
     UUID id = UUID.randomUUID();
-    return metaformDAO.create(id, realmId, data);    
+    return metaformDAO.create(id, realmId, allowAnonymous, data);    
   }
 
   /**
