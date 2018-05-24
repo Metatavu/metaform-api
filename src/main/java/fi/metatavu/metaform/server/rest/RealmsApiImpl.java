@@ -254,6 +254,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
     
     Boolean allowAnonymous = payload.isAllowAnonymous();
+    if (allowAnonymous == null) {
+      allowAnonymous  = false;
+    }
     
     // TODO: Permission check
     
