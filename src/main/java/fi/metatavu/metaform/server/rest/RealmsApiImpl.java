@@ -83,23 +83,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     // TODO: Permission check
     // TODO: Support multiple
     
-    fi.metatavu.metaform.server.persistence.model.Reply reply = null;
-    if (anonymous) {
-      reply = replyController.createReply(userId, metaform);
-    } else {
-      reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
-      if (reply == null) {
-        reply = replyController.createReply(userId, metaform);
-      } else {
-        if (!updateExisting) {
-          // If there is already an existing reply but we are not updating it
-          // We need to change the existing reply into a revision and create new reply
-          replyController.convertToRevision(reply);
-          reply = replyController.createReply(userId, metaform);
-        }
-      }
-    }
-    
+    fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(updateExisting, metaform, anonymous, userId);
     ReplyData data = payload.getData();
     if (data == null) {
       logger.warn("Received a reply with null data");
@@ -361,6 +345,37 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   public Response export(String realmId, UUID metaformId, String format) throws Exception {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  /**
+   * Resolves reply object when creating new reply
+   * 
+   * @param updateExisting whether to update existing reply
+   * @param metaform metaform
+   * @param anonymous is user anonymous
+   * @param userId user id
+   * @return reply object
+   */
+  private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(Boolean updateExisting, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId) {
+    fi.metatavu.metaform.server.persistence.model.Reply reply = null;
+    
+    if (anonymous) {
+      reply = replyController.createReply(userId, metaform);
+    } else {
+      reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
+      if (reply == null) {
+        reply = replyController.createReply(userId, metaform);
+      } else {
+        if (!updateExisting) {
+          // If there is already an existing reply but we are not updating it
+          // We need to change the existing reply into a revision and create new reply
+          replyController.convertToRevision(reply);
+          reply = replyController.createReply(userId, metaform);
+        }
+      }
+    }
+    
+    return reply;
   }
 
   private String serializeMetaform(Metaform metaform) {
