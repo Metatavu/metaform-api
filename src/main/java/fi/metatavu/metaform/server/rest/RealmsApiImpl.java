@@ -276,13 +276,20 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   public Response findMetaform(String realmId, UUID metaformId) throws Exception {
     // TODO: Permission check
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+    
+    UUID loggedUserId = getLoggerUserId();
+    if (loggedUserId == null) {
+      return createForbidden(UNAUTHORIZED);
     }
-
+    
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    boolean anonymous = !isRealmUser();
+    if (!metaform.getAllowAnonymous() && anonymous) {
+      return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
     }
     
     if (!StringUtils.equals(metaform.getRealmId(), realmId)) {

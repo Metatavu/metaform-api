@@ -109,7 +109,7 @@
   
   <changeSet id="anonymous-replies" author="antti.leppa">
     <addColumn tableName="metaform">
-      <column name="allowAnonymous" type="boolean" defaultValue="false"/>
+      <column name="allowanonymous" type="boolean" defaultValue="false"/>
     </addColumn>
   </changeSet> 
     
