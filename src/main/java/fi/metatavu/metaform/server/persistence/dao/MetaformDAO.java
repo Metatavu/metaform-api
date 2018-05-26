@@ -28,11 +28,14 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
    * @param data form JSON
    * @return created Metaform
    */
-  public Metaform create(UUID id, String realmId, String data) {
+  public Metaform create(UUID id, String realmId, Boolean allowAnonymous, String data) {
     Metaform metaform = new Metaform(); 
+    
     metaform.setId(id);
     metaform.setData(data);
     metaform.setRealmId(realmId);
+    metaform.setAllowAnonymous(allowAnonymous);
+    
     return persist(metaform);
   }
 
