@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.persistence.model;
 import java.util.UUID;
 
 import javax.persistence.Cacheable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -31,6 +32,10 @@ public class Metaform {
 
   @Lob
   private String data;
+
+  @NotNull
+  @Column (nullable = false)
+  private Boolean allowAnonymous;
   
   public UUID getId() {
     return id;
@@ -54,6 +59,14 @@ public class Metaform {
   
   public void setData(String data) {
     this.data = data;
+  }
+  
+  public Boolean getAllowAnonymous() {
+    return allowAnonymous;
+  }
+  
+  public void setAllowAnonymous(Boolean allowAnonymous) {
+    this.allowAnonymous = allowAnonymous;
   }
   
 }
