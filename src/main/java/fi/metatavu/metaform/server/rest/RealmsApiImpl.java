@@ -98,7 +98,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
     }
     
-    return createOk(replyTranslator.translateReply(reply));
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    return createOk(replyTranslator.translateReply(metaformEntity, reply));
   }
 
   public Response findReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
@@ -126,7 +127,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    return createOk(replyTranslator.translateReply(reply));
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    return createOk(replyTranslator.translateReply(metaformEntity, reply));
   }
   
   @Override
@@ -159,11 +161,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         modifiedBefore, 
         modifiedAfter,
         includeRevisions == null ? false : includeRevisions);
-
-    List<Reply> result = replies.stream().map((entity) -> {
-     return replyTranslator.translateReply(entity);
-    }).collect(Collectors.toList());
     
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    List<Reply> result = replies.stream().map(entity -> 
+     replyTranslator.translateReply(metaformEntity, entity)
+    ).collect(Collectors.toList());
     
     return createOk(result);
   }
