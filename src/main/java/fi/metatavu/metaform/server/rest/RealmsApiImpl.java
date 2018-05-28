@@ -98,7 +98,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
     }
     
-    return createOk(replyTranslator.translateReply(reply));
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    return createOk(replyTranslator.translateReply(metaformEntity, reply));
   }
 
   public Response findReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
@@ -126,12 +127,13 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    return createOk(replyTranslator.translateReply(reply));
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    return createOk(replyTranslator.translateReply(metaformEntity, reply));
   }
   
   @Override
   public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam,
-      String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions) throws Exception {
+      String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields) throws Exception {
     // TODO: Permission check
     
     OffsetDateTime createdBefore = parseTime(createdBeforeParam);
@@ -159,11 +161,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         modifiedBefore, 
         modifiedAfter,
         includeRevisions == null ? false : includeRevisions);
-
-    List<Reply> result = replies.stream().map((entity) -> {
-     return replyTranslator.translateReply(entity);
-    }).collect(Collectors.toList());
     
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    List<Reply> result = replies.stream().map(entity -> 
+     replyTranslator.translateReply(metaformEntity, entity)
+    ).collect(Collectors.toList());
     
     return createOk(result);
   }
@@ -184,7 +186,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    if (!reply.getUserId().equals(loggedUserId)) {
+    if (!isRealmMetaformAdmin() && !reply.getUserId().equals(loggedUserId)) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
@@ -320,26 +322,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     metaformController.deleteMetaform(metaform);
     
     return createNoContent();
-  }
-  
-  public Response findReplyMeta(String realmId, UUID metaformId, UUID replyId) throws Exception {
-    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
-    if (metaform == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
-    if (reply == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
-      return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
-    }
-    
-    // TODO: Permission check
-    
-    return createOk(replyTranslator.translateReplyMeta(reply));
   }
 
   public Response export(String realmId, UUID metaformId, String format) throws Exception {
