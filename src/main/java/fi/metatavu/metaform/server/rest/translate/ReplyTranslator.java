@@ -51,7 +51,7 @@ public class ReplyTranslator {
       String fieldName = field.getName();
       
       if (isMetafield(metaformEntity, fieldName)) {
-        resolveMetaField(replyData, fieldName, entity);;
+        resolveMetaField(replyData, fieldName, entity);
       } else {
         if (field instanceof NumberReplyField) {
           replyData.put(fieldName, ((NumberReplyField) field).getValue());
