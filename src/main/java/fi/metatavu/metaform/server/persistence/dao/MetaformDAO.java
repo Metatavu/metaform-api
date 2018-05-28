@@ -72,4 +72,17 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
     return persist(metaform);
   }
 
+  /**
+   * Updates allowAnonymous value
+   * 
+   * @param metaform Metaform
+   * @param allowAnonymous allow anonymous 
+   * @return Updated Metaform
+   */
+  public Metaform updateAllowAnonymous(Metaform metaform, Boolean allowAnonymous) {
+    metaform.setAllowAnonymous(allowAnonymous);
+    return persist(metaform);
+  }
+
+
 }

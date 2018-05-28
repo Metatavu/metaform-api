@@ -301,9 +301,14 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
+    Boolean allowAnonymous = payload.isAllowAnonymous();
+    if (allowAnonymous == null) {
+      allowAnonymous = metaform.getAllowAnonymous();
+    }
+    
     // TODO: Permission check
     
-    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, data)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, data, allowAnonymous)));
   }
   
   @Override

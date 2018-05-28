@@ -67,10 +67,13 @@ public class MetaformController {
    * 
    * @param metaform Metaform
    * @param data form JSON
+   * @param allowAnonymous allow anonymous 
    * @return Updated Metaform
    */
-  public Metaform updateMetaform(Metaform metaform, String data) {
-    return metaformDAO.updateData(metaform, data);
+  public Metaform updateMetaform(Metaform metaform, String data, Boolean allowAnonymous) {
+    metaformDAO.updateData(metaform, data);
+    metaformDAO.updateAllowAnonymous(metaform, allowAnonymous);
+    return metaform;
   }
 
   /**
