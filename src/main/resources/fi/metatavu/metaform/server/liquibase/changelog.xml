@@ -112,5 +112,25 @@
       <column name="allowanonymous" type="boolean" defaultValue="false"/>
     </addColumn>
   </changeSet> 
+  
+  <changeSet id="listreplyfields" author="antti.leppa">
+    <createTable tableName="listreplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_LIST_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+    
+    <createTable tableName="listreplyfielditem">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>      
+      <column name="field_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_LIST_REPLY_ITEM_FIELD_ID" referencedTableName="listreplyfield" referencedColumnNames="id"/>
+      </column>
+      <column name="value" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet> 
     
 </databaseChangeLog>

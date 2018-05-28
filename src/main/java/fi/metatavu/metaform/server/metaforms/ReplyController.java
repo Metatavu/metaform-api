@@ -1,8 +1,10 @@
 package fi.metatavu.metaform.server.metaforms;
 
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -11,15 +13,21 @@ import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.BooleanReplyFieldDAO;
+import fi.metatavu.metaform.server.persistence.dao.ListReplyFieldDAO;
+import fi.metatavu.metaform.server.persistence.dao.ListReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.dao.NumberReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
 import fi.metatavu.metaform.server.persistence.dao.StringReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.model.BooleanReplyField;
+import fi.metatavu.metaform.server.persistence.model.ListReplyField;
+import fi.metatavu.metaform.server.persistence.model.ListReplyFieldItem;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.NumberReplyField;
 import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.persistence.model.StringReplyField;
+import fi.metatavu.metaform.server.rest.model.MetaformField;
+import fi.metatavu.metaform.server.rest.model.MetaformSection;
 
 /**
  * Reply controller
@@ -46,6 +54,12 @@ public class ReplyController {
 
   @Inject
   private NumberReplyFieldDAO numberReplyFieldDAO;
+
+  @Inject
+  private ListReplyFieldDAO listReplyFieldDAO;
+
+  @Inject
+  private ListReplyFieldItemDAO listReplyFieldItemDAO;
   
   /**
    * Creates new reply
@@ -106,6 +120,8 @@ public class ReplyController {
       return setReplyField(reply, name, (Number) value);
     } else if (value instanceof String) {
       return setReplyField(reply, name, (String) value);
+    } else if (value instanceof List) {
+      return setReplyField(reply, name, (List<?>) value);
     } else {
       if (logger.isErrorEnabled()) {
         logger.error(String.format("Unsupported to type (%s) for field %s in reply %s", value.getClass().getName(), name, reply.getId().toString()));
@@ -126,7 +142,7 @@ public class ReplyController {
   public ReplyField setReplyField(Reply reply, String name, String value) {
     ReplyField replyField = anyReplyFieldDAO.findByReplyAndName(reply, name);
     if (replyField != null && !(replyField instanceof StringReplyField)) {
-      anyReplyFieldDAO.delete(replyField);
+      deleteField(replyField);
       replyField = null;
     }
     
@@ -148,7 +164,7 @@ public class ReplyController {
   public ReplyField setReplyField(Reply reply, String name, Boolean value) {
     ReplyField replyField = anyReplyFieldDAO.findByReplyAndName(reply, name);
     if (replyField != null && !(replyField instanceof BooleanReplyField)) {
-      anyReplyFieldDAO.delete(replyField);
+      deleteField(replyField);
       replyField = null;
     }
     
@@ -170,7 +186,7 @@ public class ReplyController {
   public ReplyField setReplyField(Reply reply, String name, Number value) {
     ReplyField replyField = anyReplyFieldDAO.findByReplyAndName(reply, name);
     if (replyField != null && !(replyField instanceof NumberReplyField)) {
-      anyReplyFieldDAO.delete(replyField);
+      deleteField(replyField);
       replyField = null;
     }
     
@@ -179,6 +195,38 @@ public class ReplyController {
     } else {
       return numberReplyFieldDAO.updateValue((NumberReplyField) replyField, value.doubleValue());
     }
+  }
+
+  /**
+   * Sets reply field value
+   * 
+   * @param reply reply
+   * @param name name 
+   * @param values values
+   * @return updated field
+   */
+  public ReplyField setReplyField(Reply reply, String name, List<?> values) {
+    ReplyField replyField = anyReplyFieldDAO.findByReplyAndName(reply, name);
+    if (replyField != null && !(replyField instanceof ListReplyField)) {
+      deleteField(replyField);
+      replyField = null;
+    }
+    
+    ListReplyField listReplyField = (ListReplyField) replyField;
+    
+    if (listReplyField == null) {
+      listReplyField = listReplyFieldDAO.create(UUID.randomUUID(), reply, name);
+    } else {
+      deleteListReplyFieldItems(listReplyField); 
+    }
+
+    for (Object value : values) {
+      if (value != null) {
+        listReplyFieldItemDAO.create(UUID.randomUUID(), listReplyField, value.toString());
+      }
+    }
+    
+    return listReplyField;
   }
 
   /**
@@ -191,7 +239,7 @@ public class ReplyController {
     for (String fieldName : fieldNames) {
       ReplyField replyField = anyReplyFieldDAO.findByReplyAndName(reply, fieldName);
       if (replyField != null) {
-        anyReplyFieldDAO.delete(replyField);
+        deleteField(replyField);
       }
     }
   }
@@ -203,7 +251,7 @@ public class ReplyController {
    */
   public void deleteReply(Reply reply) {
     anyReplyFieldDAO.listByReply(reply).stream()
-      .forEach(field -> anyReplyFieldDAO.delete(field));
+      .forEach(this::deleteField);
     
     replyDAO.delete(reply);
   }
@@ -242,6 +290,131 @@ public class ReplyController {
    */
   public void convertToRevision(Reply reply) {
     replyDAO.updateRevision(reply, reply.getModifiedAt());
+  }
+
+  /**
+   * Returns value for a reply field
+   * 
+   * @param metaformEntity metaform
+   * @param reply reply
+   * @param field field
+   * @return value
+   */
+  public Object getFieldValue(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, Reply reply, ReplyField field) {
+    String fieldName = field.getName();
+    
+    if (isMetafield(metaformEntity, fieldName)) {
+      return resolveMetaField(fieldName, reply);
+    } else {
+      if (field instanceof NumberReplyField) {
+        return ((NumberReplyField) field).getValue();
+      } else if (field instanceof BooleanReplyField) {
+        return ((BooleanReplyField) field).getValue();
+      } else if (field instanceof StringReplyField) {
+        return ((StringReplyField) field).getValue();
+      } else if (field instanceof ListReplyField) {
+        return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
+          .map(ListReplyFieldItem::getValue)
+          .collect(Collectors.toList());
+      } else {
+        logger.error("Could not resolve {}", fieldName); 
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Deletes a reply field
+   * 
+   * @param replyField reply field
+   */
+  private void deleteField(ReplyField replyField) {
+    if (replyField instanceof ListReplyField) {
+      ListReplyField listReplyField = (ListReplyField) replyField;
+      deleteListReplyFieldItems(listReplyField);
+    }
+    
+    anyReplyFieldDAO.delete(replyField);
+  }
+
+  /**
+   * Removes all items from list reply field
+   * 
+   * @param listReplyField field
+   */
+  private void deleteListReplyFieldItems(ListReplyField listReplyField) {
+    listReplyFieldItemDAO.listByField(listReplyField).stream().forEach(listReplyFieldItemDAO::delete);
+  }
+    
+  /**
+   * Returns whether form field is a meta field
+   * 
+   * @param metaformEntity form
+   * @param name name
+   * @return whether form field is a meta field
+   */
+  private boolean isMetafield(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
+    MetaformField field = getField(metaformEntity, name);
+    return field != null && field.getContexts() != null && field.getContexts().contains("META");
+  }
+  
+  /**
+   * Returns field by name
+   * 
+   * @param metaformEntity form
+   * @param name name
+   * @return field
+   */
+  private MetaformField getField(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
+    List<MetaformSection> sections = metaformEntity.getSections();
+    
+    for (MetaformSection section : sections) {
+      for (MetaformField field : section.getFields()) {
+        if (name.equals(field.getName())) {
+          return field;
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Resolves meta field
+   * 
+   * @param fieldName field name
+   * @param entity reply
+   * @return meta field value
+   */
+  private Object resolveMetaField(String fieldName, fi.metatavu.metaform.server.persistence.model.Reply entity) {
+    switch (fieldName) {
+      case "lastEditor":
+        return entity.getUserId();
+      case "created":
+        return formatDateTime(entity.getCreatedAt());
+      case "modified":
+        return formatDateTime(entity.getModifiedAt());
+      default:
+        logger.warn("Metafield {} not recognized", fieldName);
+      break;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Formats date time in ISO date-time format
+   * 
+   * @param dateTime date time
+   * @return date time in ISO date-time format
+   */
+  private String formatDateTime(OffsetDateTime dateTime) {
+    if (dateTime == null) {
+      return null;
+    }
+    
+    return dateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
   }
 
 }
