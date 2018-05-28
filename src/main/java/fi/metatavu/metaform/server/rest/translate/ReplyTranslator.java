@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest.translate;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -13,11 +14,11 @@ import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.persistence.model.BooleanReplyField;
 import fi.metatavu.metaform.server.persistence.model.NumberReplyField;
 import fi.metatavu.metaform.server.persistence.model.StringReplyField;
-import fi.metatavu.metaform.server.rest.model.Metafield;
 import fi.metatavu.metaform.server.rest.model.Metaform;
+import fi.metatavu.metaform.server.rest.model.MetaformField;
+import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
-import fi.metatavu.metaform.server.rest.model.ReplyMeta;
 
 /**
  * Translator for replies
@@ -49,22 +50,20 @@ public class ReplyTranslator {
     replyController.listReplyFields(entity).forEach(field -> {
       String fieldName = field.getName();
       
-      if (field instanceof NumberReplyField) {
-        replyData.put(fieldName, ((NumberReplyField) field).getValue());
-      } else if (field instanceof BooleanReplyField) {
-        replyData.put(fieldName, ((BooleanReplyField) field).getValue());
-      } else if (field instanceof StringReplyField) {
-        replyData.put(fieldName, ((StringReplyField) field).getValue());
+      if (isMetafield(metaformEntity, fieldName)) {
+        resolveMetaField(replyData, fieldName, entity);;
       } else {
-        logger.error(String.format("Could not resolve %s", fieldName)); 
+        if (field instanceof NumberReplyField) {
+          replyData.put(fieldName, ((NumberReplyField) field).getValue());
+        } else if (field instanceof BooleanReplyField) {
+          replyData.put(fieldName, ((BooleanReplyField) field).getValue());
+        } else if (field instanceof StringReplyField) {
+          replyData.put(fieldName, ((StringReplyField) field).getValue());
+        } else {
+          logger.error(String.format("Could not resolve %s", fieldName)); 
+        }
       }
     });
-    
-    if (metaformEntity.getMetafields() != null) {
-      metaformEntity.getMetafields().forEach((metafield) -> {
-        resolveMetafield(replyData, metafield, entity);
-      });
-    }
     
     Reply reply = new Reply();
     reply.setId(entity.getId());
@@ -75,41 +74,63 @@ public class ReplyTranslator {
     return reply;
   }
   
-  private void resolveMetafield(ReplyData replyData, Metafield metafield, fi.metatavu.metaform.server.persistence.model.Reply entity) {
-    switch (metafield.getName()) {
+  /**
+   * Returns whether form field is a meta field
+   * 
+   * @param metaformEntity form
+   * @param name name
+   * @return whether form field is a meta field
+   */
+  private boolean isMetafield(Metaform metaformEntity, String name) {
+    MetaformField field = getField(metaformEntity, name);
+    return field != null && field.getContexts() != null && field.getContexts().contains("META");
+  }
+  
+  /**
+   * Returns field by name
+   * 
+   * @param metaformEntity form
+   * @param name name
+   * @return field
+   */
+  private MetaformField getField(Metaform metaformEntity, String name) {
+    List<MetaformSection> sections = metaformEntity.getSections();
+    
+    for (MetaformSection section : sections) {
+      for (MetaformField field : section.getFields()) {
+        if (name.equals(field.getName())) {
+          return field;
+        }
+      }
+    }
+    
+    return null;
+  }
+  
+  /**
+   * Resolves meta field
+   * 
+   * @param replyData reply data
+   * @param fieldName field name
+   * @param entity reply
+   */
+  private void resolveMetaField(ReplyData replyData, String fieldName, fi.metatavu.metaform.server.persistence.model.Reply entity) {
+    switch (fieldName) {
       case "lastEditor":
-        replyData.put(metafield.getName(), entity.getUserId());
+        replyData.put(fieldName, entity.getUserId());
       break;
       case "created":
-        replyData.put(metafield.getName(), formatDateTime(entity.getCreatedAt()));
+        replyData.put(fieldName, formatDateTime(entity.getCreatedAt()));
       break;
       case "modified":
-        replyData.put(metafield.getName(), formatDateTime(entity.getModifiedAt()));
+        replyData.put(fieldName, formatDateTime(entity.getModifiedAt()));
       break;
       default:
-        logger.warn("Metafield {} not recognized", metafield.getName());
+        logger.warn("Metafield {} not recognized", fieldName);
       break;
     }
   }
 
-  /**
-   * Translates JPA reply object into REST reply meta
-   * 
-   * @param reply JPA reply object
-   * @return REST reply meta
-   */
-  public ReplyMeta translateReplyMeta(fi.metatavu.metaform.server.persistence.model.Reply reply) {
-    if (reply == null) {
-      return null;
-    }
-    
-    ReplyMeta replyMeta = new ReplyMeta();
-    replyMeta.setCreatedAt(reply.getCreatedAt());
-    replyMeta.setModifiedAt(reply.getModifiedAt());
-    
-    return replyMeta;
-  }
-  
   /**
    * Formats date time in ISO date-time format
    * 
