@@ -18,6 +18,8 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.metatavu.metaform.server.metaforms.FieldController;
+import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.rest.model.Metaform;
@@ -51,6 +53,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private ReplyController replyController;
+  
+  @Inject
+  private FieldController fieldController;
 
   @Inject
   private MetaformTranslator metaformTranslator;
@@ -153,6 +158,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
+    
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    
+    FieldFilters fieldFilters = fieldController.parseFilters(metaformEntity, fields);
 
     List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, 
         userId, 
@@ -160,9 +169,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         createdAfter, 
         modifiedBefore, 
         modifiedAfter,
-        includeRevisions == null ? false : includeRevisions);
+        includeRevisions == null ? false : includeRevisions,
+        fieldFilters);
     
-    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     List<Reply> result = replies.stream().map(entity -> 
      replyTranslator.translateReply(metaformEntity, entity)
     ).collect(Collectors.toList());
