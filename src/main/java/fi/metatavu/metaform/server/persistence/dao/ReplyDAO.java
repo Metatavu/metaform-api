@@ -38,6 +38,7 @@ import fi.metatavu.metaform.server.persistence.model.NumberReplyField;
 import fi.metatavu.metaform.server.persistence.model.NumberReplyField_;
 import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
+import fi.metatavu.metaform.server.persistence.model.ReplyField_;
 import fi.metatavu.metaform.server.persistence.model.Reply_;
 import fi.metatavu.metaform.server.persistence.model.StringReplyField;
 import fi.metatavu.metaform.server.persistence.model.StringReplyField_;
@@ -324,7 +325,7 @@ public class ReplyDAO extends AbstractDAO<Reply> {
   private <T extends ReplyField> Subquery<Reply> createFieldFilterSubquery(Class<T> rootClass, List<FieldFilter> fieldFilters, CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, Function<Root<T>, Expression<?>> valueFieldFunction) {
     Subquery<Reply> fieldSubquery = criteria.subquery(Reply.class);
     Root<T> fieldRoot = fieldSubquery.from(rootClass);
-    fieldSubquery.select(fieldRoot.get(StringReplyField_.reply));
+    fieldSubquery.select(fieldRoot.get(ReplyField_.reply));
     
     Expression<?> valueField = valueFieldFunction.apply(fieldRoot);
     
@@ -333,7 +334,7 @@ public class ReplyDAO extends AbstractDAO<Reply> {
           ? criteriaBuilder.equal(valueField, filter.getValue())
           : criteriaBuilder.notEqual(valueField, filter.getValue());
       
-      return criteriaBuilder.and(criteriaBuilder.equal(fieldRoot.get(StringReplyField_.name), filter.getField()), valuePredicate);
+      return criteriaBuilder.and(criteriaBuilder.equal(fieldRoot.get(ReplyField_.name), filter.getField()), valuePredicate);
     }).toArray(Predicate[]::new)));
     return fieldSubquery;
   }

@@ -4,7 +4,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
@@ -12,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
@@ -58,7 +58,7 @@ public class FieldController {
     }
     
     List<FieldFilter> filters = filterList.stream()
-      .filter(Objects::nonNull)
+      .filter(StringUtils::isNoneEmpty)
       .map(filter -> parseFilter(metaform, filter))
       .collect(Collectors.toList());
     
