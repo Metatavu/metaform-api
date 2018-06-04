@@ -1,10 +1,8 @@
 package fi.metatavu.metaform.server.metaforms;
 
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -20,14 +18,11 @@ import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
 import fi.metatavu.metaform.server.persistence.dao.StringReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.model.BooleanReplyField;
 import fi.metatavu.metaform.server.persistence.model.ListReplyField;
-import fi.metatavu.metaform.server.persistence.model.ListReplyFieldItem;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.NumberReplyField;
 import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.persistence.model.StringReplyField;
-import fi.metatavu.metaform.server.rest.model.MetaformField;
-import fi.metatavu.metaform.server.rest.model.MetaformSection;
 
 /**
  * Reply controller
@@ -211,15 +206,23 @@ public class ReplyController {
       deleteField(replyField);
       replyField = null;
     }
-    
+
     ListReplyField listReplyField = (ListReplyField) replyField;
+    if (values == null || values.isEmpty()) {
+      if (listReplyField != null) {
+        deleteListReplyFieldItems(listReplyField); 
+        listReplyFieldDAO.delete(listReplyField);
+      }
+      
+      return null;
+    }
     
     if (listReplyField == null) {
       listReplyField = listReplyFieldDAO.create(UUID.randomUUID(), reply, name);
     } else {
       deleteListReplyFieldItems(listReplyField); 
     }
-
+    
     for (Object value : values) {
       if (value != null) {
         listReplyFieldItemDAO.create(UUID.randomUUID(), listReplyField, value.toString());
@@ -269,8 +272,9 @@ public class ReplyController {
    * @return replies list of replies
    * @return replies
    */
-  public List<Reply> listReplies(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter, boolean includeRevisions) {
-    return replyDAO.list(metaform, userId, includeRevisions, createdBefore, createdAfter, modifiedBefore, modifiedAfter);
+  @SuppressWarnings ("squid:S00107")
+  public List<Reply> listReplies(Metaform metaform, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter, OffsetDateTime modifiedBefore, OffsetDateTime modifiedAfter, boolean includeRevisions, FieldFilters fieldFilters) {
+    return replyDAO.list(metaform, userId, includeRevisions, createdBefore, createdAfter, modifiedBefore, modifiedAfter, fieldFilters);
   }
 
   /**
@@ -293,38 +297,6 @@ public class ReplyController {
   }
 
   /**
-   * Returns value for a reply field
-   * 
-   * @param metaformEntity metaform
-   * @param reply reply
-   * @param field field
-   * @return value
-   */
-  public Object getFieldValue(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, Reply reply, ReplyField field) {
-    String fieldName = field.getName();
-    
-    if (isMetafield(metaformEntity, fieldName)) {
-      return resolveMetaField(fieldName, reply);
-    } else {
-      if (field instanceof NumberReplyField) {
-        return ((NumberReplyField) field).getValue();
-      } else if (field instanceof BooleanReplyField) {
-        return ((BooleanReplyField) field).getValue();
-      } else if (field instanceof StringReplyField) {
-        return ((StringReplyField) field).getValue();
-      } else if (field instanceof ListReplyField) {
-        return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
-          .map(ListReplyFieldItem::getValue)
-          .collect(Collectors.toList());
-      } else {
-        logger.error("Could not resolve {}", fieldName); 
-      }
-    }
-    
-    return null;
-  }
-  
-  /**
    * Deletes a reply field
    * 
    * @param replyField reply field
@@ -346,75 +318,6 @@ public class ReplyController {
   private void deleteListReplyFieldItems(ListReplyField listReplyField) {
     listReplyFieldItemDAO.listByField(listReplyField).stream().forEach(listReplyFieldItemDAO::delete);
   }
-    
-  /**
-   * Returns whether form field is a meta field
-   * 
-   * @param metaformEntity form
-   * @param name name
-   * @return whether form field is a meta field
-   */
-  private boolean isMetafield(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
-    MetaformField field = getField(metaformEntity, name);
-    return field != null && field.getContexts() != null && field.getContexts().contains("META");
-  }
   
-  /**
-   * Returns field by name
-   * 
-   * @param metaformEntity form
-   * @param name name
-   * @return field
-   */
-  private MetaformField getField(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
-    List<MetaformSection> sections = metaformEntity.getSections();
-    
-    for (MetaformSection section : sections) {
-      for (MetaformField field : section.getFields()) {
-        if (name.equals(field.getName())) {
-          return field;
-        }
-      }
-    }
-    
-    return null;
-  }
-  
-  /**
-   * Resolves meta field
-   * 
-   * @param fieldName field name
-   * @param entity reply
-   * @return meta field value
-   */
-  private Object resolveMetaField(String fieldName, fi.metatavu.metaform.server.persistence.model.Reply entity) {
-    switch (fieldName) {
-      case "lastEditor":
-        return entity.getUserId();
-      case "created":
-        return formatDateTime(entity.getCreatedAt());
-      case "modified":
-        return formatDateTime(entity.getModifiedAt());
-      default:
-        logger.warn("Metafield {} not recognized", fieldName);
-      break;
-    }
-    
-    return null;
-  }
-
-  /**
-   * Formats date time in ISO date-time format
-   * 
-   * @param dateTime date time
-   * @return date time in ISO date-time format
-   */
-  private String formatDateTime(OffsetDateTime dateTime) {
-    if (dateTime == null) {
-      return null;
-    }
-    
-    return dateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-  }
 
 }

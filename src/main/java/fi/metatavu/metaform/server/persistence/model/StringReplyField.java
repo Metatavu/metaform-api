@@ -6,6 +6,7 @@ import javax.persistence.Lob;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 
 /**
  * JPA entity representing string field in reply
@@ -18,6 +19,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 public class StringReplyField extends ReplyField {
 
   @Lob
+  @Type(type = "org.hibernate.type.TextType")
   private String value;
 
   public String getValue() {

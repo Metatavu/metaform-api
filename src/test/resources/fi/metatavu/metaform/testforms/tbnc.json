@@ -1,0 +1,36 @@
+{
+  "sections": [
+    {
+      "title": "Text, boolean, number, checklist form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "boolean",
+          "type": "boolean",
+          "title": "Boolean field"
+        },
+        {
+          "name": "number",
+          "type": "number",
+          "title": "Number field"
+        },
+        {
+          "name": "checklist",
+          "type": "checklist",
+          "title": "Checklist field",
+          "options": [{
+            "name": "option 1",
+            "text": "Option 1"
+          }, {
+            "name": "option 2",
+            "text": "Option 2"
+          }]
+        }
+      ]
+    }
+  ]
+}

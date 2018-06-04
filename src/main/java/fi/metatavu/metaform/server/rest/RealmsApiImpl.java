@@ -12,12 +12,15 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.metatavu.metaform.server.metaforms.FieldController;
+import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.rest.model.Metaform;
@@ -51,15 +54,18 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private ReplyController replyController;
+  
+  @Inject
+  private FieldController fieldController;
 
   @Inject
   private MetaformTranslator metaformTranslator;
 
   @Inject
   private ReplyTranslator replyTranslator;
-  
+
   @Override
-  public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting) throws Exception {
+  public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
@@ -80,10 +86,23 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       userId = loggedUserId;
     }
     
+    ReplyMode replyMode = EnumUtils.getEnum(ReplyMode.class, replyModeParam);
+    if (replyModeParam != null && replyMode == null) {
+      return createBadRequest(String.format("Invalid reply mode %s", replyModeParam));
+    }
+    
+    if (updateExisting != null) {
+      replyMode = updateExisting ? ReplyMode.UPDATE : ReplyMode.REVISION;
+    }
+    
+    if (replyMode == null) {
+      replyMode = ReplyMode.UPDATE;
+    }
+    
     // TODO: Permission check
     // TODO: Support multiple
     
-    fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(updateExisting, metaform, anonymous, userId);
+    fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(replyMode, metaform, anonymous, userId);
     ReplyData data = payload.getData();
     if (data == null) {
       logger.warn("Received a reply with null data");
@@ -153,6 +172,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
+    
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    
+    FieldFilters fieldFilters = fieldController.parseFilters(metaformEntity, fields);
 
     List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, 
         userId, 
@@ -160,9 +183,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         createdAfter, 
         modifiedBefore, 
         modifiedAfter,
-        includeRevisions == null ? false : includeRevisions);
+        includeRevisions == null ? false : includeRevisions,
+        fieldFilters);
     
-    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     List<Reply> result = replies.stream().map(entity -> 
      replyTranslator.translateReply(metaformEntity, entity)
     ).collect(Collectors.toList());
@@ -337,23 +360,23 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   /**
    * Resolves reply object when creating new reply
    * 
-   * @param updateExisting whether to update existing reply
+   * @param replyMode reply mode
    * @param metaform metaform
    * @param anonymous is user anonymous
    * @param userId user id
    * @return reply object
    */
-  private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(Boolean updateExisting, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId) {
+  private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(ReplyMode replyMode, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId) {
     fi.metatavu.metaform.server.persistence.model.Reply reply = null;
     
-    if (anonymous) {
+    if (anonymous || replyMode == ReplyMode.CUMULATIVE) {
       reply = replyController.createReply(userId, metaform);
     } else {
       reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
       if (reply == null) {
         reply = replyController.createReply(userId, metaform);
       } else {
-        if (!updateExisting) {
+        if (replyMode == ReplyMode.REVISION) {
           // If there is already an existing reply but we are not updating it
           // We need to change the existing reply into a revision and create new reply
           replyController.convertToRevision(reply);
