@@ -63,9 +63,7 @@ public class FieldController {
     
     filterList.stream()
       .filter(StringUtils::isNoneEmpty)
-      .forEach((filter) -> {
-        filterListCombined.addAll(Arrays.asList(StringUtils.split(filter, ',')));
-      });
+      .forEach(filter -> filterListCombined.addAll(Arrays.asList(StringUtils.split(filter, ','))));
     
     List<FieldFilter> filters = filterListCombined.stream()
       .map(filter -> parseFilter(metaform, filter))
