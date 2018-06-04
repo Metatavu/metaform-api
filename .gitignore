@@ -7,5 +7,4 @@
 /.factorypath
 /keycloak.log
 /.cargo
-/realms/
 .DS_Store
