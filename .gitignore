@@ -7,3 +7,4 @@
 /.factorypath
 /keycloak.log
 /.cargo
+.DS_Store
