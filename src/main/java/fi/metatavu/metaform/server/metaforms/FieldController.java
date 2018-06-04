@@ -188,7 +188,9 @@ public class FieldController {
       
       if (":".equals(operatorString)) {
         operator = FieldFilterOperator.EQUALS;
-      } else {
+      } else  if ("^".equals(operatorString)) {
+        operator = FieldFilterOperator.NOT_EQUALS;
+      } else { 
         logger.error("Could not parse operator string {}", operatorString);
         return null;
       }
