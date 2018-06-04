@@ -141,10 +141,10 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         List<Reply> replies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, null);
         
         assertEquals(2, replies.size());
-        assertNotNull(replies.get(1).getRevision());
-        assertEquals("Test text value", replies.get(1).getData().get("text"));
-        assertNull(replies.get(0).getRevision());
-        assertEquals("Updated text value", replies.get(0).getData().get("text"));
+        assertNotNull(replies.get(0).getRevision());
+        assertEquals("Test text value", replies.get(0).getData().get("text"));
+        assertNull(replies.get(1).getRevision());
+        assertEquals("Updated text value", replies.get(1).getData().get("text"));
       } finally {
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply1.getId());
       }
@@ -171,6 +171,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 2"));
       List<Reply> repliesBoth = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 1", "text:test 2"));
       List<Reply> repliesNone = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:non", "text:existing"));
+      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text^test 1"));
   
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -178,9 +179,11 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       assertEquals(1, replies2.size());
       assertEquals("test 2", replies2.get(0).getData().get("text"));
           
-      assertEquals(2, repliesBoth.size());
-      assertEquals("test 1", repliesBoth.get(0).getData().get("text"));
-      assertEquals("test 2", repliesBoth.get(1).getData().get("text"));
+      assertEquals(0, repliesBoth.size());
+          
+      assertEquals(2, notReplies.size());
+      assertEquals("test 2", notReplies.get(0).getData().get("text"));
+      assertEquals("test 3", notReplies.get(1).getData().get("text"));
 
       assertEquals(0, repliesNone.size());
     } finally {
@@ -206,6 +209,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 2"));
       List<Reply> repliesBoth = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1", "checklist:option 2"));
       List<Reply> repliesNone = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:non", "checklist:existing"));
+      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist^option 1"));
 
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -213,11 +217,12 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       assertEquals(1, replies2.size());
       assertEquals("test 2", replies2.get(0).getData().get("text"));
           
-      assertEquals(2, repliesBoth.size());
-      assertEquals("test 1", repliesBoth.get(0).getData().get("text"));
-      assertEquals("test 2", repliesBoth.get(1).getData().get("text"));
-
+      assertEquals(0, repliesBoth.size());
       assertEquals(0, repliesNone.size());
+      
+      assertEquals(2, notReplies.size());
+      assertEquals("test 2", notReplies.get(0).getData().get("text"));
+      assertEquals("test 3", notReplies.get(1).getData().get("text"));
     } finally {
       dataBuilder.clean();
     }
@@ -241,6 +246,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:2.5"));
       List<Reply> repliesBoth = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:1", "number:2.5"));
       List<Reply> repliesNone = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:55", "number:66"));
+      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number^1"));
   
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -248,9 +254,11 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       assertEquals(1, replies2.size());
       assertEquals("test 2", replies2.get(0).getData().get("text"));
           
-      assertEquals(2, repliesBoth.size());
-      assertEquals("test 1", repliesBoth.get(0).getData().get("text"));
-      assertEquals("test 2", repliesBoth.get(1).getData().get("text"));
+      assertEquals(0, repliesBoth.size());
+      
+      assertEquals(2, notReplies.size());
+      assertEquals("test 2", notReplies.get(0).getData().get("text"));
+      assertEquals("test 3", notReplies.get(1).getData().get("text"));
 
       assertEquals(0, repliesNone.size()); 
     } finally {
@@ -274,12 +282,17 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:true"));
       List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:false"));
+      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean^false"));
      
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
       
       assertEquals(1, replies2.size());
       assertEquals("test 2", replies2.get(0).getData().get("text"));
+      
+      assertEquals(2, notReplies.size());
+      assertEquals("test 1", notReplies.get(0).getData().get("text"));
+      assertEquals("test 3", notReplies.get(1).getData().get("text"));
     } finally {
       dataBuilder.clean();
     }
@@ -302,6 +315,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:true", "number:1"));
       List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:false", "number:1"));
       List<Reply> replies3 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1", "boolean:true"));
+      List<Reply> replies4 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist^option 1", "boolean:false"));
       
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -310,6 +324,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       assertEquals(1, replies3.size());
       assertEquals("test 1", replies3.get(0).getData().get("text"));
+      
+      assertEquals(1, replies4.size());
+      assertEquals("test 2", replies4.get(0).getData().get("text"));
     } finally {
       dataBuilder.clean();
     }

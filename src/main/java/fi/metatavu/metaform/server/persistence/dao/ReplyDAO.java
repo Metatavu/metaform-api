@@ -2,12 +2,9 @@ package fi.metatavu.metaform.server.persistence.dao;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -168,20 +165,53 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     }
     
     if (fieldFilters != null) {
-      restrictions.add(criteriaBuilder.and(      
-        createFieldFilterSubqueries(criteriaBuilder, criteria, fieldFilters).stream()
-          .filter(Objects::nonNull)
-          .map(fieldSubquery -> (Predicate) criteriaBuilder.in(root).value(fieldSubquery))
-          .collect(Collectors.toList())
-          .toArray(new Predicate[0])
-      ));
+      fieldFilters.getFilters().stream()
+        .forEach(fieldFilter -> {
+          if (fieldFilter.getOperator() == FieldFilterOperator.NOT_EQUALS) {
+            if (fieldFilter.getDataType() != StoreDataType.LIST) {
+              restrictions.add(
+                criteriaBuilder.or(
+                  getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter),
+                  criteriaBuilder.not(criteriaBuilder.in(root).value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.getField())))
+                )
+              );
+            } else {
+              restrictions.add(criteriaBuilder.not(criteriaBuilder.in(root).value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.getField()))));
+            }
+          } else {
+            restrictions.add(getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter));
+          }
+        });
     }
     
     criteria.select(root);    
     criteria.where(criteriaBuilder.and(restrictions.toArray(new Predicate[0])));
-    TypedQuery<Reply> query = entityManager.createQuery(criteria);
+    criteria.orderBy(criteriaBuilder.asc(root.get(Reply_.createdAt)));
     
+    TypedQuery<Reply> query = entityManager.createQuery(criteria);
     return query.getResultList();
+  }
+
+  /**
+   * Returns value predicate for field filter query
+   * 
+   * @param criteriaBuilder criteria builder
+   * @param criteria criteria
+   * @param root root
+   * @param fieldFilter filter
+   * @return value predicate for field filter query
+   */
+  private Predicate getFieldFilterValuePredicate(CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, Root<Reply> root, FieldFilter fieldFilter) {
+    Subquery<Reply> valueSubquery = null;
+    
+    if (fieldFilter.getDataType() == StoreDataType.LIST) {
+      valueSubquery = createListFieldFilterSubquery(criteriaBuilder, criteria, fieldFilter);
+    } else {
+      Class<? extends ReplyField> rootClass = getFieldFilterSubqueryRootClass(fieldFilter.getDataType());
+      valueSubquery = createFieldFilterSubquery(rootClass, fieldFilter, criteriaBuilder, criteria, fieldRoot -> getFieldFilterSubqueryReplyField(fieldFilter.getDataType(), fieldRoot));  
+    }
+    
+    return criteriaBuilder.in(root).value(valueSubquery);
   }
   
   /**
@@ -195,47 +225,21 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     reply.setRevision(revision);
     return persist(reply);
   }
-  
-  /**
-   * Creates sub queries for field filters
-   * 
-   * @param criteriaBuilder criteria builder
-   * @param criteria criteria
-   * @param fieldFilters filters
-   * @return
-   */
-  private List<Subquery<Reply>> createFieldFilterSubqueries(CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, FieldFilters fieldFilters) {
-    return Arrays.asList(StoreDataType.values()).stream().filter(value -> value != StoreDataType.NONE).map(storeDataType -> {
-      List<FieldFilter> filters = fieldFilters.getFilters(storeDataType);
-      if (filters.isEmpty()) {
-        return null;
-      }
-      
-      return createFieldFilterSubquery(criteriaBuilder, criteria, storeDataType, filters);
-    })
-    .collect(Collectors.toList());
-  }
 
   /**
-   * Creates field filter sub query
+   * Creates subquery for quering existing fields by name
    * 
    * @param criteriaBuilder criteria builder
    * @param criteria criteria
-   * @param storeDataType store data type
-   * @param filters filters
-   * @return field filter sub query
+   * @param field field name
+   * @return subquery for quering existing fields by name
    */
-  private Subquery<Reply> createFieldFilterSubquery(CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, StoreDataType storeDataType, List<FieldFilter> filters) {
-    if (storeDataType == StoreDataType.LIST) {
-      return createListFieldFilterSubquery(criteriaBuilder, criteria, filters);
-    } else {
-      Class<? extends ReplyField> rootClass = getFieldFilterSubqueryRootClass(storeDataType);
-      if (rootClass == null) {
-        return null;
-      }
-      
-      return createFieldFilterSubquery(rootClass, filters, criteriaBuilder, criteria, fieldRoot -> getFieldFilterSubqueryReplyField(storeDataType, fieldRoot));
-    }
+  private Subquery<Reply> createFieldPresentQuery(CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, String field) {
+    Subquery<Reply> fieldSubquery = criteria.subquery(Reply.class);
+    Root<ReplyField> root = fieldSubquery.from(ReplyField.class);
+    fieldSubquery.select(root.get(ReplyField_.reply));
+    fieldSubquery.where(criteriaBuilder.equal(root.get(ReplyField_.name), field));
+    return fieldSubquery;
   }
 
   /**
@@ -285,57 +289,54 @@ public class ReplyDAO extends AbstractDAO<Reply> {
   }
   
   /**
-   * Creates a field filter subquery
-   * 
-   * @param criteriaBuilder criteria builder
-   * @param criteria criteria
-   * @param filters filters
-   * @return field filter subquery
-   */
-  private Subquery<Reply> createListFieldFilterSubquery(CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, List<FieldFilter> filters) {
-    Subquery<Reply> fieldSubquery = criteria.subquery(Reply.class);
-    Root<ListReplyFieldItem> root = fieldSubquery.from(ListReplyFieldItem.class);
-    Join<ListReplyFieldItem, ListReplyField> fieldJoin = root.join(ListReplyFieldItem_.field);
-
-    fieldSubquery.select(fieldJoin.get(ListReplyField_.reply));
-    fieldSubquery.where(criteriaBuilder.or(filters.stream().map(filter -> {
-      Predicate valuePredicate = filter.getOperator() == FieldFilterOperator.NOT_EQUALS
-          ? criteriaBuilder.notEqual(root.get(ListReplyFieldItem_.value), filter.getValue())
-          : criteriaBuilder.equal(root.get(ListReplyFieldItem_.value), filter.getValue());
-
-      return criteriaBuilder.and(
-        valuePredicate, 
-        criteriaBuilder.equal(fieldJoin.get(ListReplyField_.name), filter.getField())
-      );
-    }).toArray(Predicate[]::new)));
-    
-    return fieldSubquery;
+  * Creates a field filter subquery
+  * 
+  * @param criteriaBuilder criteria builder
+  * @param criteria criteria
+  * @param filters filters
+  * @return field filter subquery
+  */
+  private Subquery<Reply> createListFieldFilterSubquery(CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, FieldFilter filter) {
+   Subquery<Reply> fieldSubquery = criteria.subquery(Reply.class);
+   Root<ListReplyFieldItem> root = fieldSubquery.from(ListReplyFieldItem.class);
+   Join<ListReplyFieldItem, ListReplyField> fieldJoin = root.join(ListReplyFieldItem_.field);
+  
+   Predicate valuePredicate = filter.getOperator() == FieldFilterOperator.NOT_EQUALS
+     ? criteriaBuilder.notEqual(root.get(ListReplyFieldItem_.value), filter.getValue())
+     : criteriaBuilder.equal(root.get(ListReplyFieldItem_.value), filter.getValue());
+     
+   fieldSubquery.select(fieldJoin.get(ListReplyField_.reply));
+   fieldSubquery.where(
+     valuePredicate, 
+     criteriaBuilder.equal(fieldJoin.get(ListReplyField_.name), filter.getField())
+   );
+   
+   return fieldSubquery;
   }
-
+  
   /**
    * Creates a field filter subquery
    * 
    * @param rootClass root class
-   * @param fieldFilters filters
+   * @param fieldFilter filter
    * @param criteriaBuilder criteria builder
    * @param criteria criteria
    * @param valueFieldFunction function for resolving value field
    * @return field filter subquery
    */
-  private <T extends ReplyField> Subquery<Reply> createFieldFilterSubquery(Class<T> rootClass, List<FieldFilter> fieldFilters, CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, Function<Root<T>, Expression<?>> valueFieldFunction) {
+  private <T extends ReplyField> Subquery<Reply> createFieldFilterSubquery(Class<T> rootClass, FieldFilter fieldFilter, CriteriaBuilder criteriaBuilder, CriteriaQuery<Reply> criteria, Function<Root<T>, Expression<?>> valueFieldFunction) {
     Subquery<Reply> fieldSubquery = criteria.subquery(Reply.class);
     Root<T> fieldRoot = fieldSubquery.from(rootClass);
     fieldSubquery.select(fieldRoot.get(ReplyField_.reply));
     
     Expression<?> valueField = valueFieldFunction.apply(fieldRoot);
     
-    fieldSubquery.where(criteriaBuilder.or(fieldFilters.stream().map(filter -> {
-      Predicate valuePredicate = filter.getOperator() == FieldFilterOperator.EQUALS 
-          ? criteriaBuilder.equal(valueField, filter.getValue())
-          : criteriaBuilder.notEqual(valueField, filter.getValue());
-      
-      return criteriaBuilder.and(criteriaBuilder.equal(fieldRoot.get(ReplyField_.name), filter.getField()), valuePredicate);
-    }).toArray(Predicate[]::new)));
+    Predicate valuePredicate = fieldFilter.getOperator() == FieldFilterOperator.EQUALS 
+      ? criteriaBuilder.equal(valueField, fieldFilter.getValue())
+      : criteriaBuilder.notEqual(valueField, fieldFilter.getValue());
+    
+    fieldSubquery.where(criteriaBuilder.and(criteriaBuilder.equal(fieldRoot.get(ReplyField_.name), fieldFilter.getField()), valuePredicate));
+    
     return fieldSubquery;
   }
   
