@@ -19,6 +19,7 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
 public class ReplyTestsIT extends AbstractIntegrationTest {
@@ -59,7 +60,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       replyData.put("text", "Test text value");
       Reply reply = createReplyWithData(replyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, Boolean.FALSE);
+      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
         Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
@@ -91,13 +92,13 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       replyData2.put("text", "Updated text value");
       Reply reply2 = createReplyWithData(replyData2);
       
-      Reply createdReply1 = repliesApi.createReply(REALM_1, metaform.getId(), reply1, Boolean.TRUE);
+      Reply createdReply1 = repliesApi.createReply(REALM_1, metaform.getId(), reply1, null, ReplyMode.UPDATE.toString());
       try {
         assertNotNull(createdReply1);
         assertNotNull(createdReply1.getId());
         assertEquals("Test text value", createdReply1.getData().get("text"));
 
-        Reply createdReply2 = repliesApi.createReply(REALM_1, metaform.getId(), reply2, Boolean.TRUE);
+        Reply createdReply2 = repliesApi.createReply(REALM_1, metaform.getId(), reply2,  null, ReplyMode.UPDATE.toString());
         assertNotNull(createdReply2);
         assertEquals(createdReply1.getId(), createdReply2.getId());
         assertEquals("Updated text value", createdReply2.getData().get("text"));
@@ -127,13 +128,13 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       replyData2.put("text", "Updated text value");
       Reply reply2 = createReplyWithData(replyData2);
       
-      Reply createdReply1 = repliesApi.createReply(REALM_1, metaform.getId(), reply1, Boolean.FALSE);
+      Reply createdReply1 = repliesApi.createReply(REALM_1, metaform.getId(), reply1, null, ReplyMode.REVISION.toString());
       try {
         assertNotNull(createdReply1);
         assertNotNull(createdReply1.getId());
         assertEquals("Test text value", createdReply1.getData().get("text"));
 
-        Reply createdReply2 = repliesApi.createReply(REALM_1, metaform.getId(), reply2, Boolean.FALSE);
+        Reply createdReply2 = repliesApi.createReply(REALM_1, metaform.getId(), reply2, null, ReplyMode.REVISION.toString());
         assertNotNull(createdReply2);
         assertNotEquals(createdReply1.getId(), createdReply2.getId());
         assertEquals("Updated text value", createdReply2.getData().get("text"));
@@ -150,6 +151,30 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       }
     } finally {
       adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+    }
+  }
+  
+  @Test
+  public void createReplyCumulative() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple");
+      RepliesApi repliesApi = dataBuilder.getRepliesApi();
+      assertNotNull(metaform);
+
+      dataBuilder.createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+      dataBuilder.createSimpleReply(metaform, "val 2", ReplyMode.CUMULATIVE);
+      dataBuilder.createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
+      
+      List<Reply> replies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, null, null);
+      
+      
+      assertEquals(3, replies.size());
+      assertEquals("val 1", replies.get(0).getData().get("text"));
+      assertEquals("val 2", replies.get(1).getData().get("text"));
+      assertEquals("val 3", replies.get(2).getData().get("text"));
+    } finally {
+      dataBuilder.clean();
     }
   }
   

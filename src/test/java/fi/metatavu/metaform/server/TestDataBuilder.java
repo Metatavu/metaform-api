@@ -14,6 +14,7 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.server.rest.ReplyMode;
 
 public class TestDataBuilder {
 
@@ -61,14 +62,18 @@ public class TestDataBuilder {
     replyData.put("number", number);
     replyData.put("checklist", checklist);
     Reply reply = createReplyWithData(replyData);
-    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, Boolean.FALSE));
+    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, ReplyMode.REVISION.toString()));
+  }
+  
+  public Reply createSimpleReply(Metaform metaform, String value) throws IOException {
+    return createSimpleReply(metaform, value, ReplyMode.REVISION);
   }
 
-  public Reply createSimpleReply(Metaform metaform, String value) throws IOException {
+  public Reply createSimpleReply(Metaform metaform, String value, ReplyMode replyMode) throws IOException {
     ReplyData replyData1 = new ReplyData();
     replyData1.put("text", value);
     Reply reply = createReplyWithData(replyData1);
-    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, Boolean.FALSE));
+    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
   }
   
   public void clean() {
