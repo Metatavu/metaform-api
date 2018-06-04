@@ -3,7 +3,9 @@ package fi.metatavu.metaform.server.metaforms;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
@@ -57,10 +59,22 @@ public class FieldController {
       return null;
     }
     
-    List<FieldFilter> filters = filterList.stream()
+    List<String> filterListCombined = new ArrayList<>(filterList.size());
+    
+    filterList.stream()
       .filter(StringUtils::isNoneEmpty)
+      .forEach((filter) -> {
+        filterListCombined.addAll(Arrays.asList(StringUtils.split(filter, ',')));
+      });
+    
+    List<FieldFilter> filters = filterListCombined.stream()
       .map(filter -> parseFilter(metaform, filter))
+      .filter(Objects::nonNull)
       .collect(Collectors.toList());
+    
+    if (filters == null || filters.isEmpty()) {
+      return null;
+    }
     
     return new FieldFilters(filters);
   }
