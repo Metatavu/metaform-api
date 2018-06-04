@@ -167,19 +167,17 @@ public class ReplyDAO extends AbstractDAO<Reply> {
     if (fieldFilters != null) {
       fieldFilters.getFilters().stream()
         .forEach(fieldFilter -> {
+          Predicate valuePredicate = getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter);
+          
           if (fieldFilter.getOperator() == FieldFilterOperator.NOT_EQUALS) {
-            if (fieldFilter.getDataType() != StoreDataType.LIST) {
-              restrictions.add(
-                criteriaBuilder.or(
-                  getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter),
-                  criteriaBuilder.not(criteriaBuilder.in(root).value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.getField())))
-                )
-              );
-            } else {
-              restrictions.add(criteriaBuilder.not(criteriaBuilder.in(root).value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.getField()))));
-            }
+            restrictions.add(
+              criteriaBuilder.or(
+                valuePredicate,
+                criteriaBuilder.not(criteriaBuilder.in(root).value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.getField())))
+              )
+            );
           } else {
-            restrictions.add(getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter));
+            restrictions.add(valuePredicate);
           }
         });
     }
