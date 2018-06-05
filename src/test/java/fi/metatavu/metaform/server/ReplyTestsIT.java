@@ -394,6 +394,42 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     }
   }
   
+  @Test
+  public void listRepliesByModifiedBefore() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple");      
+
+      Reply reply1 = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.CUMULATIVE);
+      Reply reply2 = dataBuilder.createSimpleReply(metaform, "test 2", ReplyMode.CUMULATIVE);
+      Reply reply3 = dataBuilder.createSimpleReply(metaform, "test 3", ReplyMode.CUMULATIVE);
+      
+      updateReplyModified(reply1, getOffsetDateTime(2018, 5, 25, TIMEZONE));
+      updateReplyModified(reply2, getOffsetDateTime(2018, 5, 27, TIMEZONE));
+      updateReplyModified(reply3, getOffsetDateTime(2018, 5, 29, TIMEZONE));
+      
+      RepliesApi repliesApi = dataBuilder.getRepliesApi();
+      
+      List<Reply> allReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null);
+      List<Reply> modifiedBefore26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, Boolean.FALSE, null);
+      List<Reply> modifiedAfter26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), Boolean.FALSE, null);
+
+      assertEquals(3, allReplies.size());
+      assertEquals("test 1", allReplies.get(0).getData().get("text"));
+      assertEquals("test 2", allReplies.get(1).getData().get("text"));
+      assertEquals("test 3", allReplies.get(2).getData().get("text"));
+
+      assertEquals(1, modifiedBefore26.size());
+      assertEquals("test 1", modifiedBefore26.get(0).getData().get("text"));
+
+      assertEquals(2, modifiedAfter26.size());
+      assertEquals("test 2", modifiedAfter26.get(0).getData().get("text"));
+      assertEquals("test 3", modifiedAfter26.get(1).getData().get("text"));
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
   /**
    * Updates reply to be created at specific time
    * 
@@ -402,6 +438,17 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
    */
   private void updateReplyCreated(Reply reply, OffsetDateTime created) {
     executeUpdate("UPDATE Reply SET createdAt = ? WHERE id = ?", created, reply.getId().toString());
+    flushCache();
+  }
+  
+  /**
+   * Updates reply to be modified at specific time
+   * 
+   * @param reply reply
+   * @param modified created
+   */
+  private void updateReplyModified(Reply reply, OffsetDateTime modified) {
+    executeUpdate("UPDATE Reply SET modifiedAt = ? WHERE id = ?", modified, reply.getId().toString());
     flushCache();
   }
 
