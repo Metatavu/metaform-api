@@ -42,6 +42,7 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 @Stateful
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
+  private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS = "You are not allowed to update Metaforms";
   private static final String ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE = "Anonymous users are not allowed to list Metaforms";
   private static final String ANONYMOUS_USERS_FIND_METAFORM_MESSAGE = "Anonymous users are not allowed to find Metaforms";
   private static final String NOT_ALLOWED_TO_VIEW_THESE_REPLIES = "You are not allowed to view these replies";
@@ -328,7 +329,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response updateMetaform(String realmId, UUID metaformId, Metaform payload) throws Exception {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to update Metaforms");
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
     String data = serializeMetaform(payload);
@@ -408,7 +409,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) throws Exception {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to update Metaforms");
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
@@ -424,7 +425,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to update Metaforms");
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
@@ -445,7 +446,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to update Metaforms");
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
@@ -464,7 +465,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response listEmailNotifications(String realmId, UUID metaformId) throws Exception {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to update Metaforms");
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
@@ -478,7 +479,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId, EmailNotification payload) throws Exception {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to update Metaforms");
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
