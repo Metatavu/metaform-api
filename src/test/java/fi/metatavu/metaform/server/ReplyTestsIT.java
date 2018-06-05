@@ -1,14 +1,15 @@
 package fi.metatavu.metaform.server;
 
+import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import static io.restassured.RestAssured.given;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,6 +25,8 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 @SuppressWarnings ("squid:S1192")
 public class ReplyTestsIT extends AbstractIntegrationTest {
   
+  private static final ZoneId TIMEZONE = ZoneId.of("Europe/Helsinki");
+
   @Test
   public void createReplyNotLoggedIn() throws IOException, URISyntaxException {
     String adminToken = getAdminToken(REALM_1);
@@ -353,6 +356,53 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     } finally {
       dataBuilder.clean();
     }
+  }
+  
+  @Test
+  public void listRepliesByCreatedBefore() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple");      
+
+      Reply reply1 = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.CUMULATIVE);
+      Reply reply2 = dataBuilder.createSimpleReply(metaform, "test 2", ReplyMode.CUMULATIVE);
+      Reply reply3 = dataBuilder.createSimpleReply(metaform, "test 3", ReplyMode.CUMULATIVE);
+      
+      updateReplyCreated(reply1, getOffsetDateTime(2018, 5, 25, TIMEZONE));
+      updateReplyCreated(reply2, getOffsetDateTime(2018, 5, 27, TIMEZONE));
+      updateReplyCreated(reply3, getOffsetDateTime(2018, 5, 29, TIMEZONE));
+      
+      RepliesApi repliesApi = dataBuilder.getRepliesApi();
+      
+      List<Reply> allReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null);
+      List<Reply> createdBefore26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, getIsoDateTime(2018, 5, 26, TIMEZONE), null, null, null, Boolean.FALSE, null);
+      List<Reply> createdAfter26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, null, Boolean.FALSE, null);
+
+      assertEquals(3, allReplies.size());
+      assertEquals("test 1", allReplies.get(0).getData().get("text"));
+      assertEquals("test 2", allReplies.get(1).getData().get("text"));
+      assertEquals("test 3", allReplies.get(2).getData().get("text"));
+
+      assertEquals(1, createdBefore26.size());
+      assertEquals("test 1", createdBefore26.get(0).getData().get("text"));
+
+      assertEquals(2, createdAfter26.size());
+      assertEquals("test 2", createdAfter26.get(0).getData().get("text"));
+      assertEquals("test 3", createdAfter26.get(1).getData().get("text"));
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  /**
+   * Updates reply to be created at specific time
+   * 
+   * @param reply reply
+   * @param created created
+   */
+  private void updateReplyCreated(Reply reply, OffsetDateTime created) {
+    executeUpdate("UPDATE Reply SET createdAt = ? WHERE id = ?", created, reply.getId().toString());
+    flushCache();
   }
 
   /**
