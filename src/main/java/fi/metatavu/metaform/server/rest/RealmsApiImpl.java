@@ -23,10 +23,12 @@ import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
+import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
+import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 
@@ -60,11 +62,17 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private FieldController fieldController;
 
   @Inject
+  private EmailNotificationController emailNotificationController;
+
+  @Inject
   private MetaformTranslator metaformTranslator;
 
   @Inject
   private ReplyTranslator replyTranslator;
 
+  @Inject
+  private EmailNotificationTranslator emailNotificationTranslator;
+  
   @Override
   public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
     UUID loggedUserId = getLoggerUserId();
@@ -389,6 +397,97 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return reply;
   }
 
+  @Override
+  public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to update Metaforms");
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification = emailNotificationController.createEmailNotification(metaform, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
+    
+    return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));    
+  }
+
+  @Override
+  public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to update Metaforms");
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification = emailNotificationController.findEmailNotificationById(emailNotificationId);
+    if (emailNotification == null || !emailNotification.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    emailNotificationController.deleteEmailNotification(emailNotification);
+    
+    return createNoContent();
+  }
+
+  @Override
+  public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to update Metaforms");
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification = emailNotificationController.findEmailNotificationById(emailNotificationId);
+    if (emailNotification == null || !emailNotification.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
+  }
+
+  @Override
+  public Response listEmailNotifications(String realmId, UUID metaformId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to update Metaforms");
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(emailNotificationController.listEmailNotificationByMetaform(metaform).stream().map(emailNotificationTranslator::translateEmailNotification).collect(Collectors.toList()));
+  }
+
+  @Override
+  public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId, EmailNotification payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to update Metaforms");
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification = emailNotificationController.findEmailNotificationById(emailNotificationId);
+    if (emailNotification == null || !emailNotification.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    emailNotificationController.updateEmailNotification(emailNotification, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
+    
+    return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
+  }
+
   private String serializeMetaform(Metaform metaform) {
     ObjectMapper objectMapper = new ObjectMapper();
     
@@ -398,37 +497,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       logger.error("Failed to serialze metaform", e);
     }
     
-    return null;
-  }
-
-  @Override
-  public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) throws Exception {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Response listEmailNotifications(String realmId, UUID metaformId) throws Exception {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId,
-      EmailNotification payload) throws Exception {
-    // TODO Auto-generated method stub
     return null;
   }
 
