@@ -12,6 +12,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.ApiClient;
+import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
@@ -26,6 +27,7 @@ import fi.metatavu.metaform.client.RepliesApi;
 @SuppressWarnings ("squid:S1192")
 public abstract class AbstractIntegrationTest extends AbstractTest {
   
+  protected static final String REALM_1 = "test-1";
   protected static final String BASE_URL = "/v1";
   protected static final String AUTH_SERVER_URL = "http://localhost:8280";
   protected static final String DEFAULT_KEYCLOAK_CLIENT_ID = "ui";
@@ -56,6 +58,24 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    */
   protected Integer getPort() {
     return NumberUtils.createInteger(System.getProperty("it.port.http"));
+  }
+
+  /**
+   * Returns WireMock port
+   * 
+   * @return WireMock port
+   */
+  protected int getWireMockPort() {
+    return getPort() + 1;
+  }
+  
+  /**
+   * Returns WireMock base path
+   * 
+   * @return WireMock base path
+   */
+  protected String getWireMockBasePath() {
+    return String.format("http://%s:%d", getHost(), getWireMockPort());
   }
   
   /**
@@ -94,6 +114,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected MetaformsApi getMetaformsApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(MetaformsApi.class);
+  }
+
+  /**
+   * Returns EmailNotificationsApi authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return metaforms API authenticated by the given access token
+   */
+  protected EmailNotificationsApi getEmailNotificationsApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(EmailNotificationsApi.class);
   }
   
   /**
@@ -158,6 +189,39 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     
     Map<String, Object> responseMap = readJsonMap(response);
     return (String) responseMap.get("access_token");
+  }
+  
+  /**
+   * Starts a mailgun mocker
+   * 
+   * @return mailgun mocker
+   */
+  protected MailgunMocker startMailgunMocker() {
+    String domain = "domain.example.com";
+    String path = "mgapi";
+    String apiKey = "fakekey";
+    String senderEmail = "metaform-test@example.com";
+    String senderName = "Metaform Test";
+
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-apiurl", String.format("%s/%s",getWireMockBasePath(), path));
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-domain", domain);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-apikey", apiKey);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-sender-email", senderEmail);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-sender-name", senderName);
+    
+    MailgunMocker mailgunMocker = new MailgunMocker(String.format("/%s", path), domain, apiKey);
+    mailgunMocker.startMock();
+    return mailgunMocker;
+  }
+
+  /**
+   * Stops a malgun mocker
+   * 
+   * @param mailgunMocker mocker
+   */
+  protected void stopMailgunMocker(MailgunMocker mailgunMocker) {
+    mailgunMocker.stopMock();
+    executeDelete("DELETE FROM SystemSetting WHERE settingKey in ('mailgun-apiurl', 'mailgun-domain', 'mailgun-apikey', 'mailgun-sender-email', 'mailgun-sender-name')");
   }
   
 }

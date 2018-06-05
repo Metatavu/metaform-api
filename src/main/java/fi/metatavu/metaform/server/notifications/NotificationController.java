@@ -3,7 +3,8 @@ package fi.metatavu.metaform.server.notifications;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import fi.metatavu.metaform.server.persistence.model.Reply;
+import fi.metatavu.metaform.server.persistence.model.Metaform;
+import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Controller for notfications
@@ -21,10 +22,11 @@ public class NotificationController {
   /**
    * Sends all notifications for a new reply
    * 
-   * @param reply reply
+   * @param metaform metaform JPA object
+   * @param reply reply REST object
    */
-  public void notifyNewReply(Reply reply) {
-    emailNotificationController.sendEmailNotifications(reply);
+  public void notifyNewReply(Metaform metaform, Reply reply) {
+    emailNotificationController.sendEmailNotifications(metaform,reply);
   }
   
 }

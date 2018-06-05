@@ -80,7 +80,8 @@
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.8</metaform-api-client.version>
+    <metaform-api-client.version>0.0.10</metaform-api-client.version>
+    <wiremock.version>2.18.0</wiremock.version>
     
   </properties>
 
@@ -323,6 +324,19 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>${wiremock.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <dependency>

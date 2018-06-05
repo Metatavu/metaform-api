@@ -24,8 +24,6 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 @SuppressWarnings ("squid:S1192")
 public class ReplyTestsIT extends AbstractIntegrationTest {
   
-  private static final String REALM_1 = "test-1";
-  
   @Test
   public void createReplyNotLoggedIn() throws IOException, URISyntaxException {
     String adminToken = getAdminToken(REALM_1);

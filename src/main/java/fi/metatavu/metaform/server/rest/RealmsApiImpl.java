@@ -24,6 +24,7 @@ import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
+import fi.metatavu.metaform.server.notifications.NotificationController;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.Reply;
@@ -63,6 +64,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private EmailNotificationController emailNotificationController;
+
+  @Inject
+  private NotificationController notificationController;
 
   @Inject
   private MetaformTranslator metaformTranslator;
@@ -127,7 +131,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
-    return createOk(replyTranslator.translateReply(metaformEntity, reply));
+    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+    
+    notificationController.notifyNewReply(metaform, replyEntity);
+    
+    return createOk(replyEntity);
   }
 
   public Response findReply(String realmId, UUID metaformId, UUID replyId) throws Exception {

@@ -41,8 +41,9 @@ public class FreemarkerTemplateLoader implements TemplateLoader {
     if (source == null) {
       return 0l;
     }
-
-    UUID id = UUID.fromString(name.substring(source.getPrefix().length()));
+    
+    int localeIndex = name.indexOf('_');
+    UUID id = UUID.fromString(name.substring(source.getPrefix().length(), localeIndex));
     
     switch (source) {
       case EMAIL_SUBJECT:
@@ -69,7 +70,8 @@ public class FreemarkerTemplateLoader implements TemplateLoader {
       return null;
     }
 
-    UUID id = UUID.fromString(name.substring(source.getPrefix().length()));
+    int localeIndex = name.indexOf('_');
+    UUID id = UUID.fromString(name.substring(source.getPrefix().length(), localeIndex));
     
     switch (source) {
       case EMAIL_SUBJECT:

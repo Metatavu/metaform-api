@@ -1,12 +1,19 @@
 package fi.metatavu.metaform.server.notifications;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.server.email.EmailProvider;
 import fi.metatavu.metaform.server.email.mailgun.MailFormat;
@@ -15,9 +22,9 @@ import fi.metatavu.metaform.server.freemarker.TemplateSource;
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO;
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
-import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotificationEmail;
+import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Email notification controller
@@ -27,6 +34,11 @@ import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotifica
 @ApplicationScoped
 public class EmailNotificationController {
 
+  private static final Locale DEFAULT_LOCALE = new Locale("fi");
+
+  @Inject
+  private Logger logger;
+  
   @Inject
   private EmailProvider emailProvider;
 
@@ -108,8 +120,8 @@ public class EmailNotificationController {
    * 
    * @param reply reply posted
    */
-  public void sendEmailNotifications(Reply reply) {
-    listEmailNotificationEmails(reply.getMetaform()).stream().forEach(emailNotificationEmail -> sendEmailNotification(reply, emailNotificationEmail));   
+  public void sendEmailNotifications(Metaform metaform, Reply reply) {
+    listEmailNotificationEmails(metaform).stream().forEach(emailNotificationEmail -> sendEmailNotification(reply, emailNotificationEmail));   
   }
   
   /**
@@ -154,11 +166,33 @@ public class EmailNotificationController {
   private void sendEmailNotification(Reply reply, EmailNotificationEmail emailNotificationEmail) {
     String email = emailNotificationEmail.getEmail();
     UUID id = emailNotificationEmail.getEmailNotification().getId();
+    Map<String, Object> data = toFreemarkerData(reply);
     
-    String subject = freemarkerRenderer.render(TemplateSource.EMAIL_SUBJECT.getName(id), reply, Locale.getDefault());
-    String content = freemarkerRenderer.render(TemplateSource.EMAIL_CONTENT.getName(id), reply, Locale.getDefault());
+    String subject = freemarkerRenderer.render(TemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE);
+    String content = freemarkerRenderer.render(TemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE);
     
     emailProvider.sendMail(email, subject, content, MailFormat.HTML);
+  }
+  
+  /**
+   * Converts reply to Freemarker data
+   * 
+   * @param reply reply
+   * @return freemarker data
+   */
+  private Map<String, Object> toFreemarkerData(Reply reply) {
+    if (reply == null) {
+      return null;
+    }
+    
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      return objectMapper.readValue(objectMapper.writeValueAsString(reply), new TypeReference<Map<String, Object>>() { });
+    } catch (IOException e) {
+      logger.error("Failed to convert reply into freemarker data", e);
+    }
+    
+    return null;
   }
 
   /**

@@ -7,7 +7,8 @@ package fi.metatavu.metaform.server.email.mailgun;
  * @author Antti Leppä
  */
 public class MailgunConsts {
-  
+
+  public static final String APIURL_SETTING_KEY = "mailgun-apiurl";
   public static final String DOMAIN_SETTING_KEY = "mailgun-domain";
   public static final String APIKEY_SETTING_KEY = "mailgun-apikey";
   public static final String SENDER_EMAIL_SETTING_KEY = "mailgun-sender-email";

@@ -186,5 +186,18 @@
     <addNotNullConstraint tableName="emailnotification" columnName="subjecttemplate" columnDataType="longtext"/>
     <addNotNullConstraint tableName="emailnotification" columnName="contenttemplate" columnDataType="longtext"/>
   </changeSet>
+  
+  <changeSet id="email-notification-created-at" author="Antti Leppa">
+    <addColumn tableName="emailnotification">
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <addColumn tableName="emailnotification">
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
     
 </databaseChangeLog>

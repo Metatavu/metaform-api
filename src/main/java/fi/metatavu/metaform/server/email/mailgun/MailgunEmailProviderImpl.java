@@ -53,10 +53,16 @@ public class MailgunEmailProviderImpl implements EmailProvider {
       return;
     }
     
+    String apiUrl = systemSettingController.getSettingValue(MailgunConsts.APIURL_SETTING_KEY);
+
     Configuration configuration = new Configuration()
       .domain(domain)
       .apiKey(apiKey)
       .from(senderName, senderEmail);
+    
+    if (StringUtils.isNotEmpty(apiUrl)) {
+      configuration.apiUrl(apiUrl);
+    }
     
     MailBuilder mailBuilder = Mail.using(configuration)
       .to(toEmail)
