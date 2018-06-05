@@ -23,6 +23,7 @@ import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
+import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
@@ -397,6 +398,37 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       logger.error("Failed to serialze metaform", e);
     }
     
+    return null;
+  }
+
+  @Override
+  public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Response listEmailNotifications(String realmId, UUID metaformId) throws Exception {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId,
+      EmailNotification payload) throws Exception {
+    // TODO Auto-generated method stub
     return null;
   }
 

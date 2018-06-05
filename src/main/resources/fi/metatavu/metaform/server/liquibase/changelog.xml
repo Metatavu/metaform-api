@@ -132,5 +132,21 @@
       </column>
     </createTable>
   </changeSet> 
+  
+  <changeSet id="system-settings" author="Heikki Kurhinen">
+    <createTable tableName="systemsetting">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="settingkey" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="value" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    
+    <addUniqueConstraint constraintName="UN_SYSTEM_SETTING_SETTING_KEY" columnNames="settingkey" tableName="systemsetting"/>
+</changeSet>
     
 </databaseChangeLog>
