@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.20</metaform-api-spec.version>
+    <metaform-api-spec.version>0.0.22</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -69,10 +69,19 @@
     <keycloak-admin-client.version>3.4.3.Final</keycloak-admin-client.version>
     <keycloak-adapter.version>4.0.0.Beta1</keycloak-adapter.version>
     
+    <!-- Mailgun -->
+    
+    <mailgun.version>1.8.0</mailgun.version>
+    
+    <!-- Free marker -->
+    
+    <freemarker.version>2.3.28</freemarker.version>
+    
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.8</metaform-api-client.version>
+    <metaform-api-client.version>0.0.10</metaform-api-client.version>
+    <wiremock.version>2.18.0</wiremock.version>
     
   </properties>
 
@@ -208,6 +217,14 @@
       <artifactId>infinispan-core</artifactId>
       <scope>provided</scope>
     </dependency>
+    
+    <!-- Freemarker -->
+    
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+      <version>${freemarker.version}</version>
+    </dependency>
 
     <!-- Jackson -->
 
@@ -293,12 +310,33 @@
       </exclusions>
     </dependency>
     
+    <!-- Mailgun -->
+    
+    <dependency>
+      <groupId>net.sargue</groupId>
+      <artifactId>mailgun</artifactId>
+      <version>${mailgun.version}</version>
+    </dependency>
+    
     <!-- Test -->
 
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>${wiremock.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     
     <dependency>
