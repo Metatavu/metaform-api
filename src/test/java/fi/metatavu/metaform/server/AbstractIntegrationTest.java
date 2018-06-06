@@ -77,6 +77,16 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected String getWireMockBasePath() {
     return String.format("http://%s:%d", getHost(), getWireMockPort());
   }
+
+  /**
+   * Flushes JPA cache
+   */
+  protected void flushCache() {
+    given()
+      .baseUri(getBasePath())
+      .get("/system/jpa/cache/flush")
+      .then();
+  }
   
   /**
    * Reads a Metaform from JSON file

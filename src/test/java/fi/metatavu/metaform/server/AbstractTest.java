@@ -8,6 +8,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +81,16 @@ public abstract class AbstractTest {
   }
   
   /**
+   * Executes an update statement into test database
+   * 
+   * @param sql sql
+   * @param params params
+   */
+  protected void executeUpdate(String sql, Object... params) {
+    executeInsert(sql, params);
+  }
+  
+  /**
    * Executes an insert statement into test database
    * 
    * @param sql sql
@@ -118,6 +132,49 @@ public abstract class AbstractTest {
       logger.error("Failed to execute delete", e);
       fail(e.getMessage());
     }
+  }
+
+  /**
+   * Returns offset date time
+   * 
+   * @param year year
+   * @param month month
+   * @param dayOfMonth day 
+   * @param zone zone
+   * @return offset date time
+   */
+  protected OffsetDateTime getOffsetDateTime(int year, int month, int dayOfMonth, ZoneId zone) {
+    return getZonedDateTime(year, month, dayOfMonth, 0, 0, 0, zone).toOffsetDateTime();
+  }
+
+  /**
+   * Returns ISO formatted date string
+   * 
+   * @param year year
+   * @param month month
+   * @param dayOfMonth day 
+   * @param zone zone
+   * @return ISO formatted date string
+   */
+  protected String getIsoDateTime(int year, int month, int dayOfMonth, ZoneId zone) {
+    return DateTimeFormatter.ISO_DATE_TIME.format(getOffsetDateTime(year, month, dayOfMonth, zone));
+  }
+
+  
+  /**
+   * Returns zoned date time
+   * 
+   * @param year year
+   * @param month month
+   * @param dayOfMonth day 
+   * @param hour hour
+   * @param minute minute
+   * @param second second
+   * @param zone zone
+   * @return zoned date time
+   */
+  protected ZonedDateTime getZonedDateTime(int year, int month, int dayOfMonth, int hour, int minute, int second, ZoneId zone) {
+    return ZonedDateTime.of(year, month, dayOfMonth, hour, minute, second, 0, zone);
   }
 
   /**
