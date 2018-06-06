@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -38,6 +39,7 @@ public class SystemSetting {
   @NotNull
   @NotEmpty
   @Lob
+  @Type(type = "org.hibernate.type.TextType")
   private String value;
   
   public void setId(UUID id) {
