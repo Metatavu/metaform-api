@@ -132,5 +132,72 @@
       </column>
     </createTable>
   </changeSet> 
+  
+  <changeSet id="system-settings" author="Heikki Kurhinen">
+    <createTable tableName="systemsetting">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="settingkey" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="value" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    
+    <addUniqueConstraint constraintName="UN_SYSTEM_SETTING_SETTING_KEY" columnNames="settingkey" tableName="systemsetting"/>
+  </changeSet>
+  
+  <changeSet id="email-notifications" author="Antti Leppa">
+    <createTable tableName="emailnotification">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="metaform_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_EMAIL_NOTIFICATION_METAFORM_ID" referencedTableName="metaform" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+    
+    <createTable tableName="emailnotificationemail">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="emailnotification_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_EMAIL_NOTIFICATION_EMAIL_EMAIL_NOTIFICATION_ID" referencedTableName="emailnotification" referencedColumnNames="id"/>
+      </column>
+      <column name="email" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  
+  <changeSet id="email-notification-templates" author="Antti Leppa">
+    <addColumn tableName="emailnotification">
+      <column name="subjecttemplate" type="longtext"/>
+    </addColumn>
+    
+    <addColumn tableName="emailnotification">
+      <column name="contenttemplate" type="longtext"/>
+    </addColumn>
+  </changeSet>
+  
+  <changeSet id="email-notification-templates-not-null" author="Antti Leppa">
+    <addNotNullConstraint tableName="emailnotification" columnName="subjecttemplate" columnDataType="longtext"/>
+    <addNotNullConstraint tableName="emailnotification" columnName="contenttemplate" columnDataType="longtext"/>
+  </changeSet>
+  
+  <changeSet id="email-notification-created-at" author="Antti Leppa">
+    <addColumn tableName="emailnotification">
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <addColumn tableName="emailnotification">
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
     
 </databaseChangeLog>
