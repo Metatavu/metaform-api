@@ -97,7 +97,14 @@ public class FieldController {
     return field.getType();
   }
 
-
+  /**
+   * Returns field value for a reply
+   * 
+   * @param metaformEntity metaform model
+   * @param reply reply
+   * @param fieldName field name
+   * @return field value or null if not found
+   */
   public Object getFieldValue(Metaform metaformEntity, Reply reply, String fieldName) {
     if (isMetafield(metaformEntity, fieldName)) {
       return resolveMetaField(fieldName, reply);
@@ -127,38 +134,6 @@ public class FieldController {
   
   private ReplyField getReplyField(Reply reply, String fieldName) {
     return anyReplyfieldDAO.findByReplyAndName(reply, fieldName);
-  }
-
-  /**
-   * Returns value for a reply field
-   * 
-   * @param metaformEntity metaform
-   * @param reply reply
-   * @param field field
-   * @return value
-   */
-  private Object getFieldValue(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, Reply reply, ReplyField field) {
-    String fieldName = field.getName();
-    
-    if (isMetafield(metaformEntity, fieldName)) {
-      return resolveMetaField(fieldName, reply);
-    } else {
-      if (field instanceof NumberReplyField) {
-        return ((NumberReplyField) field).getValue();
-      } else if (field instanceof BooleanReplyField) {
-        return ((BooleanReplyField) field).getValue();
-      } else if (field instanceof StringReplyField) {
-        return ((StringReplyField) field).getValue();
-      } else if (field instanceof ListReplyField) {
-        return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
-          .map(ListReplyFieldItem::getValue)
-          .collect(Collectors.toList());
-      } else {
-        logger.error("Could not resolve {}", fieldName); 
-      }
-    }
-    
-    return null;
   }
 
   /**

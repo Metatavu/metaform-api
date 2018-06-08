@@ -7,13 +7,16 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -78,6 +81,52 @@ public abstract class AbstractTest {
    */
   protected Map<String, Object> readJsonMap(String src) throws IOException {
     return getObjectMapper().readValue(src, new TypeReference<Map<String, Object>>() {});
+  }
+  
+  /**
+   * Executes a select statement into test database
+   * 
+   * @param sql sql
+   * @param eachRow method to call for each row
+   * @param params params
+   */
+  protected <T> List<T> executeSelect(String sql, Function<ResultSet, T> eachRow, Object... params) {
+    List<T> result = new ArrayList<>();
+     
+    try (Connection connection = getConnection()) {
+      connection.setAutoCommit(true);
+      PreparedStatement statement = connection.prepareStatement(sql);
+      try {
+        applyStatementParams(statement, params);
+        ResultSet resultSet = statement.executeQuery();
+        while (resultSet.next()) {
+          result.add(eachRow.apply(resultSet));
+        }
+      } finally {
+        statement.close();
+      }
+    } catch (Exception e) {
+      logger.error("Failed to execute insert", e);
+      fail(e.getMessage());
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Executes a select statement into test database
+   * 
+   * @param sql sql
+   * @param eachRow method to call for each row
+   * @param params params
+   */
+  protected <T> T executeSelectSingle(String sql, Function<ResultSet, T> eachRow, Object... params) {
+    List<T> result = executeSelect(sql, eachRow, params);
+    if (result.isEmpty()) {
+      return null;
+    }
+    
+    return result.get(0);
   }
   
   /**
@@ -148,6 +197,16 @@ public abstract class AbstractTest {
   }
 
   /**
+   * Parses offset date time from string
+   * 
+   * @param string string
+   * @return parsed offset date time
+   */
+  protected OffsetDateTime parseOffsetDateTime(String string) {
+    return OffsetDateTime.parse(string);
+  }
+
+  /**
    * Returns ISO formatted date string
    * 
    * @param year year
@@ -159,7 +218,6 @@ public abstract class AbstractTest {
   protected String getIsoDateTime(int year, int month, int dayOfMonth, ZoneId zone) {
     return DateTimeFormatter.ISO_DATE_TIME.format(getOffsetDateTime(year, month, dayOfMonth, zone));
   }
-
   
   /**
    * Returns zoned date time
