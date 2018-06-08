@@ -95,15 +95,12 @@ public abstract class AbstractTest {
      
     try (Connection connection = getConnection()) {
       connection.setAutoCommit(true);
-      PreparedStatement statement = connection.prepareStatement(sql);
-      try {
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
         applyStatementParams(statement, params);
         ResultSet resultSet = statement.executeQuery();
         while (resultSet.next()) {
           result.add(eachRow.apply(resultSet));
         }
-      } finally {
-        statement.close();
       }
     } catch (Exception e) {
       logger.error("Failed to execute insert", e);
@@ -148,12 +145,9 @@ public abstract class AbstractTest {
   protected void executeInsert(String sql, Object... params) {
     try (Connection connection = getConnection()) {
       connection.setAutoCommit(true);
-      PreparedStatement statement = connection.prepareStatement(sql);
-      try {
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
         applyStatementParams(statement, params);
         statement.execute();
-      } finally {
-        statement.close();
       }
     } catch (Exception e) {
       logger.error("Failed to execute insert", e);
@@ -170,12 +164,9 @@ public abstract class AbstractTest {
   protected void executeDelete(String sql, Object... params) {
     try (Connection connection = getConnection()) {
       connection.setAutoCommit(true);
-      PreparedStatement statement = connection.prepareStatement(sql);
-      try {
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
         applyStatementParams(statement, params);
         statement.execute();
-      } finally {
-        statement.close();
       }
     } catch (Exception e) {
       logger.error("Failed to execute delete", e);
