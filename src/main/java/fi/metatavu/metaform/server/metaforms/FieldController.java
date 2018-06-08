@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
+import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.ListReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.model.BooleanReplyField;
 import fi.metatavu.metaform.server.persistence.model.ListReplyField;
@@ -43,6 +44,9 @@ public class FieldController {
 
   @Inject
   private FieldTypeMapper fieldTypeMapper;
+
+  @Inject
+  private AnyReplyFieldDAO anyReplyfieldDAO;
 
   @Inject
   private ListReplyFieldItemDAO listReplyFieldItemDAO;
@@ -94,35 +98,42 @@ public class FieldController {
   }
 
   /**
-   * Returns value for a reply field
+   * Returns field value for a reply
    * 
-   * @param metaformEntity metaform
+   * @param metaformEntity metaform model
    * @param reply reply
-   * @param field field
-   * @return value
+   * @param fieldName field name
+   * @return field value or null if not found
    */
-  public Object getFieldValue(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, Reply reply, ReplyField field) {
-    String fieldName = field.getName();
-    
+  public Object getFieldValue(Metaform metaformEntity, Reply reply, String fieldName) {
     if (isMetafield(metaformEntity, fieldName)) {
       return resolveMetaField(fieldName, reply);
+    }
+    
+    ReplyField field = getReplyField(reply, fieldName);
+    if (field == null) {
+      return null;
+    }
+    
+    if (field instanceof NumberReplyField) {
+      return ((NumberReplyField) field).getValue();
+    } else if (field instanceof BooleanReplyField) {
+      return ((BooleanReplyField) field).getValue();
+    } else if (field instanceof StringReplyField) {
+      return ((StringReplyField) field).getValue();
+    } else if (field instanceof ListReplyField) {
+      return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
+        .map(ListReplyFieldItem::getValue)
+        .collect(Collectors.toList());
     } else {
-      if (field instanceof NumberReplyField) {
-        return ((NumberReplyField) field).getValue();
-      } else if (field instanceof BooleanReplyField) {
-        return ((BooleanReplyField) field).getValue();
-      } else if (field instanceof StringReplyField) {
-        return ((StringReplyField) field).getValue();
-      } else if (field instanceof ListReplyField) {
-        return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
-          .map(ListReplyFieldItem::getValue)
-          .collect(Collectors.toList());
-      } else {
-        logger.error("Could not resolve {}", fieldName); 
-      }
+      logger.error("Could not resolve {}", fieldName); 
     }
     
     return null;
+  }
+  
+  private ReplyField getReplyField(Reply reply, String fieldName) {
+    return anyReplyfieldDAO.findByReplyAndName(reply, fieldName);
   }
 
   /**
@@ -132,7 +143,7 @@ public class FieldController {
    * @param name name
    * @return whether form field is a meta field
    */
-  public boolean isMetafield(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
+  private boolean isMetafield(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
     MetaformField field = getField(metaformEntity, name);
     return field != null && field.getContexts() != null && field.getContexts().contains("META");
   }

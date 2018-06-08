@@ -1,0 +1,32 @@
+{
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "created",
+          "type": "date-time",
+          "title": "Created metafield",
+          "contexts": [ "META" ]
+        },
+        {
+          "name": "modified",
+          "type": "date-time",
+          "title": "modified metafield",
+          "contexts": [ "META" ]
+        },
+        {
+          "name": "lastEditor",
+          "type": "text",
+          "title": "lastEditor metafield",
+          "contexts": [ "META" ]
+        }
+      ]
+    }
+  ]
+}
