@@ -1,14 +1,19 @@
 package fi.metatavu.metaform.server;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
+import fi.metatavu.metaform.client.EmailNotification;
+import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
@@ -108,6 +113,43 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
       } finally {
         stopMailgunMocker(mailgunMocker);
       }
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  @Test
+  public void testFindEmailNotification() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      EmailNotificationsApi adminEmailNotificationsApi = dataBuilder.getAdminEmailNotificationsApi();
+      
+      Metaform metaform = dataBuilder.createMetaform("simple");
+      EmailNotification createdEmailNotification = dataBuilder.createEmailNotification(metaform, "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"));
+      EmailNotification foundEmailNotification = adminEmailNotificationsApi.findEmailNotification(REALM_1, metaform.getId(), createdEmailNotification.getId());
+      
+      assertEquals(createdEmailNotification.toString(), foundEmailNotification.toString());
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  @Test
+  public void testListEmailNotifications() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      EmailNotificationsApi adminEmailNotificationsApi = dataBuilder.getAdminEmailNotificationsApi();
+      
+      Metaform metaform = dataBuilder.createMetaform("simple");
+      
+      EmailNotification notification1 = dataBuilder.createEmailNotification(metaform, "Subject 1", "Content 2", Arrays.asList("user@example.com"));
+      EmailNotification notification2 = dataBuilder.createEmailNotification(metaform, "Subject 2", "Content 2", Arrays.asList("user@example.com"));
+      
+      List<EmailNotification> list = adminEmailNotificationsApi.listEmailNotifications(REALM_1, metaform.getId());
+      
+      assertEquals(2, list.size());
+      assertEquals(notification1.toString(), list.get(0).toString());
+      assertEquals(notification2.toString(), list.get(1).toString());      
     } finally {
       dataBuilder.clean();
     }

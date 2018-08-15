@@ -184,6 +184,27 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   }
   
   @Test
+  public void testUpdateReply() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      RepliesApi repliesApi = dataBuilder.getRepliesApi();
+      Metaform metaform = dataBuilder.createMetaform("simple");      
+      Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
+
+      ReplyData updateData = new ReplyData();
+      updateData.put("text", "Updated text value");
+      reply.setData(updateData);
+      
+      repliesApi.updateReply(REALM_1, metaform.getId(), reply.getId(), reply);
+      
+      Reply updatedReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      assertEquals("Updated text value", updatedReply.getData().get("text"));
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  @Test
   public void listRepliesByTextFields() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
