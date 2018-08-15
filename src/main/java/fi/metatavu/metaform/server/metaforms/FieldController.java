@@ -182,6 +182,8 @@ public class FieldController {
         return entity.getUserId();
       case "created":
         return formatDateTime(entity.getCreatedAt());
+      case "createdAt":
+          return formatDateTime(entity.getCreatedAt());
       case "modified":
         return formatDateTime(entity.getModifiedAt());
       default:
