@@ -82,7 +82,7 @@
     <rest-assured.version>3.0.3</rest-assured.version>
     <metaform-api-client.version>0.0.14</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
-    
+    <awaitility.version>3.1.2</awaitility.version>    
   </properties>
 
   <dependencyManagement>
@@ -324,6 +324,13 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+      <version>${awaitility.version}</version>
     </dependency>
     
     <dependency>
