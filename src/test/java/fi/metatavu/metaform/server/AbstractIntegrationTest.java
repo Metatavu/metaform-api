@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +17,9 @@ import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
+import fi.metatavu.metaform.client.Reply;
+import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.AttachmentsApi;
 
 
 /**
@@ -127,6 +131,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   }
 
   /**
+   * Returns metaforms API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return metaforms API authenticated by the given access token
+   */
+  protected AttachmentsApi getAttachmentsApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(AttachmentsApi.class);
+  }
+
+  /**
    * Returns EmailNotificationsApi authenticated by the given access token
    * 
    * @param accessTokenaccess token
@@ -233,5 +248,30 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     mailgunMocker.stopMock();
     executeDelete("DELETE FROM SystemSetting WHERE settingKey in ('mailgun-apiurl', 'mailgun-domain', 'mailgun-apikey', 'mailgun-sender-email', 'mailgun-sender-name')");
   }
+
+  /**
+   * Creates a reply object with given data
+   * 
+   * @param replyData reply data
+   * @return reply object with given data
+   */
+  protected Reply createReplyWithData(ReplyData replyData) {
+    Reply reply = new Reply();
+    reply.setData(replyData);
+    return reply;
+  }
   
+  /**
+   * Calculates contents md5 from a resource
+   * 
+   * @param resourceName resource name
+   * @return resource contents md5
+   * @throws IOException thrown when file reading fails
+   */
+  protected String getResourceMd5(String resourceName) throws IOException {
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
+      return DigestUtils.md5Hex(fileStream);
+    }    
+  }
 }
