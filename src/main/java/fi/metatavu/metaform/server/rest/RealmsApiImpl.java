@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.notifications.NotificationController;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.Metaform;
+import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
@@ -48,8 +50,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private static final String NOT_ALLOWED_TO_VIEW_THESE_REPLIES = "You are not allowed to view these replies";
   private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
-  private static final String NOT_FOUND_MESSAGE = "Not found";
-  private static final String UNAUTHORIZED = "Unauthorized";
 
   @Inject
   private Logger logger;
@@ -95,10 +95,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
     
-    UUID userId = payload.getUserId();
-    if (!isRealmMetaformAdmin() || userId == null) {
-      userId = loggedUserId;
-    }
+    UUID userId = getReplyUserId(payload);
     
     ReplyMode replyMode = EnumUtils.getEnum(ReplyMode.class, replyModeParam);
     if (replyModeParam != null && replyMode == null) {
@@ -112,6 +109,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (replyMode == null) {
       replyMode = ReplyMode.UPDATE;
     }
+
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     
     // TODO: Permission check
     // TODO: Support multiple
@@ -121,19 +120,18 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (data == null) {
       logger.warn("Received a reply with null data");
     } else {
+      Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
       for (Entry<String, Object> entry : data.entrySet()) {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
         
         if (fieldValue != null) {
-          replyController.setReplyField(reply, fieldName, fieldValue);
+          replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, fieldValue);
         }
       }
     }
     
-    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
-    
     notificationController.notifyNewReply(metaform, replyEntity);
     
     return createOk(replyEntity);
@@ -230,16 +228,23 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!isRealmMetaformAdmin() && !reply.getUserId().equals(loggedUserId)) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-
-    List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
     
-    for (Entry<String, Object> entry : payload.getData().entrySet()) {
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    
+    List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
+    ReplyData data = payload.getData();
+    Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
+
+    for (Entry<String, Object> entry : data.entrySet()) {
       String fieldName = entry.getKey();
-      replyController.setReplyField(reply, fieldName, entry.getValue());
+      replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, entry.getValue());
       fieldNames.remove(fieldName);
     }
     
     replyController.deleteReplyFields(reply, fieldNames);
+    
+    // TODO: Update reply attachments
+    // persistReplyAttachments(metaformEntity, data, userId);
     
     return createNoContent();
   }
@@ -263,9 +268,15 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!reply.getMetaform().getId().equals(metaform.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
     replyController.deleteReply(reply);
     
+    return null;
+  }
+
+  @Override
+  public Response replyExport(String realmId, UUID metaformId, UUID replyId, String format) throws Exception {
+    // TODO: Add in issue #46 (https://github.com/Metatavu/metaform-api/issues/46)
     return null;
   }
 
@@ -496,6 +507,53 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
   }
+
+  /**
+   * Resolves reply user from payload. If user has appropriate permissions user can 
+   * be other than logged user, otherwise logged user is returned
+   * 
+   * @param reply reply
+   * @return reply user id
+   */
+  private UUID getReplyUserId(Reply reply) {
+    UUID userId = reply.getUserId();
+    if (!isRealmMetaformAdmin() || userId == null) {
+      return getLoggerUserId();
+    }
+    
+    return userId;
+  }
+//  
+//  /**
+//   * Returns list of attachment ids from a reply
+//   * 
+//   * @param metaformEntity Metaform REST entity
+//   * @param data reply data
+//   * @return list of attachment ids from a reply
+//   */
+//  private List<UUID> getReplyAttachmentIds(Metaform metaformEntity, ReplyData data) {
+//    return fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
+//      .map((fieldName) -> {
+//        return StringUtils.split(String.valueOf(data.get(fieldName)));
+//      })
+//      .flatMap(Arrays::stream)
+//      .map(UUID::fromString)
+//      .collect(Collectors.toList());
+//  }
+//  
+//  /**
+//   * Persists previously uploaded files as attachments.
+//   * 
+//   * @param metaformEntity Metaform REST entity
+//   * @param data reply data
+//   * @param userId user id
+//   */
+//  private void persistReplyAttachments(Metaform metaformEntity, ReplyData data, UUID userId) {
+//    getReplyAttachmentIds(metaformEntity, data).forEach((id) -> {
+//      this.persistAttachment(id, userId);
+//    });
+//  }
+  
 
   private String serializeMetaform(Metaform metaform) {
     ObjectMapper objectMapper = new ObjectMapper();
