@@ -30,7 +30,6 @@ import feign.FeignException;
 import fi.metatavu.metaform.client.Attachment;
 import fi.metatavu.metaform.client.AttachmentsApi;
 import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
@@ -41,14 +40,13 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   
   @Test
   public void findAttachmentTest() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     RepliesApi repliesApi = getRepliesApi(accessToken);
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("files"));
 
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
+      Metaform metaform = dataBuilder.createMetaform("files");
+      
       AttachmentsApi adminAttachmentsApi = dataBuilder.getAdminAttachmentsApi();
       FileUploadResponse fileUpload = uploadResourceFile("test-image-480-320.jpg");
       
@@ -75,14 +73,12 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void findMultipleAttachmentsTest() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     RepliesApi repliesApi = getRepliesApi(accessToken);
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("files"));
 
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
+      Metaform metaform = dataBuilder.createMetaform("files");
       AttachmentsApi adminAttachmentsApi = dataBuilder.getAdminAttachmentsApi();
       FileUploadResponse fileUpload1 = uploadResourceFile("test-image-480-320.jpg");
       FileUploadResponse fileUpload2 = uploadResourceFile("test-image-667-1000.jpg");
@@ -112,14 +108,12 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void updateAttachmentsTest() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     RepliesApi repliesApi = getRepliesApi(accessToken);
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("files"));
 
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
+      Metaform metaform = dataBuilder.createMetaform("files");
       AttachmentsApi adminAttachmentsApi = dataBuilder.getAdminAttachmentsApi();
       FileUploadResponse fileUpload1 = uploadResourceFile("test-image-480-320.jpg");
       FileUploadResponse fileUpload2 = uploadResourceFile("test-image-667-1000.jpg");
@@ -159,13 +153,12 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   public void deleteAttachmentsTest() throws IOException, URISyntaxException {
     String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("files"));
 
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
+      Metaform metaform = dataBuilder.createMetaform("files");
       AttachmentsApi adminAttachmentsApi = dataBuilder.getAdminAttachmentsApi();
       FileUploadResponse fileUpload1 = uploadResourceFile("test-image-480-320.jpg");
       FileUploadResponse fileUpload2 = uploadResourceFile("test-image-667-1000.jpg");
