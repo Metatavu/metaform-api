@@ -1,14 +1,18 @@
 package fi.metatavu.metaform.server;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.junit.After;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +40,20 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String AUTH_SERVER_URL = "http://localhost:8280";
   protected static final String DEFAULT_KEYCLOAK_CLIENT_ID = "ui";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
+  
+  @After
+  public void metaformsCleaned() {
+    int metaformCount = executeSelectSingle("SELECT count(id) as count FROM Metaform", (resultSet) -> {
+      try {
+        return resultSet.getInt("count");
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    });
+    
+    assertEquals("Metaforms not properly cleaned after test", 0, metaformCount); 
+  }
   
   /**
    * Returns API base path
