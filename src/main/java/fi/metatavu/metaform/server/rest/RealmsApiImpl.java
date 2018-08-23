@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,16 +20,20 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.notifications.NotificationController;
+import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.Metaform;
+import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
+import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
@@ -48,8 +53,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private static final String NOT_ALLOWED_TO_VIEW_THESE_REPLIES = "You are not allowed to view these replies";
   private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
-  private static final String NOT_FOUND_MESSAGE = "Not found";
-  private static final String UNAUTHORIZED = "Unauthorized";
 
   @Inject
   private Logger logger;
@@ -68,6 +71,12 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private NotificationController notificationController;
+
+  @Inject
+  private AttachmentController attachmentController;
+
+  @Inject
+  private AttachmentTranslator attachmentTranslator;
 
   @Inject
   private MetaformTranslator metaformTranslator;
@@ -95,10 +104,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
     
-    UUID userId = payload.getUserId();
-    if (!isRealmMetaformAdmin() || userId == null) {
-      userId = loggedUserId;
-    }
+    UUID userId = getReplyUserId(payload);
     
     ReplyMode replyMode = EnumUtils.getEnum(ReplyMode.class, replyModeParam);
     if (replyModeParam != null && replyMode == null) {
@@ -112,6 +118,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (replyMode == null) {
       replyMode = ReplyMode.UPDATE;
     }
+
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     
     // TODO: Permission check
     // TODO: Support multiple
@@ -121,19 +129,18 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (data == null) {
       logger.warn("Received a reply with null data");
     } else {
+      Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
       for (Entry<String, Object> entry : data.entrySet()) {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
         
         if (fieldValue != null) {
-          replyController.setReplyField(reply, fieldName, fieldValue);
+          replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, fieldValue);
         }
       }
     }
     
-    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
-    
     notificationController.notifyNewReply(metaform, replyEntity);
     
     return createOk(replyEntity);
@@ -230,12 +237,16 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!isRealmMetaformAdmin() && !reply.getUserId().equals(loggedUserId)) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-
-    List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
     
-    for (Entry<String, Object> entry : payload.getData().entrySet()) {
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    
+    List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
+    ReplyData data = payload.getData();
+    Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
+
+    for (Entry<String, Object> entry : data.entrySet()) {
       String fieldName = entry.getKey();
-      replyController.setReplyField(reply, fieldName, entry.getValue());
+      replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, entry.getValue());
       fieldNames.remove(fieldName);
     }
     
@@ -263,9 +274,15 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!reply.getMetaform().getId().equals(metaform.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
     replyController.deleteReply(reply);
     
+    return null;
+  }
+
+  @Override
+  public Response replyExport(String realmId, UUID metaformId, UUID replyId, String format) throws Exception {
+    // TODO: Add in issue #46 (https://github.com/Metatavu/metaform-api/issues/46)
     return null;
   }
 
@@ -373,6 +390,34 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   public Response export(String realmId, UUID metaformId, String format) throws Exception {
     // TODO Auto-generated method stub
     return null;
+  }
+  
+  @Override
+  public Response findAttachment(String realmId, UUID attachmentId) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
+    Attachment attachment = attachmentController.findAttachmentById(attachmentId);
+    if (attachment == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(attachmentTranslator.translateAttachment(attachment));
+  }
+
+  @Override
+  public Response findAttachmentData(String realmId, UUID attachmentId) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
+    Attachment attachment = attachmentController.findAttachmentById(attachmentId);
+    if (attachment == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return streamResponse(attachment.getContent(), attachment.getContentType());
   }
 
   /**
@@ -495,6 +540,22 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     emailNotificationController.updateEmailNotification(emailNotification, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
     
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
+  }
+
+  /**
+   * Resolves reply user from payload. If user has appropriate permissions user can 
+   * be other than logged user, otherwise logged user is returned
+   * 
+   * @param reply reply
+   * @return reply user id
+   */
+  private UUID getReplyUserId(Reply reply) {
+    UUID userId = reply.getUserId();
+    if (!isRealmMetaformAdmin() || userId == null) {
+      return getLoggerUserId();
+    }
+    
+    return userId;
   }
 
   private String serializeMetaform(Metaform metaform) {

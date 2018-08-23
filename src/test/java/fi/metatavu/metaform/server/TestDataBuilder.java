@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import fi.metatavu.metaform.client.AttachmentsApi;
 import fi.metatavu.metaform.client.EmailNotification;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.Metaform;
@@ -84,6 +86,16 @@ public class TestDataBuilder {
    */
   public MetaformsApi getAdminMetaformsApi() throws IOException {
     return test.getMetaformsApi(getAdminToken());
+  }
+  
+  /**
+   * Returns initialized attachment API with administrative rights
+   * 
+   * @return initialized attachment API with administrative rights
+   * @throws IOException
+   */
+  public AttachmentsApi getAdminAttachmentsApi() throws IOException {
+    return test.getAttachmentsApi(getAdminToken());
   }
   
   /**
@@ -175,6 +187,11 @@ public class TestDataBuilder {
     Reply reply = createReplyWithData(replyData1);
     return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
   }
+
+  public Reply createReply(Metaform metaform, ReplyData replyData, ReplyMode replyMode) throws IOException {
+    Reply reply = createReplyWithData(replyData);
+    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
+  }
   
   /**
    * Cleans created test data
@@ -217,6 +234,8 @@ public class TestDataBuilder {
     if (adminToken == null) {
       adminToken = test.getAdminToken(realm);
     }
+
+    assertNotNull(adminToken);
     
     return adminToken;
   }

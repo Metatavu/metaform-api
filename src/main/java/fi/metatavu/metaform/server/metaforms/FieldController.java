@@ -5,8 +5,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,7 +20,11 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
+import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.dao.ListReplyFieldItemDAO;
+import fi.metatavu.metaform.server.persistence.model.Attachment;
+import fi.metatavu.metaform.server.persistence.model.AttachmentReplyField;
+import fi.metatavu.metaform.server.persistence.model.AttachmentReplyFieldItem;
 import fi.metatavu.metaform.server.persistence.model.BooleanReplyField;
 import fi.metatavu.metaform.server.persistence.model.ListReplyField;
 import fi.metatavu.metaform.server.persistence.model.ListReplyFieldItem;
@@ -50,6 +56,9 @@ public class FieldController {
 
   @Inject
   private ListReplyFieldItemDAO listReplyFieldItemDAO;
+
+  @Inject
+  private AttachmentReplyFieldItemDAO attachmentReplyFieldItemDAO;
   
   /**
    * Parses field filters
@@ -125,6 +134,12 @@ public class FieldController {
       return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
         .map(ListReplyFieldItem::getValue)
         .collect(Collectors.toList());
+    } else if (field instanceof AttachmentReplyField) {
+      return attachmentReplyFieldItemDAO.listByField((AttachmentReplyField) field).stream()
+          .map(AttachmentReplyFieldItem::getAttachment)
+          .map(Attachment::getId)
+          .map(UUID::toString)
+          .collect(Collectors.toList());      
     } else {
       logger.error("Could not resolve {}", fieldName); 
     }
@@ -132,6 +147,13 @@ public class FieldController {
     return null;
   }
   
+  /**
+   * Returns a reply field by reply and name 
+   * 
+   * @param reply reply
+   * @param fieldName field name
+   * @return reply field or null if not found
+   */
   private ReplyField getReplyField(Reply reply, String fieldName) {
     return anyReplyfieldDAO.findByReplyAndName(reply, fieldName);
   }
@@ -191,6 +213,19 @@ public class FieldController {
     }
     
     return null;
+  }
+  
+  /**
+   * Returns field name <> type map from Metaform
+   * 
+   * @param metaformEntity Metaform REST entity
+   * @return field name <> type map
+   */
+  public Map<String, MetaformFieldType> getFieldTypeMap(Metaform metaformEntity) {
+    return metaformEntity.getSections().stream()
+      .map(MetaformSection::getFields)
+      .flatMap(List::stream)
+      .collect(Collectors.toMap(MetaformField::getName, MetaformField::getType));
   }
   
   /**

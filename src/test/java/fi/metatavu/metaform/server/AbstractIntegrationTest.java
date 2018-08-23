@@ -1,13 +1,18 @@
 package fi.metatavu.metaform.server;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.junit.After;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,6 +21,9 @@ import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
+import fi.metatavu.metaform.client.Reply;
+import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.AttachmentsApi;
 
 
 /**
@@ -32,6 +40,20 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String AUTH_SERVER_URL = "http://localhost:8280";
   protected static final String DEFAULT_KEYCLOAK_CLIENT_ID = "ui";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
+  
+  @After
+  public void metaformsCleaned() {
+    int metaformCount = executeSelectSingle("SELECT count(id) as count FROM Metaform", (resultSet) -> {
+      try {
+        return resultSet.getInt("count");
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    });
+    
+    assertEquals("Metaforms not properly cleaned after test", 0, metaformCount); 
+  }
   
   /**
    * Returns API base path
@@ -124,6 +146,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected MetaformsApi getMetaformsApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(MetaformsApi.class);
+  }
+
+  /**
+   * Returns metaforms API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return metaforms API authenticated by the given access token
+   */
+  protected AttachmentsApi getAttachmentsApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(AttachmentsApi.class);
   }
 
   /**
@@ -233,5 +266,30 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     mailgunMocker.stopMock();
     executeDelete("DELETE FROM SystemSetting WHERE settingKey in ('mailgun-apiurl', 'mailgun-domain', 'mailgun-apikey', 'mailgun-sender-email', 'mailgun-sender-name')");
   }
+
+  /**
+   * Creates a reply object with given data
+   * 
+   * @param replyData reply data
+   * @return reply object with given data
+   */
+  protected Reply createReplyWithData(ReplyData replyData) {
+    Reply reply = new Reply();
+    reply.setData(replyData);
+    return reply;
+  }
   
+  /**
+   * Calculates contents md5 from a resource
+   * 
+   * @param resourceName resource name
+   * @return resource contents md5
+   * @throws IOException thrown when file reading fails
+   */
+  protected String getResourceMd5(String resourceName) throws IOException {
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
+      return DigestUtils.md5Hex(fileStream);
+    }    
+  }
 }

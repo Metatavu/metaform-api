@@ -1,17 +1,17 @@
 package fi.metatavu.metaform.server.rest;
 
-import fi.metatavu.metaform.server.rest.model.BadRequest;
-import fi.metatavu.metaform.server.rest.model.Forbidden;
-import fi.metatavu.metaform.server.rest.model.InternalServerError;
-import fi.metatavu.metaform.server.rest.model.NotImplemented;
-import fi.metatavu.metaform.server.rest.model.NotFound;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
@@ -19,6 +19,13 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessToken.Access;
+import org.slf4j.Logger;
+
+import fi.metatavu.metaform.server.rest.model.BadRequest;
+import fi.metatavu.metaform.server.rest.model.Forbidden;
+import fi.metatavu.metaform.server.rest.model.InternalServerError;
+import fi.metatavu.metaform.server.rest.model.NotFound;
+import fi.metatavu.metaform.server.rest.model.NotImplemented;
 
 /**
  * Abstract base class for all API services
@@ -30,8 +37,16 @@ public abstract class AbstractApi {
   protected static final String USER_ROLE = "user";
   protected static final String ADMIN_ROLE = "metaform-admin";
   protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
+  protected static final String NOT_FOUND_MESSAGE = "Not found";
+  protected static final String UNAUTHORIZED = "Unauthorized";
   
-  
+  private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+  private static final String FAILED_TO_STREAM_DATA_TO_CLIENT = "Failed to stream data to client";
+  private static final String UNSUPPORTED_ENCODING = "Unsupported encoding";
+
+  @Inject
+  private Logger logger;
+
   /**
    * Return current HttpServletRequest
    * 
@@ -157,6 +172,67 @@ public abstract class AbstractApi {
     return Response
       .status(Response.Status.FORBIDDEN)
       .entity(entity)
+      .build();
+  }
+
+  /**
+   * Creates streamed response from string using a UTF-8 encoding
+   * 
+   * @param data data
+   * @param type content type
+   * @return Response
+   */
+  public Response streamResponse(String data, String type) {
+    return streamResponse(data, "UTF-8", type);
+  }
+  
+  /**
+   * Creates streamed response from string using specified encoding
+   * 
+   * @param data data
+   * @param type content type
+   * @return Response
+   */
+  public Response streamResponse(String data, String charsetName, String type) {
+    try {
+      return streamResponse(data.getBytes(charsetName), type);
+    } catch (UnsupportedEncodingException e) {
+      logger.error(UNSUPPORTED_ENCODING, e);
+      return Response.status(Status.INTERNAL_SERVER_ERROR)
+        .entity(INTERNAL_SERVER_ERROR)
+        .build();
+    }
+  }
+  
+  /**
+   * Creates streamed response from byte array
+   * 
+   * @param data data
+   * @param type content type
+   * @return Response
+   */
+  public Response streamResponse(byte[] data, String type) {
+    try (InputStream byteStream = new ByteArrayInputStream(data)) {
+      return streamResponse(type, byteStream, data.length);
+    } catch (IOException e) {
+      logger.error(FAILED_TO_STREAM_DATA_TO_CLIENT, e);
+      return Response.status(Status.INTERNAL_SERVER_ERROR)
+        .entity(INTERNAL_SERVER_ERROR)
+        .build();
+    }
+  }
+
+  /**
+   * Creates streamed response from input stream
+   * 
+   * @param inputStream data
+   * @param type content type
+   * @param contentLength content length
+   * @return Response
+   */
+  public Response streamResponse(String type, InputStream inputStream, int contentLength) {
+    return Response.ok(new StreamingOutputImpl(inputStream), type)
+      .header("Content-Length", contentLength)
       .build();
   }
 

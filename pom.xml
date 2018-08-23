@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.22</metaform-api-spec.version>
+    <metaform-api-spec.version>0.0.27</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -80,9 +80,9 @@
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.10</metaform-api-client.version>
+    <metaform-api-client.version>0.0.15</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
-    
+    <awaitility.version>3.1.2</awaitility.version>    
   </properties>
 
   <dependencyManagement>
@@ -121,7 +121,7 @@
           <dependency>        
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
-            <version>5.2.16.Final</version>
+            <version>5.3.5.Final</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -324,6 +324,13 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+      <version>${awaitility.version}</version>
     </dependency>
     
     <dependency>
@@ -570,6 +577,9 @@
                     <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
                     <command>/system-property=it-test:add(value="true")</command>
                     <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
+                    <command>/subsystem=infinispan/cache-container=metaform:add()</command>
+                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()</command>
+                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>                    
                   </commands>
                 </configuration>
               </execution>

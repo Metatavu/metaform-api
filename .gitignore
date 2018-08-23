@@ -8,3 +8,4 @@
 /keycloak.log
 /.cargo
 .DS_Store
+/keycloak-4.3.0.Final/

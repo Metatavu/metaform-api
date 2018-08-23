@@ -538,17 +538,5 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     executeUpdate("UPDATE Reply SET modifiedAt = ? WHERE id = ?", modified, reply.getId().toString());
     flushCache();
   }
-
-  /**
-   * Creates a reply object with given data
-   * 
-   * @param replyData reply data
-   * @return reply object with given data
-   */
-  private Reply createReplyWithData(ReplyData replyData) {
-    Reply reply = new Reply();
-    reply.setData(replyData);
-    return reply;
-  }
   
 }

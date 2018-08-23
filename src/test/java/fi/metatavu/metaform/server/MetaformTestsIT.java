@@ -53,6 +53,9 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
       MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
+      
+      assertEquals(0, adminMetaformsApi.listMetaforms(REALM_1).size());
+      
       Metaform metaform1 = dataBuilder.createMetaform("simple");
       Metaform metaform2 = dataBuilder.createMetaform("simple");
 

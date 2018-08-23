@@ -199,5 +199,51 @@
       </column>
     </addColumn>
   </changeSet>
+  
+  <changeSet id="attachment" author="Antti Leppa">
+    <createTable tableName="attachment">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="userid" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="contenttype" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="LONGBLOB">
+        <constraints nullable="false"/>
+      </column>      
+    </createTable>
+  </changeSet>
+  
+  <changeSet id="attachmentreplyfields" author="antti.leppa">
+    <createTable tableName="attachmentreplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_ATTACHMENT_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+    </createTable>
     
+    <createTable tableName="attachmentreplyfielditem">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>      
+      <column name="field_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_ATTACHMENT_REPLY_ITEM_FIELD_ID" referencedTableName="attachmentreplyfield" referencedColumnNames="id"/>
+      </column>      
+      <column name="attachment_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_ATTACHMENT_REPLY_ITEM_ATTACHMENT_ID" referencedTableName="attachment" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+  </changeSet> 
+
 </databaseChangeLog>
