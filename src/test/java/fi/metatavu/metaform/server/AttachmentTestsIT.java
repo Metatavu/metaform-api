@@ -6,9 +6,9 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -65,7 +65,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload);
       
-      assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(fileUpload.getFileRef())));
+      assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(accessToken, fileUpload.getFileRef())));
     } finally {
       dataBuilder.clean();
     }
@@ -99,8 +99,8 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
       
-      assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(fileUpload1.getFileRef())));
-      assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(fileUpload2.getFileRef())));
+      assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(accessToken, fileUpload1.getFileRef())));
+      assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(accessToken, fileUpload2.getFileRef())));
     } finally {
       dataBuilder.clean();
     }
@@ -189,14 +189,14 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   }
 
   private void assertAttachmentExists(AttachmentsApi adminAttachmentsApi, FileUploadResponse fileUpload1) {
-    Attachment attachment1 = adminAttachmentsApi.findAttachment(fileUpload1.getFileRef());
+    Attachment attachment1 = adminAttachmentsApi.findAttachment(REALM_1, fileUpload1.getFileRef());
     assertNotNull(attachment1);
     assertEquals(fileUpload1.getFileRef(), attachment1.getId());
   }
 
   private void assertAttachmentNotFound(AttachmentsApi adminAttachmentsApi, UUID fileRef) {
     try {
-      adminAttachmentsApi.findAttachment(fileRef);
+      adminAttachmentsApi.findAttachment(REALM_1, fileRef);
       fail(String.format("Attachment %s should not be present", fileRef.toString()));
     } catch (FeignException e) {
       assertEquals(404, e.status());
@@ -204,9 +204,10 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   }
   
 
-  private byte[] getAttachmentData(UUID id) throws IOException {
-    URL url = new URL(String.format("%s/v1/attachments/%s/data", getBasePath(), id.toString()));
-    URLConnection connection = url.openConnection();
+  private byte[] getAttachmentData(String accessToken, UUID id) throws IOException {
+    URL url = new URL(String.format("%s/v1/realms/%s/attachments/%s/data", getBasePath(), REALM_1, id.toString()));
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestProperty("Authorization", String.format("Bearer %s", accessToken));
     connection.setDoOutput(true);
     return IOUtils.toByteArray(connection.getInputStream());
   }
