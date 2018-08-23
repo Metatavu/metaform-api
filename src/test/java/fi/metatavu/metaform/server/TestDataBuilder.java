@@ -187,6 +187,11 @@ public class TestDataBuilder {
     Reply reply = createReplyWithData(replyData1);
     return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
   }
+
+  public Reply createReply(Metaform metaform, ReplyData replyData, ReplyMode replyMode) throws IOException {
+    Reply reply = createReplyWithData(replyData);
+    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
+  }
   
   /**
    * Cleans created test data

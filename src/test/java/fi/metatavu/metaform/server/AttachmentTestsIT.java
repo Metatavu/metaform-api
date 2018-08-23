@@ -53,7 +53,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       ReplyData replyData = new ReplyData();
       replyData.put("files", fileUpload.getFileRef());
       
-      Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
+      Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertNotNull(reply);
       assertNotNull(reply.getData());
       assertEquals(Arrays.asList(fileUpload.getFileRef().toString()), reply.getData().get("files"));
@@ -90,7 +90,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       ReplyData replyData = new ReplyData();
       replyData.put("files", fileRefs);
       
-      Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
+      Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertEquals(fileRefs, reply.getData().get("files"));
 
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
@@ -125,7 +125,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       ReplyData replyData = new ReplyData();
       replyData.put("files", fileRefs);
       
-      Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
+      Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertEquals(fileRefs, reply.getData().get("files"));
 
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
@@ -170,7 +170,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       ReplyData replyData = new ReplyData();
       replyData.put("files", fileRefs);
       
-      Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
+      Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertEquals(fileRefs, reply.getData().get("files"));
 
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
