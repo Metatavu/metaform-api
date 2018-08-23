@@ -73,6 +73,10 @@
     
     <mailgun.version>1.8.0</mailgun.version>
     
+    <!-- Flying Saurcer -->
+    
+    <flying-saucer.version>9.1.15</flying-saucer.version>
+    
     <!-- Free marker -->
     
     <freemarker.version>2.3.28</freemarker.version>
@@ -226,6 +230,14 @@
       <version>${freemarker.version}</version>
     </dependency>
 
+    <!-- Flying saucer -->
+    
+    <dependency>
+      <groupId>org.xhtmlrenderer</groupId>
+      <artifactId>flying-saucer-pdf-itext5</artifactId>
+      <version>${flying-saucer.version}</version>
+    </dependency>
+    
     <!-- Jackson -->
 
     <dependency>
