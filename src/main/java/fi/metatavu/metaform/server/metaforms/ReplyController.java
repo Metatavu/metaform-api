@@ -384,7 +384,7 @@ public class ReplyController {
         if (attachment != null) {
           attachmentReplyFieldItemDAO.create(UUID.randomUUID(), field, attachment);
         } else {
-          logger.error(String.format("Could not find attachment with id", id));
+          logger.error("Could not find attachment with id {}", id);
         }        
       });
   }
