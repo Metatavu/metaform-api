@@ -20,17 +20,20 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.notifications.NotificationController;
+import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
+import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
@@ -68,6 +71,12 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private NotificationController notificationController;
+
+  @Inject
+  private AttachmentController attachmentController;
+
+  @Inject
+  private AttachmentTranslator attachmentTranslator;
 
   @Inject
   private MetaformTranslator metaformTranslator;
@@ -381,6 +390,34 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   public Response export(String realmId, UUID metaformId, String format) throws Exception {
     // TODO Auto-generated method stub
     return null;
+  }
+  
+  @Override
+  public Response findAttachment(String realmId, UUID attachmentId) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
+    Attachment attachment = attachmentController.findAttachmentById(attachmentId);
+    if (attachment == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(attachmentTranslator.translateAttachment(attachment));
+  }
+
+  @Override
+  public Response findAttachmentData(String realmId, UUID attachmentId) throws Exception {
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
+    Attachment attachment = attachmentController.findAttachmentById(attachmentId);
+    if (attachment == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return streamResponse(attachment.getContent(), attachment.getContentType());
   }
 
   /**
