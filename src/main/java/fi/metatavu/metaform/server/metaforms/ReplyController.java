@@ -357,7 +357,7 @@ public class ReplyController {
   
   private void removeUnusedAttachmentReplyItems(List<AttachmentReplyFieldItem> items, List<String> savedFileRefs) {
     items.stream()
-      .filter((attachmentReplyFieldItem) -> {
+      .filter(attachmentReplyFieldItem -> {
         String fileRef = attachmentReplyFieldItem.getAttachment().getId().toString();
         return !savedFileRefs.contains(fileRef);
       })
@@ -378,8 +378,8 @@ public class ReplyController {
       .collect(Collectors.toList());
     
     savedFileRefs.stream()
-      .filter((savedFileRef) -> !usedFileRefs.contains(savedFileRef))
-      .forEach((id) -> {
+      .filter(savedFileRef -> !usedFileRefs.contains(savedFileRef))
+      .forEach(id -> {
         Attachment attachment = retrieveOrPersistAttachment(UUID.fromString(id), userId);
         if (attachment != null) {
           attachmentReplyFieldItemDAO.create(UUID.randomUUID(), field, attachment);

@@ -243,9 +243,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     replyController.deleteReplyFields(reply, fieldNames);
     
-    // TODO: Update reply attachments
-    // persistReplyAttachments(metaformEntity, data, userId);
-    
     return createNoContent();
   }
 
@@ -523,37 +520,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     return userId;
   }
-//  
-//  /**
-//   * Returns list of attachment ids from a reply
-//   * 
-//   * @param metaformEntity Metaform REST entity
-//   * @param data reply data
-//   * @return list of attachment ids from a reply
-//   */
-//  private List<UUID> getReplyAttachmentIds(Metaform metaformEntity, ReplyData data) {
-//    return fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
-//      .map((fieldName) -> {
-//        return StringUtils.split(String.valueOf(data.get(fieldName)));
-//      })
-//      .flatMap(Arrays::stream)
-//      .map(UUID::fromString)
-//      .collect(Collectors.toList());
-//  }
-//  
-//  /**
-//   * Persists previously uploaded files as attachments.
-//   * 
-//   * @param metaformEntity Metaform REST entity
-//   * @param data reply data
-//   * @param userId user id
-//   */
-//  private void persistReplyAttachments(Metaform metaformEntity, ReplyData data, UUID userId) {
-//    getReplyAttachmentIds(metaformEntity, data).forEach((id) -> {
-//      this.persistAttachment(id, userId);
-//    });
-//  }
-  
 
   private String serializeMetaform(Metaform metaform) {
     ObjectMapper objectMapper = new ObjectMapper();
