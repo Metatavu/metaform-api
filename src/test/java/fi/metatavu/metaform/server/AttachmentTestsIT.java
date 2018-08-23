@@ -170,7 +170,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       ReplyData replyData = new ReplyData();
       replyData.put("files", fileRefs);
       
-      Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
+      Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
       assertEquals(fileRefs, reply.getData().get("files"));
 
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
