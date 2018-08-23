@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server.freemarker;
+package fi.metatavu.metaform.server.email;
 
 import java.util.UUID;
 
@@ -10,12 +10,12 @@ import org.apache.commons.lang3.StringUtils;
  * @author Antti Leppä
  * @author Heikki Kurhinen
  */
-public enum TemplateSource {
+public enum EmailTemplateSource {
   
   EMAIL_CONTENT ("email-content-"),
   EMAIL_SUBJECT ("email-subject-");
   
-  TemplateSource(String prefix) {
+  EmailTemplateSource(String prefix) {
     this.prefix = prefix;
   }
   
@@ -25,8 +25,8 @@ public enum TemplateSource {
    * @param name name
    * @return source
    */
-  public static TemplateSource resolve(String name) {
-    for (TemplateSource templateSource : values()) {
+  public static EmailTemplateSource resolve(String name) {
+    for (EmailTemplateSource templateSource : values()) {
       if (StringUtils.startsWith(name, templateSource.prefix)) {
         return templateSource;
       }

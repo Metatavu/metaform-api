@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server.freemarker;
+package fi.metatavu.metaform.server.email;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -24,7 +24,7 @@ import freemarker.template.Version;
  * @author Antti Leppä
  */
 @ApplicationScoped
-public class FreemarkerRenderer {
+public class EmailFreemarkerRenderer {
   
   private static final Version VERSION = Configuration.VERSION_2_3_23;
 
@@ -32,7 +32,7 @@ public class FreemarkerRenderer {
   private Logger logger;
   
   @Inject
-  private FreemarkerTemplateLoader freemarkerTemplateLoader;
+  private EmailFreemarkerTemplateLoader freemarkerTemplateLoader;
   
   private Configuration configuration;
   
