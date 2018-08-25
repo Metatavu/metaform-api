@@ -12,6 +12,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -24,10 +25,12 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class Attachment {
 
   @Id
+  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @Column(nullable = false)
   @NotNull
+  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID userId;
 
   @Column (nullable = false)

@@ -13,8 +13,6 @@ import javax.persistence.criteria.Root;
 import fi.metatavu.metaform.server.persistence.model.ExportTheme;
 import fi.metatavu.metaform.server.persistence.model.ExportThemeFile;
 import fi.metatavu.metaform.server.persistence.model.ExportThemeFile_;
-import fi.metatavu.metaform.server.persistence.model.Metaform;
-import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification_;
 
 /**
  * DAO class for ExportThemeFile entity
@@ -27,16 +25,21 @@ public class ExportThemeFileDAO extends AbstractDAO<ExportThemeFile> {
   /**
   * Creates new exportThemeFile
   *
+  * @param id id
   * @param path path
+  * @param content content
   * @param theme theme
   * @param lastModifier modifier
   * @return created exportThemeFile
   */
-  public ExportThemeFile create(String path, ExportTheme theme, UUID lastModifier) {
+  public ExportThemeFile create(UUID id, ExportTheme theme, String path, String content, UUID creator, UUID lastModifier) {
     ExportThemeFile exportThemeFile = new ExportThemeFile();
+    exportThemeFile.setId(id);
     exportThemeFile.setPath(path);
+    exportThemeFile.setContent(content);
     exportThemeFile.setTheme(theme);
     exportThemeFile.setLastModifier(lastModifier);
+    exportThemeFile.setCreator(creator);
     return persist(exportThemeFile);
   }
 
@@ -65,6 +68,26 @@ public class ExportThemeFileDAO extends AbstractDAO<ExportThemeFile> {
     
     return getSingleResult(query);
   }
+
+  /**
+   * Lists theme files by theme
+   * 
+   * @param theme theme
+   * @return List of theme files
+   */
+  public List<ExportThemeFile> listByTheme(ExportTheme theme) {
+    EntityManager entityManager = getEntityManager();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<ExportThemeFile> criteria = criteriaBuilder.createQuery(ExportThemeFile.class);
+    Root<ExportThemeFile> root = criteria.from(ExportThemeFile.class);
+    criteria.select(root);
+    criteria.where(criteriaBuilder.equal(root.get(ExportThemeFile_.theme), theme));
+    
+    TypedQuery<ExportThemeFile> query = entityManager.createQuery(criteria);
+    
+    return query.getResultList();
+  }
   
   /**
   * Updates path
@@ -76,6 +99,19 @@ public class ExportThemeFileDAO extends AbstractDAO<ExportThemeFile> {
   public ExportThemeFile updatePath(ExportThemeFile exportThemeFile, String path, UUID lastModifier) {
     exportThemeFile.setLastModifier(lastModifier);
     exportThemeFile.setPath(path);
+    return persist(exportThemeFile);
+  }
+  
+  /**
+  * Updates content
+  *
+  * @param content content
+  * @param lastModifier modifier
+  * @return updated exportThemeFile
+  */
+  public ExportThemeFile updateContent(ExportThemeFile exportThemeFile, String content, UUID lastModifier) {
+    exportThemeFile.setLastModifier(lastModifier);
+    exportThemeFile.setContent(content);
     return persist(exportThemeFile);
   }
 
@@ -91,5 +127,5 @@ public class ExportThemeFileDAO extends AbstractDAO<ExportThemeFile> {
     exportThemeFile.setTheme(theme);
     return persist(exportThemeFile);
   }
-  
+
 }

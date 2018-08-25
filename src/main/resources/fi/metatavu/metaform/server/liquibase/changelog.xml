@@ -245,5 +245,66 @@
       </column>
     </createTable>
   </changeSet> 
+  
+  <changeSet id="exporttheme" author="antti.leppa">
+    <createTable tableName="exporttheme">
+       <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creator" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifier" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="locales" type="longtext"/>
+      <column name="parent_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+    </createTable>
+    
+    <createTable tableName="exportthemefile">
+       <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="theme_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_EXPORTTHEMEFILE_THEME_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+      </column>
+      <column name="path" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creator" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifier" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    
+    <addUniqueConstraint constraintName="UN_EXPORTTHEME_THEME_PATH" columnNames="theme_id,path" tableName="exportthemefile"/>
+  </changeSet> 
+
+  <changeSet id="exporttheme-parent" author="antti.leppa">
+    <dropNotNullConstraint tableName="exporttheme" columnName="parent_id" columnDataType="uuid"/>
+  </changeSet> 
+
 
 </databaseChangeLog>

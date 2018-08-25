@@ -3,8 +3,14 @@ package fi.metatavu.metaform.server.persistence.dao;
 import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import fi.metatavu.metaform.server.persistence.model.ExportTheme;
+import fi.metatavu.metaform.server.persistence.model.ExportTheme_;
 
 /**
  * DAO class for ExportThemeFile entity
@@ -17,21 +23,44 @@ public class ExportThemeDAO extends AbstractDAO<ExportTheme> {
   /**
   * Creates new exportTheme
   *
+  * @param id id
   * @param locales locales
   * @param parent parent
   * @param name name
   * @param lastModifier modifier
   * @return created exportTheme
   */
-  public ExportTheme create(String locales, ExportTheme parent, String name, UUID lastModifier) {
+  public ExportTheme create(UUID id, String locales, ExportTheme parent, String name, UUID creator, UUID lastModifier) {
     ExportTheme exportTheme = new ExportTheme();
+    exportTheme.setId(id);
     exportTheme.setLocales(locales);
     exportTheme.setParent(parent);
     exportTheme.setName(name);
     exportTheme.setLastModifier(lastModifier);
+    exportTheme.setCreator(creator);
     return persist(exportTheme);
   }
 
+  /**
+   * Finds a theme by name
+   * 
+   * @param name name
+   * @return Found theme or null if not found
+   */
+  public ExportTheme findByName(String name) {
+    EntityManager entityManager = getEntityManager();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<ExportTheme> criteria = criteriaBuilder.createQuery(ExportTheme.class);
+    Root<ExportTheme> root = criteria.from(ExportTheme.class);
+    criteria.select(root);
+    criteria.where(criteriaBuilder.equal(root.get(ExportTheme_.name), name));
+    
+    TypedQuery<ExportTheme> query = entityManager.createQuery(criteria);
+    
+    return getSingleResult(query);
+  }
+  
   /**
   * Updates locales
   *
