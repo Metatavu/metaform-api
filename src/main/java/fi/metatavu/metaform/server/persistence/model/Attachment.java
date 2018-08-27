@@ -53,6 +53,7 @@ public class Attachment {
   @NotNull
   @Column(nullable = false)
   @Lob
+  @Type(type="org.hibernate.type.BinaryType")
   private byte[] content;
   
   /**

@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO;
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
+import fi.metatavu.metaform.server.persistence.model.ExportTheme;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
@@ -33,13 +34,14 @@ public class MetaformController {
   /**
    * Creates new Metaform
    * 
+   * @param exportTheme export theme
    * @param realmId realm id
    * @param data form JSON
    * @return Metaform
    */
-  public Metaform createMetaform(String realmId, Boolean allowAnonymous, String data) {
+  public Metaform createMetaform(ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String data) {
     UUID id = UUID.randomUUID();
-    return metaformDAO.create(id, realmId, allowAnonymous, data);    
+    return metaformDAO.create(id, exportTheme, realmId, allowAnonymous, data);    
   }
 
   /**
@@ -70,9 +72,10 @@ public class MetaformController {
    * @param allowAnonymous allow anonymous 
    * @return Updated Metaform
    */
-  public Metaform updateMetaform(Metaform metaform, String data, Boolean allowAnonymous) {
+  public Metaform updateMetaform(Metaform metaform, ExportTheme exportTheme, String data, Boolean allowAnonymous) {
     metaformDAO.updateData(metaform, data);
     metaformDAO.updateAllowAnonymous(metaform, allowAnonymous);
+    metaformDAO.updateExportTheme(metaform, exportTheme);
     return metaform;
   }
 

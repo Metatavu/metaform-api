@@ -305,6 +305,13 @@
   <changeSet id="exporttheme-parent" author="antti.leppa">
     <dropNotNullConstraint tableName="exporttheme" columnName="parent_id" columnDataType="uuid"/>
   </changeSet> 
-
-
+  
+  <changeSet id="metaform-exporttheme" author="antti.leppa">
+    <addColumn tableName="metaform">
+      <column name="exporttheme_id" type="uuid">
+        <constraints nullable="true" foreignKeyName="FK_METAFORM_EXPORTTHEME_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+      </column>      
+    </addColumn>
+  </changeSet> 
+  
 </databaseChangeLog>

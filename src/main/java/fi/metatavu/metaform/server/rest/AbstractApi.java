@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.time.OffsetDateTime;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -54,6 +55,15 @@ public abstract class AbstractApi {
    */
   protected HttpServletRequest getHttpServletRequest() {
     return ResteasyProviderFactory.getContextData(HttpServletRequest.class);
+  }
+  
+  /**
+   * Returns request locale
+   * 
+   * @return request locale
+   */
+  protected Locale getLocale() {
+    return getHttpServletRequest().getLocale();
   }
   
   /**
