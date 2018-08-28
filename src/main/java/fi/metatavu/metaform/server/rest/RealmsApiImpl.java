@@ -64,6 +64,7 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 @Stateful
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
+  private static final String THEME_DOES_NOT_EXIST = "Theme %s does not exist";
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS = "You are not allowed to update Metaforms";
   private static final String ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE = "Anonymous users are not allowed to list Metaforms";
   private static final String ANONYMOUS_USERS_FIND_METAFORM_MESSAGE = "Anonymous users are not allowed to find Metaforms";
@@ -645,7 +646,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (parentId != null) {
       parent = exportThemeController.findExportTheme(parentId);
       if (parent == null) {
-        return createBadRequest(String.format("Theme %s does not exist", parentId));
+        return createBadRequest(String.format(THEME_DOES_NOT_EXIST, parentId));
       }
     }
     
@@ -665,7 +666,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(themeId);
     if (theme == null) {
-      return createBadRequest(String.format("Theme %s does not exist", themeId));
+      return createBadRequest(String.format(THEME_DOES_NOT_EXIST, themeId));
     }
 
     fi.metatavu.metaform.server.persistence.model.ExportThemeFile themeFile = exportThemeController.createExportThemeFile(theme, payload.getPath(), payload.getContent(), loggedUserId);
@@ -796,7 +797,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (parentId != null) {
       parent = exportThemeController.findExportTheme(parentId);
       if (parent == null) {
-        return createBadRequest(String.format("Theme %s does not exist", parentId));
+        return createBadRequest(String.format(THEME_DOES_NOT_EXIST, parentId));
       }
     }
 
@@ -930,7 +931,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       .distinct()
       .collect(Collectors.toList());
     
-    if (duplicates.size() > 0) {
+    if (!duplicates.isEmpty()) {
       return Response.status(400).entity(String.format("Duplicate field names: %s", StringUtils.join(duplicates, ','))).build();
     }
       

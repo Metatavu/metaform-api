@@ -41,6 +41,7 @@ public class MetaformTranslator {
       result = objectMapper.readValue(entity.getData(), Metaform.class);
     } catch (IOException e) {
       logger.error(String.format("Failed to translate metaform %s", entity.getId().toString()), e);
+      return null;
     }
     
     if (result != null) {
