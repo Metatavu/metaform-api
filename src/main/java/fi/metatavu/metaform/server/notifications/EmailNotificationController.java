@@ -15,10 +15,10 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer;
 import fi.metatavu.metaform.server.email.EmailProvider;
+import fi.metatavu.metaform.server.email.EmailTemplateSource;
 import fi.metatavu.metaform.server.email.mailgun.MailFormat;
-import fi.metatavu.metaform.server.freemarker.FreemarkerRenderer;
-import fi.metatavu.metaform.server.freemarker.TemplateSource;
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO;
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
@@ -43,7 +43,7 @@ public class EmailNotificationController {
   private EmailProvider emailProvider;
 
   @Inject
-  private FreemarkerRenderer freemarkerRenderer;
+  private EmailFreemarkerRenderer freemarkerRenderer;
 
   @Inject
   private EmailNotificationDAO emailNotificationDAO;
@@ -168,8 +168,8 @@ public class EmailNotificationController {
     UUID id = emailNotificationEmail.getEmailNotification().getId();
     Map<String, Object> data = toFreemarkerData(reply);
     
-    String subject = freemarkerRenderer.render(TemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE);
-    String content = freemarkerRenderer.render(TemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE);
+    String subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE);
+    String content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE);
     
     emailProvider.sendMail(email, subject, content, MailFormat.HTML);
   }

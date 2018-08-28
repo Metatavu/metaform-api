@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.ApiClient;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
+import fi.metatavu.metaform.client.ExportThemesApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
@@ -168,6 +169,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected EmailNotificationsApi getEmailNotificationsApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(EmailNotificationsApi.class);
+  }
+  
+  /**
+   * Returns exportThemes API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return exportThemes API authenticated by the given access token
+   */
+  protected ExportThemesApi getExportThemesApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(ExportThemesApi.class);
   }
   
   /**

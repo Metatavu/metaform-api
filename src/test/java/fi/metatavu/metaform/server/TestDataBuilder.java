@@ -14,6 +14,9 @@ import java.util.UUID;
 import fi.metatavu.metaform.client.AttachmentsApi;
 import fi.metatavu.metaform.client.EmailNotification;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
+import fi.metatavu.metaform.client.ExportTheme;
+import fi.metatavu.metaform.client.ExportThemeFile;
+import fi.metatavu.metaform.client.ExportThemesApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
@@ -36,6 +39,8 @@ public class TestDataBuilder {
   private String accessToken;
   private Set<EmailNotification> emailNotifications;
   private Set<Metaform> metaforms;
+  private Set<ExportTheme> exportThemes;
+  private Map<UUID, Set<ExportThemeFile>> exportThemeFiles;
   private Set<Reply> replies;
   private Map<UUID, UUID> childEntityMetaforms;
   
@@ -55,7 +60,9 @@ public class TestDataBuilder {
     this.emailNotifications = new HashSet<>();
     this.metaforms = new HashSet<>();
     this.replies = new HashSet<>();
+    this.exportThemes = new HashSet<>();
     this.childEntityMetaforms = new HashMap<>();
+    this.exportThemeFiles = new HashMap<>();
   }
   
   /**
@@ -106,6 +113,26 @@ public class TestDataBuilder {
    */
   public EmailNotificationsApi getAdminEmailNotificationsApi() throws IOException {
     return test.getEmailNotificationsApi(getAdminToken());
+  }
+  
+  /**
+   * Returns initialized exportThemes API
+   * 
+   * @return initialized exportThemes API
+   * @throws IOException
+   */
+  public ExportThemesApi getExportThemesApi() throws IOException {
+    return test.getExportThemesApi(getAccessToken());
+  }
+  
+  /**
+   * Returns initialized exportThemes API with administrative rights
+   * 
+   * @return initialized exportThemes API with administrative rights
+   * @throws IOException
+   */
+  public ExportThemesApi getAdminExportThemesApi() throws IOException {
+    return test.getExportThemesApi(getAdminToken());
   }
 
   /**
@@ -188,11 +215,84 @@ public class TestDataBuilder {
     return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
   }
 
+  /**
+   * Creates a reply
+   * 
+   * @param metaform metaform
+   * @param replyData reply data
+   * @param replyMode reply mode
+   * @return created reply
+   * @throws IOException thrown when creation fails
+   */
   public Reply createReply(Metaform metaform, ReplyData replyData, ReplyMode replyMode) throws IOException {
     Reply reply = createReplyWithData(replyData);
     return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
   }
-  
+
+  /**
+   * Creates simple export theme
+   * 
+   * @return export theme
+   * @throws IOException thrown when request fails
+   */
+  public ExportTheme createSimpleExportTheme() throws IOException {
+    return createSimpleExportTheme("simple");
+  }
+
+  /**
+   * Creates simple export theme
+   * 
+   * @param name name
+   * @return export theme
+   * @throws IOException thrown when request fails
+   */
+  public ExportTheme createSimpleExportTheme(String name) throws IOException {
+    fi.metatavu.metaform.client.ExportTheme payload = new fi.metatavu.metaform.client.ExportTheme();
+    payload.setName(name);
+    return createExportTheme(payload);
+  }
+
+  /**
+   * Creates export theme
+   * 
+   * @param payload payload
+   * @return export theme
+   * @throws IOException thrown when request fails
+   */
+  public ExportTheme createExportTheme(ExportTheme payload) throws IOException {
+    return addExportTheme(getAdminExportThemesApi().createExportTheme(realm, payload));
+  }
+
+  /**
+   * Creates export theme file
+   * 
+   * @param themeId theme
+   * @param path path
+   * @param content content
+   * @param payload payload
+   * @return export theme
+   * @throws IOException thrown when request fails
+   */
+  public ExportThemeFile createSimpleExportThemeFile(UUID themeId, String path, String content) throws IOException {
+    ExportThemeFile payload = new ExportThemeFile();
+    payload.setContent(content);
+    payload.setPath(path);
+    payload.setThemeId(themeId);
+    
+    return createExportThemeFile(payload);
+  }
+
+  /**
+   * Creates export theme file
+   * 
+   * @param payload payload
+   * @return export theme
+   * @throws IOException thrown when request fails
+   */
+  public ExportThemeFile createExportThemeFile(ExportThemeFile payload) throws IOException {
+    return addExportThemeFile(payload.getThemeId(), getAdminExportThemesApi().createExportThemeFile(realm, payload.getThemeId(),payload));
+  }
+
   /**
    * Cleans created test data
    */
@@ -222,6 +322,59 @@ public class TestDataBuilder {
         fail(e.getMessage());
       }  
     });
+    
+    exportThemes.stream()
+      .sorted((exportTheme1, exportTheme2) -> {
+        UUID parent1 = exportTheme1.getParentId();
+        UUID parent2 = exportTheme2.getParentId();
+        
+        if (parent1 == null && parent2 == null) {
+          return 0;
+        } else if (parent1 == null) {
+          return 1;
+        } else if (parent2 == null) {
+          return -1;
+        }
+        
+        return parent2.compareTo(parent1);
+      })
+      .forEach((exportTheme) -> {
+        try {
+          Set<ExportThemeFile> files = exportThemeFiles.get(exportTheme.getId());
+          
+          if (files != null) {
+            files.stream().forEach((exportThemeFile) -> {
+              try {
+                getAdminExportThemesApi().deleteExportThemeFile(realm, exportTheme.getId(), exportThemeFile.getId());
+              } catch (IOException e) {
+                fail(e.getMessage());
+              }
+            });
+          }
+          
+          getAdminExportThemesApi().deleteExportTheme(realm, exportTheme.getId());
+        } catch (IOException e) {
+          fail(e.getMessage());
+        }  
+      });
+  }
+
+  
+  /**
+   * Adds an export theme file into clean queue
+   * 
+   * @param themeId themeId
+   * @param themeFile payload
+   * @return added theme file
+   */
+  private ExportThemeFile addExportThemeFile(UUID themeId, ExportThemeFile themeFile) {
+    if (!exportThemeFiles.containsKey(themeId)) {
+      exportThemeFiles.put(themeId, new HashSet<>());
+    }
+    
+    exportThemeFiles.get(themeId).add(themeFile);
+    
+    return themeFile;
   }
   
   /**
@@ -301,6 +454,17 @@ public class TestDataBuilder {
     this.emailNotifications.add(emailNotification);
     childEntityMetaforms.put(emailNotification.getId(), metaform.getId());
     return emailNotification;
+  }
+
+  /**
+   * Adds exportTheme to clean queue
+   * 
+   * @param exportTheme exportTheme
+   * @return exportTheme
+   */
+  private ExportTheme addExportTheme(ExportTheme exportTheme) {
+    exportThemes.add(exportTheme);
+    return exportTheme;
   }
   
 }

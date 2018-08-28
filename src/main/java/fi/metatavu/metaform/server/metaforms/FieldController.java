@@ -227,7 +227,23 @@ public class FieldController {
       .flatMap(List::stream)
       .collect(Collectors.toMap(MetaformField::getName, MetaformField::getType));
   }
-  
+
+  /**
+   * Lists field name by type
+   * 
+   * @param metaformEntity Metaform
+   * @param type type
+   * @return field names by type
+   */
+  public List<String> getFieldNamesByType(Metaform metaformEntity, MetaformFieldType type) {
+    return metaformEntity.getSections().stream()
+      .map(MetaformSection::getFields)
+      .flatMap(List::stream)
+      .filter(field -> type.equals(field.getType()))
+      .map(MetaformField::getName)
+      .collect(Collectors.toList());
+  }
+
   /**
    * Parses a field filter
    * 

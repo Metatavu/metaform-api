@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import fi.metatavu.metaform.client.ExportTheme;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
@@ -476,6 +477,37 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       dataBuilder.clean();
     }
   }
+  
+  @Test
+  public void testExportReplyPdf() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
+
+      ExportTheme theme = dataBuilder.createSimpleExportTheme();
+      dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
+      Metaform metaform = dataBuilder.createMetaform("simple");
+      metaform.setExportThemeId(theme.getId());
+      adminMetaformsApi.updateMetaform(REALM_1, metaform.getId(), metaform);
+      Metaform metaformModel = readMetaform("simple");
+      metaformModel.setExportThemeId(theme.getId());
+      Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
+
+      given()
+        .baseUri(getBasePath())
+        .header("Authorization", String.format("Bearer %s", getAdminToken(REALM_1)))
+        .get("/v1/realms/{realmId}/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", REALM_1, metaform.getId().toString(), reply.getId().toString())
+        .then()
+        .assertThat()
+        .statusCode(200)
+        .header("Content-Type", "application/pdf");   
+      
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    } finally {
+      dataBuilder.clean();
+    }
+  }
 
   /**
    * Returns when reply is created from the database
@@ -492,7 +524,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         fail(e.getMessage());
         return null;
       }
-    }, reply.getId().toString());
+    }, reply.getId());
     
     return OffsetDateTime.ofInstant(createdAt.toInstant(), zone);
   }
@@ -512,7 +544,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         fail(e.getMessage());
         return null;
       }
-    }, reply.getId().toString());
+    }, reply.getId());
     
     return OffsetDateTime.ofInstant(modifiedAt.toInstant(), zone);
   }
@@ -524,7 +556,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
    * @param created created
    */
   private void updateReplyCreated(Reply reply, OffsetDateTime created) {
-    executeUpdate("UPDATE Reply SET createdAt = ? WHERE id = ?", created, reply.getId().toString());
+    executeUpdate("UPDATE Reply SET createdAt = ? WHERE id = ?", created, reply.getId());
     flushCache();
   }
   
@@ -535,7 +567,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
    * @param modified created
    */
   private void updateReplyModified(Reply reply, OffsetDateTime modified) {
-    executeUpdate("UPDATE Reply SET modifiedAt = ? WHERE id = ?", modified, reply.getId().toString());
+    executeUpdate("UPDATE Reply SET modifiedAt = ? WHERE id = ?", modified, reply.getId());
     flushCache();
   }
   

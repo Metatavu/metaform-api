@@ -1,8 +1,14 @@
 package fi.metatavu.metaform.server.rest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -13,6 +19,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -21,20 +28,30 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
+import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
+import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.notifications.NotificationController;
+import fi.metatavu.metaform.server.pdf.PdfPrinter;
+import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
+import fi.metatavu.metaform.server.rest.model.ExportTheme;
+import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
 import fi.metatavu.metaform.server.rest.model.Metaform;
+import fi.metatavu.metaform.server.rest.model.MetaformField;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
+import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
+import fi.metatavu.metaform.server.rest.translate.ExportThemeTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 
@@ -74,6 +91,18 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private AttachmentController attachmentController;
+
+  @Inject
+  private ExportThemeController exportThemeController;
+
+  @Inject
+  private ExportThemeFreemarkerRenderer exportThemeFreemarkerRenderer; 
+
+  @Inject
+  private PdfPrinter pdfPrinter; 
+
+  @Inject
+  private ExportThemeTranslator exportThemeTranslator;
 
   @Inject
   private AttachmentTranslator attachmentTranslator;
@@ -282,8 +311,43 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response replyExport(String realmId, UUID metaformId, UUID replyId, String format) throws Exception {
-    // TODO: Add in issue #46 (https://github.com/Metatavu/metaform-api/issues/46)
-    return null;
+    // TODO: Permission check
+
+    Locale locale = getLocale();
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+    
+    // TODO: Permission check
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
+    if (reply == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
+      return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
+    }
+    
+    if (!reply.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    if (metaform.getExportTheme() == null) {
+      return createBadRequest("Metaform does not have an export theme");
+    }
+    
+    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+    
+    byte[] pdfData = getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, reply.getCreatedAt(), reply.getModifiedAt(), locale);
+
+    return streamResponse(pdfData, "application/pdf");
   }
 
   @Override
@@ -302,9 +366,21 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       allowAnonymous  = false;
     }
     
+    Response validationResponse = validateMetaform(payload);
+    if (validationResponse != null) {
+      return validationResponse;
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;
+    if (payload.getExportThemeId() != null) {
+      exportTheme = exportThemeController.findExportTheme(payload.getExportThemeId());
+      if (exportTheme == null) {
+        return createBadRequest("Invalid exportThemeId");
+      }
+    }
     // TODO: Permission check
     
-    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(realmId, allowAnonymous, data)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(exportTheme, realmId, allowAnonymous, data)));
   }
 
   public Response listMetaforms(String realmId) throws Exception {
@@ -363,10 +439,23 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (allowAnonymous == null) {
       allowAnonymous = metaform.getAllowAnonymous();
     }
+
+    Response validationResponse = validateMetaform(payload);
+    if (validationResponse != null) {
+      return validationResponse;
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;
+    if (payload.getExportThemeId() != null) {
+      exportTheme = exportThemeController.findExportTheme(payload.getExportThemeId());
+      if (exportTheme == null) {
+        return createBadRequest("Invalid exportThemeId");
+      }
+    }
     
     // TODO: Permission check
     
-    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, data, allowAnonymous)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous)));
   }
   
   @Override
@@ -542,6 +631,205 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
   }
 
+
+  @Override
+  public Response createExportTheme(String realmId, ExportTheme payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+    
+    UUID parentId = payload.getParentId();
+    fi.metatavu.metaform.server.persistence.model.ExportTheme parent = null;
+    UUID loggedUserId = getLoggerUserId();
+    
+    if (parentId != null) {
+      parent = exportThemeController.findExportTheme(parentId);
+      if (parent == null) {
+        return createBadRequest(String.format("Theme %s does not exist", parentId));
+      }
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = exportThemeController.createExportTheme(payload.getLocales(), parent, payload.getName(), loggedUserId);
+    
+    return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
+  }
+
+  @Override
+  public Response createExportThemeFile(String realmId, UUID exportThemeId, ExportThemeFile payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+ 
+    UUID themeId = payload.getThemeId();
+    UUID loggedUserId = getLoggerUserId();
+    
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(themeId);
+    if (theme == null) {
+      return createBadRequest(String.format("Theme %s does not exist", themeId));
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportThemeFile themeFile = exportThemeController.createExportThemeFile(theme, payload.getPath(), payload.getContent(), loggedUserId);
+    
+    return createOk(exportThemeTranslator.translateExportThemeFile(themeFile));
+  }
+
+  @Override
+  public Response deleteExportTheme(String realmId, UUID exportThemeId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
+    if (theme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    exportThemeController.deleteTheme(theme);
+
+    return createNoContent();
+  }
+
+  @Override
+  public Response deleteExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
+    if (theme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile = exportThemeController.findExportThemeFile(exportThemeFileId);
+    if (exportThemeFile == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!exportThemeFile.getTheme().getId().equals(theme.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    exportThemeController.deleteThemeFile(exportThemeFile);
+
+    return createNoContent();
+  }
+
+  @Override
+  public Response findExportTheme(String realmId, UUID exportThemeId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = exportThemeController.findExportTheme(exportThemeId);
+    if (exportTheme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
+  }
+
+  @Override
+  public Response findExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
+    if (theme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile = exportThemeController.findExportThemeFile(exportThemeFileId);
+    if (exportThemeFile == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!exportThemeFile.getTheme().getId().equals(theme.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
+  }
+
+  @Override
+  public Response listExportThemeFiles(String realmId, UUID exportThemeId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
+    if (theme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(exportThemeController.listExportThemeFiles(theme).stream()
+      .map(exportThemeTranslator::translateExportThemeFile)
+      .collect(Collectors.toList()));
+  }
+
+  @Override
+  public Response listExportThemes(String realmId) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    return createOk(exportThemeController.listExportThemes().stream()
+      .map(exportThemeTranslator::translateExportTheme)
+      .collect(Collectors.toList()));
+  }
+
+  @Override
+  public Response updateExportTheme(String realmId, UUID exportThemeId, ExportTheme payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
+    if (theme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    UUID parentId = payload.getParentId();
+    fi.metatavu.metaform.server.persistence.model.ExportTheme parent = null;
+    UUID loggedUserId = getLoggerUserId();
+    
+    if (parentId != null) {
+      parent = exportThemeController.findExportTheme(parentId);
+      if (parent == null) {
+        return createBadRequest(String.format("Theme %s does not exist", parentId));
+      }
+    }
+
+    return createOk(exportThemeTranslator.translateExportTheme(exportThemeController.updateExportTheme(theme, payload.getLocales(), parent, payload.getName(), loggedUserId)));
+  }
+
+  @Override
+  public Response updateExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile payload) throws Exception {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
+    UUID loggedUserId = getLoggerUserId();
+    
+    if (theme == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile = exportThemeController.findExportThemeFile(exportThemeFileId);
+    if (exportThemeFile == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!exportThemeFile.getTheme().getId().equals(theme.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    exportThemeController.updateExportThemeFile(exportThemeFile, payload.getPath(), payload.getContent(), loggedUserId);
+
+    return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
+  }
+  
   /**
    * Resolves reply user from payload. If user has appropriate permissions user can 
    * be other than logged user, otherwise logged user is returned
@@ -558,6 +846,60 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return userId;
   }
 
+  /**
+   * Renders Reply as PDF document
+   * 
+   * @param metaformEntity Metaform
+   * @param replyEntity Reply
+   * @param locale locale
+   * @return Pdf bytes
+   * @throws PdfRenderException throw when rendering fails
+   */
+  private byte[] getReplyPdf(String exportThemeName, Metaform metaformEntity, Reply replyEntity, OffsetDateTime createdAt, OffsetDateTime modifiedAt, Locale locale) throws PdfRenderException {
+    Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentEntities = fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
+      .map(fieldName -> {
+        @SuppressWarnings("unchecked")
+        List<String> attachmentIds = (List<String>) replyEntity.getData().get(fieldName);
+        if (attachmentIds != null) {
+          return attachmentIds.stream()
+            .map(UUID::fromString)
+            .map(attachmentController::findAttachmentById)
+            .map(attachmentTranslator::translateAttachment)
+            .collect(Collectors.toList());
+        }
+        
+        return null;
+      })
+      .flatMap(List::stream)
+      .collect(Collectors.toMap(attachment -> attachment.getId().toString(), attachment -> attachment));
+
+    ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentEntities, getDate(createdAt), getDate(modifiedAt));
+    String html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale);
+    
+    try (InputStream htmlStream = IOUtils.toInputStream(html, "UTF-8")) {
+      try (ByteArrayOutputStream pdfStream = new ByteArrayOutputStream()) {
+        pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream);
+        return pdfStream.toByteArray();
+      }
+    } catch (IOException e) {
+      throw new PdfRenderException("Pdf rendering failed", e);
+    }
+  }
+
+  /**
+   * Returns OffsetDateTime as java.util.Date
+   * 
+   * @param offsetDateTime offset date time
+   * @return java.util.Date
+   */
+  private Date getDate(OffsetDateTime offsetDateTime) {
+    if (offsetDateTime == null) {
+      return null;
+    }
+    
+    return Date.from(offsetDateTime.toInstant());
+  }
+
   private String serializeMetaform(Metaform metaform) {
     ObjectMapper objectMapper = new ObjectMapper();
     
@@ -570,4 +912,29 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return null;
   }
 
+  /**
+   * Validates incoming Metaform
+   * 
+   * @param payload metaform data
+   * @return validation error or null if metaform is valid
+   */
+  private Response validateMetaform(Metaform payload) {
+    List<String> keys = payload.getSections().stream()
+      .map(MetaformSection::getFields)
+      .flatMap(List::stream)
+      .map(MetaformField::getName)
+      .collect(Collectors.toList());
+    
+    List<String> duplicates = keys.stream()
+      .filter(key -> Collections.frequency(keys, key) > 1)
+      .distinct()
+      .collect(Collectors.toList());
+    
+    if (duplicates.size() > 0) {
+      return Response.status(400).entity(String.format("Duplicate field names: %s", StringUtils.join(duplicates, ','))).build();
+    }
+      
+    return null;
+  }
+  
 }

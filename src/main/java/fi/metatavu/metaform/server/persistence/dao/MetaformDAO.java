@@ -9,6 +9,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import fi.metatavu.metaform.server.persistence.model.ExportTheme;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.Metaform_;
 
@@ -24,14 +25,16 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
    * Creates new Metaform
    * 
    * @param id id
+   * @param exportTheme export theme
    * @param realmId realm
    * @param data form JSON
    * @return created Metaform
    */
-  public Metaform create(UUID id, String realmId, Boolean allowAnonymous, String data) {
+  public Metaform create(UUID id, ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String data) {
     Metaform metaform = new Metaform(); 
     
     metaform.setId(id);
+    metaform.setExportTheme(exportTheme);
     metaform.setData(data);
     metaform.setRealmId(realmId);
     metaform.setAllowAnonymous(allowAnonymous);
@@ -81,6 +84,18 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
    */
   public Metaform updateAllowAnonymous(Metaform metaform, Boolean allowAnonymous) {
     metaform.setAllowAnonymous(allowAnonymous);
+    return persist(metaform);
+  }
+
+  /**
+   * Updates exportTheme value
+   * 
+   * @param metaform Metaform
+   * @param exportTheme export theme
+   * @return Updated Metaform
+   */
+  public Metaform updateExportTheme(Metaform metaform, ExportTheme exportTheme) {
+    metaform.setExportTheme(exportTheme);
     return persist(metaform);
   }
 
