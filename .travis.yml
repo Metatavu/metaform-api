@@ -14,12 +14,19 @@ addons:
       - oracle-java8-installer
   sonarcloud:
     organization: "metatavu-oy"
-          
+
+services:
+  - postgresql
+
 install: true
   
 before_script:
   - scripts/start-keycloak.sh
-  
+  - psql -c 'create database mftest' -U postgres
+  - psql -c 'createuse mftest' -U postgres
+  - psql -c "alter user mftest with password 'mftest'"
+  - psql -c "alter role mftest with login"
+
 script:
   - . travis.sh
 
