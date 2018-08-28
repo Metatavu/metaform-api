@@ -41,6 +41,7 @@ public class ExportTheme {
   private ExportTheme parent;
 
   @Lob
+  @Type(type = "org.hibernate.type.TextType")
   private String locales;
 
   @Column(nullable = false)

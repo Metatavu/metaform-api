@@ -709,7 +709,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    exportThemeController.deleteTheme(theme);
+    exportThemeController.deleteThemeFile(exportThemeFile);
 
     return createNoContent();
   }
@@ -872,22 +872,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       })
       .flatMap(List::stream)
       .collect(Collectors.toMap(attachment -> attachment.getId().toString(), attachment -> attachment));
-//    
-//    fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
-//      .forEach(fieldName -> {
-//        @SuppressWarnings("unchecked")
-//        List<String> attachmentIds = (List<String>) replyEntity.getData().get(fieldName);
-//        if (attachmentIds != null) {
-//          attachmentEntities.put(fieldName, attachmentIds.stream()
-//            .map(UUID::fromString)
-//            .map(attachmentController::findAttachmentById)
-//            .map(attachmentTranslator::translateAttachment)
-//            .collect(Collectors.toList()));
-//        }
-//      });
-//    
+
     ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentEntities, getDate(createdAt), getDate(modifiedAt));
     String html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale);
+    
     try (InputStream htmlStream = IOUtils.toInputStream(html, "UTF-8")) {
       try (ByteArrayOutputStream pdfStream = new ByteArrayOutputStream()) {
         pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream);

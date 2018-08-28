@@ -51,6 +51,7 @@ public class ExportThemeFile {
   @NotNull
   @Lob
   @Column(nullable = false)
+  @Type(type = "org.hibernate.type.TextType")
   private String content;
   
   @Column(nullable = false)
