@@ -55,10 +55,7 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
     CriteriaQuery<Metaform> criteria = criteriaBuilder.createQuery(Metaform.class);
     Root<Metaform> root = criteria.from(Metaform.class);
     criteria.select(root);
-
-    criteria.where(
-      criteriaBuilder.equal(root.get(Metaform_.realmId), realmId)
-    );
+    criteria.where(criteriaBuilder.equal(root.get(Metaform_.realmId), realmId));
     
     return entityManager.createQuery(criteria).getResultList();
   }

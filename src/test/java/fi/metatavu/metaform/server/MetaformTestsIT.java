@@ -58,8 +58,18 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       
       Metaform metaform1 = dataBuilder.createMetaform("simple");
       Metaform metaform2 = dataBuilder.createMetaform("simple");
+      
+      metaform1.setTitle("first");
+      metaform2.setTitle("second");
+      
+      adminMetaformsApi.updateMetaform(REALM_1, metaform1.getId(), metaform1);
+      adminMetaformsApi.updateMetaform(REALM_1, metaform2.getId(), metaform2);
 
       List<Metaform> list = adminMetaformsApi.listMetaforms(REALM_1);
+      
+      list.sort((o1, o2) -> {
+        return o1.getTitle().compareTo(o2.getTitle());
+      });
 
       assertEquals(metaform1.toString(), list.get(0).toString());
       assertEquals(metaform2.toString(), list.get(1).toString());

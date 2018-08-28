@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -24,6 +25,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class EmailNotificationEmail {
 
   @Id
+  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @ManyToOne(optional = false)
