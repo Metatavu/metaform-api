@@ -86,7 +86,8 @@
     <rest-assured.version>3.0.3</rest-assured.version>
     <metaform-api-client.version>0.0.17</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
-    <awaitility.version>3.1.2</awaitility.version>    
+    <awaitility.version>3.1.2</awaitility.version>
+    <postgresql.version>42.2.5</postgresql.version>
   </properties>
 
   <dependencyManagement>
@@ -335,6 +336,14 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+      <type>jar</type>
       <scope>test</scope>
     </dependency>
     
