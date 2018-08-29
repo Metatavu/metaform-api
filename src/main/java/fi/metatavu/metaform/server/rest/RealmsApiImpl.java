@@ -635,7 +635,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response createExportTheme(String realmId, ExportTheme payload) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
     
@@ -657,7 +657,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response createExportThemeFile(String realmId, UUID exportThemeId, ExportThemeFile payload) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
  
@@ -676,7 +676,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response deleteExportTheme(String realmId, UUID exportThemeId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -692,7 +692,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response deleteExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -717,7 +717,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response findExportTheme(String realmId, UUID exportThemeId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -731,7 +731,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response findExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -754,7 +754,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response listExportThemeFiles(String realmId, UUID exportThemeId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -770,7 +770,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response listExportThemes(String realmId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -781,7 +781,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response updateExportTheme(String realmId, UUID exportThemeId, ExportTheme payload) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 
@@ -806,7 +806,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response updateExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile payload) throws Exception {
-    if (!isRealmMetaformAdmin()) {
+    if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
 

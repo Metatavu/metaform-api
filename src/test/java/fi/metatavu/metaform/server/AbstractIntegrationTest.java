@@ -220,6 +220,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   }
 
   /**
+   * Resolves an super access token for realm
+   * 
+   * @param realm realm
+   * @return an access token
+   * @throws IOException thrown on communication failure
+   */
+  protected String getSuperToken(String realm) throws IOException {
+    return getAccessToken(realm, DEFAULT_KEYCLOAK_CLIENT_ID, "metaform-super", "test"); 
+  }
+
+  /**
    * Resolves an access token for realm, client, username and password
    * 
    * @param realm realm

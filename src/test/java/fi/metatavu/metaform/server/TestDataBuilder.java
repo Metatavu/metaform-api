@@ -35,6 +35,7 @@ public class TestDataBuilder {
   private String realm;
   private String username;
   private String password;
+  private String superToken;
   private String adminToken;
   private String accessToken;
   private Set<EmailNotification> emailNotifications;
@@ -126,13 +127,13 @@ public class TestDataBuilder {
   }
   
   /**
-   * Returns initialized exportThemes API with administrative rights
+   * Returns initialized exportThemes API with super rights
    * 
-   * @return initialized exportThemes API with administrative rights
+   * @return initialized exportThemes API with super rights
    * @throws IOException
    */
-  public ExportThemesApi getAdminExportThemesApi() throws IOException {
-    return test.getExportThemesApi(getAdminToken());
+  public ExportThemesApi getSuperExportThemesApi() throws IOException {
+    return test.getExportThemesApi(getSuperToken());
   }
 
   /**
@@ -260,7 +261,7 @@ public class TestDataBuilder {
    * @throws IOException thrown when request fails
    */
   public ExportTheme createExportTheme(ExportTheme payload) throws IOException {
-    return addExportTheme(getAdminExportThemesApi().createExportTheme(realm, payload));
+    return addExportTheme(getSuperExportThemesApi().createExportTheme(realm, payload));
   }
 
   /**
@@ -290,7 +291,7 @@ public class TestDataBuilder {
    * @throws IOException thrown when request fails
    */
   public ExportThemeFile createExportThemeFile(ExportThemeFile payload) throws IOException {
-    return addExportThemeFile(payload.getThemeId(), getAdminExportThemesApi().createExportThemeFile(realm, payload.getThemeId(),payload));
+    return addExportThemeFile(payload.getThemeId(), getSuperExportThemesApi().createExportThemeFile(realm, payload.getThemeId(),payload));
   }
 
   /**
@@ -345,14 +346,14 @@ public class TestDataBuilder {
           if (files != null) {
             files.stream().forEach((exportThemeFile) -> {
               try {
-                getAdminExportThemesApi().deleteExportThemeFile(realm, exportTheme.getId(), exportThemeFile.getId());
+                getSuperExportThemesApi().deleteExportThemeFile(realm, exportTheme.getId(), exportThemeFile.getId());
               } catch (IOException e) {
                 fail(e.getMessage());
               }
             });
           }
           
-          getAdminExportThemesApi().deleteExportTheme(realm, exportTheme.getId());
+          getSuperExportThemesApi().deleteExportTheme(realm, exportTheme.getId());
         } catch (IOException e) {
           fail(e.getMessage());
         }  
@@ -375,6 +376,22 @@ public class TestDataBuilder {
     exportThemeFiles.get(themeId).add(themeFile);
     
     return themeFile;
+  }
+  
+  /**
+   * Returns super token
+   * 
+   * @return super token
+   * @throws IOException
+   */
+  private String getSuperToken() throws IOException {
+    if (superToken == null) {
+      superToken = test.getSuperToken(realm);
+    }
+
+    assertNotNull(superToken);
+    
+    return superToken;
   }
   
   /**
