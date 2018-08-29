@@ -46,10 +46,10 @@ public class MetaformTranslator {
     
     if (result != null) {
       result.setId(entity.getId());
-    }
-    
-    if (entity.getExportTheme() != null) {
-      result.setExportThemeId(entity.getExportTheme().getId());
+      
+      if (entity.getExportTheme() != null) {
+        result.setExportThemeId(entity.getExportTheme().getId());
+      }
     }
     
     return result;
