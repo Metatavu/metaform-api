@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.27</metaform-api-spec.version>
+    <metaform-api-spec.version>0.0.29</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -73,6 +73,10 @@
     
     <mailgun.version>1.8.0</mailgun.version>
     
+    <!-- Flying Saurcer -->
+    
+    <flying-saucer.version>9.1.15</flying-saucer.version>
+    
     <!-- Free marker -->
     
     <freemarker.version>2.3.28</freemarker.version>
@@ -80,9 +84,10 @@
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.15</metaform-api-client.version>
+    <metaform-api-client.version>0.0.17</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
-    <awaitility.version>3.1.2</awaitility.version>    
+    <awaitility.version>3.1.2</awaitility.version>
+    <postgresql.version>42.2.5</postgresql.version>
   </properties>
 
   <dependencyManagement>
@@ -226,6 +231,14 @@
       <version>${freemarker.version}</version>
     </dependency>
 
+    <!-- Flying saucer -->
+    
+    <dependency>
+      <groupId>org.xhtmlrenderer</groupId>
+      <artifactId>flying-saucer-pdf-itext5</artifactId>
+      <version>${flying-saucer.version}</version>
+    </dependency>
+    
     <!-- Jackson -->
 
     <dependency>
@@ -327,6 +340,14 @@
     </dependency>
     
     <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+      <type>jar</type>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
@@ -404,15 +425,14 @@
       </activation>
       
       <properties>
-        <h2.version>1.4.193</h2.version>
         <it.port.http>58080</it.port.http>
         <it.host>api-itest.metaform.fi</it.host>
-        <it.jdbc.driver>org.h2.jdbcx.JdbcDataSource</it.jdbc.driver>
-        <it.jdbc.url>jdbc:h2:file:${project.build.directory}/h2;AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE</it.jdbc.url>
-        <it.jdbc.properties>URL=jdbc:h2:file:${project.build.directory}/h2\;AUTO_SERVER=TRUE\;DB_CLOSE_ON_EXIT=FALSE</it.jdbc.properties>
+        <it.jdbc.driver>org.postgresql.xa.PGXADataSource</it.jdbc.driver>
+        <it.jdbc.url>jdbc:postgresql://localhost:5432/mftest</it.jdbc.url>
+        <it.jdbc.properties>DatabaseName=mftest</it.jdbc.properties>
         <it.jdbc.jndi>java:jboss/datasources/metaform-api</it.jdbc.jndi>
-        <it.jdbc.username>sa</it.jdbc.username>
-        <it.jdbc.password>sa</it.jdbc.password>
+        <it.jdbc.username>mftest</it.jdbc.username>
+        <it.jdbc.password>mftest</it.jdbc.password>
         <it.jdbc.type>javax.sql.XADataSource</it.jdbc.type>
         <it.jdbc.transactionsupport>XA_TRANSACTION</it.jdbc.transactionsupport>
         <it.skipdatabasedrop>true</it.skipdatabasedrop>
@@ -420,15 +440,6 @@
         <jacoco.reportPath>${project.basedir}/target/jacoco.exec</jacoco.reportPath>
       </properties>
       
-      <dependencies>
-        <dependency>
-          <groupId>com.h2database</groupId>
-          <artifactId>h2</artifactId>
-          <version>${h2.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    
       <build>
         <plugins>
           <plugin>
@@ -518,16 +529,10 @@
                 <log>${project.basedir}/target/cargo.log</log>
                 <output>${project.basedir}/target/wildfly.log</output>
                 <zipUrlInstaller>
-                  <url>https://www.dropbox.com/s/mash4itbsiwssb9/wildfly-12.0.0.Final-with-keycloak.zip?dl=1</url>
+                  <url>https://www.dropbox.com/s/yfdkuijo0qw79qt/wildfly-12.0.0.Final-with-keycloak%2Bpg.zip?dl=1</url>
                   <downloadDir>${project.basedir}/.cargo/downloads</downloadDir>
                   <extractDir>${project.basedir}/.cargo/extracts</extractDir>
-                </zipUrlInstaller>
-                <dependencies>
-                  <dependency>
-                    <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                  </dependency>
-                </dependencies>         
+                </zipUrlInstaller>         
               </container>
               <configuration>
                 <properties>
@@ -573,7 +578,7 @@
                 <configuration>
                   <batch>true</batch>
                   <commands>
-                    <command>xa-data-source add --name=ci --driver-name=h2 --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --xa-datasource-properties=${it.jdbc.properties}</command>
+                    <command>xa-data-source add --name=ci --driver-name=postgres --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --xa-datasource-properties=${it.jdbc.properties}</command>
                     <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
                     <command>/system-property=it-test:add(value="true")</command>
                     <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.time.OffsetDateTime;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -36,6 +37,7 @@ public abstract class AbstractApi {
 
   protected static final String USER_ROLE = "user";
   protected static final String ADMIN_ROLE = "metaform-admin";
+  protected static final String SUPER_ROLE = "metaform-super";
   protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
   protected static final String NOT_FOUND_MESSAGE = "Not found";
   protected static final String UNAUTHORIZED = "Unauthorized";
@@ -54,6 +56,15 @@ public abstract class AbstractApi {
    */
   protected HttpServletRequest getHttpServletRequest() {
     return ResteasyProviderFactory.getContextData(HttpServletRequest.class);
+  }
+  
+  /**
+   * Returns request locale
+   * 
+   * @return request locale
+   */
+  protected Locale getLocale() {
+    return getHttpServletRequest().getLocale();
   }
   
   /**
@@ -252,6 +263,15 @@ public abstract class AbstractApi {
    */
   protected boolean isRealmMetaformAdmin() {
     return hasRealmRole(ADMIN_ROLE);
+  }
+
+  /**
+   * Returns whether logged user is realm Metaform super
+   * 
+   * @return whether logged user is realm Metaform super
+   */
+  protected boolean isRealmMetaformSuper() {
+    return hasRealmRole(SUPER_ROLE);
   }
   
   /**

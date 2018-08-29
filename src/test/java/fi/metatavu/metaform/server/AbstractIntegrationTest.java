@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.ApiClient;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
+import fi.metatavu.metaform.client.ExportThemesApi;
 import fi.metatavu.metaform.client.Metaform;
 import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
@@ -171,6 +172,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   }
   
   /**
+   * Returns exportThemes API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return exportThemes API authenticated by the given access token
+   */
+  protected ExportThemesApi getExportThemesApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(ExportThemesApi.class);
+  }
+  
+  /**
    * Returns API client authenticated by the given access token
    * 
    * @param accessTokenaccess token
@@ -205,6 +217,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    */
   protected String getAdminToken(String realm) throws IOException {
     return getAccessToken(realm, DEFAULT_KEYCLOAK_CLIENT_ID, "metaform-admin", "test"); 
+  }
+
+  /**
+   * Resolves an super access token for realm
+   * 
+   * @param realm realm
+   * @return an access token
+   * @throws IOException thrown on communication failure
+   */
+  protected String getSuperToken(String realm) throws IOException {
+    return getAccessToken(realm, DEFAULT_KEYCLOAK_CLIENT_ID, "metaform-super", "test"); 
   }
 
   /**
@@ -246,11 +269,11 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     String senderEmail = "metaform-test@example.com";
     String senderName = "Metaform Test";
 
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-apiurl", String.format("%s/%s",getWireMockBasePath(), path));
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-domain", domain);
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-apikey", apiKey);
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-sender-email", senderEmail);
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID().toString(), "mailgun-sender-name", senderName);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apiurl", String.format("%s/%s",getWireMockBasePath(), path));
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-domain", domain);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apikey", apiKey);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-sender-email", senderEmail);
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-sender-name", senderName);
     
     MailgunMocker mailgunMocker = new MailgunMocker(String.format("/%s", path), domain, apiKey);
     mailgunMocker.startMock();
