@@ -265,7 +265,7 @@
       </column>
       <column name="locales" type="longtext"/>
       <column name="parent_id" type="uuid">
-        <constraints nullable="false" foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+        <constraints foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
       </column>
       <column name="name" type="varchar(255)">
         <constraints nullable="false" unique="true"/>
