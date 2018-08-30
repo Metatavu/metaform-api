@@ -16,11 +16,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -265,6 +267,11 @@ public abstract class AbstractTest {
       Object param = params[i];
       if (param instanceof List) {
         statement.setObject(i + 1, ((List<?>) param).toArray());
+      } else if (param instanceof UUID) {
+        PGobject pgObject = new PGobject();
+        pgObject.setType("uuid");
+        pgObject.setValue(param.toString());
+        statement.setObject(i + 1, pgObject);
       } else {
         statement.setObject(i + 1, params[i]);
       }

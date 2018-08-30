@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server.freemarker;
+package fi.metatavu.metaform.server.email;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -20,7 +20,7 @@ import freemarker.cache.TemplateLoader;
  * @author Antti Leppä
  */
 @ApplicationScoped
-public class FreemarkerTemplateLoader implements TemplateLoader {
+public class EmailFreemarkerTemplateLoader implements TemplateLoader {
 
   @Inject
   private Logger logger;
@@ -37,7 +37,7 @@ public class FreemarkerTemplateLoader implements TemplateLoader {
   @SuppressWarnings ("squid:S1301")
   public long getLastModified(Object templateSource) {
     String name = (String) templateSource;
-    TemplateSource source = TemplateSource.resolve(name);
+    EmailTemplateSource source = EmailTemplateSource.resolve(name);
     if (source == null) {
       return 0l;
     }
@@ -65,7 +65,7 @@ public class FreemarkerTemplateLoader implements TemplateLoader {
   @SuppressWarnings ("squid:S1301")
   public Reader getReader(Object templateSource, String encoding) throws IOException {
     String name = (String) templateSource;
-    TemplateSource source = TemplateSource.resolve(name);
+    EmailTemplateSource source = EmailTemplateSource.resolve(name);
     if (source == null) {
       return null;
     }
@@ -78,7 +78,7 @@ public class FreemarkerTemplateLoader implements TemplateLoader {
       case EMAIL_CONTENT:
         EmailNotification notificationEmail = emailNotificationDAO.findById(id);
         if (notificationEmail != null) {
-          return new StringReader(source == TemplateSource.EMAIL_SUBJECT ? notificationEmail.getSubjectTemplate() : notificationEmail.getContentTemplate());
+          return new StringReader(source == EmailTemplateSource.EMAIL_SUBJECT ? notificationEmail.getSubjectTemplate() : notificationEmail.getContentTemplate());
         }
       break;
       default:

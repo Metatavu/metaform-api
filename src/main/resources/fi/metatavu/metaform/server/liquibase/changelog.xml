@@ -199,5 +199,119 @@
       </column>
     </addColumn>
   </changeSet>
+  
+  <changeSet id="attachment" author="Antti Leppa">
+    <createTable tableName="attachment">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="userid" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="contenttype" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="LONGBLOB">
+        <constraints nullable="false"/>
+      </column>      
+    </createTable>
+  </changeSet>
+  
+  <changeSet id="attachmentreplyfields" author="antti.leppa">
+    <createTable tableName="attachmentreplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_ATTACHMENT_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+    </createTable>
     
+    <createTable tableName="attachmentreplyfielditem">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>      
+      <column name="field_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_ATTACHMENT_REPLY_ITEM_FIELD_ID" referencedTableName="attachmentreplyfield" referencedColumnNames="id"/>
+      </column>      
+      <column name="attachment_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_ATTACHMENT_REPLY_ITEM_ATTACHMENT_ID" referencedTableName="attachment" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+  </changeSet> 
+  
+  <changeSet id="exporttheme" author="antti.leppa">
+    <createTable tableName="exporttheme">
+       <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creator" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifier" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="locales" type="longtext"/>
+      <column name="parent_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+    </createTable>
+    
+    <createTable tableName="exportthemefile">
+       <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="theme_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_EXPORTTHEMEFILE_THEME_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+      </column>
+      <column name="path" type="varchar(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creator" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifier" type="uuid">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    
+    <addUniqueConstraint constraintName="UN_EXPORTTHEME_THEME_PATH" columnNames="theme_id,path" tableName="exportthemefile"/>
+  </changeSet> 
+
+  <changeSet id="exporttheme-parent" author="antti.leppa">
+    <dropNotNullConstraint tableName="exporttheme" columnName="parent_id" columnDataType="uuid"/>
+  </changeSet> 
+  
+  <changeSet id="metaform-exporttheme" author="antti.leppa">
+    <addColumn tableName="metaform">
+      <column name="exporttheme_id" type="uuid">
+        <constraints nullable="true" foreignKeyName="FK_METAFORM_EXPORTTHEME_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+      </column>      
+    </addColumn>
+  </changeSet> 
+  
 </databaseChangeLog>

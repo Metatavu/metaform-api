@@ -7,10 +7,12 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -24,6 +26,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class Metaform {
 
   @Id
+  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @NotNull
@@ -36,6 +39,9 @@ public class Metaform {
   @NotNull
   @Column (nullable = false)
   private Boolean allowAnonymous;
+  
+  @ManyToOne
+  private ExportTheme exportTheme;
   
   public UUID getId() {
     return id;
@@ -67,6 +73,14 @@ public class Metaform {
   
   public void setAllowAnonymous(Boolean allowAnonymous) {
     this.allowAnonymous = allowAnonymous;
+  }
+  
+  public ExportTheme getExportTheme() {
+    return exportTheme;
+  }
+  
+  public void setExportTheme(ExportTheme exportTheme) {
+    this.exportTheme = exportTheme;
   }
   
 }

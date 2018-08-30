@@ -1,0 +1,15 @@
+{
+  "title": "File",
+  "sections": [
+    {
+      "title": "File form",
+      "fields": [
+        {
+          "name": "files",
+          "type": "files",
+          "title": "Files field"
+        }
+      ]
+    }
+  ]
+}

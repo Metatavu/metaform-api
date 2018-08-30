@@ -28,7 +28,8 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
     sudo -u postgres createuser -R -S metaformapi
     sudo -u postgres createdb -Ometaformapi -Ttemplate0 metaformapi
     sudo -u postgres psql 
-    alter user metaformapi with password 'password';    
+    alter user metaformapi with password 'password';  
+    alter role metaformapi with login;  
     
 ### Install Java
 
