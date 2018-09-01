@@ -489,8 +489,6 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       Metaform metaform = dataBuilder.createMetaform("simple");
       metaform.setExportThemeId(theme.getId());
       adminMetaformsApi.updateMetaform(REALM_1, metaform.getId(), metaform);
-      Metaform metaformModel = readMetaform("simple");
-      metaformModel.setExportThemeId(theme.getId());
       Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
 
       given()
@@ -501,9 +499,32 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         .assertThat()
         .statusCode(200)
         .header("Content-Type", "application/pdf");   
-      
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  @Test
+  public void testExportReplyPdfFilesEmpty() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
+
+      ExportTheme theme = dataBuilder.createSimpleExportTheme();
+      dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
+      Metaform metaform = dataBuilder.createMetaform("simple-files");
+      metaform.setExportThemeId(theme.getId());
+      adminMetaformsApi.updateMetaform(REALM_1, metaform.getId(), metaform);
+      Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
+
+      given()
+        .baseUri(getBasePath())
+        .header("Authorization", String.format("Bearer %s", getAdminToken(REALM_1)))
+        .get("/v1/realms/{realmId}/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", REALM_1, metaform.getId().toString(), reply.getId().toString())
+        .then()
+        .assertThat()
+        .statusCode(200)
+        .header("Content-Type", "application/pdf");   
     } finally {
       dataBuilder.clean();
     }
