@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -873,6 +874,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         return null;
       })
       .flatMap(List::stream)
+      .filter(Objects::nonNull)
       .collect(Collectors.toMap(attachment -> attachment.getId().toString(), attachment -> attachment));
 
     ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentEntities, getDate(createdAt), getDate(modifiedAt));
