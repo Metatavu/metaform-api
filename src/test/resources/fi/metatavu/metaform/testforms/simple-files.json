@@ -1,0 +1,20 @@
+{
+  "title": "Simple",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "files",
+          "type": "files",
+          "title": "Files field"
+        }
+      ]
+    }
+  ]
+}

@@ -873,6 +873,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         
         return null;
       })
+      .filter(Objects::nonNull)
       .flatMap(List::stream)
       .filter(Objects::nonNull)
       .collect(Collectors.toMap(attachment -> attachment.getId().toString(), attachment -> attachment));
