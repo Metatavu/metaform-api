@@ -54,11 +54,18 @@ public class FileUploadServlet extends HttpServlet {
     }
     
     resp.setContentType(fileData.getMeta().getContentType());
-    ServletOutputStream servletOutputStream = resp.getOutputStream();
+    
     try {
-      servletOutputStream.write(fileData.getData());
-    } finally {
-      servletOutputStream.flush();
+      ServletOutputStream servletOutputStream = resp.getOutputStream();
+      try {
+        servletOutputStream.write(fileData.getData());
+      } catch (IOException e) {
+        logger.warn("Failed to send response", e);
+      } finally {
+        servletOutputStream.flush();
+      }
+    } catch (IOException e) {
+      logger.warn("Failed to open response stream", e);
     }
   }
   
@@ -84,6 +91,8 @@ public class FileUploadServlet extends HttpServlet {
       ServletOutputStream servletOutputStream = resp.getOutputStream();
       try {
         (new ObjectMapper()).writeValue(servletOutputStream, result);
+      } catch (IOException e) {
+        logger.warn("Failed to send response", e);
       } finally {
         servletOutputStream.flush();
       }
