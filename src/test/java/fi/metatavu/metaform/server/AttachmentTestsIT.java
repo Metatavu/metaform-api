@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -15,16 +14,7 @@ import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import feign.FeignException;
 import fi.metatavu.metaform.client.Attachment;
@@ -210,35 +200,6 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
     connection.setRequestProperty("Authorization", String.format("Bearer %s", accessToken));
     connection.setDoOutput(true);
     return IOUtils.toByteArray(connection.getInputStream());
-  }
-
-  private FileUploadResponse uploadResourceFile(String resourceName) throws IOException {
-    ClassLoader classLoader = getClass().getClassLoader();
-    
-    try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
-      HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-      try (CloseableHttpClient client = clientBuilder.build()) {
-        HttpPost post = new HttpPost(String.format("%s/fileUpload", getBasePath()));
-        MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-        
-        multipartEntityBuilder.addBinaryBody("file", fileStream, ContentType.create("image/jpg"), resourceName);
-        
-        post.setEntity(multipartEntityBuilder.build());
-        HttpResponse response = client.execute(post);
-
-        assertEquals(200, response.getStatusLine().getStatusCode());
-        
-        HttpEntity httpEntity = response.getEntity();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        FileUploadResponse result = objectMapper.readValue(httpEntity.getContent(), FileUploadResponse.class);
-
-        assertNotNull(result);
-        assertNotNull(result.getFileRef());
-        
-        return result;
-      }
-    }
   }
   
 }

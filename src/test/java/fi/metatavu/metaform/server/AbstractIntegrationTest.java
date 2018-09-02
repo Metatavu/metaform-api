@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -12,6 +13,16 @@ import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -315,4 +326,92 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       return DigestUtils.md5Hex(fileStream);
     }    
   }
+  
+  /**
+   * Uploads resource into file store
+   * 
+   * @param resourceName resource name
+   * @return upload response
+   * @throws IOException thrown on upload failure
+   */
+  protected FileUploadResponse uploadResourceFile(String resourceName) throws IOException {
+    ClassLoader classLoader = getClass().getClassLoader();
+    
+    try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
+      HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+      try (CloseableHttpClient client = clientBuilder.build()) {
+        HttpPost post = new HttpPost(String.format("%s/fileUpload", getBasePath()));
+        MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+        
+        multipartEntityBuilder.addBinaryBody("file", fileStream, ContentType.create("image/jpg"), resourceName);
+        
+        post.setEntity(multipartEntityBuilder.build());
+        HttpResponse response = client.execute(post);
+
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        
+        HttpEntity httpEntity = response.getEntity();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        FileUploadResponse result = objectMapper.readValue(httpEntity.getContent(), FileUploadResponse.class);
+
+        assertNotNull(result);
+        assertNotNull(result.getFileRef());
+        
+        return result;
+      }
+    }
+  }
+  
+  /**
+   * Delete uploaded file from the store
+   * 
+   * @param fileRef fileRef
+   * @throws IOException thrown on delete failure
+   */
+  protected void deleteUpload(String fileRef) throws IOException {
+    HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+    try (CloseableHttpClient client = clientBuilder.build()) {
+      HttpDelete delete = new HttpDelete(String.format("%s/fileUpload?fileRef=%s", getBasePath(), fileRef));
+      HttpResponse response = client.execute(delete);
+      assertEquals(204, response.getStatusLine().getStatusCode());
+    }
+  }
+
+  /**
+   * Asserts that given file upload exists
+   * 
+   * @param fileRef fileRef
+   * @throws IOException throw then request fails
+   */
+  protected void assertUploadFound(String fileRef) throws IOException {
+    assertUploadStatus(fileRef, 200);
+  }
+
+  /**
+   * Asserts that given file upload does not exist 
+   * 
+   * @param fileRef fileRef
+   * @throws IOException throw then request fails
+   */
+  protected void assertUploadNotFound(String fileRef) throws IOException {
+    assertUploadStatus(fileRef, 404);
+  }
+
+  /**
+   * Asserts that given file upload does not exist 
+   * 
+   * @param fileRef fileRef
+   * @param expectedStatus expected status code
+   * @throws IOException throw then request fails
+   */
+  private void assertUploadStatus(String fileRef, int expectedStatus) throws IOException, ClientProtocolException {
+    HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+    try (CloseableHttpClient client = clientBuilder.build()) {
+      HttpGet get = new HttpGet(String.format("%s/fileUpload?fileRef=%s", getBasePath(), fileRef));
+      HttpResponse response = client.execute(get);
+      assertEquals(expectedStatus, response.getStatusLine().getStatusCode());
+    }
+  }
+  
 }
