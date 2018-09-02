@@ -95,6 +95,16 @@ public class FileController {
     
     return createFile(fileRef, data, metaData);
   }
+  
+  /**
+   * Deletes file from store
+   * 
+   * @param fileRef file ref
+   */
+  public void deleteFile(String fileRef) {
+    dataCache.remove(fileRef);
+    metaCache.remove(fileRef);
+  }
 
   private File createFile(String fileRef, byte[] data, String metaData) {
     if (data != null && metaData != null) {
