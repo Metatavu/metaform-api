@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +38,29 @@ public class FileUploadServlet extends HttpServlet {
 
   @Inject
   private FileController fileController;
+  
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    String fileRef = req.getParameter("fileRef");
+    if (StringUtils.isBlank(fileRef)) {
+      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    
+    File fileData = fileController.getFileData(fileRef);
+    if (fileData == null) {
+      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    
+    resp.setContentType(fileData.getMeta().getContentType());
+    ServletOutputStream servletOutputStream = resp.getOutputStream();
+    try {
+      servletOutputStream.write(fileData.getData());
+    } finally {
+      servletOutputStream.flush();
+    }
+  }
   
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -68,6 +92,19 @@ public class FileUploadServlet extends HttpServlet {
       logger.error("Upload failed on internal server error", e);
       resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
+  }
+  
+  @Override
+  protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    String fileRef = req.getParameter("fileRef");
+    if (StringUtils.isBlank(fileRef)) {
+      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    
+    fileController.deleteFile(fileRef);
+    
+    resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
 }
