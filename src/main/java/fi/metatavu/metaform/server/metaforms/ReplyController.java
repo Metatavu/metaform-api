@@ -454,10 +454,18 @@ public class ReplyController {
     return tableReplyField;
   }
 
+  /**
+   * Returns column map for a table field
+   * 
+   * @param field field
+   * @return column map for a table field
+   */
   private Map<String, MetaformTableColumn> getTableColumnMap(MetaformField field) {
-    Map<String, MetaformTableColumn> columnMap = field.getColumns().stream()
-        .collect(Collectors.toMap(MetaformTableColumn::getName, column -> column));
-    return columnMap;
+    if (field.getColumns() == null) {
+      return Collections.emptyMap();
+    }
+    
+    return field.getColumns().stream().collect(Collectors.toMap(MetaformTableColumn::getName, column -> column));
   }
   
   /**
