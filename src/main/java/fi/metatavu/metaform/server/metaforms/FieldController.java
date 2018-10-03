@@ -171,7 +171,7 @@ public class FieldController {
    */
   private Map<String, Object> getTableRowValue(TableReplyFieldRow row) {
     return anyTableReplyFieldRowCellDAO.listByRow(row).stream()
-      .collect(Collectors.toMap(TableReplyFieldRowCell::getName, (cell) -> {
+      .collect(Collectors.toMap(TableReplyFieldRowCell::getName, cell -> {
         if (cell instanceof TableReplyFieldNumberRowCell) {
           return ((TableReplyFieldNumberRowCell) cell).getValue();
         } else if (cell instanceof TableReplyFieldStringRowCell) {

@@ -58,7 +58,7 @@ import fi.metatavu.metaform.server.rest.model.MetaformTableColumnType;
 @ApplicationScoped
 public class ReplyController {
 
-  private static MetaformTableColumnType[] SUPPORTED_TABLE_COLUMN_TYPES = new MetaformTableColumnType[] {
+  private static final MetaformTableColumnType[] SUPPORTED_TABLE_COLUMN_TYPES = new MetaformTableColumnType[] {
     MetaformTableColumnType.TEXT,
     MetaformTableColumnType.NUMBER
   };
@@ -376,7 +376,7 @@ public class ReplyController {
    * @param value input object
    * @return table data
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "squid:S1168"})
   private List<Map<String, Object>> getTableValue(Map<String, MetaformTableColumn> columnMap, Object value) {
     if (value == null) {
       return Collections.emptyList();
@@ -472,8 +472,8 @@ public class ReplyController {
     TableReplyFieldRow row = createTableReplyFieldRow(tableReplyField);
     
     rowValue.entrySet().stream()
-      .filter((cell) -> cell.getValue() != null)
-      .filter((cell) -> columnMap.containsKey(cell.getKey()))
+      .filter(cell -> cell.getValue() != null)
+      .filter(cell -> columnMap.containsKey(cell.getKey()))
       .forEach(cell -> {
         MetaformTableColumn column = columnMap.get(cell.getKey());
         createTableReplyFieldRowCell(row, column, cell.getValue());

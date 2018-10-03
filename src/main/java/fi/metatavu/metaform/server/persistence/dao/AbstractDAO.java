@@ -40,7 +40,7 @@ public abstract class AbstractDAO<T> {
    */
   @SuppressWarnings("unchecked")
   public T findById(UUID id) {
-    return (T) getEntityManager().find(getGenericTypeClass(), id);
+    return getEntityManager().find(getGenericTypeClass(), id);
   }
   
   /**
@@ -51,7 +51,7 @@ public abstract class AbstractDAO<T> {
    */
   @SuppressWarnings("unchecked")
   public T findById(String id) {
-    return (T) getEntityManager().find(getGenericTypeClass(), id);
+    return getEntityManager().find(getGenericTypeClass(), id);
   }
   
   /**
@@ -62,7 +62,7 @@ public abstract class AbstractDAO<T> {
    */
   @SuppressWarnings("unchecked")
   public T findById(Long id) {
-    return (T) getEntityManager().find(getGenericTypeClass(), id);
+    return getEntityManager().find(getGenericTypeClass(), id);
   }
 
   /**
