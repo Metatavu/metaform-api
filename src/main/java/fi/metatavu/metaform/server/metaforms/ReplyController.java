@@ -157,6 +157,22 @@ public class ReplyController {
     return replyDAO.findByMetaformAndUserIdAndRevisionNull(metaform, userId);
   }
 
+  /**
+   * Validates field value
+   * 
+   * @param metaformField field
+   * @param value value
+   * @return whether value is valid or not
+   */
+  public boolean isValidFieldValue(MetaformField metaformField, Object value) {
+    if (metaformField.getType() == MetaformFieldType.TABLE) {
+      Map<String, MetaformTableColumn> columnMap = getTableColumnMap(metaformField);
+      return getTableValue(columnMap, value) != null;
+    }
+    
+    return true;
+  }
+
 
   /**
    * Sets reply field value
@@ -408,9 +424,7 @@ public class ReplyController {
    * @return updated field
    */
   private ReplyField setTableReplyField(MetaformField field, Reply reply, String name, Object value) {
-    Map<String, MetaformTableColumn> columnMap = field.getColumns().stream()
-        .collect(Collectors.toMap(MetaformTableColumn::getName, column -> column));
-
+    Map<String, MetaformTableColumn> columnMap = getTableColumnMap(field);
     List<Map<String, Object>> tableValue = getTableValue(columnMap, value);
     if (tableValue == null) {
       if (logger.isErrorEnabled()) {
@@ -438,6 +452,12 @@ public class ReplyController {
     }
 
     return tableReplyField;
+  }
+
+  private Map<String, MetaformTableColumn> getTableColumnMap(MetaformField field) {
+    Map<String, MetaformTableColumn> columnMap = field.getColumns().stream()
+        .collect(Collectors.toMap(MetaformTableColumn::getName, column -> column));
+    return columnMap;
   }
   
   /**

@@ -41,7 +41,6 @@ import fi.metatavu.metaform.server.notifications.NotificationController;
 import fi.metatavu.metaform.server.pdf.PdfPrinter;
 import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
-import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.ExportTheme;
 import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
@@ -168,10 +167,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         Object fieldValue = entry.getValue();
         
         if (fieldValue != null) {
-          ReplyField replyField = replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
-          if (replyField == null) {
+          if (!replyController.isValidFieldValue(fieldMap.get(fieldName), fieldValue)) {
             return createBadRequest(String.format("Invalid field value for field %s", fieldName));
           }
+          
+          replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
         }
       }
     }
@@ -282,11 +282,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
     for (Entry<String, Object> entry : data.entrySet()) {
       String fieldName = entry.getKey();
-      ReplyField replyField = replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, entry.getValue());
-      if (replyField == null) {
+      if (!replyController.isValidFieldValue(fieldMap.get(fieldName), entry.getValue())) {
         return createBadRequest(String.format("Invalid field value for field %s", fieldName));
       }
       
+      replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, entry.getValue());
       fieldNames.remove(fieldName);
     }
     
