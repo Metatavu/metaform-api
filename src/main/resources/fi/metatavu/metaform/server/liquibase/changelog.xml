@@ -314,4 +314,48 @@
     </addColumn>
   </changeSet> 
   
+  <changeSet id="tablereplyfields" author="antti.leppa">
+    <createTable tableName="tablereplyfield">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLE_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+                            
+    <createTable tableName="tablereplyfieldrow">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="field_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_TABLEREPLYFIELDROW_TABLEREPLYFIELD_ID" referencedTableName="tablereplyfield" referencedColumnNames="id"/>
+      </column>      
+    </createTable>
+
+    <createTable tableName="tablereplyfieldrowcell">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="row_id" type="uuid">
+        <constraints nullable="false" foreignKeyName="FK_TABLEREPLYFIELDROWCELL_TABLEREPLYFIELDROW_ID" referencedTableName="tablereplyfieldrow" referencedColumnNames="id"/>
+      </column>
+      <column name="name" type="varchar(255)">
+        <constraints nullable="false" unique="false"/>
+      </column>
+    </createTable>
+   
+    <createTable tableName="tablereplyfieldnumberrowcell">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLEREPLYFIELDNUMBERROWCELL_TABLEREPLYFIELDROWCELL_ID" referencedTableName="tablereplyfieldrowcell" referencedColumnNames="id"/>
+      </column>
+      <column name="value" type="double"/>
+    </createTable>
+
+    <createTable tableName="tablereplyfieldstringrowcell">
+      <column name="id" type="uuid">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLEREPLYFIELDNUMBERROWCELL_TABLEREPLYFIELDROWCELL_ID" referencedTableName="tablereplyfieldrowcell" referencedColumnNames="id"/>
+      </column>
+      <column name="value" type="longtext"/>
+    </createTable>
+
+  </changeSet> 
+  
 </databaseChangeLog>

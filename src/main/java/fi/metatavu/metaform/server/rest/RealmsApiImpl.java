@@ -41,6 +41,7 @@ import fi.metatavu.metaform.server.notifications.NotificationController;
 import fi.metatavu.metaform.server.pdf.PdfPrinter;
 import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
+import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.ExportTheme;
 import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
@@ -161,13 +162,16 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (data == null) {
       logger.warn("Received a reply with null data");
     } else {
-      Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
+      Map<String, MetaformField> fieldMap = fieldController.getFieldMap(metaformEntity);
       for (Entry<String, Object> entry : data.entrySet()) {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
         
         if (fieldValue != null) {
-          replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, fieldValue);
+          ReplyField replyField = replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
+          if (replyField == null) {
+            return createBadRequest(String.format("Invalid field value for field %s", fieldName));
+          }
         }
       }
     }
@@ -274,11 +278,15 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
     ReplyData data = payload.getData();
-    Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
+    Map<String, MetaformField> fieldMap = fieldController.getFieldMap(metaformEntity);
 
     for (Entry<String, Object> entry : data.entrySet()) {
       String fieldName = entry.getKey();
-      replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, entry.getValue());
+      ReplyField replyField = replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, entry.getValue());
+      if (replyField == null) {
+        return createBadRequest(String.format("Invalid field value for field %s", fieldName));
+      }
+      
       fieldNames.remove(fieldName);
     }
     

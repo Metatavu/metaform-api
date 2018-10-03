@@ -176,11 +176,12 @@ public abstract class AbstractDAO<T> {
     return ((CriteriaQueryTypeQueryAdapter<?>) query).getHibernateQuery().getQueryString();
   }
 
-  private Class<?> getFirstTypeArgument(ParameterizedType parameterizedType) {
-    return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+  @SuppressWarnings("unchecked")
+  private Class<T> getFirstTypeArgument(ParameterizedType parameterizedType) {
+    return (Class<T>) parameterizedType.getActualTypeArguments()[0];
   }
 
-  protected Class<?> getGenericTypeClass() {
+  protected Class<T> getGenericTypeClass() {
     Type genericSuperclass = getClass().getGenericSuperclass();
 
     if (genericSuperclass instanceof ParameterizedType) {

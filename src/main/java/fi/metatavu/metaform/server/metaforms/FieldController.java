@@ -20,8 +20,10 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
+import fi.metatavu.metaform.server.persistence.dao.AnyTableReplyFieldRowCellDAO;
 import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.dao.ListReplyFieldItemDAO;
+import fi.metatavu.metaform.server.persistence.dao.TableReplyFieldRowDAO;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.persistence.model.AttachmentReplyField;
 import fi.metatavu.metaform.server.persistence.model.AttachmentReplyFieldItem;
@@ -32,6 +34,11 @@ import fi.metatavu.metaform.server.persistence.model.NumberReplyField;
 import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.persistence.model.StringReplyField;
+import fi.metatavu.metaform.server.persistence.model.TableReplyField;
+import fi.metatavu.metaform.server.persistence.model.TableReplyFieldNumberRowCell;
+import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRow;
+import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRowCell;
+import fi.metatavu.metaform.server.persistence.model.TableReplyFieldStringRowCell;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
@@ -59,6 +66,12 @@ public class FieldController {
 
   @Inject
   private AttachmentReplyFieldItemDAO attachmentReplyFieldItemDAO;
+  
+  @Inject
+  private TableReplyFieldRowDAO tableReplyFieldRowDAO;
+  
+  @Inject
+  private AnyTableReplyFieldRowCellDAO anyTableReplyFieldRowCellDAO;
   
   /**
    * Parses field filters
@@ -136,15 +149,37 @@ public class FieldController {
         .collect(Collectors.toList());
     } else if (field instanceof AttachmentReplyField) {
       return attachmentReplyFieldItemDAO.listByField((AttachmentReplyField) field).stream()
-          .map(AttachmentReplyFieldItem::getAttachment)
-          .map(Attachment::getId)
-          .map(UUID::toString)
-          .collect(Collectors.toList());      
+        .map(AttachmentReplyFieldItem::getAttachment)
+        .map(Attachment::getId)
+        .map(UUID::toString)
+        .collect(Collectors.toList());      
+    } else if (field instanceof TableReplyField) {
+      return tableReplyFieldRowDAO.listByField((TableReplyField) field).stream()
+        .map(this::getTableRowValue).collect(Collectors.toList());
     } else {
       logger.error("Could not resolve {}", fieldName); 
     }
     
     return null;
+  }
+
+  /**
+   * Returns table field row as map
+   * 
+   * @param row row
+   * @return table field row as map
+   */
+  private Map<String, Object> getTableRowValue(TableReplyFieldRow row) {
+    return anyTableReplyFieldRowCellDAO.listByRow(row).stream()
+      .collect(Collectors.toMap(TableReplyFieldRowCell::getName, (cell) -> {
+        if (cell instanceof TableReplyFieldNumberRowCell) {
+          return ((TableReplyFieldNumberRowCell) cell).getValue();
+        } else if (cell instanceof TableReplyFieldStringRowCell) {
+          return ((TableReplyFieldStringRowCell) cell).getValue();
+        }
+        
+        return null;
+      }));
   }
   
   /**
@@ -221,11 +256,11 @@ public class FieldController {
    * @param metaformEntity Metaform REST entity
    * @return field name <> type map
    */
-  public Map<String, MetaformFieldType> getFieldTypeMap(Metaform metaformEntity) {
+  public Map<String, MetaformField> getFieldMap(Metaform metaformEntity) {
     return metaformEntity.getSections().stream()
       .map(MetaformSection::getFields)
       .flatMap(List::stream)
-      .collect(Collectors.toMap(MetaformField::getName, MetaformField::getType));
+      .collect(Collectors.toMap(MetaformField::getName, field -> field));
   }
 
   /**
