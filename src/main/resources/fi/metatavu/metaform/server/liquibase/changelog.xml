@@ -351,7 +351,7 @@
 
     <createTable tableName="tablereplyfieldstringrowcell">
       <column name="id" type="uuid">
-        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLEREPLYFIELDNUMBERROWCELL_TABLEREPLYFIELDROWCELL_ID" referencedTableName="tablereplyfieldrowcell" referencedColumnNames="id"/>
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLEREPLYFIELDSTRINGROWCELL_TABLEREPLYFIELDROWCELL_ID" referencedTableName="tablereplyfieldrowcell" referencedColumnNames="id"/>
       </column>
       <column name="value" type="longtext"/>
     </createTable>
