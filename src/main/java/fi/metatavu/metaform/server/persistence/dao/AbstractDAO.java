@@ -40,7 +40,7 @@ public abstract class AbstractDAO<T> {
    */
   @SuppressWarnings("unchecked")
   public T findById(UUID id) {
-    return (T) getEntityManager().find(getGenericTypeClass(), id);
+    return getEntityManager().find(getGenericTypeClass(), id);
   }
   
   /**
@@ -51,7 +51,7 @@ public abstract class AbstractDAO<T> {
    */
   @SuppressWarnings("unchecked")
   public T findById(String id) {
-    return (T) getEntityManager().find(getGenericTypeClass(), id);
+    return getEntityManager().find(getGenericTypeClass(), id);
   }
   
   /**
@@ -62,7 +62,7 @@ public abstract class AbstractDAO<T> {
    */
   @SuppressWarnings("unchecked")
   public T findById(Long id) {
-    return (T) getEntityManager().find(getGenericTypeClass(), id);
+    return getEntityManager().find(getGenericTypeClass(), id);
   }
 
   /**
@@ -176,11 +176,12 @@ public abstract class AbstractDAO<T> {
     return ((CriteriaQueryTypeQueryAdapter<?>) query).getHibernateQuery().getQueryString();
   }
 
-  private Class<?> getFirstTypeArgument(ParameterizedType parameterizedType) {
-    return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+  @SuppressWarnings("unchecked")
+  private Class<T> getFirstTypeArgument(ParameterizedType parameterizedType) {
+    return (Class<T>) parameterizedType.getActualTypeArguments()[0];
   }
 
-  protected Class<?> getGenericTypeClass() {
+  protected Class<T> getGenericTypeClass() {
     Type genericSuperclass = getClass().getGenericSuperclass();
 
     if (genericSuperclass instanceof ParameterizedType) {
