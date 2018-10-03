@@ -176,7 +176,7 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
         repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
         fail("Bad request should have been returned");
       } catch (FeignException e) {
-        assertEquals(401, e.status());
+        assertEquals(400, e.status());
       }
     } finally {
       adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
@@ -200,18 +200,15 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       Reply reply = createReplyWithData(replyData);
       
       Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+
+      Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+      assertNotNull(foundReply);
+      adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
       try {
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
-        assertNotNull(foundReply);
-        repliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
-        try {
-          repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
-          fail(String.format("Reply %s should not be present", createdReply.getId().toString()));
-        } catch (FeignException e) {
-          assertEquals(404, e.status());
-        }
-      } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        fail(String.format("Reply %s should not be present", createdReply.getId().toString()));
+      } catch (FeignException e) {
+        assertEquals(404, e.status());
       }
     } finally {
       adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());

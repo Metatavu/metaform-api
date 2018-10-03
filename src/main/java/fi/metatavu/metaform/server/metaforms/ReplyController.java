@@ -412,7 +412,7 @@ public class ReplyController {
         .collect(Collectors.toMap(MetaformTableColumn::getName, column -> column));
 
     List<Map<String, Object>> tableValue = getTableValue(columnMap, value);
-    if (value == null) {
+    if (tableValue == null) {
       if (logger.isErrorEnabled()) {
         logger.error(String.format("Invalid value (%s) passes to table field %s in reply %s", String.valueOf(value), name, reply.getId().toString()));
       }
