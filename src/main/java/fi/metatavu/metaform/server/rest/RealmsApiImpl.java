@@ -161,13 +161,17 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (data == null) {
       logger.warn("Received a reply with null data");
     } else {
-      Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
+      Map<String, MetaformField> fieldMap = fieldController.getFieldMap(metaformEntity);
       for (Entry<String, Object> entry : data.entrySet()) {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
         
         if (fieldValue != null) {
-          replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, fieldValue);
+          if (!replyController.isValidFieldValue(fieldMap.get(fieldName), fieldValue)) {
+            return createBadRequest(String.format("Invalid field value for field %s", fieldName));
+          }
+          
+          replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
         }
       }
     }
@@ -274,11 +278,15 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
     ReplyData data = payload.getData();
-    Map<String, MetaformFieldType> fieldTypeMap = fieldController.getFieldTypeMap(metaformEntity);
+    Map<String, MetaformField> fieldMap = fieldController.getFieldMap(metaformEntity);
 
     for (Entry<String, Object> entry : data.entrySet()) {
       String fieldName = entry.getKey();
-      replyController.setReplyField(fieldTypeMap.get(fieldName), reply, fieldName, entry.getValue());
+      if (!replyController.isValidFieldValue(fieldMap.get(fieldName), entry.getValue())) {
+        return createBadRequest(String.format("Invalid field value for field %s", fieldName));
+      }
+      
+      replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, entry.getValue());
       fieldNames.remove(fieldName);
     }
     
