@@ -30,6 +30,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       assertEquals("text", metaform.getSections().get(0).getFields().get(0).getName());
       assertEquals("text", metaform.getSections().get(0).getFields().get(0).getType().toString());
       assertEquals("Text field", metaform.getSections().get(0).getFields().get(0).getTitle());
+      assertEquals(true, metaform.isAllowDrafts());
     } finally {
       dataBuilder.clean();
     }
