@@ -26,7 +26,7 @@ public class UploadTestsIT extends AbstractIntegrationTest {
     
     assertNotNull(meta);
     assertEquals("test-image-480-320.jpg", meta.getFileName());
-    assertEquals("image/jpeg", meta.getContentType());
+    assertEquals("image/jpg", meta.getContentType());
   }
   
   @Test
