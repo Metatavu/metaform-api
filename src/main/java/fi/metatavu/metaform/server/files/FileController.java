@@ -76,6 +76,39 @@ public class FileController {
   }
   
   /**
+   * Returns meta data for a file or null if file does not exist
+   * 
+   * @param fileRef file reference id
+   * @return meta data
+   * @throws IOException
+   */
+  public FileMeta getFileMeta(String fileRef) {
+    String metaData = getRawFileMeta(fileRef);
+    if (StringUtils.isBlank(metaData)) {
+      return null;
+    }
+    
+    try {
+      return getObjectMapper().readValue(metaData, FileMeta.class);
+    } catch (IOException e) {
+      logger.error("Failed to retrieve file meta", e);
+    } 
+    
+    return null;
+  }
+  
+  /**
+   * Returns raw meta data for a file or null if file does not exist
+   * 
+   * @param fileRef file reference id
+   * @return meta data as JSON string
+   * @throws IOException
+   */
+  public String getRawFileMeta(String fileRef) {
+    return metaCache.get(fileRef);
+  }
+  
+  /**
    * Returns a file data and removes it from the store
    * 
    * @param fileRef file reference id

@@ -362,6 +362,24 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       }
     }
   }
+
+  /**
+   * Returns file meta for a uploaded file
+   * 
+   * @param fileRef
+   * @return meta
+   * @throws IOException thrown on io exception
+   */
+  protected FileUploadMeta getFileRefMeta(UUID fileRef) throws IOException {
+    HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+    try (CloseableHttpClient client = clientBuilder.build()) {
+      HttpGet get = new HttpGet(String.format("%s/fileUpload?fileRef=%s&meta=true", getBasePath(), fileRef));
+      HttpResponse response = client.execute(get);
+      try (InputStream contentStream = response.getEntity().getContent()) {
+        return getObjectMapper().readValue(contentStream, FileUploadMeta.class);
+      }
+    }
+  }
   
   /**
    * Delete uploaded file from the store
@@ -413,5 +431,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       assertEquals(expectedStatus, response.getStatusLine().getStatusCode());
     }
   }
+  
   
 }
