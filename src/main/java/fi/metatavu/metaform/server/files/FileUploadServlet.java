@@ -49,23 +49,11 @@ public class FileUploadServlet extends HttpServlet {
       return;
     }
     
-    File fileData = fileController.getFileData(fileRef);
-    if (fileData == null) {
-      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      return;
-    }
-    
-    resp.setContentType(fileData.getMeta().getContentType());
-    
-    try {
-      ServletOutputStream servletOutputStream = resp.getOutputStream();
-      try {
-        servletOutputStream.write(fileData.getData());
-      } finally {
-        servletOutputStream.flush();
-      }
-    } catch (IOException e) {
-      logger.warn("Failed to send response", e);
+    boolean meta = "true".equalsIgnoreCase(req.getParameter("meta"));
+    if (meta) {
+      getFileMeta(resp, fileRef);      
+    } else {
+      getFileData(resp, fileRef);
     }
   }
   
@@ -114,4 +102,58 @@ public class FileUploadServlet extends HttpServlet {
     resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
+  /**
+   * Outputs file metadata as JSON
+   * 
+   * @param resp response object
+   * @param fileRef file ref
+   */
+  private void getFileMeta(HttpServletResponse resp, String fileRef) {
+    String fileMeta = fileController.getRawFileMeta(fileRef);
+    if (fileMeta == null) {
+      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    
+    resp.setContentType("application/json");
+    
+    try {
+      ServletOutputStream servletOutputStream = resp.getOutputStream();
+      try {
+        servletOutputStream.write(fileMeta.getBytes("UTF-8"));
+      } finally {
+        servletOutputStream.flush();
+      }
+    } catch (IOException e) {
+      logger.warn("Failed to send response", e);
+    }    
+  }
+
+  /**
+   * Outputs file data
+   * 
+   * @param resp response object
+   * @param fileRef file ref
+   */
+  private void getFileData(HttpServletResponse resp, String fileRef) {
+    File fileData = fileController.getFileData(fileRef);
+    if (fileData == null) {
+      resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
+    
+    resp.setContentType(fileData.getMeta().getContentType());
+    
+    try {
+      ServletOutputStream servletOutputStream = resp.getOutputStream();
+      try {
+        servletOutputStream.write(fileData.getData());
+      } finally {
+        servletOutputStream.flush();
+      }
+    } catch (IOException e) {
+      logger.warn("Failed to send response", e);
+    }
+  }
+  
 }
