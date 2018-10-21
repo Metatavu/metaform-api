@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
@@ -15,6 +16,17 @@ public class UploadTestsIT extends AbstractIntegrationTest {
     FileUploadResponse fileUpload = uploadResourceFile("test-image-480-320.jpg");
     assertNotNull(fileUpload);
     assertUploadFound(fileUpload.getFileRef().toString());
+  }
+  
+  @Test
+  public void findUploadedMeta() throws IOException {
+    FileUploadResponse fileUpload = uploadResourceFile("test-image-480-320.jpg");
+    assertNotNull(fileUpload);
+    FileUploadMeta meta = getFileRefMeta(fileUpload.getFileRef());
+    
+    assertNotNull(meta);
+    assertEquals("test-image-480-320.jpg", meta.getFileName());
+    assertEquals("image/jpeg", meta.getContentType());
   }
   
   @Test
