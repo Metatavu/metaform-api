@@ -104,6 +104,9 @@ Start Wildfly in background by running following script:
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=ServerName:add(value="localhost")
     /subsystem=datasources/xa-data-source=metaform/xa-datasource-properties=DatabaseName:add(value="metaformapi")
     /subsystem=undertow/server=default-server/host=metaform-api:add(default-web-module="metaform-api.war",alias=["dev.metaform.fi"])
+    /subsystem=infinispan/cache-container=metaform:add()
+    /subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()
+    /subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()
     exit
     
 ### Compile and deploy Metaform API
