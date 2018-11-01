@@ -52,10 +52,10 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
 ### Install Wildfly Keycloak Adapter
 
     cd $INSTALL_DIR/wildfly-12.0.0.Final
-    wget https://downloads.jboss.org/keycloak/4.0.0.Beta2/adapters/keycloak-oidc/keycloak-wildfly-adapter-dist-4.0.0.Beta2.zip
-    unzip keycloak-wildfly-adapter-dist-4.0.0.Beta2.zip
+    wget https://downloads.jboss.org/keycloak/4.5.0.Final/adapters/keycloak-oidc/keycloak-wildfly-adapter-dist-4.5.0.Final.zip
+    unzip keycloak-wildfly-adapter-dist-4.5.0.Final.zip
     sh bin/jboss-cli.sh --file=bin/adapter-elytron-install-offline.cli
-    rm keycloak-wildfly-adapter-dist-4.0.0.Beta2.zip
+    rm keycloak-wildfly-adapter-dist-4.5.0.Final.zip
     
 ### Install Keycloak
 
