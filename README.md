@@ -60,21 +60,21 @@ Add desired hostname into hosts file and change it to point to 127.0.0.1. In thi
 ### Install Keycloak
 
      cd $INSTALL_DIR
-     wget https://downloads.jboss.org/keycloak/3.4.3.Final/keycloak-3.4.3.Final.zip
-     unzip keycloak-3.4.3.Final.zip
+     wget https://downloads.jboss.org/keycloak/3.4.3.Final/keycloak-4.5.0.Final.zip
+     unzip keycloak-4.5.0.Final.zip
      
 ### Start Keycloak
 
 In order to use the API, Keycloak must be running, so starting it in another console would be a good idea.
 
-     cd $INSTALL_DIR/keycloak-3.4.3.Final/bin/
+     cd $INSTALL_DIR/keycloak-4.5.0.Final/bin/
      sh standalone.sh -Djboss.socket.binding.port-offset=200
      
 ### Setup Keycloak realm
 
 If you have an export file, you can configure your Keycloak from it by starting the Keycloak one time with following command:
 
-     sh $INSTALL_DIR/keycloak-3.4.3.Final/bin/standalone.sh -Djboss.socket.binding.port-offset=200 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=yourmigrationfile.json
+     sh $INSTALL_DIR/keycloak-4.5.0.Final/bin/standalone.sh -Djboss.socket.binding.port-offset=200 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=yourmigrationfile.json
      
 If you don't have an export file, you need to do following steps to create new realm and client: 
 
