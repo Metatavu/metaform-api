@@ -10,10 +10,12 @@
             <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>
             <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
             <module name="org.slf4j"/>
-            <module name="org.jsoup"/>
             <module name="org.keycloak.keycloak-adapter-core"/>
             <module name="org.keycloak.keycloak-adapter-spi"/>
+            <module name="org.keycloak.keycloak-authz-client"/>
             <module name="org.wildfly.clustering.api" services="export" />
+            <module name="org.jboss.resteasy.resteasy-jaxrs"/>
+            <module name="org.jboss.resteasy.resteasy-jackson-provider" services="import"/>
         </dependencies>
     </deployment>
 </jboss-deployment-structure>
