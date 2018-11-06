@@ -123,9 +123,9 @@ public class ReplyController {
    */
   public Reply createReply(UUID userId, Metaform metaform) {
     UUID id = UUID.randomUUID();
-    return replyDAO.create(id, userId, metaform);
+    return replyDAO.create(id, userId, metaform, null);
   }
-
+  
   /**
    * Lists field names used in reply
    * 
@@ -155,6 +155,18 @@ public class ReplyController {
    */
   public Reply findActiveReplyByMetaformAndUserId(Metaform metaform, UUID userId) {
     return replyDAO.findByMetaformAndUserIdAndRevisionNull(metaform, userId);
+  }
+  
+  /**
+   * Updates reply authorization resource id
+   * 
+   * @param reply reply
+   * @param resourceId authorization resource id
+   * @return reply
+   */
+  public Reply updateResourceId(Reply reply, UUID resourceId) {
+    replyDAO.updateResourceId(reply, resourceId);
+    return reply;
   }
 
   /**

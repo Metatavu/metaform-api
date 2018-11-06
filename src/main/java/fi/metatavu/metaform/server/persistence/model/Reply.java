@@ -47,6 +47,9 @@ public class Reply {
   @ManyToOne(optional = false)
   private Metaform metaform;
 
+  @Type(type="org.hibernate.type.PostgresUUIDType")
+  private UUID resourceId;
+  
   public UUID getId() {
     return id;
   }
@@ -77,6 +80,14 @@ public class Reply {
 
   public void setMetaform(Metaform metaform) {
     this.metaform = metaform;
+  }
+  
+  public UUID getResourceId() {
+    return resourceId;
+  }
+  
+  public void setResourceId(UUID resourceId) {
+    this.resourceId = resourceId;
   }
   
   public OffsetDateTime getCreatedAt() {
