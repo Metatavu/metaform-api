@@ -6,8 +6,10 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
+import java.util.Map;
+import java.util.UUID;  
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -18,10 +20,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.authorization.client.AuthzClient;
+import org.keycloak.authorization.client.ClientAuthorizationContext;
+import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessToken.Access;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.slf4j.Logger;
 
+import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
 import fi.metatavu.metaform.server.rest.model.BadRequest;
 import fi.metatavu.metaform.server.rest.model.Forbidden;
 import fi.metatavu.metaform.server.rest.model.InternalServerError;
@@ -324,6 +334,100 @@ public abstract class AbstractApi {
     }
     
     return OffsetDateTime.parse(timeString);
+  }
+
+  /**
+   * Creates admin client for a realm
+   * 
+   * @param realmName realm
+   * @return admin client
+   */
+  protected Keycloak getAdminClient(String realmName) {
+    return getAdminClient(KeycloakConfigProvider.getConfig(realmName));
+  }
+  
+  /**
+   * Creates admin client for config
+   * 
+   * @param configuration configuration
+   * @return admin client
+   */
+  protected Keycloak getAdminClient(Configuration configuration) {
+    Map<String, Object> credentials = configuration.getCredentials();
+    String clientSecret = (String) credentials.get("secret");
+    String adminUser = (String) credentials.get("realm-admin-user");
+    String adminPass = (String) credentials.get("realm-admin-pass");
+    
+    return KeycloakBuilder.builder()
+      .serverUrl(configuration.getAuthServerUrl())
+      .realm(configuration.getRealm())
+      .grantType(OAuth2Constants.PASSWORD)
+      .clientId(configuration.getResource())
+      .clientSecret(clientSecret)
+      .username(adminUser)
+      .password(adminPass)
+      .build();
+  }
+  
+  /**
+   * Constructs authz client
+   * 
+   * @return created authz client
+   */
+  protected AuthzClient getAuthzClient() {
+    ClientAuthorizationContext clientAuthorizationContext = getAuthorizationContext();
+    if (clientAuthorizationContext == null) {
+      return null;
+    }
+
+    return clientAuthorizationContext.getClient();
+  }
+
+  /**
+   * Finds a Keycloak client by realm and clientId 
+   * 
+   * @param keycloak keycloak admin client
+   * @param realmName realm's name
+   * @param clientId clientId 
+   * @return client or null if not found
+   */
+  protected ClientRepresentation findClient(Keycloak keycloak, String realmName, String clientId) {
+    List<ClientRepresentation> clients = keycloak.realm(realmName).clients().findByClientId(clientId);
+    if (!clients.isEmpty()) {
+      return clients.get(0);
+    }
+    
+    return null;
+  }
+
+  /**
+   * Return Keycloak authorization client context or null if not available 
+   * 
+   * @return Keycloak authorization client
+   */
+  protected ClientAuthorizationContext getAuthorizationContext() {
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return null;
+    }
+
+    return (ClientAuthorizationContext) keycloakSecurityContext.getAuthorizationContext();
+  }
+
+  /**
+   * Returns Keycloak security context from request or null if not available
+   * 
+   * @return Keycloak security context
+   */
+  protected KeycloakSecurityContext getKeycloakSecurityContext() {
+    HttpServletRequest request = getHttpServletRequest();
+    Principal userPrincipal = request.getUserPrincipal();
+    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
+    if (kcPrincipal == null) {
+      return null;
+    }
+    
+    return kcPrincipal.getKeycloakSecurityContext();
   }
   
 }
