@@ -5,13 +5,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,10 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.authorization.client.Configuration;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.authorization.ResourceRepresentation;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,6 +39,10 @@ import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
 import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
+import fi.metatavu.metaform.server.keycloak.AuthorizationController;
+import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
+import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
+import fi.metatavu.metaform.server.keycloak.ResourceType;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
@@ -46,6 +57,7 @@ import fi.metatavu.metaform.server.rest.model.ExportTheme;
 import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
+import fi.metatavu.metaform.server.rest.model.MetaformFieldPermissioncontexts;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
@@ -64,6 +76,12 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 @RequestScoped
 @Stateful
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
+  
+  private static final List<AuthorizationScope> REPLY_SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT, AuthorizationScope.REPLY_NOTIFY);
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/%s/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
+  private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
+  private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s";
   
   private static final String THEME_DOES_NOT_EXIST = "Theme %s does not exist";
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS = "You are not allowed to update Metaforms";
@@ -118,9 +136,12 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private EmailNotificationTranslator emailNotificationTranslator;
+
+  @Inject
+  private AuthorizationController authorizationController;
   
   @Override
-  public Response createReply(String realmId, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
+  public Response createReply(String realmName, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
@@ -153,7 +174,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     
-    // TODO: Permission check
+    Map<AuthorizationScope, List<String>> permissionGroups = new HashMap<>();
+    Arrays.stream(AuthorizationScope.values()).forEach(scope -> permissionGroups.put(scope, new ArrayList<>()));
+    
     // TODO: Support multiple
     
     fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(replyMode, metaform, anonymous, userId);
@@ -165,23 +188,28 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       for (Entry<String, Object> entry : data.entrySet()) {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
+        MetaformField field = fieldMap.get(fieldName);
         
         if (fieldValue != null) {
-          if (!replyController.isValidFieldValue(fieldMap.get(fieldName), fieldValue)) {
+          if (!replyController.isValidFieldValue(field, fieldValue)) {
             return createBadRequest(String.format("Invalid field value for field %s", fieldName));
           }
           
-          replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
+          replyController.setReplyField(field, reply, fieldName, fieldValue);
+          addPermissionContextGroups(permissionGroups, field, fieldValue);
         }
       }
-    }
+    } 
     
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+    
+    updateReplyPermissions(metaformEntity, reply, permissionGroups);
     notificationController.notifyNewReply(metaform, replyEntity);
     
     return createOk(replyEntity);
   }
-
+  
+  @Override
   public Response findReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
@@ -247,14 +275,14 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         includeRevisions == null ? false : includeRevisions,
         fieldFilters);
     
-    List<Reply> result = replies.stream().map(entity -> 
-     replyTranslator.translateReply(metaformEntity, entity)
-    ).collect(Collectors.toList());
+    List<Reply> result = replies.stream()
+      .map(entity -> replyTranslator.translateReply(metaformEntity, entity))
+      .collect(Collectors.toList());
     
     return createOk(result);
   }
 
-  public Response updateReply(String realmId, UUID metaformId, UUID replyId, Reply payload) throws Exception {
+  public Response updateReply(String realmName, UUID metaformId, UUID replyId, Reply payload) throws Exception {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -276,20 +304,28 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
     
+    Map<AuthorizationScope, List<String>> newPermissionGroups = new HashMap<>();
+    Arrays.stream(AuthorizationScope.values()).forEach(scope -> newPermissionGroups.put(scope, new ArrayList<>()));
+    
     List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
     ReplyData data = payload.getData();
     Map<String, MetaformField> fieldMap = fieldController.getFieldMap(metaformEntity);
 
     for (Entry<String, Object> entry : data.entrySet()) {
       String fieldName = entry.getKey();
-      if (!replyController.isValidFieldValue(fieldMap.get(fieldName), entry.getValue())) {
+      MetaformField field = fieldMap.get(fieldName);
+      Object fieldValue = entry.getValue();
+      
+      if (!replyController.isValidFieldValue(field, fieldValue)) {
         return createBadRequest(String.format("Invalid field value for field %s", fieldName));
       }
       
-      replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, entry.getValue());
+      replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
+      addPermissionContextGroups(newPermissionGroups, field, fieldValue);
       fieldNames.remove(fieldName);
     }
     
+    updateReplyPermissions(metaformEntity, reply, newPermissionGroups);
     replyController.deleteReplyFields(reply, fieldNames);
     
     return createNoContent();
@@ -328,8 +364,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
-    
-    // TODO: Permission check
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -389,7 +423,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         return createBadRequest("Invalid exportThemeId");
       }
     }
-    // TODO: Permission check
+    
+    updateMetaformPermissionGroups(realmId, payload);
     
     return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(exportTheme, realmId, allowAnonymous, data)));
   }
@@ -463,6 +498,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         return createBadRequest("Invalid exportThemeId");
       }
     }
+
+    updateMetaformPermissionGroups(realmId, payload);
     
     // TODO: Permission check
     
@@ -659,7 +696,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         return createBadRequest(String.format(THEME_DOES_NOT_EXIST, parentId));
       }
     }
-    
+
     fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = exportThemeController.createExportTheme(payload.getLocales(), parent, payload.getName(), loggedUserId);
     
     return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
@@ -839,6 +876,203 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     exportThemeController.updateExportThemeFile(exportThemeFile, payload.getPath(), payload.getContent(), loggedUserId);
 
     return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
+  }
+  
+  /**
+   * Resolves permission groups from reply
+   * 
+   * @param metaformEntity Metaform REST entity
+   * @param reply reply
+   * @return reply permission groups
+   */
+  private Map<AuthorizationScope, List<String>> getReplyPermissionGroups(Metaform metaformEntity, fi.metatavu.metaform.server.persistence.model.Reply reply) {
+    Map<AuthorizationScope, List<String>> permissionGroups = new HashMap<>();
+    Arrays.stream(AuthorizationScope.values()).forEach(scope -> permissionGroups.put(scope, new ArrayList<>()));
+    
+    List<MetaformField> permissionContextFields = getPermissionContextFields(metaformEntity);
+    
+    for (MetaformField permissionContextField : permissionContextFields) {
+      MetaformFieldPermissioncontexts permissionContexts = permissionContextField.getPermissionContexts();
+      String fieldName = permissionContextField.getName();
+      Object fieldValue = fieldController.getFieldValue(metaformEntity, reply, fieldName);
+      
+      if (fieldValue instanceof String) {
+        String permissionGroupName = getReplySecurityContextGroup(fieldName, (String) fieldValue);
+        
+        if (permissionContexts.isEditGroup()) {
+          permissionGroups.get(AuthorizationScope.REPLY_EDIT).add(permissionGroupName); 
+        }
+        
+        if (permissionContexts.isViewGroup()) {
+          permissionGroups.get(AuthorizationScope.REPLY_VIEW).add(permissionGroupName); 
+        }
+        
+        if (permissionContexts.isNotifyGroup()) {
+          permissionGroups.get(AuthorizationScope.REPLY_NOTIFY).add(permissionGroupName); 
+        }
+      }
+    }
+    
+    return permissionGroups;
+  }
+  
+  /**
+   * Returns permission context fields from Metaform REST entity
+   * 
+   * @param metaformEntity metaform REST entity
+   * @return permission context fields
+   */
+  private List<MetaformField> getPermissionContextFields(Metaform metaformEntity) {
+    return metaformEntity.getSections().stream()
+      .map(MetaformSection::getFields)
+      .flatMap(List::stream)
+      .filter(field -> field.getPermissionContexts() != null)
+      .filter(field -> field.getPermissionContexts().isEditGroup() || field.getPermissionContexts().isViewGroup() || field.getPermissionContexts().isNotifyGroup())
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Adds field permission context groups into appropriate lists
+   * 
+   * @param permissionGroups target map
+   * @param field field
+   * @param fieldValue field value
+   */
+  private void addPermissionContextGroups(Map<AuthorizationScope, List<String>> permissionGroups, MetaformField field, Object fieldValue) {
+    MetaformFieldPermissioncontexts permissionContexts = field.getPermissionContexts();
+    
+    if (permissionContexts != null && fieldValue instanceof String) {
+      String fieldName = field.getName();
+      String permissionGroupName = getReplySecurityContextGroup(fieldName, (String) fieldValue);
+      
+      if (permissionContexts.isEditGroup()) {
+        permissionGroups.get(AuthorizationScope.REPLY_EDIT).add(permissionGroupName); 
+      }
+      
+      if (permissionContexts.isViewGroup()) {
+        permissionGroups.get(AuthorizationScope.REPLY_VIEW).add(permissionGroupName); 
+      }
+      
+      if (permissionContexts.isNotifyGroup()) {
+        permissionGroups.get(AuthorizationScope.REPLY_NOTIFY).add(permissionGroupName); 
+      }
+    }
+  }
+  
+  /**
+   * Returns groups permission name for a reply
+   * 
+   * @param reply reply
+   * @return resource name
+   */
+  private String getReplyPermissionName(fi.metatavu.metaform.server.persistence.model.Reply reply, AuthorizationScope scope) {
+    if (reply == null) {
+      return null;
+    }
+    
+    return String.format(REPLY_PERMISSION_NAME_TEMPLATE, reply.getId(), scope.name().toLowerCase());
+  }
+
+  /**
+   * Creates reply security context group name
+   * 
+   * @param fieldName field name
+   * @param fieldValue field value
+   * @return reply security context group name
+   */
+  private String getReplySecurityContextGroup(String fieldName, String fieldValue) {
+    return String.format(REPLY_GROUP_NAME_TEMPLATE, fieldName, fieldValue);
+  }
+  
+  /**
+   * Creates reply permissions
+   * 
+   * @param reply reply
+   * @param groupIds groupsIds
+   */
+  private void updateReplyPermissions(Metaform metaformEntity, fi.metatavu.metaform.server.persistence.model.Reply reply, Map<AuthorizationScope, List<String>> permissionGroups) {
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = reply.getMetaform();
+    String realmName = metaform.getRealmId();
+    
+    ResourceRepresentation resource = authorizationController.createProtectedResource(getAuthzClient(), 
+      reply.getUserId(), 
+      getReplyResourceName(reply), 
+      getReplyResourceUri(reply), 
+      ResourceType.REPLY.getUrn(), 
+      REPLY_SCOPES);
+    
+    UUID resourceId = UUID.fromString(resource.getId());
+    replyController.updateResourceId(reply, resourceId);
+    
+    Configuration keycloakConfig = KeycloakConfigProvider.getConfig(realmName);
+    Keycloak keycloak = getAdminClient(keycloakConfig);
+    ClientRepresentation keycloakClient = findClient(keycloak, realmName, keycloakConfig.getResource());
+    
+    for (AuthorizationScope scope : AuthorizationScope.values()) {
+      List<String> groupNames = permissionGroups.get(scope);
+      Set<UUID> policyIds = authorizationController.getPolicyIdsByGroupNames(keycloak, realmName, keycloakClient, groupNames);
+      authorizationController.upsertScopePermission(keycloak, realmName, keycloakClient, resourceId, scope, getReplyPermissionName(reply, scope), policyIds);
+    }
+  }
+  
+  /**
+   * Updates permission groups to match metaform
+   * 
+   * @param realmName realm
+   * @param metaformEntity Metaform REST entity
+   */
+  private void updateMetaformPermissionGroups(String realmName, Metaform metaformEntity) {
+    Configuration keycloakConfig = KeycloakConfigProvider.getConfig(realmName);
+    Keycloak keycloak = getAdminClient(keycloakConfig);
+    ClientRepresentation keycloakClient = findClient(keycloak, realmName, keycloakConfig.getResource());
+    
+    List<String> groupNames = getPermissionContextFields(metaformEntity).stream()
+      .map(field -> field.getOptions().stream().map(option -> String.format("%s:%s", field.getName(), option.getName())).collect(Collectors.toList()))
+      .flatMap(List::stream)
+      .collect(Collectors.toList());
+    
+    authorizationController.updatePermissionGroups(keycloak, keycloakConfig.getRealm(), keycloakClient, groupNames);
+  }
+  
+  /**
+   * Returns resource name for a reply
+   * 
+   * @param reply reply
+   * @return resource name
+   */
+  private String getReplyResourceName(fi.metatavu.metaform.server.persistence.model.Reply reply) {
+    if (reply == null) {
+      return null;
+    }
+    
+    return String.format(REPLY_RESOURCE_NAME_TEMPLATE, reply.getId());
+  }
+  
+  /**
+   * Returns resource URI for reply
+   * 
+   * @param reply reply
+   * @return resource URI
+   */
+  private String getReplyResourceUri(fi.metatavu.metaform.server.persistence.model.Reply reply) {
+    if (reply == null) {
+      return null;
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = reply.getMetaform();
+    return getReplyResourceUri(metaform.getRealmId(), metaform.getId(), reply.getId());
+  }
+  
+  /**
+   * Returns resource URI for reply
+   * 
+   * @param realmName realm name
+   * @param metaformId Metaform id
+   * @param replyId reply id
+   * @return resource URI
+   */
+  private String getReplyResourceUri(String realmName, UUID metaformId, UUID replyId) {
+    return String.format(REPLY_RESOURCE_URI_TEMPLATE, realmName, metaformId, replyId);
   }
   
   /**
