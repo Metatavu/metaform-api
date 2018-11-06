@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.34</metaform-api-spec.version>
+    <metaform-api-spec.version>0.0.35</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -63,11 +63,12 @@
     <!-- Liquibase -->
     
     <liquibase.version>3.6.1</liquibase.version>
+    <postgresql.version>42.2.5</postgresql.version>
     
     <!-- Keycloak admin client -->
     
-    <keycloak-admin-client.version>3.4.3.Final</keycloak-admin-client.version>
-    <keycloak-adapter.version>4.0.0.Beta1</keycloak-adapter.version>
+    <keycloak-admin-client.version>4.5.0.Final</keycloak-admin-client.version>
+    <keycloak-adapter.version>4.5.0.Final</keycloak-adapter.version>
     
     <!-- Mailgun -->
     
@@ -87,7 +88,6 @@
     <metaform-api-client.version>0.0.22</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
-    <postgresql.version>42.2.5</postgresql.version>
   </properties>
 
   <dependencyManagement>
@@ -157,6 +157,24 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-jackson2-provider</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+	<dependency>
+	  <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <scope>provided</scope>
+	</dependency>
+    
     <dependency>
       <groupId>org.jboss.spec.javax.ws.rs</groupId>
       <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
@@ -291,22 +309,36 @@
       <version>${liquibase.version}</version>
     </dependency>
     
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+      <type>jar</type>
+    </dependency>
+    
     <!-- Keycloak -->
   
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-adapter-spi</artifactId>
-      <version>4.0.0.Beta1</version>
+      <version>${keycloak-adapter.version}</version>
       <scope>provided</scope>
     </dependency>
   
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-adapter-core</artifactId>
-      <version>4.0.0.Beta1</version>
+      <version>${keycloak-adapter.version}</version>
       <scope>provided</scope>
     </dependency>
-  
+    
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-authz-client</artifactId>
+      <version>${keycloak-adapter.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-admin-client</artifactId>
@@ -336,14 +368,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
-      <type>jar</type>
       <scope>test</scope>
     </dependency>
     
