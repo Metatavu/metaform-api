@@ -26,18 +26,6 @@ public class MetaformKeycloakConfigResolver implements KeycloakConfigResolver {
   
   @Override
   public KeycloakDeployment resolve(Request request) {
-    String configParentSetting = System.getProperty("metaform-api.config-path");
-    if (configParentSetting == null) {
-      logger.error("Config parent setting not set");
-      return null;
-    }
-
-    File configParent = new File(configParentSetting);
-    if (!configParent.exists()) {
-      logger.error("Config parent setting folder does not exist");
-      return null;
-    }
-    
     String path = request.getRelativePath();
     if (path == null) {
       logger.error("Could not resolve Keycloak config because path was null");
@@ -47,17 +35,13 @@ public class MetaformKeycloakConfigResolver implements KeycloakConfigResolver {
     Matcher matcher = pattern.matcher(path);
     
     if (matcher.find()) {
-      String realmId = matcher.group(2);
-      if (realmId == null) {
+      String realmName = matcher.group(2);
+      if (realmName == null) {
         logger.warn("Could not resolve Keycloak config because realm id was not set");
         return null;
       }
       
-      File configFile = new File(configParent, String.format("%s.json", realmId));
-      if (!configFile.exists()) {
-        logger.warn(String.format("Keycloak config not found for realm %s", realmId));
-        return null;
-      }
+      File configFile = KeycloakConfigProvider.getConfigFile(realmName);
       
       FileInputStream configStream;
       try {
