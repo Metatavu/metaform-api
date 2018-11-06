@@ -357,5 +357,13 @@
     </createTable>
 
   </changeSet> 
+
+  <changeSet author="antti.leppa" id="reply-authz-resources">
+    <addColumn tableName="reply">
+      <column name="resourceid" type="uuid"/>
+    </addColumn>
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateReplyAuthzResources"/>
+  </changeSet>
+  
   
 </databaseChangeLog>
