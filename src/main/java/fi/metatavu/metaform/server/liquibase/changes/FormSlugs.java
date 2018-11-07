@@ -31,7 +31,7 @@ public class FormSlugs extends AbstractAuthzCustomChange {
           String id = resultSet.getString(1);
           String realmName = resultSet.getString(2);
           
-          if (ids.containsKey(realmName)) {
+          if (!ids.containsKey(realmName)) {
             ids.put(realmName, 1);
           } else {
             ids.put(realmName, ids.get(realmName) + 1);

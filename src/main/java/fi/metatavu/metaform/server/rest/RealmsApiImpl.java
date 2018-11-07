@@ -29,7 +29,12 @@ import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.authorization.client.Configuration;
+import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
+import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.authorization.AuthorizationRequest;
+import org.keycloak.representations.idm.authorization.AuthorizationResponse;
+import org.keycloak.representations.idm.authorization.Permission;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -77,7 +82,7 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
   private static final List<AuthorizationScope> REPLY_SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT, AuthorizationScope.REPLY_NOTIFY);
-  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/%s/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/%s/metaforms/%s/replies/%s";
   private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
   private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
   private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s:%s";
@@ -87,8 +92,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES = "You are not allowed to update themes";
   private static final String ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE = "Anonymous users are not allowed to list Metaforms";
   private static final String ANONYMOUS_USERS_FIND_METAFORM_MESSAGE = "Anonymous users are not allowed to find Metaforms";
-  private static final String NOT_ALLOWED_TO_VIEW_THESE_REPLIES = "You are not allowed to view these replies";
   private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
+  private static final String NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE = "You are not allowed to edit this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
 
   @Inject
@@ -210,8 +215,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
     
-    // TODO: Permission check
-    
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -221,11 +224,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (reply == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-
-    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
+    
+    if (!isPermittedReply(reply, AuthorizationScope.REPLY_VIEW)) {
       return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
     }
-    
+
     if (!reply.getMetaform().getId().equals(metaform.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
@@ -247,11 +250,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
-    
-    if ((userId == null || !userId.equals(getLoggerUserId())) && (!hasRealmRole(ADMIN_ROLE, VIEW_ALL_REPLIES_ROLE))) {
-      return createForbidden(NOT_ALLOWED_TO_VIEW_THESE_REPLIES);
-    }
-    
+      
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -270,7 +269,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         includeRevisions == null ? false : includeRevisions,
         fieldFilters);
     
-    List<Reply> result = replies.stream()
+    List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
       .map(entity -> replyTranslator.translateReply(metaformEntity, entity))
       .collect(Collectors.toList());
     
@@ -282,7 +281,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
     
-    UUID loggedUserId = getLoggerUserId();
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -293,8 +291,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    if (!isRealmMetaformAdmin() && !reply.getUserId().equals(loggedUserId)) {
-      return createNotFound(NOT_FOUND_MESSAGE);
+    if (!isPermittedReply(reply, AuthorizationScope.REPLY_EDIT)) {
+      return createForbidden(NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE);
     }
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
@@ -331,10 +329,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Override
   public Response deleteReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
-    if (!isRealmMetaformAdmin()) {
-      return createForbidden("You are not allowed to delete replies");
-    }
-
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -344,7 +338,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (reply == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isPermittedReply(reply, AuthorizationScope.REPLY_EDIT)) {
+      return createForbidden(NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE);
+    }
+
     if (!reply.getMetaform().getId().equals(metaform.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
@@ -422,9 +420,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
     }
     
-    updateMetaformPermissionGroups(realmId, payload);
-    
-    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(exportTheme, realmId, allowAnonymous, payload.getTitle(), data)));
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, realmId, allowAnonymous, payload.getTitle(), data);
+    updateMetaformPermissionGroups(realmId, metaform.getSlug(), payload);
+    return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
   public Response listMetaforms(String realmId) throws Exception {
@@ -497,7 +495,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
     }
 
-    updateMetaformPermissionGroups(realmId, payload);
+    updateMetaformPermissionGroups(realmId, metaform.getSlug(), payload);
     
     // TODO: Permission check
     
@@ -555,6 +553,93 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return streamResponse(attachment.getContent(), attachment.getContentType());
   }
 
+  /**
+   * Returns whether given reply is permitted within given scope
+   * 
+   * @param reply reply
+   * @param authorizationScope scope
+   * @return whether given reply is permitted within given scope
+   */
+  private boolean isPermittedReply(fi.metatavu.metaform.server.persistence.model.Reply reply, AuthorizationScope authorizationScope) {
+    if (isRealmMetaformAdmin() || isRealmMetaformSuper()) {
+      return true;
+    }
+    
+    if (reply == null || reply.getResourceId() == null) {
+      return false;
+    }
+    
+    return isPermittedResourceId(reply.getResourceId(), authorizationScope);
+  }
+  
+  /**
+   * Filters out replies without permission
+   * 
+   * @param replies replies
+   * @param authorizationScope scope
+   * @return filtered list
+   */
+  private List<fi.metatavu.metaform.server.persistence.model.Reply> getPermittedReplies(List<fi.metatavu.metaform.server.persistence.model.Reply> replies, AuthorizationScope authorizationScope) {
+    if (isRealmMetaformAdmin() || isRealmMetaformSuper() || hasRealmRole(VIEW_ALL_REPLIES_ROLE)) {
+      return replies;
+    }
+    
+    Set<UUID> resourceIds = replies.stream()
+      .filter(reply -> reply.getResourceId() != null)
+      .map(fi.metatavu.metaform.server.persistence.model.Reply::getResourceId)
+      .collect(Collectors.toSet());
+    
+    Set<UUID> permittedResourceIds = getPermittedResourceIds(resourceIds, authorizationScope);
+    
+    return replies.stream()
+      .filter(reply -> permittedResourceIds.contains(reply.getResourceId()))
+      .collect(Collectors.toList());
+  }
+  
+  /**
+   * Returns whether given resource id is permitted within given scope
+   * 
+   * @param resourceId resource id 
+   * @param authorizationScope scope
+   * @return whether given resource id is permitted within given scope
+   */
+  private boolean isPermittedResourceId(UUID resourceId, AuthorizationScope authorizationScope) {
+    Set<UUID> permittedResourceIds = getPermittedResourceIds(Collections.singleton(resourceId), authorizationScope);
+    return permittedResourceIds.size() == 1 && resourceId.equals(permittedResourceIds.iterator().next());
+  }
+  
+  /**
+   * Filters out resource ids without permission
+   * 
+   * @param resourceIds resource ids
+   * @param authorizationScope scope
+   * @return filtered list
+   */
+  private Set<UUID> getPermittedResourceIds(Set<UUID> resourceIds, AuthorizationScope authorizationScope) {
+    try {
+      AuthorizationRequest request = new AuthorizationRequest();
+      
+      resourceIds.stream().forEach((resourceId) -> {
+        request.addPermission(resourceId.toString(), authorizationScope.getName());
+      });
+        
+      AuthorizationResponse response = getAuthzClient().authorization(getTokenString()).authorize(request);
+      TokenIntrospectionResponse irt = getAuthzClient().protection().introspectRequestingPartyToken(response.getToken());
+      List<Permission> permissions = irt.getPermissions();
+      
+      return permissions.stream()
+        .map(Permission::getResourceId)
+        .map(UUID::fromString)
+        .collect(Collectors.toSet());
+    } catch (HttpResponseException e) {
+      // User does not have permissions to any of the resources
+    } catch (Exception e) {
+      logger.error("Failed to get permissing from Keycloak", e);
+    }
+    
+    return Collections.emptySet();
+  }
+  
   /**
    * Handles reply post persist tasks. Tasks include adding to user groups permissions and notifying users about the reply
    * 
@@ -1047,13 +1132,13 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param realmName realm
    * @param metaformEntity Metaform REST entity
    */
-  private void updateMetaformPermissionGroups(String realmName, Metaform metaformEntity) {
+  private void updateMetaformPermissionGroups(String realmName, String formSlug, Metaform metaformEntity) {
     Configuration keycloakConfig = KeycloakConfigProvider.getConfig(realmName);
     Keycloak keycloak = getAdminClient(keycloakConfig);
     ClientRepresentation keycloakClient = findClient(keycloak, realmName, keycloakConfig.getResource());
     
     List<String> groupNames = getPermissionContextFields(metaformEntity).stream()
-      .map(field -> field.getOptions().stream().map(option -> String.format("%s:%s", field.getName(), option.getName())).collect(Collectors.toList()))
+      .map(field -> field.getOptions().stream().map(option -> getReplySecurityContextGroup(formSlug, field.getName(), option.getName())).collect(Collectors.toList()))
       .flatMap(List::stream)
       .collect(Collectors.toList());
     

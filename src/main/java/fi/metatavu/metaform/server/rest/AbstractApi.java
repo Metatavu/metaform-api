@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;  
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -291,23 +291,11 @@ public abstract class AbstractApi {
    * @return whether logged user has specified realm role or not
    */
   protected boolean hasRealmRole(String... roles) {
-    HttpServletRequest request = getHttpServletRequest();
-    Principal userPrincipal = request.getUserPrincipal();
-    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
-    if (kcPrincipal == null) {
-      return false;
-    }
-    
-    KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
-    if (keycloakSecurityContext == null) {
-      return false;
-    }
-    
-    AccessToken token = keycloakSecurityContext.getToken();
+    AccessToken token = getAccessToken();
     if (token == null) {
       return false;
     }
-
+    
     Access realmAccess = token.getRealmAccess();
     if (realmAccess == null) {
       return false;
@@ -320,6 +308,51 @@ public abstract class AbstractApi {
     }
     
     return false;
+  }
+  
+  /**
+   * Returns access token
+   * 
+   * @return access token
+   */
+  protected AccessToken getAccessToken() {
+    KeycloakSecurityContext keycloakSecurityContext = getSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return null;
+    }
+    
+    return keycloakSecurityContext.getToken();
+  }
+  
+  /**
+   * Returns access token as string
+   * 
+   * @return access token as string
+   */
+  protected String getTokenString() {
+    KeycloakSecurityContext keycloakSecurityContext = getSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return null;
+    }
+    
+    return keycloakSecurityContext.getTokenString();
+  }
+
+  /**
+   * Returns Keycloak security context
+   * 
+   * @return Keycloak security context
+   */
+  private KeycloakSecurityContext getSecurityContext() {
+    HttpServletRequest request = getHttpServletRequest();
+    Principal userPrincipal = request.getUserPrincipal();
+    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
+    if (kcPrincipal == null) {
+      return null;
+    }
+    
+    KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
+    return keycloakSecurityContext;
   }
 
   /**
