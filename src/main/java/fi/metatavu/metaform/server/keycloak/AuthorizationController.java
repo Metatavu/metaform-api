@@ -18,15 +18,17 @@ import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.GroupPoliciesResource;
 import org.keycloak.admin.client.resource.GroupsResource;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.ResourcesResource;
 import org.keycloak.admin.client.resource.ScopePermissionsResource;
-import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -51,7 +53,7 @@ public class AuthorizationController {
   
   @Inject
   private Logger logger;
-
+  
   /**
    * Creates protected resource into Keycloak
    * 
@@ -63,7 +65,9 @@ public class AuthorizationController {
    * 
    * @return created resource
    */
-  public ResourceRepresentation createProtectedResource(AuthzClient client, UUID ownerId, String name, String uri, String type, List<AuthorizationScope> scopes) {
+  public UUID createProtectedResource(Keycloak keycloak, String realmName, ClientRepresentation keycloakClient, UUID ownerId, String name, String uri, String type, List<AuthorizationScope> scopes) {
+    ResourcesResource resources = keycloak.realm(realmName).clients().get(keycloakClient.getId()).authorization().resources();
+    
     Set<ScopeRepresentation> scopeRepresentations = scopes.stream()
       .map(AuthorizationScope::getName)
       .map(ScopeRepresentation::new)
@@ -72,8 +76,23 @@ public class AuthorizationController {
     ResourceRepresentation resource = new ResourceRepresentation(name, scopeRepresentations, uri, type);
     resource.setOwner(ownerId.toString());
     resource.setOwnerManagedAccess(true);
+    
 
-    return client.protection().resource().create(resource);
+    UUID resourceId = getCreateResponseId(resources.create(resource));
+    if (resourceId != null) {
+      return resourceId;
+    }
+    
+    List<ResourceRepresentation> foundResources = resources.findByName(name, ownerId.toString());
+    if (foundResources.isEmpty()) {
+      return null;
+    }
+    
+    if (foundResources.size() > 1) {
+      logger.warn("Found more than one resource with name {}", name);
+    }
+    
+    return UUID.fromString(foundResources.get(0).getId());
   }
   
   /**
@@ -165,13 +184,14 @@ public class AuthorizationController {
    * @param keycloak keycloak client instance
    * @param realmName realm name
    * @param clientId client id
-   * @param resourceName resource's name
+   * @param resourceId resource id
+   * @param resourceName resource name
    * @param scopes scopes
    * @return set of user ids
    */
-  public Set<UUID> getResourcePermittedUsers(Keycloak keycloak, String realmName, ClientRepresentation client, String resourceName, List<String> scopes) {
+  public Set<UUID> getResourcePermittedUsers(Keycloak keycloak, String realmName, ClientRepresentation client, UUID resourceId, String resourceName, List<AuthorizationScope> scopes) {
     RealmResource realm = keycloak.realm(realmName);
-    return getPermittedUsers(realm, client, resourceName, scopes);
+    return getPermittedUsers(realm, client, resourceId, resourceName, scopes);      
   }
 
   /**
@@ -200,12 +220,13 @@ public class AuthorizationController {
    * 
    * @param realm realm name
    * @param client client
-   * @param resourceName resource's name
+   * @param resourceId resource id
+   * @param resourceName resource name
    * @param scopes scopes
    * @return set of user ids
    */
-  private Set<UUID> getPermittedUsers(RealmResource realm, ClientRepresentation client, String resourceName, List<String> scopes) {
-    Map<UUID, DecisionEffect> policies = evaluatePolicies(realm, client, resourceName, scopes);
+  private Set<UUID> getPermittedUsers(RealmResource realm, ClientRepresentation client, UUID resourceId, String resourceName, List<AuthorizationScope> scopes) {
+    Map<UUID, DecisionEffect> policies = evaluatePolicies(realm, client, resourceId, resourceName, scopes);
     
     return policies.entrySet().stream()
       .filter(entry -> DecisionEffect.PERMIT.equals(entry.getValue()))
@@ -218,11 +239,12 @@ public class AuthorizationController {
    * 
    * @param realm realm name
    * @param client client
-   * @param resourceName resource's name
+   * @param resourceId resource id
+   * @param resourceName resource name
    * @param scopes scopes
    * @return map of results where key is user id and value is decision
    */
-  private Map<UUID, DecisionEffect> evaluatePolicies(RealmResource realm, ClientRepresentation client, String resourceName, List<String> scopes) {
+  private Map<UUID, DecisionEffect> evaluatePolicies(RealmResource realm, ClientRepresentation client, UUID resourceId, String resourceName, List<AuthorizationScope> scopes) {
     Map<UUID, DecisionEffect> result = new HashMap<>();
     int firstResult = 0;
     int maxResults = 10;
@@ -232,7 +254,7 @@ public class AuthorizationController {
       
       for (UserRepresentation user : users) {
         String userId = user.getId();
-        result.put(UUID.fromString(userId), evaluatePolicy(realm, client, resourceName, userId, scopes));
+        result.put(UUID.fromString(userId), evaluatePolicy(realm, client, resourceId, resourceName, userId, scopes));
       }
       
       if (users.isEmpty() || (users.size() < maxResults)) {
@@ -250,34 +272,43 @@ public class AuthorizationController {
    * 
    * @param realm realm name
    * @param client client
-   * @param resourceName resource's name
+   * @param resourceId resource id
+   * @param resourceName resource name
    * @param userId user's id
    * @param scopes scopes
    * @return decision
    */
-  private DecisionEffect evaluatePolicy(RealmResource realm, ClientRepresentation client, String resourceName, String userId, List<String> scopes) {
-    PolicyEvaluationRequest evaluationRequest = createEvaluationRequest(client, resourceName, userId, scopes);
-    PolicyEvaluationResponse response = realm.clients().get(client.getId()).authorization().policies().evaluate(evaluationRequest);
-    return response.getStatus();
+  private DecisionEffect evaluatePolicy(RealmResource realm, ClientRepresentation client, UUID resourceId, String resourceName, String userId, List<AuthorizationScope> scopes) {
+    try {
+      PolicyEvaluationRequest evaluationRequest = createEvaluationRequest(client, resourceId, resourceName, userId, scopes);
+      PolicyEvaluationResponse response = realm.clients().get(client.getId()).authorization().policies().evaluate(evaluationRequest);
+      return response.getStatus();
+    } catch (InternalServerErrorException e) {
+      logger.error("Failed to evaluate resource {} policy for {}", resourceName, userId, e);
+      return DecisionEffect.DENY;
+    }
   }
   
   /**
    * Creates Keycloak policy evaluation request
    * 
    * @param client client
+   * @param resourceId resource id
    * @param resourceName resource name
    * @param userId userId 
    * @param scopes scopes
    * @return created request
    */
-  private PolicyEvaluationRequest createEvaluationRequest(ClientRepresentation client, String resourceName, String userId, Collection<String> scopes) {
-    Set<ScopeRepresentation> resourceScopes = scopes.stream().map(ScopeRepresentation::new).collect(Collectors.toSet());
+  private PolicyEvaluationRequest createEvaluationRequest(ClientRepresentation client, UUID resourceId, String resourceName, String userId, Collection<AuthorizationScope> scopes) {
+    Set<ScopeRepresentation> resourceScopes = scopes.stream().map(AuthorizationScope::getName).map(ScopeRepresentation::new).collect(Collectors.toSet());
     ResourceRepresentation resource = new ResourceRepresentation(resourceName, resourceScopes);
-
+    resource.setId(resourceId.toString());
+    
     PolicyEvaluationRequest evaluationRequest = new PolicyEvaluationRequest();
     evaluationRequest.setClientId(client.getId());
     evaluationRequest.setResources(Arrays.asList(resource));
     evaluationRequest.setUserId(userId);
+    
     return evaluationRequest;
   }  
   
@@ -294,6 +325,9 @@ public class AuthorizationController {
     }
     
     String location = response.getHeaderString("location");
+    if (StringUtils.isBlank(location)) {
+      return null;
+    }
     
     Pattern pattern = Pattern.compile(".*\\/(.*)$");
     Matcher matcher = pattern.matcher(location);

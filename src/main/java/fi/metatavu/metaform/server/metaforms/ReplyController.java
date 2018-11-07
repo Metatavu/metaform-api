@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
@@ -493,6 +494,7 @@ public class ReplyController {
     
     rowValue.entrySet().stream()
       .filter(cell -> cell.getValue() != null)
+      .filter(cell -> !isBlankString(cell.getValue()))
       .filter(cell -> columnMap.containsKey(cell.getKey()))
       .forEach(cell -> {
         MetaformTableColumn column = columnMap.get(cell.getKey());
@@ -500,6 +502,21 @@ public class ReplyController {
       });
     
     return row;
+  }
+  
+  /**
+   * Returns whether object is a blank string
+   * 
+   * @param object object
+   * @return whether object is a blank string
+   */
+  private boolean isBlankString(Object object) {
+    if (object instanceof String) {
+      String string = (String) object;
+      return StringUtils.isBlank(string);
+    }
+    
+    return false;
   }
   
   /**

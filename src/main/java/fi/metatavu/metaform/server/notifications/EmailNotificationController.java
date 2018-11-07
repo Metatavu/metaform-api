@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -114,14 +115,22 @@ public class EmailNotificationController {
       .map(EmailNotificationEmail::getEmail)
       .collect(Collectors.toList());
   }
-
+  
   /**
-   * Sends email notifications
+   * Send email notification
    * 
-   * @param reply reply posted
+   * @param emailNotification email notification
+   * @param replyEntity reply posted
+   * @param emails notify emails
    */
-  public void sendEmailNotifications(Metaform metaform, Reply reply) {
-    listEmailNotificationEmails(metaform).stream().forEach(emailNotificationEmail -> sendEmailNotification(reply, emailNotificationEmail));   
+  public void sendEmailNotification(EmailNotification emailNotification, Reply replyEntity, Set<String> emails) {
+    UUID id = emailNotification.getId();
+    Map<String, Object> data = toFreemarkerData(replyEntity);
+    
+    String subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE);
+    String content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE);
+    
+    emails.stream().forEach(email -> emailProvider.sendMail(email, subject, content, MailFormat.HTML));
   }
   
   /**
@@ -132,46 +141,6 @@ public class EmailNotificationController {
   public void deleteEmailNotification(EmailNotification emailNotification) {
     deleteNotificationEmails(emailNotification);
     emailNotificationDAO.delete(emailNotification);
-  }
-  
-  /**
-   * Returns list of email notification emails for a metaform
-   * 
-   * @param metaform metaform
-   * @return list of email notification emails for a metaform
-   */
-  private List<EmailNotificationEmail> listEmailNotificationEmails(Metaform metaform) {
-    return listEmailNotifications(metaform).stream()
-      .map(emailNotification -> emailNotificationEmailDAO.listByEmailNotification(emailNotification))
-      .flatMap(List::stream)
-      .collect(Collectors.toList());
-  }
-  
-  /**
-   * Lists email notifications by Metaform
-   * 
-   * @param metaform Metaform
-   * @return list of email notifications
-   */
-  private List<EmailNotification> listEmailNotifications(Metaform metaform) {
-    return emailNotificationDAO.listByMetaform(metaform);
-  }
-  
-  /**
-   * Send email notfication
-   * 
-   * @param reply reply posted
-   * @param emailNotificationEmail notification email
-   */
-  private void sendEmailNotification(Reply reply, EmailNotificationEmail emailNotificationEmail) {
-    String email = emailNotificationEmail.getEmail();
-    UUID id = emailNotificationEmail.getEmailNotification().getId();
-    Map<String, Object> data = toFreemarkerData(reply);
-    
-    String subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE);
-    String content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE);
-    
-    emailProvider.sendMail(email, subject, content, MailFormat.HTML);
   }
   
   /**
