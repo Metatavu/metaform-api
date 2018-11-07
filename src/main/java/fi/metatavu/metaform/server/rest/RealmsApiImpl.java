@@ -80,7 +80,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private static final String REPLY_RESOURCE_URI_TEMPLATE = "/%s/metaforms/%s/replies/%s";
   private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
   private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
-  private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s";
+  private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s:%s";
   
   private static final String THEME_DOES_NOT_EXIST = "Theme %s does not exist";
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS = "You are not allowed to update Metaforms";
@@ -192,7 +192,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
           }
           
           replyController.setReplyField(field, reply, fieldName, fieldValue);
-          addPermissionContextGroups(permissionGroups, field, fieldValue);
+          addPermissionContextGroups(permissionGroups, metaform.getSlug(), field, fieldValue);
         }
       }
     } 
@@ -316,7 +316,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
       
       replyController.setReplyField(fieldMap.get(fieldName), reply, fieldName, fieldValue);
-      addPermissionContextGroups(newPermissionGroups, field, fieldValue);
+      addPermissionContextGroups(newPermissionGroups, metaform.getSlug(), field, fieldValue);
       fieldNames.remove(fieldName);
     }
 
@@ -424,7 +424,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     updateMetaformPermissionGroups(realmId, payload);
     
-    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(exportTheme, realmId, allowAnonymous, data)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.createMetaform(exportTheme, realmId, allowAnonymous, payload.getTitle(), data)));
   }
 
   public Response listMetaforms(String realmId) throws Exception {
@@ -953,16 +953,17 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   /**
    * Adds field permission context groups into appropriate lists
    * 
+   * @param formSlug form slug
    * @param permissionGroups target map
    * @param field field
    * @param fieldValue field value
    */
-  private void addPermissionContextGroups(Map<AuthorizationScope, List<String>> permissionGroups, MetaformField field, Object fieldValue) {
+  private void addPermissionContextGroups(Map<AuthorizationScope, List<String>> permissionGroups, String formSlug, MetaformField field, Object fieldValue) {
     MetaformFieldPermissioncontexts permissionContexts = field.getPermissionContexts();
     
     if (permissionContexts != null && fieldValue instanceof String) {
       String fieldName = field.getName();
-      String permissionGroupName = getReplySecurityContextGroup(fieldName, (String) fieldValue);
+      String permissionGroupName = getReplySecurityContextGroup(formSlug, fieldName, (String) fieldValue);
       
       if (permissionContexts.isEditGroup()) {
         permissionGroups.get(AuthorizationScope.REPLY_EDIT).add(permissionGroupName); 
@@ -995,12 +996,13 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   /**
    * Creates reply security context group name
    * 
+   * @param formSlug form slug
    * @param fieldName field name
    * @param fieldValue field value
    * @return reply security context group name
    */
-  private String getReplySecurityContextGroup(String fieldName, String fieldValue) {
-    return String.format(REPLY_GROUP_NAME_TEMPLATE, fieldName, fieldValue);
+  private String getReplySecurityContextGroup(String formSlug, String fieldName, String fieldValue) {
+    return String.format(REPLY_GROUP_NAME_TEMPLATE, formSlug, fieldName, fieldValue);
   }
   
   /**

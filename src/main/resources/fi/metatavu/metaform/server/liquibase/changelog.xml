@@ -364,6 +364,21 @@
     </addColumn>
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateReplyAuthzResources"/>
   </changeSet>
+
+  <changeSet author="antti.leppa" id="form-slug">
+    <addColumn tableName="metaform">
+      <column name="slug" type="varchar(255)"/>
+    </addColumn>
+    
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.FormSlugs"/>
+    
+    <addNotNullConstraint tableName="metaform" columnName="slug" columnDataType="varchar(255)"/>
+    
+    <createIndex indexName="UN_METAFORM_SLUG" tableName="metaform" unique="true">
+      <column name="slug" type="varchar(255)"/>
+      <column name="realmid" type="varchar(255)"/>
+    </createIndex>
+  </changeSet>
   
   
 </databaseChangeLog>

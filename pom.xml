@@ -81,6 +81,10 @@
     
     <freemarker.version>2.3.28</freemarker.version>
     
+    <!-- Slugify -->
+    
+    <slugify.version>2.2</slugify.version>
+    
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
@@ -168,11 +172,11 @@
       <scope>provided</scope>
     </dependency>
     
-	<dependency>
-	  <groupId>com.fasterxml.jackson.jaxrs</groupId>
+	  <dependency>
+	    <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
       <scope>provided</scope>
-	</dependency>
+	  </dependency>
     
     <dependency>
       <groupId>org.jboss.spec.javax.ws.rs</groupId>
@@ -280,6 +284,14 @@
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
       <scope>provided</scope>
+    </dependency>
+    
+    <!-- Slugify -->
+
+    <dependency>
+      <groupId>com.github.slugify</groupId>
+      <artifactId>slugify</artifactId>
+      <version>${slugify.version}</version>
     </dependency>
 
     <!-- Persistence -->
@@ -624,7 +636,8 @@
                     <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
                     <command>/subsystem=infinispan/cache-container=metaform:add()</command>
                     <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()</command>
-                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>                    
+                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>
+                    <command>/subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:add(level=WARNING)</command>      
                   </commands>
                 </configuration>
               </execution>
