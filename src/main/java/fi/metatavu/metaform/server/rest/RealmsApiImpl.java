@@ -611,7 +611,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     Set<String> emails = new HashSet<>(directEmails);
     emails.addAll(groupEmails);
     
-    emailNotificationController.sendEmailNotification(emailNotification, replyEntity, emails);
+    emailNotificationController.sendEmailNotification(emailNotification, replyEntity, emails.stream().filter(StringUtils::isNotEmpty).collect(Collectors.toSet()));
   }
 
   /**

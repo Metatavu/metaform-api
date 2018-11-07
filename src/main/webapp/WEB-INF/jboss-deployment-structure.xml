@@ -13,6 +13,7 @@
             <module name="org.keycloak.keycloak-adapter-core"/>
             <module name="org.keycloak.keycloak-adapter-spi"/>
             <module name="org.keycloak.keycloak-authz-client"/>
+            <module name="org.keycloak.keycloak-core"/>
             <module name="org.wildfly.clustering.api" services="export" />
             <module name="org.jboss.resteasy.resteasy-jaxrs"/>
             <module name="org.jboss.resteasy.resteasy-jackson-provider" services="import"/>

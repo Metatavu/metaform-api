@@ -65,10 +65,9 @@
     <liquibase.version>3.6.1</liquibase.version>
     <postgresql.version>42.2.5</postgresql.version>
     
-    <!-- Keycloak admin client -->
+    <!-- Keycloak -->
     
-    <keycloak-admin-client.version>4.5.0.Final</keycloak-admin-client.version>
-    <keycloak-adapter.version>4.5.0.Final</keycloak-adapter.version>
+    <keycloak.version>4.5.0.Final</keycloak.version>
     
     <!-- Mailgun -->
     
@@ -317,32 +316,45 @@
     </dependency>
     
     <!-- Keycloak -->
-  
+
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-core</artifactId>
+      <version>${keycloak.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-adapter-spi</artifactId>
-      <version>${keycloak-adapter.version}</version>
+      <version>${keycloak.version}</version>
       <scope>provided</scope>
     </dependency>
-  
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-adapter-core</artifactId>
-      <version>${keycloak-adapter.version}</version>
+      <version>${keycloak.version}</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-authz-client</artifactId>
-      <version>${keycloak-adapter.version}</version>
+      <version>${keycloak.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.keycloak</groupId>
+          <artifactId>keycloak-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-    
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-admin-client</artifactId>
-      <version>${keycloak-admin-client.version}</version>
+      <version>${keycloak.version}</version>
       <exclusions>      
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -351,6 +363,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.keycloak</groupId>
+          <artifactId>keycloak-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -553,7 +569,7 @@
                 <log>${project.basedir}/target/cargo.log</log>
                 <output>${project.basedir}/target/wildfly.log</output>
                 <zipUrlInstaller>
-                  <url>https://www.dropbox.com/s/yfdkuijo0qw79qt/wildfly-12.0.0.Final-with-keycloak%2Bpg.zip?dl=1</url>
+                  <url>https://www.dropbox.com/s/6a6rhto8qji1f8m/wildfly-12.0.0.Final-with-keycloak%252Bpg.zip?dl=1</url>
                   <downloadDir>${project.basedir}/.cargo/downloads</downloadDir>
                   <extractDir>${project.basedir}/.cargo/extracts</extractDir>
                 </zipUrlInstaller>         
