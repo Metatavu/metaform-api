@@ -82,7 +82,7 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
   private static final List<AuthorizationScope> REPLY_SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT, AuthorizationScope.REPLY_NOTIFY);
-  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/%s/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/realms/%s/metaforms/%s/replies/%s";
   private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
   private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
   private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s:%s";
@@ -240,7 +240,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Override
   public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam,
       String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields) throws Exception {
-    // TODO: Permission check
     
     OffsetDateTime createdBefore = parseTime(createdBeforeParam);
     OffsetDateTime createdAfter = parseTime(createdAfterParam);

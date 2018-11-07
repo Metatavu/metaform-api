@@ -31,6 +31,8 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
   private static final Logger logger = LoggerFactory.getLogger(CreateReplyAuthzResources.class);
   private static final List<AuthorizationScope> SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT);
   private static final String RESOURCE_TYPE = "urn:metaform:resources:reply";
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/realms/%s/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
 
   @Override
   public void execute(Database database) throws CustomChangeException {
@@ -68,9 +70,9 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
         while (resultSet.next()) {
           String replyId = resultSet.getString(1);
           UUID userId = UUID.fromString(resultSet.getString(2));
-          String name = String.format("reply-%s", replyId);
-          String uri = String.format("/%s/metaforms/%s/replies/%s", realmName, metaformId, replyId);
-          
+          String name = getReplyResourceName(replyId);
+          String uri = getReplyResourceUri(realmName, metaformId, replyId);
+              
           try {
             ResourceRepresentation resource = createProtectedResource(authzClient, userId, name, uri, RESOURCE_TYPE, SCOPES);
             updateReplyResourceId(connection, replyId, resource.getId());
@@ -112,7 +114,33 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
       throw new CustomChangeException(e);
     } 
   }
-
+  
+  /**
+   * Returns resource name for a reply
+   * 
+   * @param replyId replyId
+   * @return resource name
+   */
+  private String getReplyResourceName(String replyId) {
+    if (replyId == null) {
+      return null;
+    }
+    
+    return String.format(REPLY_RESOURCE_NAME_TEMPLATE, replyId);
+  }
+  
+  /**
+   * Returns resource URI for reply
+   * 
+   * @param realmName realm name
+   * @param metaformId Metaform id
+   * @param replyId reply id
+   * @return resource URI
+   */
+  private String getReplyResourceUri(String realmName, String metaformId, String replyId) {
+    return String.format(REPLY_RESOURCE_URI_TEMPLATE, realmName, metaformId, replyId);
+  }
+  
   /**
    * Resolves Keycloak error message from exception
    * 
