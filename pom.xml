@@ -88,7 +88,7 @@
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.22</metaform-api-client.version>
+    <metaform-api-client.version>0.0.23</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
   </properties>
