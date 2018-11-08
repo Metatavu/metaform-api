@@ -8,6 +8,11 @@ package fi.metatavu.metaform.server.keycloak;
 public enum AuthorizationScope {
   
   /**
+   * Authorization scope for creating a reply
+   */
+  REPLY_CREATE ("reply:create"),
+  
+  /**
    * Authorization scope for viewing a reply
    */
   REPLY_VIEW ("reply:view"),
