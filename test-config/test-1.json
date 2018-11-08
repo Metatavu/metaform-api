@@ -9,6 +9,5 @@
     "realm-admin-user": "realm-admin",
     "realm-admin-pass": "test"
   },
-  "confidential-port": 0,
-  "policy-enforcer": {}
+  "confidential-port": 0
 }
