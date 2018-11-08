@@ -3,6 +3,10 @@ package fi.metatavu.metaform.server.keycloak;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.util.JsonSerialization;
@@ -18,6 +22,25 @@ public class KeycloakConfigProvider {
 
   private static Logger logger = LoggerFactory.getLogger(KeycloakConfigProvider.class.getName());
 
+  /**
+   * Returns all configured realms
+   * 
+   * @return all configured realms
+   */
+  public static List<String> getConfiguredRealms() {
+    File configPath = new File(System.getProperty("metaform-api.config-path"));
+    
+    return Arrays.stream(configPath.listFiles())
+      .map((file) -> {
+        System.out.println(file.getAbsolutePath());
+        
+        return file;
+      })
+      .map(KeycloakConfigProvider::getConfig)
+      .map(Configuration::getRealm)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
   /**
    * Resolves Keycloak config file for a realm
    * 
@@ -55,11 +78,17 @@ public class KeycloakConfigProvider {
   public static Configuration getConfig(String realmName) {
     File configFile = KeycloakConfigProvider.getConfigFile(realmName);
     if (configFile != null) {
-      try (FileInputStream inputStream = new FileInputStream(configFile)) {
-        return JsonSerialization.readValue(inputStream, Configuration.class);
-      } catch (IOException e) {
-        logger.error("Failed to load Keycloak config {}", realmName, e);
-      }
+      return getConfig(configFile);
+    }
+    
+    return null;
+  }
+
+  private static Configuration getConfig(File configFile) {
+    try (FileInputStream inputStream = new FileInputStream(configFile)) {
+      return JsonSerialization.readValue(inputStream, Configuration.class);
+    } catch (IOException e) {
+      logger.error("Failed to load Keycloak config {}", e);
     }
     
     return null;

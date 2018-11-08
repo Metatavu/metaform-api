@@ -362,6 +362,8 @@
     <addColumn tableName="reply">
       <column name="resourceid" type="uuid"/>
     </addColumn>
+    
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateRealmAuthorizations"/>
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateReplyAuthzResources"/>
   </changeSet>
 
@@ -369,7 +371,6 @@
     <addColumn tableName="metaform">
       <column name="slug" type="varchar(255)"/>
     </addColumn>
-    
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.FormSlugs"/>
     
     <addNotNullConstraint tableName="metaform" columnName="slug" columnDataType="varchar(255)"/>
@@ -379,6 +380,5 @@
       <column name="realmid" type="varchar(255)"/>
     </createIndex>
   </changeSet>
-  
   
 </databaseChangeLog>

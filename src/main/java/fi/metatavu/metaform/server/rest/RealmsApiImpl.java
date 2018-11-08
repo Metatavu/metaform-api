@@ -34,6 +34,7 @@ import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
+import org.keycloak.representations.idm.authorization.DecisionStrategy;
 import org.keycloak.representations.idm.authorization.Permission;
 import org.slf4j.Logger;
 
@@ -44,9 +45,8 @@ import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
 import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
-import fi.metatavu.metaform.server.keycloak.AuthorizationController;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
-import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
+import fi.metatavu.metaform.server.keycloak.KeycloakAdminUtils;
 import fi.metatavu.metaform.server.keycloak.ResourceType;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
@@ -82,6 +82,9 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
   private static final List<AuthorizationScope> REPLY_SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT, AuthorizationScope.REPLY_NOTIFY);
+  private static final String USER_POLICY_NAME = "user";
+  private static final String OWNER_POLICY_NAME = "owner";
+  private static final String METAFORM_ADMIN_POLICY_NAME = "metaform-admin";
   private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/realms/%s/metaforms/%s/replies/%s";
   private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
   private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
@@ -138,16 +141,13 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   @Inject
   private EmailNotificationTranslator emailNotificationTranslator;
 
-  @Inject
-  private AuthorizationController authorizationController;
-
   @Override
   public Response createReply(String realmName, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
     }
-    
+  
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -157,14 +157,13 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!metaform.getAllowAnonymous() && anonymous) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
-    
+
     UUID userId = getReplyUserId(payload);
-    
     ReplyMode replyMode = EnumUtils.getEnum(ReplyMode.class, replyModeParam);
     if (replyModeParam != null && replyMode == null) {
       return createBadRequest(String.format("Invalid reply mode %s", replyModeParam));
     }
-    
+
     if (updateExisting != null) {
       replyMode = updateExisting ? ReplyMode.UPDATE : ReplyMode.REVISION;
     }
@@ -179,7 +178,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     Arrays.stream(AuthorizationScope.values()).forEach(scope -> permissionGroups.put(scope, new ArrayList<>()));
    
     // TODO: Support multiple
-    
+
     fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(replyMode, metaform, anonymous, userId);
     ReplyData data = payload.getData();
     if (data == null) {
@@ -201,11 +200,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         }
       }
     } 
-    
+
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
-    
     handleReplyPostPersist(true, metaform, reply, metaformEntity, replyEntity, permissionGroups);
-    
+
     return createOk(replyEntity);
   }
 
@@ -337,7 +335,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (reply == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-
+    
     if (!isPermittedReply(reply, AuthorizationScope.REPLY_EDIT)) {
       return createForbidden(NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE);
     }
@@ -621,11 +619,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       resourceIds.stream().forEach((resourceId) -> {
         request.addPermission(resourceId.toString(), authorizationScope.getName());
       });
-        
+
       AuthorizationResponse response = getAuthzClient().authorization(getTokenString()).authorize(request);
       TokenIntrospectionResponse irt = getAuthzClient().protection().introspectRequestingPartyToken(response.getToken());
       List<Permission> permissions = irt.getPermissions();
-      
+
       return permissions.stream()
         .map(Permission::getResourceId)
         .map(UUID::fromString)
@@ -651,21 +649,22 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    */
   private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Metaform metaformEntity, Reply replyEntity, Map<AuthorizationScope, List<String>> newPermissionGroups) {
     String realmName = metaform.getRealmId();
-    Configuration keycloakConfig = KeycloakConfigProvider.getConfig(realmName);
-    Keycloak keycloak = getAdminClient(keycloakConfig);
-    ClientRepresentation keycloakClient = findClient(keycloak, realmName, keycloakConfig.getResource());
+    Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration(realmName);
+    Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
+    ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);
+    
     UUID resourceId = reply.getResourceId();
     String resourceName = getReplyResourceName(reply);
     
-    Set<UUID> notifiedUserIds = replyCreated ? Collections.emptySet() : authorizationController.getResourcePermittedUsers(keycloak, realmName, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY));
+    Set<UUID> notifiedUserIds = replyCreated ? Collections.emptySet() : KeycloakAdminUtils.getResourcePermittedUsers(adminClient, realmName, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY));
     
-    resourceId = updateReplyPermissions(keycloak, keycloakClient, metaformEntity, reply, newPermissionGroups);
+    resourceId = updateReplyPermissions(adminClient, keycloakClient, metaformEntity, reply, newPermissionGroups);
     
-    Set<UUID> notifyUserIds = authorizationController.getResourcePermittedUsers(keycloak, realmName, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY)).stream()
+    Set<UUID> notifyUserIds = KeycloakAdminUtils.getResourcePermittedUsers(adminClient, realmName, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY)).stream()
       .filter(notifyUserId -> !notifiedUserIds.contains(notifyUserId))
       .collect(Collectors.toSet());
 
-    emailNotificationController.listEmailNotificationByMetaform(metaform).forEach(emailNotification -> sendReplyEmailNotification(keycloak, realmName, keycloakClient, replyCreated, emailNotification, replyEntity, notifyUserIds));
+    emailNotificationController.listEmailNotificationByMetaform(metaform).forEach(emailNotification -> sendReplyEmailNotification(adminClient, realmName, keycloakClient, replyCreated, emailNotification, replyEntity, notifyUserIds));
   }
   
   /**
@@ -1067,14 +1066,15 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * Returns groups permission name for a reply
    * 
    * @param reply reply
+   * @param name permission name
    * @return resource name
    */
-  private String getReplyPermissionName(fi.metatavu.metaform.server.persistence.model.Reply reply, AuthorizationScope scope) {
+  private String getReplyPermissionName(fi.metatavu.metaform.server.persistence.model.Reply reply, String name) {
     if (reply == null) {
       return null;
     }
     
-    return String.format(REPLY_PERMISSION_NAME_TEMPLATE, reply.getId(), scope.name().toLowerCase());
+    return String.format(REPLY_PERMISSION_NAME_TEMPLATE, reply.getId(), name);
   }
 
   /**
@@ -1104,7 +1104,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     UUID resourceId = reply.getResourceId();
     
     if (resourceId == null) {
-      resourceId = authorizationController.createProtectedResource(keycloak,
+      resourceId = KeycloakAdminUtils.createProtectedResource(keycloak,
         realmName,
         keycloakClient,
         reply.getUserId(), 
@@ -1116,10 +1116,22 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       replyController.updateResourceId(reply, resourceId);
     }
     
+    Set<UUID> commonPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, realmName, keycloakClient, Arrays.asList(METAFORM_ADMIN_POLICY_NAME, OWNER_POLICY_NAME));
+
     for (AuthorizationScope scope : AuthorizationScope.values()) {
       List<String> groupNames = permissionGroups.get(scope);
-      Set<UUID> policyIds = authorizationController.getPolicyIdsByGroupNames(keycloak, realmName, keycloakClient, groupNames);
-      authorizationController.upsertScopePermission(keycloak, realmName, keycloakClient, resourceId, scope, getReplyPermissionName(reply, scope), policyIds);
+      Set<UUID> groupPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, realmName, keycloakClient, groupNames);
+      
+      HashSet<UUID> policyIds = new HashSet<>(groupPolicyIds);
+      policyIds.addAll(commonPolicyIds);
+      
+      KeycloakAdminUtils.upsertScopePermission(keycloak, realmName, keycloakClient, resourceId, Collections.singleton(scope), getReplyPermissionName(reply, scope.getName().toLowerCase()), DecisionStrategy.AFFIRMATIVE, policyIds);
+    }
+    
+    Set<UUID> userPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, realmName, keycloakClient, Arrays.asList(USER_POLICY_NAME));
+    
+    if (metaform.getAllowAnonymous()) {
+      KeycloakAdminUtils.upsertScopePermission(keycloak, realmName, keycloakClient, resourceId, Collections.singleton(AuthorizationScope.REPLY_VIEW), "require-user", DecisionStrategy.AFFIRMATIVE, userPolicyIds);
     }
     
     return resourceId;
@@ -1132,16 +1144,16 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param metaformEntity Metaform REST entity
    */
   private void updateMetaformPermissionGroups(String realmName, String formSlug, Metaform metaformEntity) {
-    Configuration keycloakConfig = KeycloakConfigProvider.getConfig(realmName);
-    Keycloak keycloak = getAdminClient(keycloakConfig);
-    ClientRepresentation keycloakClient = findClient(keycloak, realmName, keycloakConfig.getResource());
+    Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration(realmName);
+    Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
+    ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);
     
     List<String> groupNames = getPermissionContextFields(metaformEntity).stream()
       .map(field -> field.getOptions().stream().map(option -> getReplySecurityContextGroup(formSlug, field.getName(), option.getName())).collect(Collectors.toList()))
       .flatMap(List::stream)
       .collect(Collectors.toList());
     
-    authorizationController.updatePermissionGroups(keycloak, keycloakConfig.getRealm(), keycloakClient, groupNames);
+    KeycloakAdminUtils.updatePermissionGroups(adminClient, keycloakConfiguration.getRealm(), keycloakClient, groupNames);
   }
   
   /**
