@@ -10,7 +10,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.Rule;
 import org.junit.Test;
+
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import feign.FeignException;
 import fi.metatavu.metaform.client.Metaform;
@@ -22,7 +25,10 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
 public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
-  
+
+  @Rule
+  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
+
   /**
    * Test that asserts that user may find his / her own reply
    */
@@ -247,6 +253,34 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
     }
   }
+
+  /**
+   * Test that asserts that user in permission context receives an email when notification is posted and
+   * another user receives when reply is updated
+   */
+  @Test
+  public void notifyPermissionContextReply() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test3.realm1", "test");
+    try {
+      MailgunMocker mailgunMocker = startMailgunMocker();
+      try {
+        Metaform metaform = dataBuilder.createMetaform("simple-permission-context");
+        
+        dataBuilder.createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
+        
+        Reply createdReply = dataBuilder.createReply(metaform, createPermissionSelectReplyData("group-2"), ReplyMode.REVISION);
+        dataBuilder.getRepliesApi().updateReply(REALM_1, metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
+        dataBuilder.getRepliesApi().updateReply(REALM_1, metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
+        
+        mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
+        mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
+      } finally {
+        stopMailgunMocker(mailgunMocker);
+      }
+    } finally {
+      dataBuilder.clean();
+    }
+  }
   
   /**
    * Creates permission select reply with given value
@@ -255,10 +289,21 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * @return permission select reply with given value
    */
   private Reply createPermisionSelectReply(String value) {
-    ReplyData replyData = new ReplyData();
-    replyData.put("permission-select", value);
+    ReplyData replyData = createPermissionSelectReplyData(value);
     Reply reply = createReplyWithData(replyData);
     return reply;
+  }
+
+  /**
+   * Creates permission select reply data with given value
+   * 
+   * @param value value
+   * @return permission select reply data with given value
+   */
+  private ReplyData createPermissionSelectReplyData(String value) {
+    ReplyData replyData = new ReplyData();
+    replyData.put("permission-select", value);
+    return replyData;
   }
   
   /**
