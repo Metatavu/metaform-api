@@ -2,13 +2,16 @@ package fi.metatavu.metaform.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -201,9 +204,11 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         assertEquals(replies1.get(0).getId(), reply1.getId());
 
         assertEquals(replies2.size(), 3);
-        assertEquals(replies2.get(0).getId(), reply1.getId());
-        assertEquals(replies2.get(1).getId(), reply1.getId());
-        assertEquals(replies2.get(2).getId(), reply1.getId());
+        
+        Set<UUID> reply2Ids = replies2.stream().map(Reply::getId).collect(Collectors.toSet());
+        assertTrue(reply2Ids.contains(reply1.getId()));
+        assertTrue(reply2Ids.contains(reply2.getId()));
+        assertTrue(reply2Ids.contains(reply3.getId()));
 
         assertEquals(replies3.size(), 0);
       } finally {
