@@ -78,7 +78,25 @@ public class MailgunMocker {
    * @param content content
    */
   public void verifyHtmlMessageSent(String fromName, String fromEmail, String to, String subject, String content) {
-    verifyMessageSent(
+    verifyMessageSent(createParameterList(fromName, fromEmail, to, subject, content));
+  }
+  
+  /**
+   * Verifies that HTML email has been sent n-times
+   * 
+   * @param count count
+   * @param fromName from name
+   * @param fromEmail from email
+   * @param to to email
+   * @param subject subject
+   * @param content content
+   */
+  public void verifyHtmlMessageSent(int count, String fromName, String fromEmail, String to, String subject, String content) {
+    verifyMessageSent(count, createParameterList(fromName, fromEmail, to, subject, content));
+  }
+  
+  private List<NameValuePair> createParameterList(String fromName, String fromEmail, String to, String subject, String content) {
+    return Arrays.asList(
       new BasicNameValuePair("to", to),
       new BasicNameValuePair("subject", subject),
       new BasicNameValuePair("html", content),
@@ -96,14 +114,17 @@ public class MailgunMocker {
     String form = URLEncodedUtils.format(parameters, "UTF-8");
     verify(postRequestedFor(urlEqualTo(getApiUrl())).withRequestBody(equalTo(form)));
   }
-
+  
   /**
-   * Verifies that email with parameters has been sent
+   * Verifies that email with parameters has been sent n-times
    * 
-   * @param parameters parameters
+   * @param count
+   * @param parametersList parameters
    */
-  private void verifyMessageSent(NameValuePair... parameters) {
-    verifyMessageSent(Arrays.asList(parameters));
+  private void verifyMessageSent(int count, List<NameValuePair> parametersList) {
+    List<NameValuePair> parameters = new ArrayList<>(parametersList);
+    String form = URLEncodedUtils.format(parameters, "UTF-8");
+    verify(count, postRequestedFor(urlEqualTo(getApiUrl())).withRequestBody(equalTo(form)));
   }
   
   /**

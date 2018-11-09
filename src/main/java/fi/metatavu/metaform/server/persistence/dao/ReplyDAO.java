@@ -57,13 +57,15 @@ public class ReplyDAO extends AbstractDAO<Reply> {
    * @param id id
    * @param userId user id
    * @param metaform Metaform
+   * @param resourceId authorization resource id
    * @return created Metaform
    */
-  public Reply create(UUID id, UUID userId, Metaform metaform) {
+  public Reply create(UUID id, UUID userId, Metaform metaform, UUID resourceId) {
     Reply reply = new Reply(); 
     reply.setId(id);
     reply.setMetaform(metaform);
     reply.setUserId(userId);
+    reply.setResourceId(resourceId);
     return persist(reply);
   }
   
@@ -221,6 +223,18 @@ public class ReplyDAO extends AbstractDAO<Reply> {
    */
   public Reply updateRevision(Reply reply, OffsetDateTime revision) {
     reply.setRevision(revision);
+    return persist(reply);
+  }
+  
+  /**
+   * Updates authorization resource id
+   * 
+   * @param reply reply
+   * @param resourceId authorization resource id
+   * @return updated reply
+   */
+  public Reply updateResourceId(Reply reply, UUID resourceId) {
+    reply.setResourceId(resourceId);
     return persist(reply);
   }
 

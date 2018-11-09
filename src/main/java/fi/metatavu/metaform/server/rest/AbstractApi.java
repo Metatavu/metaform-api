@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.authorization.client.AuthzClient;
+import org.keycloak.authorization.client.ClientAuthorizationContext;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessToken.Access;
 import org.slf4j.Logger;
@@ -281,23 +283,11 @@ public abstract class AbstractApi {
    * @return whether logged user has specified realm role or not
    */
   protected boolean hasRealmRole(String... roles) {
-    HttpServletRequest request = getHttpServletRequest();
-    Principal userPrincipal = request.getUserPrincipal();
-    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
-    if (kcPrincipal == null) {
-      return false;
-    }
-    
-    KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
-    if (keycloakSecurityContext == null) {
-      return false;
-    }
-    
-    AccessToken token = keycloakSecurityContext.getToken();
+    AccessToken token = getAccessToken();
     if (token == null) {
       return false;
     }
-
+    
     Access realmAccess = token.getRealmAccess();
     if (realmAccess == null) {
       return false;
@@ -310,6 +300,34 @@ public abstract class AbstractApi {
     }
     
     return false;
+  }
+  
+  /**
+   * Returns access token
+   * 
+   * @return access token
+   */
+  protected AccessToken getAccessToken() {
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return null;
+    }
+    
+    return keycloakSecurityContext.getToken();
+  }
+  
+  /**
+   * Returns access token as string
+   * 
+   * @return access token as string
+   */
+  protected String getTokenString() {
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return null;
+    }
+    
+    return keycloakSecurityContext.getTokenString();
   }
 
   /**
@@ -324,6 +342,50 @@ public abstract class AbstractApi {
     }
     
     return OffsetDateTime.parse(timeString);
+  }
+  
+  /**
+   * Constructs authz client
+   * 
+   * @return created authz client
+   */
+  protected AuthzClient getAuthzClient() {
+    ClientAuthorizationContext clientAuthorizationContext = getAuthorizationContext();
+    if (clientAuthorizationContext == null) {
+      return null;
+    }
+
+    return clientAuthorizationContext.getClient();
+  }
+
+  /**
+   * Return Keycloak authorization client context or null if not available 
+   * 
+   * @return Keycloak authorization client
+   */
+  protected ClientAuthorizationContext getAuthorizationContext() {
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return null;
+    }
+
+    return (ClientAuthorizationContext) keycloakSecurityContext.getAuthorizationContext();
+  }
+
+  /**
+   * Returns Keycloak security context from request or null if not available
+   * 
+   * @return Keycloak security context
+   */
+  protected KeycloakSecurityContext getKeycloakSecurityContext() {
+    HttpServletRequest request = getHttpServletRequest();
+    Principal userPrincipal = request.getUserPrincipal();
+    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
+    if (kcPrincipal == null) {
+      return null;
+    }
+    
+    return kcPrincipal.getKeycloakSecurityContext();
   }
   
 }

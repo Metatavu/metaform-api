@@ -1,0 +1,40 @@
+{
+	"title": "Simple permission context",
+	"allowAnonymous": true,
+	"sections": [
+		{
+			"title": "Simple",
+			"fields": [
+				{
+					"type": "select",
+					"permission-contexts": {
+						"view-group": true,
+						"edit-group": true,
+						"notify-group": true
+					},
+					"name": "permission-select",
+					"title": "Permission select",
+					"required": true,
+					"contexts": [
+						"FORM",
+						"MANAGEMENT_LIST",
+						"MANAGEMENT"
+					],
+					"flags": {
+						"managementEditable": true
+					},
+					"options": [
+						{
+							"name": "group-1",
+							"text": "Group 1"
+						},
+						{
+							"name": "group-2",
+							"text": "Group 2"
+						}
+					]
+				}
+			]
+		}
+	]
+}

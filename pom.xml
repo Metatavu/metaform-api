@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.34</metaform-api-spec.version>
+    <metaform-api-spec.version>0.0.35</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -63,11 +63,11 @@
     <!-- Liquibase -->
     
     <liquibase.version>3.6.1</liquibase.version>
+    <postgresql.version>42.2.5</postgresql.version>
     
-    <!-- Keycloak admin client -->
+    <!-- Keycloak -->
     
-    <keycloak-admin-client.version>3.4.3.Final</keycloak-admin-client.version>
-    <keycloak-adapter.version>4.0.0.Beta1</keycloak-adapter.version>
+    <keycloak.version>4.5.0.Final</keycloak.version>
     
     <!-- Mailgun -->
     
@@ -81,13 +81,16 @@
     
     <freemarker.version>2.3.28</freemarker.version>
     
+    <!-- Slugify -->
+    
+    <slugify.version>2.2</slugify.version>
+    
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.22</metaform-api-client.version>
+    <metaform-api-client.version>0.0.23</metaform-api-client.version>
     <wiremock.version>2.18.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
-    <postgresql.version>42.2.5</postgresql.version>
   </properties>
 
   <dependencyManagement>
@@ -157,6 +160,24 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-jackson2-provider</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+	  <dependency>
+	    <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <scope>provided</scope>
+	  </dependency>
+    
     <dependency>
       <groupId>org.jboss.spec.javax.ws.rs</groupId>
       <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
@@ -264,6 +285,14 @@
       <artifactId>jackson-datatype-jsr310</artifactId>
       <scope>provided</scope>
     </dependency>
+    
+    <!-- Slugify -->
+
+    <dependency>
+      <groupId>com.github.slugify</groupId>
+      <artifactId>slugify</artifactId>
+      <version>${slugify.version}</version>
+    </dependency>
 
     <!-- Persistence -->
 
@@ -291,26 +320,53 @@
       <version>${liquibase.version}</version>
     </dependency>
     
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+      <type>jar</type>
+    </dependency>
+    
     <!-- Keycloak -->
-  
+
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-core</artifactId>
+      <version>${keycloak.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-adapter-spi</artifactId>
-      <version>4.0.0.Beta1</version>
+      <version>${keycloak.version}</version>
       <scope>provided</scope>
     </dependency>
-  
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-adapter-core</artifactId>
-      <version>4.0.0.Beta1</version>
+      <version>${keycloak.version}</version>
       <scope>provided</scope>
     </dependency>
-  
+
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-authz-client</artifactId>
+      <version>${keycloak.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.keycloak</groupId>
+          <artifactId>keycloak-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-admin-client</artifactId>
-      <version>${keycloak-admin-client.version}</version>
+      <version>${keycloak.version}</version>
       <exclusions>      
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -319,6 +375,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.keycloak</groupId>
+          <artifactId>keycloak-core</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -336,14 +396,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
-      <type>jar</type>
       <scope>test</scope>
     </dependency>
     
@@ -529,7 +581,7 @@
                 <log>${project.basedir}/target/cargo.log</log>
                 <output>${project.basedir}/target/wildfly.log</output>
                 <zipUrlInstaller>
-                  <url>https://www.dropbox.com/s/yfdkuijo0qw79qt/wildfly-12.0.0.Final-with-keycloak%2Bpg.zip?dl=1</url>
+                  <url>https://www.dropbox.com/s/6a6rhto8qji1f8m/wildfly-12.0.0.Final-with-keycloak%252Bpg.zip?dl=1</url>
                   <downloadDir>${project.basedir}/.cargo/downloads</downloadDir>
                   <extractDir>${project.basedir}/.cargo/extracts</extractDir>
                 </zipUrlInstaller>         
@@ -584,7 +636,8 @@
                     <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
                     <command>/subsystem=infinispan/cache-container=metaform:add()</command>
                     <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()</command>
-                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>                    
+                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>
+                    <command>/subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:add(level=WARNING)</command>      
                   </commands>
                 </configuration>
               </execution>

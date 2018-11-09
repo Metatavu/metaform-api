@@ -1,9 +1,13 @@
 {
   "realm": "test-1",
-  "bearer-only": true,
   "auth-server-url": "http://localhost:8280/auth",
   "ssl-required": "external",
   "resource": "metaform-api",
-  "use-resource-role-mappings": true,
+  "credentials": {
+    "secret": "378833f9-dde8-4443-84ca-edfa26e2f0ee",
+    "provider": "secret",
+    "realm-admin-user": "realm-admin",
+    "realm-admin-pass": "test"
+  },
   "confidential-port": 0
 }
