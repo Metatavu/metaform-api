@@ -159,8 +159,8 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       
       try {
         List<Reply> replies = repliesApi1.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
-        assertEquals(replies.size(), 1);
-        assertEquals(replies.get(0).getId(), reply1.getId());
+        assertEquals(1, replies.size());
+        assertEquals(reply1.getId(), replies.get(0).getId());
       } finally {
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
@@ -200,18 +200,18 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         List<Reply> replies2 = repliesApi2.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
         List<Reply> replies3 = repliesApi3.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
         
-        assertEquals(replies1.size(), 1);
-        assertEquals(replies1.get(0).getId(), reply1.getId());
+        assertEquals(1, replies1.size());
+        assertEquals(reply1.getId(), replies1.get(0).getId());
 
-        assertEquals(replies2.size(), 3);
+        assertEquals(3, replies2.size());
         
         Set<UUID> reply2Ids = replies2.stream().map(Reply::getId).collect(Collectors.toSet());
         assertTrue(reply2Ids.contains(reply1.getId()));
         assertTrue(reply2Ids.contains(reply2.getId()));
         assertTrue(reply2Ids.contains(reply3.getId()));
 
-        assertEquals(replies3.size(), 1);
-        assertEquals(replies3.get(0).getId(), reply3.getId());        
+        assertEquals(1, replies3.size());
+        assertEquals(reply3.getId(), replies3.get(0).getId());        
       } finally {
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
@@ -248,7 +248,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       
       try {
         List<Reply> replies = adminRepliesApi.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
-        assertEquals(replies.size(), 3);
+        assertEquals(3, replies.size());
       } finally {
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());

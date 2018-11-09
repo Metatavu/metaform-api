@@ -343,8 +343,7 @@ public abstract class AbstractApi {
       return null;
     }
     
-    KeycloakSecurityContext keycloakSecurityContext = kcPrincipal.getKeycloakSecurityContext();
-    return keycloakSecurityContext;
+    return kcPrincipal.getKeycloakSecurityContext();
   }
 
   /**

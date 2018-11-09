@@ -60,9 +60,7 @@ public class FormSlugs extends AbstractAuthzCustomChange {
       statement.setString(1, slug);
       statement.setObject(2, createPgUuid(metaformId), Types.OTHER);      
       statement.execute();
-    } catch (DatabaseException e) {
-      throw new CustomChangeException(e);
-    } catch (SQLException e) {
+    } catch (SQLException | DatabaseException e) {
       throw new CustomChangeException(e);
     }
     

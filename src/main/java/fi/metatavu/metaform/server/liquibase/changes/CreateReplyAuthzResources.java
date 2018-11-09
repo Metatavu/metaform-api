@@ -10,7 +10,6 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.authorization.client.AuthzClient;
-import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.authorization.ResourceRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
           } catch (Exception e) {
             String keycloakErrorMessage = getKeycloakErrorMessage(e);
             if (StringUtils.isNotBlank(keycloakErrorMessage)) {
-              logger.warn("Skipped reply %s from realm %s because of error: %s", replyId, realmName, keycloakErrorMessage);
+              logger.warn("Skipped reply {} from realm {} because of error: {}", replyId, realmName, keycloakErrorMessage);
               continue;
             }
             
@@ -88,9 +87,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
           }
         }
       }
-    } catch (DatabaseException e) {
-      throw new CustomChangeException(e);
-    } catch (SQLException e) {
+    } catch (DatabaseException | SQLException e) {
       throw new CustomChangeException(e);
     }
     
@@ -139,50 +136,6 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
    */
   private String getReplyResourceUri(String realmName, String metaformId, String replyId) {
     return String.format(REPLY_RESOURCE_URI_TEMPLATE, realmName, metaformId, replyId);
-  }
-  
-  /**
-   * Resolves Keycloak error message from exception
-   * 
-   * @param e exception
-   * @return error message
-   */
-  protected String getKeycloakErrorMessage(Throwable e) {
-    HttpResponseException httpResponseException = unwrapHttpException(e);
-    if (httpResponseException != null) {
-      String message = new String(httpResponseException.getBytes());
-      if (StringUtils.isBlank(message)) {
-        message = httpResponseException.getMessage();
-      }
-      
-      if (StringUtils.isBlank(message)) {
-        message = httpResponseException.getReasonPhrase();
-      }
-      
-      if (StringUtils.isNotBlank(message)) {
-       return message;
-      }
-    }
-    
-    return "Unknown error";
-  }
-
-  /**
-   * Unwraps HttpResponseException from Keycloak
-   * 
-   * @param e Exception
-   * @return unwrapped exception
-   */
-  protected HttpResponseException unwrapHttpException(Throwable e) {
-    if (e == null) {
-      return null;
-    }
-    
-    if (e instanceof HttpResponseException) {
-      return (HttpResponseException) e;
-    }
-    
-    return unwrapHttpException(e.getCause());
   }
 
 }

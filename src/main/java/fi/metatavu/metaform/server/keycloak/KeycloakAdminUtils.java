@@ -127,6 +127,7 @@ public class KeycloakAdminUtils {
    * 
    * @return created resource
    */
+  @SuppressWarnings ("squid:S00107")
   public static UUID createProtectedResource(Keycloak keycloak, String realmName, ClientRepresentation keycloakClient, UUID ownerId, String name, String uri, String type, List<AuthorizationScope> scopes) {
     ResourcesResource resources = keycloak.realm(realmName).clients().get(keycloakClient.getId()).authorization().resources();
     
@@ -172,6 +173,7 @@ public class KeycloakAdminUtils {
    * @param decisionStrategy 
    * @return created permission
    */
+  @SuppressWarnings ("squid:S00107")
   public static void upsertScopePermission(Keycloak keycloak, String realmName, ClientRepresentation client, UUID resourceId, Collection<AuthorizationScope> scopes, String name, DecisionStrategy decisionStrategy, Collection<UUID> policyIds) {
     RealmResource realm = keycloak.realm(realmName);    
     ScopePermissionsResource scopeResource = realm.clients().get(client.getId()).authorization().permissions().scope();    
@@ -185,24 +187,25 @@ public class KeycloakAdminUtils {
     representation.setResources(Collections.singleton(resourceId.toString()));
     representation.setScopes(scopes.stream().map(AuthorizationScope::getName).collect(Collectors.toSet()));
     representation.setPolicies(policyIds.stream().map(UUID::toString).collect(Collectors.toSet()));
-    Response response = scopeResource.create(representation);
     
-    if (existingPermission == null) {
-      int status = response.getStatus();
-      if (status != 201) {
-        String message = "Unknown error";
-        try {
-          message = IOUtils.toString((InputStream) response.getEntity(), "UTF-8");
-        } catch (IOException e) {
-          logger.warn("Failed read error message", e);
+    try (Response response = scopeResource.create(representation)) {
+      if (existingPermission == null) {
+        int status = response.getStatus();
+        if (status != 201) {
+          String message = "Unknown error";
+          try {
+            message = IOUtils.toString((InputStream) response.getEntity(), "UTF-8");
+          } catch (IOException e) {
+            logger.warn("Failed read error message", e);
+          }
+          
+          logger.warn("Failed to create scope permission for resource {} with message {}", resourceId, message);
         }
-        
-        logger.warn("Failed to create scope permission for resource {} with message {}", resourceId, message);
+      } else {
+        realm.clients().get(client.getId()).authorization().permissions().scope()
+          .findById(existingPermission.getId())
+          .update(representation);
       }
-    } else {
-      realm.clients().get(client.getId()).authorization().permissions().scope()
-        .findById(existingPermission.getId())
-        .update(representation);
     }
   }
   
@@ -231,9 +234,8 @@ public class KeycloakAdminUtils {
       }
       
       GroupPolicyRepresentation policyRepresentation = groupPolicies.findByName(groupName);
-      if (policyRepresentation == null) {
+      if (policyRepresentation == null && groupId != null) {
         groupPolicies.create(policyRepresentation);
-        
         policyRepresentation = new GroupPolicyRepresentation();
         policyRepresentation.setName(groupName);
         policyRepresentation.setDecisionStrategy(DecisionStrategy.UNANIMOUS);
@@ -291,7 +293,7 @@ public class KeycloakAdminUtils {
     PoliciesResource policies = realm.clients().get(client.getId()).authorization().policies();
     
     return names.stream()
-      .map(name -> policies.findByName(name))
+      .map(policies::findByName)
       .filter(Objects::nonNull)
       .map(PolicyRepresentation::getId)
       .map(UUID::fromString)
@@ -323,11 +325,10 @@ public class KeycloakAdminUtils {
    * 
    * @param keycloak Keycloak admin client
    * @param realmName realm name
-   * @param client client
    * @param username username
    * @return found user or null if not found
    */
-  public static UserRepresentation findUser(Keycloak keycloak, String realmName, ClientRepresentation client, String username) {
+  public static UserRepresentation findUser(Keycloak keycloak, String realmName, String username) {
     List<UserRepresentation> result = keycloak.realm(realmName).users().search(username);
     if (result.isEmpty()) {
       return null;
@@ -443,7 +444,9 @@ public class KeycloakAdminUtils {
   private static UUID getCreateResponseId(Response response) {
     if (response.getStatus() != 201) {
       try {
-        logger.error("Failed to execute create: {}", IOUtils.toString((InputStream) response.getEntity(), "UTF-8"));
+        if (logger.isErrorEnabled()) {
+          logger.error("Failed to execute create: {}", IOUtils.toString((InputStream) response.getEntity(), "UTF-8"));
+        }
       } catch (IOException e) {
         logger.error("Failed to extract error message", e);
       }

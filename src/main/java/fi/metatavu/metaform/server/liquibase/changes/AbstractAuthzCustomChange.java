@@ -5,8 +5,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
+import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.authorization.ResourceRepresentation;
 import org.keycloak.representations.idm.authorization.ScopeRepresentation;
 
@@ -58,5 +60,48 @@ public abstract class AbstractAuthzCustomChange extends AbstractCustomChange {
     
     return null;
   }
+  
+  /**
+   * Resolves Keycloak error message from exception
+   * 
+   * @param e exception
+   * @return error message
+   */
+  protected String getKeycloakErrorMessage(Throwable e) {
+    HttpResponseException httpResponseException = unwrapHttpException(e);
+    if (httpResponseException != null) {
+      String message = new String(httpResponseException.getBytes());
+      if (StringUtils.isBlank(message)) {
+        message = httpResponseException.getMessage();
+      }
+      
+      if (StringUtils.isBlank(message)) {
+        message = httpResponseException.getReasonPhrase();
+      }
+      
+      if (StringUtils.isNotBlank(message)) {
+       return message;
+      }
+    }
+    
+    return "Unknown error";
+  }
 
+  /**
+   * Unwraps HttpResponseException from Keycloak
+   * 
+   * @param e Exception
+   * @return unwrapped exception
+   */
+  protected HttpResponseException unwrapHttpException(Throwable e) {
+    if (e == null) {
+      return null;
+    }
+    
+    if (e instanceof HttpResponseException) {
+      return (HttpResponseException) e;
+    }
+    
+    return unwrapHttpException(e.getCause());
+  }
 }

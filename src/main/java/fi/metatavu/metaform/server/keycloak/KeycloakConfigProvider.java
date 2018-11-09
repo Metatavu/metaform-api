@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 public class KeycloakConfigProvider {
 
   private static Logger logger = LoggerFactory.getLogger(KeycloakConfigProvider.class.getName());
+  
+  private KeycloakConfigProvider() {
+    // Private constructor
+  }
 
   /**
    * Returns all configured realms
@@ -31,11 +35,6 @@ public class KeycloakConfigProvider {
     File configPath = new File(System.getProperty("metaform-api.config-path"));
     
     return Arrays.stream(configPath.listFiles())
-      .map((file) -> {
-        System.out.println(file.getAbsolutePath());
-        
-        return file;
-      })
       .map(KeycloakConfigProvider::getConfig)
       .map(Configuration::getRealm)
       .filter(Objects::nonNull)
@@ -62,7 +61,10 @@ public class KeycloakConfigProvider {
 
     File configFile = new File(configParent, String.format("%s.json", realmName));
     if (!configFile.exists()) {
-      logger.warn(String.format("Keycloak config not found for realm %s", realmName));
+      if (logger.isWarnEnabled()) {
+        logger.warn(String.format("Keycloak config not found for realm %s", realmName));
+      }
+      
       return null;
     }
     
