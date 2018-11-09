@@ -188,7 +188,8 @@ public class KeycloakAdminUtils {
     representation.setScopes(scopes.stream().map(AuthorizationScope::getName).collect(Collectors.toSet()));
     representation.setPolicies(policyIds.stream().map(UUID::toString).collect(Collectors.toSet()));
     
-    try (Response response = scopeResource.create(representation)) {
+    Response response = scopeResource.create(representation);
+    try {
       if (existingPermission == null) {
         int status = response.getStatus();
         if (status != 201) {
@@ -206,6 +207,8 @@ public class KeycloakAdminUtils {
           .findById(existingPermission.getId())
           .update(representation);
       }
+    } finally {
+      response.close();
     }
   }
   
