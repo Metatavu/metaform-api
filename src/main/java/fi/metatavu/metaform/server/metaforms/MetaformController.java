@@ -114,7 +114,7 @@ public class MetaformController {
     int count = 0;
     do {
       String slug = count > 0 ? String.format("%s-%d", prefix, count) : prefix;
-      if (metaformDAO.findByRealmIdAndSlug(realmId, prefix) == null) {
+      if (metaformDAO.findByRealmIdAndSlug(realmId, slug) == null) {
         return slug;
       }
       
