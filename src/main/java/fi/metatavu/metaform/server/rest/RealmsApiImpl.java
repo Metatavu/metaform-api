@@ -145,6 +145,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private EmailNotificationTranslator emailNotificationTranslator;
 
   @Override
+  @SuppressWarnings ("squid:S3776")
   public Response createReply(String realmName, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
@@ -205,7 +206,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     } 
 
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
-    handleReplyPostPersist(true, metaform, reply, metaformEntity, replyEntity, permissionGroups);
+    handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
     return createOk(replyEntity);
   }
@@ -322,7 +323,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
 
-    handleReplyPostPersist(false, metaform, reply, metaformEntity, replyEntity, newPermissionGroups);
+    handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
   }
@@ -619,9 +620,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     try {
       AuthorizationRequest request = new AuthorizationRequest();
       
-      resourceIds.stream().forEach(resourceId -> {
-        request.addPermission(resourceId.toString(), authorizationScope.getName());
-      });
+      resourceIds.stream().forEach(resourceId -> request.addPermission(resourceId.toString(), authorizationScope.getName()));
 
       AuthorizationResponse response = getAuthzClient().authorization(getTokenString()).authorize(request);
       TokenIntrospectionResponse irt = getAuthzClient().protection().introspectRequestingPartyToken(response.getToken());
@@ -650,7 +649,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param replyEntity
    * @param newPermissionGroups added permission groups
    */
-  private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Metaform metaformEntity, Reply replyEntity, EnumMap<AuthorizationScope, List<String>> newPermissionGroups) {
+  private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Reply replyEntity, EnumMap<AuthorizationScope, List<String>> newPermissionGroups) {
     String realmName = metaform.getRealmId();
     Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration(realmName);
     Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);

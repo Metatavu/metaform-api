@@ -308,7 +308,7 @@ public abstract class AbstractApi {
    * @return access token
    */
   protected AccessToken getAccessToken() {
-    KeycloakSecurityContext keycloakSecurityContext = getSecurityContext();
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
     if (keycloakSecurityContext == null) {
       return null;
     }
@@ -322,28 +322,12 @@ public abstract class AbstractApi {
    * @return access token as string
    */
   protected String getTokenString() {
-    KeycloakSecurityContext keycloakSecurityContext = getSecurityContext();
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
     if (keycloakSecurityContext == null) {
       return null;
     }
     
     return keycloakSecurityContext.getTokenString();
-  }
-
-  /**
-   * Returns Keycloak security context
-   * 
-   * @return Keycloak security context
-   */
-  private KeycloakSecurityContext getSecurityContext() {
-    HttpServletRequest request = getHttpServletRequest();
-    Principal userPrincipal = request.getUserPrincipal();
-    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
-    if (kcPrincipal == null) {
-      return null;
-    }
-    
-    return kcPrincipal.getKeycloakSecurityContext();
   }
 
   /**

@@ -58,6 +58,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
    * @param realmName realm name
    * @throws CustomChangeException when migration fails
    */
+  @SuppressWarnings ("squid:S1141")
   private void createMetaformResources(JdbcConnection connection, String metaformId, String realmName) throws CustomChangeException {
     AuthzClient authzClient = getAuthzClient(realmName);
     int count = 0;
