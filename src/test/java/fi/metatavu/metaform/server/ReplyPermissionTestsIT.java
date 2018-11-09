@@ -196,8 +196,8 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       Reply reply3 = repliesApi3.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
       
       try {
-        List<Reply> replies1 = repliesApi3.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
-        List<Reply> replies2 = repliesApi3.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
+        List<Reply> replies1 = repliesApi1.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
+        List<Reply> replies2 = repliesApi2.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
         List<Reply> replies3 = repliesApi3.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
         
         assertEquals(replies1.size(), 1);
@@ -210,7 +210,8 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         assertTrue(reply2Ids.contains(reply2.getId()));
         assertTrue(reply2Ids.contains(reply3.getId()));
 
-        assertEquals(replies3.size(), 0);
+        assertEquals(replies3.size(), 1);
+        assertEquals(replies3.get(0).getId(), reply3.getId());        
       } finally {
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
