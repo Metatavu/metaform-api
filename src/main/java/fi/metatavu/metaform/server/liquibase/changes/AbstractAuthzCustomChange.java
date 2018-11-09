@@ -1,10 +1,15 @@
 package fi.metatavu.metaform.server.liquibase.changes;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.BadRequestException;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
@@ -82,9 +87,40 @@ public abstract class AbstractAuthzCustomChange extends AbstractCustomChange {
       if (StringUtils.isNotBlank(message)) {
        return message;
       }
+      
+      return  "Unknown error";
     }
     
+    BadRequestException badRequestException = unwrapBadRequestException(e);
+    if (badRequestException != null) {
+      InputStream body = (InputStream) badRequestException.getResponse().getEntity();
+      String message = toString(body);
+      if (StringUtils.isBlank(message)) {
+        message = badRequestException.getMessage();
+      }
+      
+      if (StringUtils.isNotBlank(message)) {
+       return message;
+      }
+    }
+
     return "Unknown error";
+  }
+
+  /**
+   * Gets the contents of an as a String
+   * 
+   * @param inputStream
+   * @return string
+   */
+  private String toString(InputStream inputStream) {
+    try {
+      return IOUtils.toString(inputStream, "UTF-8");
+    } catch (IOException e) {
+      // Just eat IO exceptions
+    }
+    
+    return null;
   }
 
   /**
@@ -103,5 +139,23 @@ public abstract class AbstractAuthzCustomChange extends AbstractCustomChange {
     }
     
     return unwrapHttpException(e.getCause());
+  }
+  
+  /**
+   * Unwraps HttpResponseException from Keycloak
+   * 
+   * @param e Exception
+   * @return unwrapped exception
+   */
+  protected BadRequestException unwrapBadRequestException(Throwable e) {
+    if (e == null) {
+      return null;
+    }
+    
+    if (e instanceof BadRequestException) {
+      return (BadRequestException) e;
+    }
+    
+    return unwrapBadRequestException(e.getCause());
   }
 }
