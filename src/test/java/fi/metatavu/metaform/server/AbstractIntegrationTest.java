@@ -35,6 +35,7 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.server.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.AttachmentsApi;
 
 

@@ -24,12 +24,6 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   
   /**
-  6) Testi, joka tarkistaa, että reply:notify saa sähköpostin uudesta
-  7) Testi, joka taristaa, että reply:notify saa sähköpostin muutoksesta mutta edellinen ei saa
-  8) Testi, joka tarkistaa, ettei muutos ilman reply:notify muutosta lähetä sähköpostia
-  **/
-  
-  /**
    * Test that asserts that user may find his / her own reply
    */
   @Test
@@ -131,8 +125,6 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     }
   }
 
-  // Test that asserts that admin may list all replies
-  
   /**
    * Test that asserts that user may list only his / her own replies
    */
@@ -208,6 +200,43 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         assertEquals(replies2.get(2).getId(), reply1.getId());
 
         assertEquals(replies3.size(), 0);
+      } finally {
+        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
+        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
+        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply3.getId());
+      }
+      
+    } finally {
+      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+    }
+  }
+  
+  /**
+   * Test that asserts that admin may list all replies
+   */
+  @Test
+  public void listRepliesAdmin() throws IOException, URISyntaxException {
+    String adminToken = getAdminToken(REALM_1);
+    
+    String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
+    String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
+    String accessToken3 = getAccessToken(REALM_1, "test3.realm1", "test");
+    
+    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
+    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
+    RepliesApi repliesApi1 = getRepliesApi(accessToken1);
+    RepliesApi repliesApi2 = getRepliesApi(accessToken2);
+    RepliesApi repliesApi3 = getRepliesApi(accessToken3);
+    
+    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    try {
+      Reply reply1 = repliesApi1.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply2 = repliesApi2.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply3 = repliesApi3.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      
+      try {
+        List<Reply> replies = adminRepliesApi.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
+        assertEquals(replies.size(), 3);
       } finally {
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
         adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());

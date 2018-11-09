@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.server.feign;
 
 import java.io.IOException;
 import java.io.InputStream;
