@@ -54,8 +54,12 @@ public class MetaformKeycloakConfigResolver implements KeycloakConfigResolver {
       try {
         configStream = new FileInputStream(configFile);
         try {
-          AdapterConfig adapterConfig = KeycloakDeploymentBuilder.loadAdapterConfig(configStream);          
-          adapterConfig.setPolicyEnforcerConfig(createPolicyEnforcerConfig());
+          AdapterConfig adapterConfig = KeycloakDeploymentBuilder.loadAdapterConfig(configStream); 
+          
+          if (adapterConfig.getPolicyEnforcerConfig() == null) {
+            adapterConfig.setPolicyEnforcerConfig(createPolicyEnforcerConfig());
+          }
+          
           return KeycloakDeploymentBuilder.build(adapterConfig);
         } finally {
           configStream.close();
