@@ -189,6 +189,21 @@ public class TestDataBuilder {
   }
   
   /**
+   * Creates simple permission context reply
+   * 
+   * @param metaform metaform
+   * @param permissionSelectValue permission select value
+   * @return reply
+   * @throws IOException
+   */
+  public Reply createSimplePermissionContextReply(Metaform metaform, String permissionSelectValue) throws IOException {
+    ReplyData replyData = new ReplyData();
+    replyData.put("permission-select", permissionSelectValue);
+    Reply reply = createReplyWithData(replyData);
+    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, ReplyMode.REVISION.toString()));
+  }
+
+  /**
    * Creates new reply for the simple form
    * 
    * @param metaform metaform

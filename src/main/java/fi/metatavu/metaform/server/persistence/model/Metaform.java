@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
@@ -23,6 +25,11 @@ import org.hibernate.validator.constraints.NotEmpty;
 @Entity
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+@Table (
+  uniqueConstraints = {
+    @UniqueConstraint (columnNames = { "realmid", "slug" })  
+  }    
+)
 public class Metaform {
 
   @Id
@@ -32,6 +39,10 @@ public class Metaform {
   @NotNull
   @NotEmpty
   private String realmId;
+
+  @NotNull
+  @NotEmpty
+  private String slug;
 
   @Lob
   private String data;
@@ -57,6 +68,14 @@ public class Metaform {
   
   public String getRealmId() {
     return realmId;
+  }
+  
+  public String getSlug() {
+    return slug;
+  }
+  
+  public void setSlug(String slug) {
+    this.slug = slug;
   }
   
   public String getData() {

@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
-
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpEntity;
@@ -24,9 +24,9 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import feign.Feign.Builder;
 import fi.metatavu.metaform.ApiClient;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.ExportThemesApi;
@@ -35,6 +35,7 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.server.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.AttachmentsApi;
 
 
@@ -50,7 +51,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String REALM_1 = "test-1";
   protected static final String BASE_URL = "/v1";
   protected static final String AUTH_SERVER_URL = "http://localhost:8280";
-  protected static final String DEFAULT_KEYCLOAK_CLIENT_ID = "ui";
+  protected static final String DEFAULT_UI_CLIENT_ID = "ui";
+  protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
   
   @After
@@ -193,6 +195,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     return apiClient.buildClient(ExportThemesApi.class);
   }
   
+  
   /**
    * Returns API client authenticated by the given access token
    * 
@@ -200,7 +203,11 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    * @return API client authenticated by the given access token
    */
   private ApiClient getApiClient(String accessToken) {
-    ApiClient apiClient = new ApiClient("bearer", String.format("Bearer %s", accessToken));
+    String authorization = String.format("Bearer %s", accessToken);
+    ApiClient apiClient = new ApiClient("bearer", authorization);
+    
+    Builder feignBuilder = apiClient.getFeignBuilder();
+    feignBuilder.errorDecoder(new UmaErrorDecoder(authorization, apiClient));
     String basePath = String.format("http://%s:%d/v1", getHost(), getPort());
     apiClient.setBasePath(basePath);
     return apiClient;
@@ -216,7 +223,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    * @throws IOException thrown on communication failure
    */
   protected String getAccessToken(String realm, String username, String password) throws IOException {
-    return getAccessToken(realm, DEFAULT_KEYCLOAK_CLIENT_ID, username, password);
+    return getAccessToken(realm, DEFAULT_UI_CLIENT_ID, username, password);
   }
 
   /**
@@ -227,7 +234,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    * @throws IOException thrown on communication failure
    */
   protected String getAdminToken(String realm) throws IOException {
-    return getAccessToken(realm, DEFAULT_KEYCLOAK_CLIENT_ID, "metaform-admin", "test"); 
+    return getAccessToken(realm, DEFAULT_UI_CLIENT_ID, "metaform-admin", "test"); 
   }
 
   /**
@@ -238,7 +245,36 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    * @throws IOException thrown on communication failure
    */
   protected String getSuperToken(String realm) throws IOException {
-    return getAccessToken(realm, DEFAULT_KEYCLOAK_CLIENT_ID, "metaform-super", "test"); 
+    return getAccessToken(realm, DEFAULT_UI_CLIENT_ID, "metaform-super", "test"); 
+  }
+
+  /**
+   * Resolves an anonymous access token for realm
+   * 
+   * @param realm realm
+   * @return an access token
+   * @throws IOException thrown on communication failure
+   */
+  protected String getAnonymousToken(String realm) throws IOException {
+    String path = String.format("/auth/realms/%s/protocol/openid-connect/token", realm);
+    
+    String password = String.format("%s:%s", DEFAULT_UI_CLIENT_ID, DEFAULT_UI_CLIENT_SECRET);
+    String passwordEncoded = Base64.encodeBase64String(password.getBytes("UTF-8"));
+    String authorization = String.format("Basic %s", passwordEncoded);
+
+    String response = given()
+      .baseUri(AUTH_SERVER_URL)
+      .header("Authorization", authorization)
+      .formParam("grant_type", "client_credentials")
+      .post(path)
+      .getBody()
+      .asString();
+    
+    Map<String, Object> responseMap = readJsonMap(response);
+    String token = (String) responseMap.get("access_token");
+    assertNotNull(token);
+    
+    return token;
   }
 
   /**
@@ -260,12 +296,16 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       .formParam("grant_type", "password")
       .formParam("username", username)
       .formParam("password", password)
+      .formParam("client_secret", DEFAULT_UI_CLIENT_SECRET)
       .post(path)
       .getBody()
       .asString();
     
     Map<String, Object> responseMap = readJsonMap(response);
-    return (String) responseMap.get("access_token");
+    String token = (String) responseMap.get("access_token");
+    assertNotNull(token);
+    
+    return token;
   }
   
   /**

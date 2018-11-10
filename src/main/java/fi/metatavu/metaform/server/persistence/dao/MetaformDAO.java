@@ -30,18 +30,41 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
    * @param data form JSON
    * @return created Metaform
    */
-  public Metaform create(UUID id, ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String data) {
+  public Metaform create(UUID id, String slug, ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String data) {
     Metaform metaform = new Metaform(); 
     
     metaform.setId(id);
     metaform.setExportTheme(exportTheme);
     metaform.setData(data);
     metaform.setRealmId(realmId);
+    metaform.setSlug(slug);
     metaform.setAllowAnonymous(allowAnonymous);
     
     return persist(metaform);
   }
+  
+  /**
+   * Finds Metaform by realmId and slug
+   * 
+   * @param realmId realmId
+   * @param slug slug
+   * @return found Metaform or null if non found
+   */
+  public Metaform findByRealmIdAndSlug(String realmId, String slug) {
+    EntityManager entityManager = getEntityManager();
 
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Metaform> criteria = criteriaBuilder.createQuery(Metaform.class);
+    Root<Metaform> root = criteria.from(Metaform.class);
+    criteria.select(root);
+    criteria.where(
+      criteriaBuilder.equal(root.get(Metaform_.realmId), realmId),
+      criteriaBuilder.equal(root.get(Metaform_.slug), slug)
+    );
+
+    return getSingleResult(entityManager.createQuery(criteria));
+  }
+  
   /**
    * List Metaforms by realm
    * 

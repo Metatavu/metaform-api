@@ -12,6 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
@@ -123,9 +124,9 @@ public class ReplyController {
    */
   public Reply createReply(UUID userId, Metaform metaform) {
     UUID id = UUID.randomUUID();
-    return replyDAO.create(id, userId, metaform);
+    return replyDAO.create(id, userId, metaform, null);
   }
-
+  
   /**
    * Lists field names used in reply
    * 
@@ -155,6 +156,18 @@ public class ReplyController {
    */
   public Reply findActiveReplyByMetaformAndUserId(Metaform metaform, UUID userId) {
     return replyDAO.findByMetaformAndUserIdAndRevisionNull(metaform, userId);
+  }
+  
+  /**
+   * Updates reply authorization resource id
+   * 
+   * @param reply reply
+   * @param resourceId authorization resource id
+   * @return reply
+   */
+  public Reply updateResourceId(Reply reply, UUID resourceId) {
+    replyDAO.updateResourceId(reply, resourceId);
+    return reply;
   }
 
   /**
@@ -481,6 +494,7 @@ public class ReplyController {
     
     rowValue.entrySet().stream()
       .filter(cell -> cell.getValue() != null)
+      .filter(cell -> !isBlankString(cell.getValue()))
       .filter(cell -> columnMap.containsKey(cell.getKey()))
       .forEach(cell -> {
         MetaformTableColumn column = columnMap.get(cell.getKey());
@@ -488,6 +502,21 @@ public class ReplyController {
       });
     
     return row;
+  }
+  
+  /**
+   * Returns whether object is a blank string
+   * 
+   * @param object object
+   * @return whether object is a blank string
+   */
+  private boolean isBlankString(Object object) {
+    if (object instanceof String) {
+      String string = (String) object;
+      return StringUtils.isBlank(string);
+    }
+    
+    return false;
   }
   
   /**

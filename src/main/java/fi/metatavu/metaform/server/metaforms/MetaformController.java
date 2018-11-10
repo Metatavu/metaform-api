@@ -6,6 +6,10 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.github.slugify.Slugify;
+
 import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO;
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
@@ -39,9 +43,10 @@ public class MetaformController {
    * @param data form JSON
    * @return Metaform
    */
-  public Metaform createMetaform(ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String data) {
+  public Metaform createMetaform(ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String title, String data) {
     UUID id = UUID.randomUUID();
-    return metaformDAO.create(id, exportTheme, realmId, allowAnonymous, data);    
+    String slug = createSlug(realmId, title);
+    return metaformDAO.create(id, slug, exportTheme, realmId, allowAnonymous, data);    
   }
 
   /**
@@ -94,6 +99,27 @@ public class MetaformController {
     });
     
     metaformDAO.delete(metaform);
+  }
+
+  /**
+   * Generates unique slug within a realm for a Metaform
+   * 
+   * @param realmId realm id
+   * @param title title
+   * @return unique slug
+   */
+  private String createSlug(String realmId, String title) {
+    Slugify slugify = new Slugify();
+    String prefix = StringUtils.isNotBlank(title) ? slugify.slugify(title) : "form";
+    int count = 0;
+    do {
+      String slug = count > 0 ? String.format("%s-%d", prefix, count) : prefix;
+      if (metaformDAO.findByRealmIdAndSlug(realmId, slug) == null) {
+        return slug;
+      }
+      
+      count++;
+    } while (true);
   }
   
 }
