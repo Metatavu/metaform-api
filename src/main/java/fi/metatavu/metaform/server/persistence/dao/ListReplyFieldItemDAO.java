@@ -55,4 +55,23 @@ public class ListReplyFieldItemDAO extends AbstractDAO<ListReplyFieldItem> {
     return entityManager.createQuery(criteria).getResultList();
   }
 
+  /**
+   * Lists item values by field
+   * 
+   * @param field field
+   * @return values
+   */
+  public List<String> listItemValuesByField(ListReplyField field) {
+    EntityManager entityManager = getEntityManager();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<String> criteria = criteriaBuilder.createQuery(String.class);
+    Root<ListReplyFieldItem> root = criteria.from(ListReplyFieldItem.class);
+    
+    criteria.select(root.get(ListReplyFieldItem_.value));
+    criteria.where(criteriaBuilder.equal(root.get(ListReplyFieldItem_.field), field));
+    
+    return entityManager.createQuery(criteria).getResultList();
+  }
+
 }
