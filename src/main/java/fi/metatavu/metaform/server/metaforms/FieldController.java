@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringTokenizer;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -24,12 +23,9 @@ import fi.metatavu.metaform.server.persistence.dao.AnyTableReplyFieldRowCellDAO;
 import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.dao.ListReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.dao.TableReplyFieldRowDAO;
-import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.persistence.model.AttachmentReplyField;
-import fi.metatavu.metaform.server.persistence.model.AttachmentReplyFieldItem;
 import fi.metatavu.metaform.server.persistence.model.BooleanReplyField;
 import fi.metatavu.metaform.server.persistence.model.ListReplyField;
-import fi.metatavu.metaform.server.persistence.model.ListReplyFieldItem;
 import fi.metatavu.metaform.server.persistence.model.NumberReplyField;
 import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
@@ -144,15 +140,9 @@ public class FieldController {
     } else if (field instanceof StringReplyField) {
       return ((StringReplyField) field).getValue();
     } else if (field instanceof ListReplyField) {
-      return listReplyFieldItemDAO.listByField((ListReplyField) field).stream()
-        .map(ListReplyFieldItem::getValue)
-        .collect(Collectors.toList());
+      return listReplyFieldItemDAO.listItemValuesByField((ListReplyField) field);
     } else if (field instanceof AttachmentReplyField) {
-      return attachmentReplyFieldItemDAO.listByField((AttachmentReplyField) field).stream()
-        .map(AttachmentReplyFieldItem::getAttachment)
-        .map(Attachment::getId)
-        .map(UUID::toString)
-        .collect(Collectors.toList());      
+      return attachmentReplyFieldItemDAO.listAttachmentIdsByField((AttachmentReplyField) field);
     } else if (field instanceof TableReplyField) {
       return tableReplyFieldRowDAO.listByField((TableReplyField) field).stream()
         .map(this::getTableRowValue).collect(Collectors.toList());
