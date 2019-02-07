@@ -121,14 +121,15 @@ public class FieldController {
    * @param metaformEntity metaform model
    * @param reply reply
    * @param fieldName field name
+   * @param replyFieldMap map containing reply fields
    * @return field value or null if not found
    */
-  public Object getFieldValue(Metaform metaformEntity, Reply reply, String fieldName) {
+  public Object getFieldValue(Metaform metaformEntity, Reply reply, String fieldName, Map<String, ReplyField> replyFieldMap) {
     if (isMetafield(metaformEntity, fieldName)) {
       return resolveMetaField(fieldName, reply);
     }
     
-    ReplyField field = getReplyField(reply, fieldName);
+    ReplyField field = replyFieldMap.get(fieldName);
     if (field == null) {
       return null;
     }
@@ -172,17 +173,6 @@ public class FieldController {
       }));
   }
   
-  /**
-   * Returns a reply field by reply and name 
-   * 
-   * @param reply reply
-   * @param fieldName field name
-   * @return reply field or null if not found
-   */
-  private ReplyField getReplyField(Reply reply, String fieldName) {
-    return anyReplyfieldDAO.findByReplyAndName(reply, fieldName);
-  }
-
   /**
    * Returns whether form field is a meta field
    * 
@@ -267,6 +257,16 @@ public class FieldController {
       .filter(field -> type.equals(field.getType()))
       .map(MetaformField::getName)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns map of reply fields where reply field name is a key and the field value
+   * 
+   * @param reply reply
+   * @return map of reply fields where reply field name is a key and the field value
+   */
+  public Map<String, ReplyField> getReplyFieldMap(Reply reply) {
+    return anyReplyfieldDAO.listByReply(reply).stream().collect(Collectors.toMap(ReplyField::getName, replyField -> replyField));
   }
 
   /**
