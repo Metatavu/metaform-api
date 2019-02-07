@@ -251,6 +251,9 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
+    
+    Integer firstResult = 0;
+    Integer maxResults = null;
       
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -270,11 +273,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
         includeRevisions == null ? false : includeRevisions,
         fieldFilters);
     
-    List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
-      .map(entity -> replyTranslator.translateReply(metaformEntity, entity))
-      .collect(Collectors.toList());
+    List<fi.metatavu.metaform.server.persistence.model.Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW);
+    Integer totalResults = result.size();
     
-    return createOk(result);
+    return createOk(totalResults, subList(result, firstResult, maxResults).stream().map(entity -> replyTranslator.translateReply(metaformEntity, entity))
+        .collect(Collectors.toList()));
   }
 
   public Response updateReply(String realmName, UUID metaformId, UUID replyId, Reply payload) throws Exception {

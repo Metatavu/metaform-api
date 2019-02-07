@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -93,6 +94,20 @@ public abstract class AbstractApi {
   protected Response createOk(Object entity) {
     return Response
       .status(Response.Status.OK)
+      .entity(entity)
+      .build();
+  }
+
+  /**
+   * Constructs ok response
+   * 
+   * @param entity payload
+   * @return response
+   */
+  protected Response createOk(Integer totalResults, Object entity) {
+    return Response
+      .status(Response.Status.OK)
+      .header("metaform-total-results", totalResults)
       .entity(entity)
       .build();
   }
@@ -386,6 +401,21 @@ public abstract class AbstractApi {
     }
     
     return kcPrincipal.getKeycloakSecurityContext();
+  }
+  
+  /**
+   * Extract sub list of list with given bounds
+   * 
+   * @param list
+   * @param firstResult first result, if null zero is used
+   * @param maxResults max results, if null maximum is not limited
+   * @return
+   */
+  protected <T> List<T> subList(List<T> list, Integer firstResult, Integer maxResults) {
+    int resultCount = list.size();
+    int firstIndex = firstResult == null ? 0 : Math.min(firstResult.intValue(), resultCount);
+    int toIndex = maxResults == null ? resultCount : Math.min(firstIndex + maxResults.intValue(), resultCount);
+    return list.subList(firstIndex, toIndex);
   }
   
 }
