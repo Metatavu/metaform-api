@@ -381,4 +381,18 @@
     </createIndex>
   </changeSet>
   
+  <changeSet author="antti.leppa" id="attachmentindices">
+    <createIndex indexName="UN_ATTACHMENT_REPLY_FIELD_ITEM_FIELD_ATTACHMEMENT" tableName="attachmentreplyfielditem" unique="true">
+      <column name="field_id" type="uuid"/>
+      <column name="attachment_id" type="uuid"/>
+    </createIndex>
+  </changeSet>
+  
+  <changeSet author="antti.leppa" id="replyfield">
+    <createIndex indexName="UN_REPLY_FIELD_REPLY_ID_NAME" tableName="replyfield" unique="true">
+      <column name="reply_id" type="uuid"/>
+      <column name="name" type="varchar(255)"/>
+    </createIndex>
+  </changeSet>
+  
 </databaseChangeLog>
