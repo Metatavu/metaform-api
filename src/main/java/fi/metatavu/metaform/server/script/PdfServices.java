@@ -27,8 +27,7 @@ public class PdfServices {
    * @throws PdfRenderException thrown when rendering fails
    */
   public byte[] getReplyPdf() throws PdfRenderException {
-    byte[] result = replyController.getReplyPdf(formRuntimeContext.getExportThemeName(), formRuntimeContext.getMetaform(), formRuntimeContext.getReply(), formRuntimeContext.getAttachmentMap(), formRuntimeContext.getLocale());
-    return result;
+    return replyController.getReplyPdf(formRuntimeContext.getExportThemeName(), formRuntimeContext.getMetaform(), formRuntimeContext.getReply(), formRuntimeContext.getAttachmentMap(), formRuntimeContext.getLocale());
   }
   
 }
