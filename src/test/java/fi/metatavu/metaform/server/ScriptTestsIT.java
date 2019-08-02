@@ -14,10 +14,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import org.junit.Rule;
 import org.junit.Test;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
@@ -33,9 +31,6 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 @SuppressWarnings ("squid:S1192")
 public class ScriptTestsIT extends AbstractIntegrationTest {
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
-  
   @Test
   public void testCreateReplyScript() throws IOException, URISyntaxException {
     UrlPattern externalMockURL = urlEqualTo("/externalmock");

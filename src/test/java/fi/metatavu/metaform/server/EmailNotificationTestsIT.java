@@ -7,10 +7,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Rule;
 import org.junit.Test;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import fi.metatavu.metaform.client.EmailNotification;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
@@ -20,9 +17,6 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 @SuppressWarnings ("squid:S1192")
 public class EmailNotificationTestsIT extends AbstractIntegrationTest {
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
-  
   @Test
   public void singleEmailNotificationTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");

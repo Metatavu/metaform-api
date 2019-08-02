@@ -24,7 +24,10 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
+import org.junit.Rule;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import feign.Feign.Builder;
 import fi.metatavu.metaform.ApiClient;
@@ -54,6 +57,9 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
+
+  @Rule
+  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
   
   @After
   public void metaformsCleaned() {
