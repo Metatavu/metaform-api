@@ -1,7 +1,9 @@
 package fi.metatavu.metaform.server;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -19,6 +21,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -48,6 +53,21 @@ public abstract class AbstractTest {
   @SuppressWarnings ("squid:S106")
   public void printName() {
     System.out.println(String.format("> %s", testName.getMethodName()));
+  }
+  
+  /**
+   * Asserts that given PDF data contains expected string
+   * 
+   * @param expected expected string
+   * @param data PDF data
+   * @throws IOException thrown on PDF read failure
+   */
+  protected void assertPdfContains(String expected, byte[] data) throws IOException {
+    PDDocument document = PDDocument.load(new ByteArrayInputStream(data));
+    String pdfText = new PDFTextStripper().getText(document);
+    document.close();
+    
+    assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected));
   }
   
   /**

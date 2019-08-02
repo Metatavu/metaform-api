@@ -1,0 +1,41 @@
+{
+  "title": "Simple",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "files",
+          "type": "files",
+          "title": "Files field"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "afterCreateReply": [
+      {
+        "name": "create-test",
+        "language": "js",
+        "content": "form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));"
+      },
+      {
+        "name": "post-test",
+        "language": "js",
+        "content": "const xhr = new XMLHttpRequest(); xhr.open('POST', 'http://localhost:58081/externalmock'); xhr.send(form.getVariableValue('postdata'));"
+      }
+    ],
+    "afterUpdateReply": [
+      {
+        "name": "update-test",
+        "language": "js",
+        "content": "const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://localhost:58081/externalmock'); xhr.send();"
+      }
+    ]
+  }
+}

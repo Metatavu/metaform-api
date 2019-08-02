@@ -1,9 +1,15 @@
 package fi.metatavu.metaform.server.metaforms;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -11,14 +17,19 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
+import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
 import fi.metatavu.metaform.server.files.File;
 import fi.metatavu.metaform.server.files.FileController;
+import fi.metatavu.metaform.server.pdf.PdfPrinter;
+import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.AnyTableReplyFieldRowCellDAO;
 import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldDAO;
@@ -114,6 +125,12 @@ public class ReplyController {
   
   @Inject
   private FileController fileController;
+
+  @Inject
+  private ExportThemeFreemarkerRenderer exportThemeFreemarkerRenderer; 
+
+  @Inject
+  private PdfPrinter pdfPrinter; 
   
   /**
    * Creates new reply
@@ -378,6 +395,43 @@ public class ReplyController {
    */
   public List<ReplyField> listReplyFields(Reply reply) {
     return anyReplyFieldDAO.listByReply(reply);
+  }
+
+  /**
+   * Renders Reply as PDF document
+   * 
+   * @param metaformEntity Metaform
+   * @param replyEntity Reply
+   * @param locale locale
+   * @return Pdf bytes
+   * @throws PdfRenderException throw when rendering fails
+   */
+  public byte[] getReplyPdf(String exportThemeName, fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, fi.metatavu.metaform.server.rest.model.Reply replyEntity, Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap, Locale locale) throws PdfRenderException {
+    ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.getCreatedAt()), getDate(replyEntity.getModifiedAt()));
+    String html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale);
+    
+    try (InputStream htmlStream = IOUtils.toInputStream(html, StandardCharsets.UTF_8)) {
+      try (ByteArrayOutputStream pdfStream = new ByteArrayOutputStream()) {
+        pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream);
+        return pdfStream.toByteArray();
+      }
+    } catch (IOException e) {
+      throw new PdfRenderException("Pdf rendering failed", e);
+    }
+  }
+
+  /**
+   * Returns OffsetDateTime as java.util.Date
+   * 
+   * @param offsetDateTime offset date time
+   * @return java.util.Date
+   */
+  private Date getDate(OffsetDateTime offsetDateTime) {
+    if (offsetDateTime == null) {
+      return null;
+    }
+    
+    return Date.from(offsetDateTime.toInstant());
   }
   
   /**
