@@ -784,13 +784,6 @@
                     <command>data-source add --name=metaform-api --use-ccm=true --jta=true --enabled=true --driver-name=it --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --connection-url=${it.jdbc.url}</command>
                     <command>end-if</command>
                     
-                    <!-- Secure deployment -->
-                    
-                    <command>if (outcome != success) of /subsystem=keycloak/secure-deployment=metaform-api.war:read-resource</command>
-                    <command>/subsystem=keycloak/secure-deployment=metaform-api.war:add(realm="test", auth-server-url="http://localhost:8280/auth",bearer-only=true,ssl-required="EXTERNAL",resource="api")</command>
-                    <command>/subsystem=keycloak/secure-deployment=metaform-api.war/credential=secret:add(value="1be749de-2023-4ebf-aba0-90679ffab56b")</command>
-                    <command>end-if</command>
-                    
                     <!-- Host -->
                                                           
                     <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
