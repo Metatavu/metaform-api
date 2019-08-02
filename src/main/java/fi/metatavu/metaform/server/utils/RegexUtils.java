@@ -11,6 +11,10 @@ import java.util.regex.Pattern;
  * @author Antti Leppä
  */
 public class RegexUtils {
+  
+  private RegexUtils() {
+    // Private constructor
+  }
 
   /**
    * Replaces every subsequence of the input sequence that matches the pattern with the given replacement function

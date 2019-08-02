@@ -1,6 +1,6 @@
 package fi.metatavu.metaform.server.script;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -35,7 +35,7 @@ public class FormScriptBinding {
    * 
    * @return reply data
    */
-  public HashMap<String, Object> getReplyData() {
+  public Map<String, Object> getReplyData() {
    return getReply().getData();
   }
   

@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.metaforms;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -409,7 +410,7 @@ public class ReplyController {
     ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.getCreatedAt()), getDate(replyEntity.getModifiedAt()));
     String html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale);
     
-    try (InputStream htmlStream = IOUtils.toInputStream(html, "UTF-8")) {
+    try (InputStream htmlStream = IOUtils.toInputStream(html, StandardCharsets.UTF_8)) {
       try (ByteArrayOutputStream pdfStream = new ByteArrayOutputStream()) {
         pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream);
         return pdfStream.toByteArray();

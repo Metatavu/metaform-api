@@ -24,9 +24,7 @@ import fi.metatavu.polyglot.xhr.XMLHttpRequest;
 @ApplicationScoped
 public class ScriptProcessor {
   
-  private static final Set<String> RESERVED_PARAMS = new HashSet<String>(Arrays.asList(
-    new String[] { "name", "version", "module", "function", "target" }
-  ));
+  private static final Set<String> RESERVED_PARAMS = new HashSet<>(Arrays.asList("name", "version", "module", "function", "target"));
   
   @Inject
   private Logger logger;
