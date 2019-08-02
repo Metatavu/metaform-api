@@ -1,14 +1,11 @@
 package fi.metatavu.metaform.server.rest;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -24,7 +21,6 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.Keycloak;
@@ -46,8 +42,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
-import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
-import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
 import fi.metatavu.metaform.server.keycloak.KeycloakAdminUtils;
 import fi.metatavu.metaform.server.keycloak.ResourceType;
@@ -56,8 +50,6 @@ import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
-import fi.metatavu.metaform.server.pdf.PdfPrinter;
-import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.ExportTheme;
@@ -66,6 +58,7 @@ import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldPermissioncontexts;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
+import fi.metatavu.metaform.server.rest.model.MetaformScript;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.ReplyData;
@@ -74,6 +67,9 @@ import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.ExportThemeTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
+import fi.metatavu.metaform.server.script.FormRuntimeContext;
+import fi.metatavu.metaform.server.script.RunnableScript;
+import fi.metatavu.metaform.server.script.ScriptProcessor;
 
 /**
  * Realms REST Service implementation
@@ -124,12 +120,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private ExportThemeController exportThemeController;
 
   @Inject
-  private ExportThemeFreemarkerRenderer exportThemeFreemarkerRenderer; 
-
-  @Inject
-  private PdfPrinter pdfPrinter; 
-
-  @Inject
   private ExportThemeTranslator exportThemeTranslator;
 
   @Inject
@@ -143,6 +133,12 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private EmailNotificationTranslator emailNotificationTranslator;
+  
+  @Inject
+  private FormRuntimeContext formRuntimeContext;
+
+  @Inject
+  private ScriptProcessor scriptProcessor;
 
   @Override
   @SuppressWarnings ("squid:S3776")
@@ -206,6 +202,12 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     } 
 
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+
+    if (metaformEntity.getScripts() != null && metaformEntity.getScripts().getAfterCreateReply() != null) {
+      setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
+      runScripts(metaformEntity.getScripts().getAfterCreateReply());
+    }
+    
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
     return createOk(replyEntity);
@@ -240,9 +242,15 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
   
   @Override
-  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam,
-      String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields) throws Exception {
-    
+  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) throws Exception {
+    if (firstResult != null) {
+      return createNotImplemented("firstResult is not supported yet");
+    }
+
+    if (maxResults != null) {
+      return createNotImplemented("maxResults is not supported yet");
+    }
+
     OffsetDateTime createdBefore = parseTime(createdBeforeParam);
     OffsetDateTime createdAfter = parseTime(createdAfterParam);
     OffsetDateTime modifiedBefore = parseTime(modifiedBeforeParam);
@@ -323,6 +331,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
 
+    if (metaformEntity.getScripts() != null && metaformEntity.getScripts().getAfterUpdateReply() != null) {
+      setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
+      runScripts(metaformEntity.getScripts().getAfterUpdateReply());
+    }
+    
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
@@ -386,8 +399,8 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
     
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
-    
-    byte[] pdfData = getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, reply.getCreatedAt(), reply.getModifiedAt(), locale);
+    Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap = getAttachmentMap(metaformEntity, replyEntity);
+    byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
 
     return streamResponse(pdfData, "application/pdf");
   }
@@ -552,6 +565,25 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
 
     return streamResponse(attachment.getContent(), attachment.getContentType());
+  }
+
+  /**
+   * Sets up runtime context for running scripts
+   * 
+   * @param metaform Metaform JPA entity
+   * @param metaformEntity Metaform REST entity
+   * @param replyEntity Reply REST entity
+   */
+  private void setupFormRuntimeContext(fi.metatavu.metaform.server.persistence.model.Metaform metaform, Metaform metaformEntity, Reply replyEntity) {
+    formRuntimeContext.setLoggedUserId(getLoggerUserId());
+    formRuntimeContext.setMetaform(metaformEntity);
+    formRuntimeContext.setReply(replyEntity);
+    formRuntimeContext.setAttachmentMap(getAttachmentMap(metaformEntity, replyEntity));
+    formRuntimeContext.setLocale(getLocale());
+    
+    if (metaform.getExportTheme() != null) {
+      formRuntimeContext.setExportThemeName(metaform.getExportTheme().getName());
+    }
   }
 
   /**
@@ -1017,7 +1049,27 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
     return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
   }
+
+  /**
+   * Runs given scripts
+   * 
+   * @param scripts scripts
+   */
+  private void runScripts(List<MetaformScript> scripts) {
+    scripts.stream().forEach(this::runScript);
+  }
   
+  /**
+   * Runs given script
+   * 
+   * @param script
+   */
+  private void runScript(MetaformScript script) {
+    if (script != null) {
+      scriptProcessor.processScript(new RunnableScript(script.getLanguage(), script.getContent(), script.getName()), new HashMap<>());
+    }
+  }
+
   /**
    * Returns permission context fields from Metaform REST entity
    * 
@@ -1214,16 +1266,14 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   /**
-   * Renders Reply as PDF document
+   * Returns a map of reply attachments where map key is the attachment id and value the rest representation of the attachment
    * 
-   * @param metaformEntity Metaform
-   * @param replyEntity Reply
-   * @param locale locale
-   * @return Pdf bytes
-   * @throws PdfRenderException throw when rendering fails
+   * @param metaformEntity Metaform REST model
+   * @param replyEntity Reply REST model
+   * @return reply map
    */
-  private byte[] getReplyPdf(String exportThemeName, Metaform metaformEntity, Reply replyEntity, OffsetDateTime createdAt, OffsetDateTime modifiedAt, Locale locale) throws PdfRenderException {
-    Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentEntities = fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
+  private Map<String, fi.metatavu.metaform.server.rest.model.Attachment> getAttachmentMap(Metaform metaformEntity, Reply replyEntity) {
+    return fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
       .map(fieldName -> {
         @SuppressWarnings("unchecked")
         List<String> attachmentIds = (List<String>) replyEntity.getData().get(fieldName);
@@ -1241,34 +1291,14 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       .flatMap(List::stream)
       .filter(Objects::nonNull)
       .collect(Collectors.toMap(attachment -> attachment.getId().toString(), attachment -> attachment));
-
-    ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentEntities, getDate(createdAt), getDate(modifiedAt));
-    String html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale);
-    
-    try (InputStream htmlStream = IOUtils.toInputStream(html, "UTF-8")) {
-      try (ByteArrayOutputStream pdfStream = new ByteArrayOutputStream()) {
-        pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream);
-        return pdfStream.toByteArray();
-      }
-    } catch (IOException e) {
-      throw new PdfRenderException("Pdf rendering failed", e);
-    }
   }
 
   /**
-   * Returns OffsetDateTime as java.util.Date
+   * Serializes Metaform into JSON
    * 
-   * @param offsetDateTime offset date time
-   * @return java.util.Date
+   * @param metaform Metaform
+   * @return serialized Metaform
    */
-  private Date getDate(OffsetDateTime offsetDateTime) {
-    if (offsetDateTime == null) {
-      return null;
-    }
-    
-    return Date.from(offsetDateTime.toInstant());
-  }
-
   private String serializeMetaform(Metaform metaform) {
     ObjectMapper objectMapper = new ObjectMapper();
     
