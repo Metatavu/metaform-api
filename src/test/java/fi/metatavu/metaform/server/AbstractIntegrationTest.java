@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import feign.Feign.Builder;
+import fi.metatavu.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.ApiClient;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.ExportThemesApi;
@@ -38,7 +39,6 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
-import fi.metatavu.metaform.server.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.AttachmentsApi;
 
 
@@ -212,10 +212,16 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     String authorization = String.format("Bearer %s", accessToken);
     ApiClient apiClient = new ApiClient("bearer", authorization);
     
-    Builder feignBuilder = apiClient.getFeignBuilder();
-    feignBuilder.errorDecoder(new UmaErrorDecoder(authorization, apiClient));
     String basePath = String.format("http://%s:%d/v1", getHost(), getPort());
     apiClient.setBasePath(basePath);
+    
+    if (accessToken != null) {
+      Builder feignBuilder = apiClient.getFeignBuilder();
+      feignBuilder.errorDecoder(new UmaErrorDecoder(feignBuilder, authorization, (rpiAuthorization) -> {
+        apiClient.setApiKey(rpiAuthorization);
+      }));
+    }
+    
     return apiClient;
   }
   

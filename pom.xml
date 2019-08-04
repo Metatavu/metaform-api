@@ -100,6 +100,7 @@
     <wiremock.version>2.24.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
     <pdfbox.version>2.0.8</pdfbox.version>    
+    <feign-uma.version>1.0.2</feign-uma.version>
   </properties>
 
   <dependencyManagement>
@@ -441,12 +442,6 @@
       <artifactId>keycloak-authz-client</artifactId>
       <version>${keycloak.version}</version>
       <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.keycloak</groupId>
-          <artifactId>keycloak-core</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -482,6 +477,13 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>fi.metatavu.feign</groupId>
+      <artifactId>feign-uma</artifactId>
+      <version>${feign-uma.version}</version>
       <scope>test</scope>
     </dependency>
     
@@ -691,10 +693,10 @@
           <plugin>
             <groupId>org.codehaus.cargo</groupId>
             <artifactId>cargo-maven2-plugin</artifactId>
-            <version>1.6.7</version>
+            <version>1.7.6</version>
             <configuration>
               <container>
-                <containerId>wildfly12x</containerId>
+                <containerId>wildfly16x</containerId>
                 <log>${project.basedir}/target/cargo.log</log>
                 <output>${project.basedir}/target/wildfly.log</output>
                 <zipUrlInstaller>
