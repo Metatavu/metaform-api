@@ -100,7 +100,6 @@
     <wiremock.version>2.24.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
     <pdfbox.version>2.0.8</pdfbox.version>    
-    <feign-uma.version>1.0.2</feign-uma.version>
   </properties>
 
   <dependencyManagement>
@@ -150,9 +149,7 @@
       </plugin>
     </plugins>
   </build>
-  
   <dependencies>
-    
     <dependency>
       <groupId>org.jboss.spec.javax.servlet</groupId>
       <artifactId>jboss-servlet-api_4.0_spec</artifactId>
@@ -194,7 +191,8 @@
       <artifactId>jackson-jaxrs-json-provider</artifactId>
       <scope>provided</scope>
 	  </dependency>
-
+    
+    
     <dependency>
       <groupId>org.jboss.spec.javax.ws.rs</groupId>
       <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
@@ -214,18 +212,17 @@
     </dependency>
 
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-          
-    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <scope>provided</scope>
     </dependency>
 
-    
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>2.7</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
@@ -255,18 +252,6 @@
       <artifactId>commons-lang3</artifactId>
       <scope>provided</scope>
     </dependency>
-
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <scope>provided</scope>
-    </dependency>
     
     <dependency>
       <groupId>org.infinispan</groupId>
@@ -280,12 +265,6 @@
       <groupId>fi.metatavu.polyglot</groupId>
       <artifactId>polyglot-xhr</artifactId>
       <version>${polyglot-xhr.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <!-- Graal -->
@@ -395,16 +374,12 @@
       <scope>provided</scope>
     </dependency>
     
+    
+    
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-cdi</artifactId>
       <version>${liquibase.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     
     <dependency>
@@ -442,6 +417,12 @@
       <artifactId>keycloak-authz-client</artifactId>
       <version>${keycloak.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.keycloak</groupId>
+          <artifactId>keycloak-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -477,13 +458,6 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>fi.metatavu.feign</groupId>
-      <artifactId>feign-uma</artifactId>
-      <version>${feign-uma.version}</version>
       <scope>test</scope>
     </dependency>
     
@@ -544,10 +518,6 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -819,19 +789,25 @@
                     
                     <!-- Host -->
                                                           
+                    <command>if (outcome != success) of /subsystem=undertow/server=default-server/host=metaform-api:read-resource</command>
                     <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
                     <command>/system-property=it-test:add(value="true")</command>
                     <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
+                    <command>end-if</command>
                     
                     <!-- Infinispan -->
                     
+                    <command>if (outcome != success) of /subsystem=infinispan/cache-container=metaform:read-resource</command>
                     <command>/subsystem=infinispan/cache-container=metaform:add()</command>
                     <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()</command>
                     <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>
+                    <command>end-if</command>
                     
                     <!-- Logging -->
                     
+                    <command>if (outcome != success) of /subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:read-resource</command>
                     <command>/subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:add(level=WARNING)</command> 
+                    <command>end-if</command>
                   </commands>
                 </configuration>
               </execution>
