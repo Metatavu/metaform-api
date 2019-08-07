@@ -505,8 +505,6 @@ public class KeycloakAdminUtils {
    * @return id
    */
   private static UUID getCreateResponseId(Response response) {
-    System.out.println("status " + response.getStatus());
-    
     if (response.getStatus() != 201) {
       try {
         if (logger.isErrorEnabled()) {
@@ -519,6 +517,21 @@ public class KeycloakAdminUtils {
       return null;
     }
     
+    UUID locationId = getCreateResponseLocationId(response);
+    if (locationId != null) {
+      return locationId;
+    }
+    
+    return getCreateResponseBodyId(response);
+  }
+
+  /**
+   * Attempts to locate id from create location response
+   * 
+   * @param response response
+   * @return id or null if not found
+   */
+  private static UUID getCreateResponseLocationId(Response response) {
     String location = response.getHeaderString("location");
     if (StringUtils.isNotBlank(location)) {
       Pattern pattern = Pattern.compile(".*\\/(.*)$");
@@ -529,6 +542,16 @@ public class KeycloakAdminUtils {
       }
     }
     
+    return null;
+  }
+
+  /**
+   * Attempts to locate id from create response body
+   * 
+   * @param response response object
+   * @return id or null if not found
+   */
+  private static UUID getCreateResponseBodyId(Response response) {
     if (response.getEntity() instanceof InputStream) {
       try (InputStream inputStream = (InputStream) response.getEntity()) {
         Map<String, Object> result = readJsonMap(inputStream);
