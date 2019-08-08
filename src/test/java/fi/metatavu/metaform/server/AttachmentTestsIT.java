@@ -81,10 +81,10 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       replyData.put("files", fileRefs);
       
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
-      assertEquals(fileRefs, reply.getData().get("files"));
+      assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
 
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
-      assertEquals(fileRefs, foundReply.getData().get("files"));
+      assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
@@ -116,10 +116,10 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       replyData.put("files", fileRefs);
       
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
-      assertEquals(fileRefs, reply.getData().get("files"));
-
+      assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
+      
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
-      assertEquals(fileRefs, foundReply.getData().get("files"));
+      assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
@@ -138,7 +138,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       dataBuilder.clean();
     }
   }
-
+  
   @Test
   public void deleteAttachmentsTest() throws IOException, URISyntaxException {
     String adminToken = getAdminToken(REALM_1);
@@ -161,10 +161,10 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       replyData.put("files", fileRefs);
       
       Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
-      assertEquals(fileRefs, reply.getData().get("files"));
-
+      assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files")); 
+      
       Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
-      assertEquals(fileRefs, foundReply.getData().get("files"));
+      assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
@@ -193,7 +193,6 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
     }
   }
   
-
   private byte[] getAttachmentData(String accessToken, UUID id) throws IOException {
     URL url = new URL(String.format("%s/v1/realms/%s/attachments/%s/data", getBasePath(), REALM_1, id.toString()));
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();

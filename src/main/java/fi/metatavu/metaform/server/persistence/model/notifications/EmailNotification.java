@@ -29,7 +29,6 @@ import fi.metatavu.metaform.server.persistence.model.Metaform;
 public class EmailNotification {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @Lob

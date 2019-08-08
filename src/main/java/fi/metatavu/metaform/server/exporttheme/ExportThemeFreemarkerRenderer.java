@@ -11,6 +11,8 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import fi.metatavu.metaform.server.settings.SystemSettingController;
+import freemarker.cache.NullCacheStorage;
 import freemarker.ext.beans.BeansWrapperBuilder;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -33,6 +35,9 @@ public class ExportThemeFreemarkerRenderer {
   
   @Inject
   private ExportThemeFreemarkerTemplateLoader freemarkerTemplateLoader;
+
+  @Inject
+  private SystemSettingController systemSettingController;
   
   private Configuration configuration;
   
@@ -48,6 +53,10 @@ public class ExportThemeFreemarkerRenderer {
     configuration.setLogTemplateExceptions(false);
     configuration.setObjectWrapper(new BeansWrapperBuilder(VERSION).build());
     configuration.setLocalizedLookup(false);
+    
+    if (systemSettingController.inTestMode()) {
+      configuration.setCacheStorage(new NullCacheStorage());
+    }
   }
   
   /**

@@ -25,12 +25,10 @@ import org.hibernate.annotations.Type;
 public class Attachment {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @Column(nullable = false)
   @NotNull
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID userId;
 
   @Column (nullable = false)

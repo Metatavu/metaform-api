@@ -14,7 +14,6 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Type;
 
 /**
  * JPA entity representing reply
@@ -27,12 +26,10 @@ import org.hibernate.annotations.Type;
 public class Reply {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @Column(nullable = false)
   @NotNull
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID userId;
   
   @Column
@@ -47,7 +44,6 @@ public class Reply {
   @ManyToOne(optional = false)
   private Metaform metaform;
 
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID resourceId;
   
   public UUID getId() {

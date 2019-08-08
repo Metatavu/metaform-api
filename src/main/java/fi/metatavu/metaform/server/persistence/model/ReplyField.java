@@ -10,12 +10,11 @@ import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Type;
-import javax.validation.constraints.NotEmpty;
 
 /**
  * JPA entity representing field in reply
@@ -32,7 +31,6 @@ import javax.validation.constraints.NotEmpty;
 public class ReplyField {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @ManyToOne(optional = false)

@@ -1,11 +1,15 @@
 package fi.metatavu.metaform.server;
 
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,7 +31,6 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +71,17 @@ public abstract class AbstractTest {
     document.close();
     
     assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected));
+  }
+  
+  /**
+   * Asserts that given object is list and contains same items as the expected list (in any order)
+   * 
+   * @param expected expected list
+   * @param actual actual object
+   */
+  protected void assertListsEqualInAnyOrder(List<?> expected, Object actual) {
+    assertTrue(actual instanceof List);
+    assertThat((List<?>) actual, containsInAnyOrder(expected.toArray()));  
   }
   
   /**
@@ -288,14 +302,23 @@ public abstract class AbstractTest {
       if (param instanceof List) {
         statement.setObject(i + 1, ((List<?>) param).toArray());
       } else if (param instanceof UUID) {
-        PGobject pgObject = new PGobject();
-        pgObject.setType("uuid");
-        pgObject.setValue(param.toString());
-        statement.setObject(i + 1, pgObject);
+        statement.setBytes(i + 1, getUUIDBytes((UUID) param));
       } else {
         statement.setObject(i + 1, params[i]);
       }
     }
+  }
+
+  /**
+   * Converts UUID into bytes
+   * 
+   * @param uuid UUID
+   * @return bytes
+   */
+  private byte[] getUUIDBytes(UUID uuid) {
+    byte[] result = new byte[16];
+    ByteBuffer.wrap(result).order(ByteOrder.BIG_ENDIAN).putLong(uuid.getMostSignificantBits()).putLong(uuid.getLeastSignificantBits());
+    return result;
   }
  
 }
