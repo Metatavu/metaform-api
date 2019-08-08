@@ -85,7 +85,7 @@ public class ExportThemeController {
    * @return export themes
    */
   public List<ExportTheme> listExportThemes() {
-    return exportThemeDAO.listAll();
+    return exportThemeDAO.list();
   }
 
   /**

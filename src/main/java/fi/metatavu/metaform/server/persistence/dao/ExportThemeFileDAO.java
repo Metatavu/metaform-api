@@ -84,9 +84,7 @@ public class ExportThemeFileDAO extends AbstractDAO<ExportThemeFile> {
     criteria.select(root);
     criteria.where(criteriaBuilder.equal(root.get(ExportThemeFile_.theme), theme));
     
-    TypedQuery<ExportThemeFile> query = entityManager.createQuery(criteria);
-    
-    return query.getResultList();
+    return entityManager.createQuery(criteria).getResultList();
   }
   
   /**
