@@ -14,8 +14,6 @@ import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 
-import org.hibernate.jpa.criteria.compile.CriteriaQueryTypeQueryAdapter;
-
 /**
  * Abstract base class for all DAO classes
  * 
@@ -166,16 +164,6 @@ public abstract class AbstractDAO<T> {
     return list.get(list.size() - 1);
   }
   
-  /**
-   * Prints query as HQL. Used for debugging purposes only
-   * 
-   * @param query query
-   * @return query as HQL
-   */
-  protected String getQueryHQL(Query query) {
-    return ((CriteriaQueryTypeQueryAdapter<?>) query).getHibernateQuery().getQueryString();
-  }
-
   @SuppressWarnings("unchecked")
   private Class<T> getFirstTypeArgument(ParameterizedType parameterizedType) {
     return (Class<T>) parameterizedType.getActualTypeArguments()[0];
