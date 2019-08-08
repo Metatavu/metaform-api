@@ -18,17 +18,15 @@ addons:
       secure: "fS2/GmiesqmziGzo1rboC1lxXMX5/3ml9OV+mrtOk0M4pE/HMdbC7mRwCkXc9FdNeBdlWmxdklFYXnkoyfMOf1EM/6SFXxh7tIcpIS15TZVYUp2Gce95ZFSFao/7v5viPx0IP8MBu0UO2n4ssbYtkED++JY7cJGsu8x6M91+G7ubYoYSjEg4juole0cbl+plwOvL0S/t3XkgxUFVUU7Klg3oG1kBFtU+5NHhQGq6uRseH/FPaab6f7kxTwB20mCZ3w31INgLTS7GpnujkGpOmrV5rJsSM3knCbrq6orYrs/ZcPRNGUhcNTvuhZaPxHI6IDz9je6MLG4dvGM1c8FocsCVJtY+sWoCmMTr8BonbJ7eu/zFC44kKyCwYf0QMze2Y/pGHk7ck9ERz8KFR9fYaI2+1F47zFCxAD63+50hva6Nsh6613VMVfvNFALcN6GFj+TYESZvwX6CaqWc9giX6d8gx++/PI1QmBmoDzcUGjFta7/DPZMVSGWOy5fWUOajZXI0hXEd7rFS9FbVGUrZ5Xy5vYSelNPu3kQuw34lTU5K72KS8uDn6aRD1NJYBg2JBKkC9ypgAY9tnmXp/8vWp41qpDDtMoiDtG9coTCzBvz6sRrrRKNriKd95yONXRHy3fT5iNcjcMA9Z8UczX75OEhQCdh1IBUeTDIuqkSgZBg="
 
 services:
-  - postgresql
+  - mysql
 
 install: true
   
 before_script:
-  - scripts/start-keycloak.sh
-  - psql -c 'create database mftest' -U postgres
-  - psql -c 'create user mftest' -U postgres
-  - psql -c "alter user mftest with password 'mftest'"
-  - psql -c "alter role mftest with login"
-
+- echo -e "[mysqld]\nlower-case-table-names = 1" | sudo tee -a /etc/mysql/my.cnf
+- sudo service mysql restart
+- mysql -u root < scripts/setup-db.sql
+- scripts/start-keycloak.sh
 script:
   - . travis.sh
 
