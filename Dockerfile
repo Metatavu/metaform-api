@@ -1,6 +1,6 @@
 ARG WILDFLY_VERSION=17.0.1.Final
 
-FROM jboss/wildfly:${WILDFLY_VERSION}}
+FROM jboss/wildfly:${WILDFLY_VERSION}
 
 ADD --chown=jboss target/*.war /opt/jboss/wildfly/standalone/deployments/app.war
 ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh 
@@ -8,6 +8,7 @@ ADD --chown=jboss ./docker/host.cli /opt/docker/host.cli
 ADD --chown=jboss ./docker/kubernets-jgroups.cli /opt/docker/kubernets-jgroups.cli
 ADD --chown=jboss ./docker/jdbc.cli /opt/docker/jdbc.cli
 ADD --chown=jboss ./docker/interfaces.cli /opt/docker/interfaces.cli
+ADD --chown=jboss ./docker/env.cli /opt/docker/env.cli
 RUN chmod a+x /opt/docker/entrypoint.sh
 
 ARG MARIADB_MODULE_VERSION=2.3.0
@@ -19,6 +20,7 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/host.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/jdbc.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/kubernets-jgroups.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/interfaces.cli
+RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/env.cli
 
 EXPOSE 8080
 
