@@ -1,15 +1,7 @@
 FROM jboss/wildfly:17.0.1.Final
 
 ARG WILDFLY_VERSION=17.0.1.Final
-ARG MAVEN_VERSION=3.6.0
 ARG MARIADB_MODULE_VERSION=2.3.0
-
-ADD --chown=jboss . /tmp/build
-RUN mkdir /tmp/maven && curl -o /tmp/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz -L https://www.nic.funet.fi/pub/mirrors/apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
-RUN tar -xvf /tmp/maven/apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /tmp/maven
-ENV MAVEN_OPTS=-Dfile.encoding=UTF-8 
-WORKDIR /tmp/build
-RUN /tmp/maven/apache-maven-${MAVEN_VERSION}/bin/mvn package
 
 ADD --chown=jboss target/*.war /opt/jboss/wildfly/standalone/deployments/app.war
 ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh 
@@ -29,10 +21,6 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/kubernets-jgroups.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/interfaces.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/env.cli
 
-RUN rm -fR /tmp/maven
-RUN rm -fR /tmp/build
-
 EXPOSE 8080
-
 
 CMD "/opt/docker/entrypoint.sh"
