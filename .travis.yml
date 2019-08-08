@@ -25,7 +25,7 @@ install: true
 before_script:
 - echo -e "[mysqld]\nlower-case-table-names = 1" | sudo tee -a /etc/mysql/my.cnf
 - sudo service mysql restart
-- mysql -u root < scripts/setup-db.sql
+- mysql -u root < scripts/setup-db-mysql.sql
 - scripts/start-keycloak.sh
 script:
   - . travis.sh
