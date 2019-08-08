@@ -3,10 +3,10 @@
 
   <changeSet id="initial" author="antti.leppa">
     <createTable tableName="metaform">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="realmid" type="varchar(255)">
+      <column name="realmid" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
       <column name="data" type="longtext">
@@ -15,51 +15,51 @@
     </createTable>
 
     <createTable tableName="reply">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="userid" type="uuid">
+      <column name="userid" type="binary(16)">
         <constraints nullable="false"/>
       </column>
-      <column name="createdat" type="timestamp">
+      <column name="createdat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="modifiedat" type="timestamp">
+      <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="metaform_id" type="uuid">
+      <column name="metaform_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_REPLY_METAFORM_ID" referencedTableName="metaform" referencedColumnNames="id"/>
       </column>
     </createTable>
 
     <createTable tableName="replyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="reply_id" type="uuid">
+      <column name="reply_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_REPLY_FIELD_REPLY_ID" referencedTableName="reply" referencedColumnNames="id"/>
       </column>
-      <column name="name" type="varchar(255)">
+      <column name="name" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
     </createTable>
 
     <createTable tableName="stringreplyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_STRING_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
       </column>
       <column name="value" type="longtext"/>
     </createTable>
 
     <createTable tableName="booleanreplyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_BOOLEAN_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
       </column>
       <column name="value" type="boolean"/>
     </createTable>
 
     <createTable tableName="numberreplyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_NUMBER_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
       </column>
       <column name="value" type="double"/>
@@ -69,40 +69,40 @@
   
   <changeSet id="indices" author="antti.leppa">
     <createIndex indexName="IND_METAFORM_REALMID" tableName="metaform">
-      <column name="realmid" type="varchar(255)"/>
+      <column name="realmid" type="varchar(191)"/>
     </createIndex>
     
     <createIndex indexName="IND_REPLY_USERID_METAFORM_ID" tableName="reply" unique="true">
-      <column name="userid" type="uuid"/>
-      <column name="metaform_id" type="uuid"/>
+      <column name="userid" type="binary(16)"/>
+      <column name="metaform_id" type="binary(16)"/>
     </createIndex>
   
     <createIndex indexName="IND_REPLY_METAFORM_ID" tableName="reply">
-      <column name="metaform_id" type="uuid"/>
+      <column name="metaform_id" type="binary(16)"/>
     </createIndex>
   
     <createIndex indexName="IND_REPLYFIELD_REPLY_ID_NAME" tableName="replyfield" unique="true">
-      <column name="reply_id" type="uuid"/>
-      <column name="name" type="varchar(255)"/>
+      <column name="reply_id" type="binary(16)"/>
+      <column name="name" type="varchar(191)"/>
     </createIndex>
    
     <createIndex indexName="IND_REPLYFIELD_REPLY_ID" tableName="replyfield" >
-      <column name="reply_id" type="uuid"/>
+      <column name="reply_id" type="binary(16)"/>
     </createIndex>
     
   </changeSet>
   
   <changeSet id="reply-revision" author="antti.leppa">
     <addColumn tableName="reply">
-      <column name="revision" type="timestamp"/>
+      <column name="revision" type="datetime(6)"/>
     </addColumn>
     
     <dropIndex tableName="reply" indexName="IND_REPLY_USERID_METAFORM_ID"/>
     
     <createIndex indexName="IND_REPLY_USERID_METAFORM_ID_REVISION" tableName="reply" unique="true">
-      <column name="userid" type="uuid"/>
-      <column name="metaform_id" type="uuid"/>
-      <column name="revision" type="timestamp"/>
+      <column name="userid" type="binary(16)"/>
+      <column name="metaform_id" type="binary(16)"/>
+      <column name="revision" type="datetime(6)"/>
     </createIndex>
     
   </changeSet>  
@@ -115,19 +115,19 @@
   
   <changeSet id="listreplyfields" author="antti.leppa">
     <createTable tableName="listreplyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_LIST_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
       </column>
     </createTable>
     
     <createTable tableName="listreplyfielditem">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>      
-      <column name="field_id" type="uuid">
+      <column name="field_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_LIST_REPLY_ITEM_FIELD_ID" referencedTableName="listreplyfield" referencedColumnNames="id"/>
       </column>
-      <column name="value" type="varchar(255)">
+      <column name="value" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
     </createTable>
@@ -135,10 +135,10 @@
   
   <changeSet id="system-settings" author="Heikki Kurhinen">
     <createTable tableName="systemsetting">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="settingkey" type="varchar(255)">
+      <column name="settingkey" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
       <column name="value" type="longtext">
@@ -151,22 +151,22 @@
   
   <changeSet id="email-notifications" author="Antti Leppa">
     <createTable tableName="emailnotification">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="metaform_id" type="uuid">
+      <column name="metaform_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_EMAIL_NOTIFICATION_METAFORM_ID" referencedTableName="metaform" referencedColumnNames="id"/>
       </column>
     </createTable>
     
     <createTable tableName="emailnotificationemail">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="emailnotification_id" type="uuid">
+      <column name="emailnotification_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_EMAIL_NOTIFICATION_EMAIL_EMAIL_NOTIFICATION_ID" referencedTableName="emailnotification" referencedColumnNames="id"/>
       </column>
-      <column name="email" type="varchar(255)">
+      <column name="email" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
     </createTable>
@@ -189,12 +189,12 @@
   
   <changeSet id="email-notification-created-at" author="Antti Leppa">
     <addColumn tableName="emailnotification">
-      <column name="createdat" type="timestamp">
+      <column name="createdat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
     </addColumn>
     <addColumn tableName="emailnotification">
-      <column name="modifiedat" type="timestamp">
+      <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
     </addColumn>
@@ -202,22 +202,22 @@
   
   <changeSet id="attachment" author="Antti Leppa">
     <createTable tableName="attachment">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="userid" type="uuid">
+      <column name="userid" type="binary(16)">
         <constraints nullable="false"/>
       </column>
-      <column name="name" type="varchar(255)">
+      <column name="name" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
-      <column name="contenttype" type="varchar(255)">
+      <column name="contenttype" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
-      <column name="createdat" type="timestamp">
+      <column name="createdat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="modifiedat" type="timestamp">
+      <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
       <column name="content" type="LONGBLOB">
@@ -228,19 +228,19 @@
   
   <changeSet id="attachmentreplyfields" author="antti.leppa">
     <createTable tableName="attachmentreplyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_ATTACHMENT_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
       </column>
     </createTable>
     
     <createTable tableName="attachmentreplyfielditem">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>      
-      <column name="field_id" type="uuid">
+      <column name="field_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_ATTACHMENT_REPLY_ITEM_FIELD_ID" referencedTableName="attachmentreplyfield" referencedColumnNames="id"/>
       </column>      
-      <column name="attachment_id" type="uuid">
+      <column name="attachment_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_ATTACHMENT_REPLY_ITEM_ATTACHMENT_ID" referencedTableName="attachment" referencedColumnNames="id"/>
       </column>
     </createTable>
@@ -248,53 +248,53 @@
   
   <changeSet id="exporttheme" author="antti.leppa">
     <createTable tableName="exporttheme">
-       <column name="id" type="uuid">
+       <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="createdat" type="timestamp">
+      <column name="createdat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="modifiedat" type="timestamp">
+      <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="creator" type="uuid">
+      <column name="creator" type="binary(16)">
         <constraints nullable="false"/>
       </column>
-      <column name="lastmodifier" type="uuid">
+      <column name="lastmodifier" type="binary(16)">
         <constraints nullable="false"/>
       </column>
       <column name="locales" type="longtext"/>
-      <column name="parent_id" type="uuid">
+      <column name="parent_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
       </column>
-      <column name="name" type="varchar(255)">
+      <column name="name" type="varchar(191)">
         <constraints nullable="false" unique="true"/>
       </column>
     </createTable>
     
     <createTable tableName="exportthemefile">
-       <column name="id" type="uuid">
+       <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="theme_id" type="uuid">
+      <column name="theme_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_EXPORTTHEMEFILE_THEME_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
       </column>
-      <column name="path" type="varchar(255)">
+      <column name="path" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
       <column name="content" type="longtext">
         <constraints nullable="false"/>
       </column>
-      <column name="createdat" type="timestamp">
+      <column name="createdat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="modifiedat" type="timestamp">
+      <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="creator" type="uuid">
+      <column name="creator" type="binary(16)">
         <constraints nullable="false"/>
       </column>
-      <column name="lastmodifier" type="uuid">
+      <column name="lastmodifier" type="binary(16)">
         <constraints nullable="false"/>
       </column>
     </createTable>
@@ -303,12 +303,12 @@
   </changeSet> 
 
   <changeSet id="exporttheme-parent" author="antti.leppa">
-    <dropNotNullConstraint tableName="exporttheme" columnName="parent_id" columnDataType="uuid"/>
+    <dropNotNullConstraint tableName="exporttheme" columnName="parent_id" columnDataType="binary(16)"/>
   </changeSet> 
   
   <changeSet id="metaform-exporttheme" author="antti.leppa">
     <addColumn tableName="metaform">
-      <column name="exporttheme_id" type="uuid">
+      <column name="exporttheme_id" type="binary(16)">
         <constraints nullable="true" foreignKeyName="FK_METAFORM_EXPORTTHEME_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
       </column>      
     </addColumn>
@@ -316,41 +316,41 @@
   
   <changeSet id="tablereplyfields" author="antti.leppa">
     <createTable tableName="tablereplyfield">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLE_REPLY_FIELD_ID" referencedTableName="replyfield" referencedColumnNames="id"/>
       </column>
     </createTable>
                             
     <createTable tableName="tablereplyfieldrow">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="field_id" type="uuid">
+      <column name="field_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_TABLEREPLYFIELDROW_TABLEREPLYFIELD_ID" referencedTableName="tablereplyfield" referencedColumnNames="id"/>
       </column>      
     </createTable>
 
     <createTable tableName="tablereplyfieldrowcell">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
-      <column name="row_id" type="uuid">
+      <column name="row_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_TABLEREPLYFIELDROWCELL_TABLEREPLYFIELDROW_ID" referencedTableName="tablereplyfieldrow" referencedColumnNames="id"/>
       </column>
-      <column name="name" type="varchar(255)">
+      <column name="name" type="varchar(191)">
         <constraints nullable="false" unique="false"/>
       </column>
     </createTable>
    
     <createTable tableName="tablereplyfieldnumberrowcell">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLEREPLYFIELDNUMBERROWCELL_TABLEREPLYFIELDROWCELL_ID" referencedTableName="tablereplyfieldrowcell" referencedColumnNames="id"/>
       </column>
       <column name="value" type="double"/>
     </createTable>
 
     <createTable tableName="tablereplyfieldstringrowcell">
-      <column name="id" type="uuid">
+      <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true" foreignKeyName="FK_TABLEREPLYFIELDSTRINGROWCELL_TABLEREPLYFIELDROWCELL_ID" referencedTableName="tablereplyfieldrowcell" referencedColumnNames="id"/>
       </column>
       <column name="value" type="longtext"/>
@@ -360,7 +360,7 @@
 
   <changeSet author="antti.leppa" id="reply-authz-resources">
     <addColumn tableName="reply">
-      <column name="resourceid" type="uuid"/>
+      <column name="resourceid" type="binary(16)"/>
     </addColumn>
     
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateRealmAuthorizations"/>
@@ -369,29 +369,29 @@
 
   <changeSet author="antti.leppa" id="form-slug">
     <addColumn tableName="metaform">
-      <column name="slug" type="varchar(255)"/>
+      <column name="slug" type="varchar(191)"/>
     </addColumn>
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.FormSlugs"/>
     
-    <addNotNullConstraint tableName="metaform" columnName="slug" columnDataType="varchar(255)"/>
+    <addNotNullConstraint tableName="metaform" columnName="slug" columnDataType="varchar(191)"/>
     
     <createIndex indexName="UN_METAFORM_SLUG" tableName="metaform" unique="true">
-      <column name="slug" type="varchar(255)"/>
-      <column name="realmid" type="varchar(255)"/>
+      <column name="slug" type="varchar(191)"/>
+      <column name="realmid" type="varchar(191)"/>
     </createIndex>
   </changeSet>
   
   <changeSet author="antti.leppa" id="attachmentindices">
     <createIndex indexName="UN_ATTACHMENT_REPLY_FIELD_ITEM_FIELD_ATTACHMEMENT" tableName="attachmentreplyfielditem" unique="true">
-      <column name="field_id" type="uuid"/>
-      <column name="attachment_id" type="uuid"/>
+      <column name="field_id" type="binary(16)"/>
+      <column name="attachment_id" type="binary(16)"/>
     </createIndex>
   </changeSet>
   
   <changeSet author="antti.leppa" id="replyfield">
     <createIndex indexName="UN_REPLY_FIELD_REPLY_ID_NAME" tableName="replyfield" unique="true">
-      <column name="reply_id" type="uuid"/>
-      <column name="name" type="varchar(255)"/>
+      <column name="reply_id" type="binary(16)"/>
+      <column name="name" type="varchar(191)"/>
     </createIndex>
   </changeSet>
   

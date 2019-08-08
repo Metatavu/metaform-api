@@ -62,17 +62,10 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
   
   @After
-  public void metaformsCleaned() {
-    int metaformCount = executeSelectSingle("SELECT count(id) as count FROM Metaform", (resultSet) -> {
-      try {
-        return resultSet.getInt("count");
-      } catch (SQLException e) {
-        fail(e.getMessage());
-        return null;
-      }
-    });
-    
-    assertEquals("Metaforms not properly cleaned after test", 0, metaformCount); 
+  public void properlyCleaned() {
+    assertCount("Metaforms not properly cleaned after test", "SELECT count(id) as count FROM Metaform", 0); 
+    assertCount("Replies not properly cleaned after test", "SELECT count(id) as count FROM Reply", 0);
+    assertCount("ExportThemeFiles not properly cleaned after test", "SELECT count(id) as count FROM ExportThemeFile", 0);
   }
   
   /**
@@ -477,6 +470,25 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       assertEquals(expectedStatus, response.getStatusLine().getStatusCode());
     }
   }
-  
+
+  /**
+   * Asserts that given query returns expected value in "count" column
+   * 
+   * @param message assertion fail message
+   * @param sql SQL
+   * @param expected expected count
+   */
+  private void assertCount(String message, String sql, int expected) {
+    int metaformCount = executeSelectSingle(sql, (resultSet) -> {
+      try {
+        return resultSet.getInt("count");
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    });
+    
+    assertEquals(message, expected, metaformCount);
+  }
   
 }

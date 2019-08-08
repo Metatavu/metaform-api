@@ -10,13 +10,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.github.slugify.Slugify;
 
-import fi.metatavu.metaform.server.persistence.dao.AnyReplyFieldDAO;
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO;
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
 import fi.metatavu.metaform.server.persistence.model.ExportTheme;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.Reply;
-import fi.metatavu.metaform.server.persistence.model.ReplyField;
 
 /**
  * Metaform controller
@@ -25,15 +23,15 @@ import fi.metatavu.metaform.server.persistence.model.ReplyField;
  */
 @ApplicationScoped
 public class MetaformController {
+
+  @Inject
+  private ReplyController replyController;
  
   @Inject
   private MetaformDAO metaformDAO;
 
   @Inject
   private ReplyDAO replyDAO;
-
-  @Inject
-  private AnyReplyFieldDAO anyReplyFieldDAO;
   
   /**
    * Creates new Metaform
@@ -92,11 +90,7 @@ public class MetaformController {
   public void deleteMetaform(Metaform metaform) {
     List<Reply> replies = replyDAO.listByMetaform(metaform);
     
-    replies.stream().forEach(reply -> {
-      List<ReplyField> fields = anyReplyFieldDAO.listByReply(reply);
-      fields.stream().forEach(field -> anyReplyFieldDAO.delete(field));
-      replyDAO.delete(reply);
-    });
+    replies.stream().forEach(replyController::deleteReply);
     
     metaformDAO.delete(metaform);
   }

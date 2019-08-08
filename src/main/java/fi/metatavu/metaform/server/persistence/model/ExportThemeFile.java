@@ -36,7 +36,6 @@ import javax.validation.constraints.NotEmpty;
 public class ExportThemeFile {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
   
   @ManyToOne (optional = false)
@@ -56,12 +55,10 @@ public class ExportThemeFile {
   
   @Column(nullable = false)
   @NotNull
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID creator;
   
   @Column(nullable = false)
   @NotNull
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID lastModifier;
 
   @Column (nullable = false)

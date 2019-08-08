@@ -56,8 +56,6 @@ public class ExportThemeFreemarkerTemplateLoader implements TemplateLoader {
   }
   
   private ExportThemeFile findExportThemeFile(String path) {
-    
-    
     return exportThemeController.findExportThemeFile(path);
   }
 

@@ -67,7 +67,6 @@
     <!-- Liquibase -->
     
     <liquibase.version>3.6.1</liquibase.version>
-    <postgresql.version>42.2.5</postgresql.version>
     
     <!-- Keycloak -->
     
@@ -96,10 +95,11 @@
     <!-- Test -->
     
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.1.5</metaform-api-client.version>
+    <metaform-api-client.version>0.1.6</metaform-api-client.version>
     <wiremock.version>2.24.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
     <pdfbox.version>2.0.8</pdfbox.version>    
+    <mariadb-module.version>2.3.0</mariadb-module.version>
   </properties>
 
   <dependencyManagement>
@@ -370,19 +370,10 @@
       <scope>provided</scope>
     </dependency>
     
-    
-    
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-cdi</artifactId>
       <version>${liquibase.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
-      <type>jar</type>
     </dependency>
     
     <!-- Keycloak -->
@@ -533,6 +524,15 @@
       <scope>test</scope>
     </dependency>
     
+    <!-- Database Driver -->
+  
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <version>${mariadb-module.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
     <!-- PDFBox -->
 
     <dependency>
@@ -560,21 +560,19 @@
       
       <properties>
         <it.port.http>58080</it.port.http>
-        <it.host>api-itest.metaform.fi</it.host>
-        <it.jdbc.driver>org.postgresql.xa.PGXADataSource</it.jdbc.driver>
-        <it.jdbc.url>jdbc:postgresql://localhost:5432/mftest</it.jdbc.url>
-        <it.jdbc.properties>DatabaseName=mftest</it.jdbc.properties>
+        <it.host>api-itest.metaform.fi</it.host>        
+        <it.jdbc.driver>org.mariadb.jdbc.MySQLDataSource</it.jdbc.driver>
+        <it.jdbc.module>com.mariadb.jdbc</it.jdbc.module>        
         <it.jdbc.dbname>mftest</it.jdbc.dbname>
-        <it.jdbc.module>org.postgres</it.jdbc.module>
+        <it.jdbc.username>sa</it.jdbc.username>
+        <it.jdbc.password>sa</it.jdbc.password>
+        <it.jdbc.url>jdbc:mysql://localhost:3306/${it.jdbc.dbname}?serverTimezone=Europe/Helsinki</it.jdbc.url>
         <it.jdbc.jndi>java:jboss/datasources/metaform-api</it.jdbc.jndi>
-        <it.jdbc.username>mftest</it.jdbc.username>
-        <it.jdbc.password>mftest</it.jdbc.password>
         <it.jdbc.type>javax.sql.XADataSource</it.jdbc.type>
         <it.jdbc.transactionsupport>XA_TRANSACTION</it.jdbc.transactionsupport>
+        <mariadb-module.version>2.3.0</mariadb-module.version>
         <it.skipdatabasedrop>true</it.skipdatabasedrop>
-        <it.hibernate.dialect>org.hibernate.dialect.H2Dialect</it.hibernate.dialect>
         <jacoco.reportPath>${project.basedir}/target/jacoco.exec</jacoco.reportPath>
-        
       </properties>
       
       <build>
@@ -720,22 +718,21 @@
               </execution>
             </executions>
           </plugin>
-          
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
             <version>1.8</version>
             <executions>
               <execution>
-                <id>unpack-postgres-module</id>
+                <id>unpack-mariadb-module</id>
                 <phase>pre-integration-test</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
                 <configuration>
                   <target>
-                    <get src="https://s3.eu-central-1.amazonaws.com/static.metatavu.io/wildfly/postgresql-wildfly-module.zip" dest="${project.build.directory}/postgres-module.zip" verbose="true" usetimestamp="true"/>
-                    <unzip src="${project.build.directory}/postgres-module.zip" dest="${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}"/>
+                    <get src="https://static.metatavu.io/wildfly/wildfly-${wildfly.version}-mariadb-module-${mariadb-module.version}.zip" dest="${project.build.directory}/mariadb-module.zip" verbose="true" usetimestamp="true"/>
+                    <unzip src="${project.build.directory}/mariadb-module.zip" dest="${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}"/>
                   </target>
                 </configuration>
               </execution>
@@ -778,9 +775,9 @@
                     
                     <!-- JDBC -->
                     
-                    <command>if (outcome != success) of /subsystem=datasources/data-source=metaform-api:read-resource</command>
+                    <command>if (outcome != success) of /subsystem=datasources/data-source=it:read-resource</command>
                     <command>/subsystem=datasources/jdbc-driver=it:add(driver-name="it", driver-module-name=${it.jdbc.module},driver-xa-datasource-class-name=${it.jdbc.driver})</command>
-                    <command>data-source add --name=metaform-api --use-ccm=true --jta=true --enabled=true --driver-name=it --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --connection-url=${it.jdbc.url}</command>
+                    <command>data-source add --name=it --use-ccm=true --jta=true --enabled=true --driver-name=it --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --connection-url=${it.jdbc.url}</command>
                     <command>end-if</command>
                     
                     <!-- Host -->

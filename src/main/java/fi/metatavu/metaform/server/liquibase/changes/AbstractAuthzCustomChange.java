@@ -2,6 +2,8 @@ package fi.metatavu.metaform.server.liquibase.changes;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -157,5 +159,17 @@ public abstract class AbstractAuthzCustomChange extends AbstractCustomChange {
     }
     
     return unwrapBadRequestException(e.getCause());
+  }
+
+  /**
+   * Converts UUID into bytes
+   * 
+   * @param uuid UUID
+   * @return bytes
+   */
+  protected byte[] getUUIDBytes(UUID uuid) {
+    byte[] result = new byte[16];
+    ByteBuffer.wrap(result).order(ByteOrder.BIG_ENDIAN).putLong(uuid.getMostSignificantBits()).putLong(uuid.getLeastSignificantBits());
+    return result;
   }
 }

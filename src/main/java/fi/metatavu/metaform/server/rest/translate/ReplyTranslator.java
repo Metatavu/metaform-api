@@ -58,6 +58,8 @@ public class ReplyTranslator {
     result.setData(replyData);
     result.setUserId(reply.getUserId());
     result.setRevision(reply.getRevision());
+    result.setCreatedAt(reply.getCreatedAt());
+    result.setModifiedAt(reply.getModifiedAt());
     
     return result;
   }
