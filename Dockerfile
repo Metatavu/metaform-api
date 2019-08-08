@@ -1,7 +1,7 @@
 ARG WILDFLY_VERSION=17.0.1.Final
-
 FROM jboss/wildfly:${WILDFLY_VERSION}
 
+RUN mvn package
 ADD --chown=jboss target/*.war /opt/jboss/wildfly/standalone/deployments/app.war
 ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh 
 ADD --chown=jboss ./docker/host.cli /opt/docker/host.cli
