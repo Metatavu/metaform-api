@@ -33,7 +33,7 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --properties=/opt/docker/jboss-cli.prope
 RUN rm /tmp/*.zip
 
 USER root
-RUN yum install net-tools
+RUN yum install -y net-tools
 USER jboss
 
 EXPOSE 8080
