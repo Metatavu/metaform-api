@@ -265,7 +265,7 @@
       </column>
       <column name="locales" type="longtext"/>
       <column name="parent_id" type="binary(16)">
-        <constraints nullable="false" foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
+        <constraints nullable="true" foreignKeyName="FK_EXPORTTHEME_PARENT_ID" referencedTableName="exporttheme" referencedColumnNames="id"/>
       </column>
       <column name="name" type="varchar(191)">
         <constraints nullable="false" unique="true"/>
@@ -302,10 +302,6 @@
     <addUniqueConstraint constraintName="UN_EXPORTTHEME_THEME_PATH" columnNames="theme_id,path" tableName="exportthemefile"/>
   </changeSet> 
 
-  <changeSet id="exporttheme-parent" author="antti.leppa">
-    <dropNotNullConstraint tableName="exporttheme" columnName="parent_id" columnDataType="binary(16)"/>
-  </changeSet> 
-  
   <changeSet id="metaform-exporttheme" author="antti.leppa">
     <addColumn tableName="metaform">
       <column name="exporttheme_id" type="binary(16)">
@@ -362,9 +358,6 @@
     <addColumn tableName="reply">
       <column name="resourceid" type="binary(16)"/>
     </addColumn>
-    
-    <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateRealmAuthorizations"/>
-    <customChange class="fi.metatavu.metaform.server.liquibase.changes.CreateReplyAuthzResources"/>
   </changeSet>
 
   <changeSet author="antti.leppa" id="form-slug">
