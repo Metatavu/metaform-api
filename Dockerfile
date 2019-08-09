@@ -37,5 +37,11 @@ RUN yum install -y net-tools
 USER jboss
 
 EXPOSE 8080
+EXPOSE 9990
+EXPOSE 7600
+EXPOSE 7601
+EXPOSE 7800
+EXPOSE 7801
+EXPOSE 8888
 
 CMD "/opt/docker/entrypoint.sh"
