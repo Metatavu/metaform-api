@@ -31,6 +31,9 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/env.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/infinispan.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --properties=/opt/docker/jboss-cli.properties --file=/opt/jboss/wildfly/bin/adapter-elytron-install-offline.cli
 RUN rm /tmp/*.zip
+
+RUN yum install net-tools
+
 EXPOSE 8080
 
 CMD "/opt/docker/entrypoint.sh"
