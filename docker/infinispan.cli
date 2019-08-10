@@ -4,5 +4,3 @@ embed-server --server-config=standalone-full-ha.xml
 /subsystem=infinispan/cache-container=metaform/transport=jgroups:add(channel=kubernetes)
 /subsystem=infinispan/cache-container=metaform/replicated-cache=file-meta:add(mode=ASYNC)
 /subsystem=infinispan/cache-container=metaform/replicated-cache=file-data:add(mode=ASYNC)
-#/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()
-#/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()

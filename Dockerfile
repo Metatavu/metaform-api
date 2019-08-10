@@ -33,11 +33,11 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --properties=/opt/docker/jboss-cli.prope
 RUN rm /tmp/*.zip
 
 EXPOSE 8080
-EXPOSE 9990
-EXPOSE 7600
-EXPOSE 7601
-EXPOSE 7800
-EXPOSE 7801
-EXPOSE 8888
+#EXPOSE 9990
+#EXPOSE 7600
+#EXPOSE 7601
+#EXPOSE 7800
+#EXPOSE 7801
+#EXPOSE 8888
 
 CMD "/opt/docker/entrypoint.sh"
