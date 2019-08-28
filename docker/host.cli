@@ -1,0 +1,2 @@
+embed-server --server-config=standalone-full-ha.xml
+/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${env.METAFORM_API_HOST}"],default-web-module="metaform-api.war")
