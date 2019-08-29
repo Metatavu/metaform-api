@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import feign.Feign.Builder;
+import fi.metatavu.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.ApiClient;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.ExportThemesApi;
@@ -38,7 +41,6 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
-import fi.metatavu.metaform.server.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.AttachmentsApi;
 
 
@@ -206,7 +208,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     ApiClient apiClient = new ApiClient("bearer", authorization);
     
     Builder feignBuilder = apiClient.getFeignBuilder();
-    feignBuilder.errorDecoder(new UmaErrorDecoder(authorization, apiClient));
+    Consumer<String> authorizationChange = token -> apiClient.setApiKey(token);
+    feignBuilder.errorDecoder(new UmaErrorDecoder(feignBuilder, authorization, authorizationChange));
     String basePath = String.format("http://%s:%d/v1", getHost(), getPort());
     apiClient.setBasePath(basePath);
     return apiClient;
