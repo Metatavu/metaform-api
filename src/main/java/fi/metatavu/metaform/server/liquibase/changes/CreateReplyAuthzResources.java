@@ -3,7 +3,6 @@ package fi.metatavu.metaform.server.liquibase.changes;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -64,7 +63,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
     int count = 0;
     
     try (PreparedStatement statement = connection.prepareStatement("SELECT id, userId FROM reply WHERE metaform_id = ?")) {
-      statement.setObject(1, createPgUuid(metaformId), Types.OTHER);
+      statement.setBytes(1, getUUIDBytes(UUID.fromString(metaformId)));
       
       try (ResultSet resultSet = statement.executeQuery()) {
         while (resultSet.next()) {
@@ -105,8 +104,8 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
    */
   private void updateReplyResourceId(JdbcConnection connection, String replyId, String resourceId) throws CustomChangeException {
     try (PreparedStatement statement = connection.prepareStatement("UPDATE reply set resourceid = ? WHERE id = ?")) {
-      statement.setObject(1, createPgUuid(resourceId), Types.OTHER);
-      statement.setObject(2, createPgUuid(replyId), Types.OTHER);
+      statement.setBytes(1, getUUIDBytes(UUID.fromString(resourceId)));
+      statement.setBytes(2, getUUIDBytes(UUID.fromString(replyId)));
       statement.execute();
     } catch (Exception e) {
       throw new CustomChangeException(e);

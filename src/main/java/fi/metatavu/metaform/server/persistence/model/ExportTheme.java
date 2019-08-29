@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * JPA entity representing an export theme
@@ -29,7 +29,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class ExportTheme {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
   
   @NotEmpty
@@ -46,12 +45,10 @@ public class ExportTheme {
 
   @Column(nullable = false)
   @NotNull
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID creator;
   
   @Column(nullable = false)
   @NotNull
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID lastModifier;
 
   @Column (nullable = false)

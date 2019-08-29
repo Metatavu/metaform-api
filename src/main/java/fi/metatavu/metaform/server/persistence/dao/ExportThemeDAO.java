@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.persistence.dao;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -59,6 +60,23 @@ public class ExportThemeDAO extends AbstractDAO<ExportTheme> {
     TypedQuery<ExportTheme> query = entityManager.createQuery(criteria);
     
     return getSingleResult(query);
+  }
+
+  /**
+   * Lists themes
+   * 
+   * @return List of themes
+   */
+  public List<ExportTheme> list() {
+    EntityManager entityManager = getEntityManager();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<ExportTheme> criteria = criteriaBuilder.createQuery(ExportTheme.class);
+    Root<ExportTheme> root = criteria.from(ExportTheme.class);
+    criteria.select(root);
+    criteria.orderBy(criteriaBuilder.asc(root.get(ExportTheme_.createdAt)));
+    
+    return entityManager.createQuery(criteria).getResultList();
   }
   
   /**

@@ -3,9 +3,9 @@ package fi.metatavu.metaform.server.liquibase.changes;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -58,7 +58,7 @@ public class FormSlugs extends AbstractAuthzCustomChange {
   private void updateFormSlug(JdbcConnection connection, String metaformId, String slug) throws CustomChangeException {
     try (PreparedStatement statement = connection.prepareStatement("UPDATE metaform set slug = ? WHERE id = ?")) {
       statement.setString(1, slug);
-      statement.setObject(2, createPgUuid(metaformId), Types.OTHER);      
+      statement.setBytes(2, getUUIDBytes(UUID.fromString(metaformId)));
       statement.execute();
     } catch (SQLException | DatabaseException e) {
       throw new CustomChangeException(e);

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>fi.metatavu.metaform-api</groupId>
   <artifactId>metaform-api</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>2.0.0-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Metaform API</name>
   <description>Metaform API is a central API service for Metaforms</description>
@@ -49,7 +49,7 @@
     
     <!-- Spec -->
     
-    <metaform-api-spec.version>0.0.35</metaform-api-spec.version>
+    <metaform-api-spec.version>0.1.6</metaform-api-spec.version>
        
     <!-- Maven -->
 
@@ -58,12 +58,15 @@
     
     <!-- Wildfly -->
     
-    <wildfly-spec-api.version>12.0.0.Final</wildfly-spec-api.version>
+    <wildfly.version>17.0.1.Final</wildfly.version>
+    
+    <!-- Graal -->
+
+    <graalvm.version>1.0.0-rc9</graalvm.version>
     
     <!-- Liquibase -->
     
     <liquibase.version>3.6.1</liquibase.version>
-    <postgresql.version>42.2.5</postgresql.version>
     
     <!-- Keycloak -->
     
@@ -85,12 +88,19 @@
     
     <slugify.version>2.2</slugify.version>
     
+    <!-- Polyglot -->
+    
+    <polyglot-xhr.version>1.0.0</polyglot-xhr.version>
+    
     <!-- Test -->
     
+    <feign-uma.version>1.0.2</feign-uma.version>
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.0.23</metaform-api-client.version>
-    <wiremock.version>2.18.0</wiremock.version>
+    <metaform-api-client.version>0.1.6</metaform-api-client.version>
+    <wiremock.version>2.24.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
+    <pdfbox.version>2.0.8</pdfbox.version>    
+    <mariadb-module.version>2.3.0</mariadb-module.version>
   </properties>
 
   <dependencyManagement>
@@ -98,7 +108,7 @@
       <dependency>
         <groupId>org.wildfly</groupId>
         <artifactId>wildfly-spec-api</artifactId>
-        <version>${wildfly-spec-api.version}</version>
+        <version>${wildfly.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -116,6 +126,7 @@
       <plugin>
         <groupId>org.bsc.maven</groupId>
         <artifactId>maven-processor-plugin</artifactId>
+        <version>3.3.3</version>
         <executions>
           <execution>
             <id>process</id>
@@ -141,9 +152,11 @@
     </plugins>
   </build>
   <dependencies>
+    <!-- Java EE -->
+  
     <dependency>
       <groupId>org.jboss.spec.javax.servlet</groupId>
-      <artifactId>jboss-servlet-api_3.1_spec</artifactId>
+      <artifactId>jboss-servlet-api_4.0_spec</artifactId>
       <scope>provided</scope>
     </dependency>
     
@@ -171,12 +184,6 @@
       <scope>provided</scope>
     </dependency>
     
-    <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-jackson2-provider</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    
 	  <dependency>
 	    <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
@@ -185,7 +192,7 @@
     
     <dependency>
       <groupId>org.jboss.spec.javax.ws.rs</groupId>
-      <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+      <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
       <scope>provided</scope>
     </dependency>
     
@@ -247,6 +254,51 @@
       <groupId>org.infinispan</groupId>
       <artifactId>infinispan-core</artifactId>
       <scope>provided</scope>
+    </dependency>
+    
+    <!-- Polyglot -->
+    
+    <dependency>
+      <groupId>fi.metatavu.polyglot</groupId>
+      <artifactId>polyglot-xhr</artifactId>
+      <version>${polyglot-xhr.version}</version>
+    </dependency>
+
+    <!-- Graal -->
+
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>graal-sdk</artifactId>
+      <version>${graalvm.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js</artifactId>
+      <version>${graalvm.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-scriptengine</artifactId>
+      <version>${graalvm.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.graalvm.tools</groupId>
+      <artifactId>profiler</artifactId>
+      <version>${graalvm.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.graalvm.tools</groupId>
+      <artifactId>chromeinspector</artifactId>
+      <version>${graalvm.version}</version>
+      <scope>runtime</scope>
     </dependency>
     
     <!-- Freemarker -->
@@ -314,7 +366,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.hibernate</groupId>
+      <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
       <scope>provided</scope>
     </dependency>
@@ -323,13 +375,6 @@
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-cdi</artifactId>
       <version>${liquibase.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
-      <type>jar</type>
     </dependency>
     
     <!-- Keycloak -->
@@ -410,6 +455,13 @@
       <scope>test</scope>
       <version>${awaitility.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>fi.metatavu.feign</groupId>
+      <artifactId>feign-uma</artifactId>
+      <version>${feign-uma.version}</version>
+      <scope>test</scope>
+    </dependency>
     
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
@@ -472,6 +524,39 @@
       <scope>test</scope>
     </dependency>
     
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-wildfly-adapter-dist</artifactId>
+      <version>${keycloak.version}</version>
+      <type>zip</type>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- Database Driver -->
+  
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <version>${mariadb-module.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- PDFBox -->
+
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>${pdfbox.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox-tools</artifactId>
+      <version>${pdfbox.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
   </dependencies>
   
   <profiles>
@@ -483,17 +568,18 @@
       
       <properties>
         <it.port.http>58080</it.port.http>
-        <it.host>api-itest.metaform.fi</it.host>
-        <it.jdbc.driver>org.postgresql.xa.PGXADataSource</it.jdbc.driver>
-        <it.jdbc.url>jdbc:postgresql://localhost:5432/mftest</it.jdbc.url>
-        <it.jdbc.properties>DatabaseName=mftest</it.jdbc.properties>
+        <it.host>api-itest.metaform.fi</it.host>        
+        <it.jdbc.driver>org.mariadb.jdbc.MySQLDataSource</it.jdbc.driver>
+        <it.jdbc.module>com.mariadb.jdbc</it.jdbc.module>        
+        <it.jdbc.dbname>mftest</it.jdbc.dbname>
+        <it.jdbc.username>sa</it.jdbc.username>
+        <it.jdbc.password>sa</it.jdbc.password>
+        <it.jdbc.url>jdbc:mysql://localhost:3306/${it.jdbc.dbname}?serverTimezone=Europe/Helsinki</it.jdbc.url>
         <it.jdbc.jndi>java:jboss/datasources/metaform-api</it.jdbc.jndi>
-        <it.jdbc.username>mftest</it.jdbc.username>
-        <it.jdbc.password>mftest</it.jdbc.password>
         <it.jdbc.type>javax.sql.XADataSource</it.jdbc.type>
         <it.jdbc.transactionsupport>XA_TRANSACTION</it.jdbc.transactionsupport>
+        <mariadb-module.version>2.3.0</mariadb-module.version>
         <it.skipdatabasedrop>true</it.skipdatabasedrop>
-        <it.hibernate.dialect>org.hibernate.dialect.H2Dialect</it.hibernate.dialect>
         <jacoco.reportPath>${project.basedir}/target/jacoco.exec</jacoco.reportPath>
       </properties>
       
@@ -579,14 +665,14 @@
           <plugin>
             <groupId>org.codehaus.cargo</groupId>
             <artifactId>cargo-maven2-plugin</artifactId>
-            <version>1.6.7</version>
+            <version>1.7.6</version>
             <configuration>
               <container>
-                <containerId>wildfly12x</containerId>
+                <containerId>wildfly16x</containerId>
                 <log>${project.basedir}/target/cargo.log</log>
                 <output>${project.basedir}/target/wildfly.log</output>
                 <zipUrlInstaller>
-                  <url>https://www.dropbox.com/s/6a6rhto8qji1f8m/wildfly-12.0.0.Final-with-keycloak%252Bpg.zip?dl=1</url>
+                  <url>https://download.jboss.org/wildfly/${wildfly.version}/wildfly-${wildfly.version}.zip</url>
                   <downloadDir>${project.basedir}/.cargo/downloads</downloadDir>
                   <extractDir>${project.basedir}/.cargo/extracts</extractDir>
                 </zipUrlInstaller>         
@@ -620,12 +706,68 @@
               </execution>
             </executions>
           </plugin>
+          
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>unpack-keycloak-wildfly-adapter</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>unpack-dependencies</goal>
+                </goals>
+                <configuration>
+                  <includeGroupIds>org.keycloak</includeGroupIds>
+                  <includeArtifactIds>keycloak-wildfly-adapter-dist</includeArtifactIds>
+                  <outputDirectory>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <id>unpack-mariadb-module</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <get src="https://static.metatavu.io/wildfly/wildfly-${wildfly.version}-mariadb-module-${mariadb-module.version}.zip" dest="${project.build.directory}/mariadb-module.zip" verbose="true" usetimestamp="true"/>
+                    <unzip src="${project.build.directory}/mariadb-module.zip" dest="${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}"/>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
 
           <plugin>
             <groupId>org.wildfly.plugins</groupId>
             <artifactId>wildfly-maven-plugin</artifactId>
-            <version>1.2.1.Final</version>
+            <version>2.0.1.Final</version>
             <executions>
+              <execution>
+                <id>wildfly-keycloak-configure</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>execute-commands</goal>
+                </goals>
+                <configuration>
+                  <batch>false</batch>
+                  <offline>true</offline>
+                  <fail-on-error>false</fail-on-error>
+                  <jbossHome>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</jbossHome>
+                  <scripts>
+                    <script>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}/bin/adapter-elytron-install-offline.cli</script>
+                  </scripts>
+                </configuration>
+              </execution>    
               <execution>
                 <id>wildfly-configure</id>
                 <phase>pre-integration-test</phase>
@@ -633,19 +775,64 @@
                   <goal>execute-commands</goal>
                 </goals>
                 <configuration>
-                  <batch>true</batch>
+                  <batch>false</batch>
+                  <offline>true</offline>
+                  <jbossHome>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</jbossHome>
                   <commands>
-                    <command>xa-data-source add --name=ci --driver-name=postgres --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --xa-datasource-properties=${it.jdbc.properties}</command>
+                    <command>embed-server --server-config=standalone.xml</command>
+                    
+                    <!-- JDBC -->
+                    
+                    <command>if (outcome != success) of /subsystem=datasources/data-source=it:read-resource</command>
+                    <command>/subsystem=datasources/jdbc-driver=it:add(driver-name="it", driver-module-name=${it.jdbc.module},driver-xa-datasource-class-name=${it.jdbc.driver})</command>
+                    <command>data-source add --name=it --use-ccm=true --jta=true --enabled=true --driver-name=it --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --connection-url=${it.jdbc.url}</command>
+                    <command>end-if</command>
+                    
+                    <!-- Host -->
+                                                          
+                    <command>if (outcome != success) of /subsystem=undertow/server=default-server/host=metaform-api:read-resource</command>
                     <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
                     <command>/system-property=it-test:add(value="true")</command>
                     <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
+                    <command>end-if</command>
+                    
+                    <!-- Infinispan -->
+                    
+                    <command>if (outcome != success) of /subsystem=infinispan/cache-container=metaform:read-resource</command>
                     <command>/subsystem=infinispan/cache-container=metaform:add()</command>
                     <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()</command>
                     <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>
-                    <command>/subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:add(level=WARNING)</command>      
+                    <command>end-if</command>
+                    
+                    <!-- Logging -->
+                    
+                    <command>if (outcome != success) of /subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:read-resource</command>
+                    <command>/subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:add(level=WARNING)</command> 
+                    <command>end-if</command>
                   </commands>
                 </configuration>
               </execution>
+
+              <execution>
+                <id>wildfly-stop</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>shutdown</goal>
+                </goals>
+              </execution>  
+              
+              <execution>
+                <id>wildfly-start</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <javaOpts>-Djboss.http.port=${it.port.http} ${jacoco.agent.itArgLine},output=tcpserver,port=6300 -Xmx2G -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -Drunmode=TEST</javaOpts>
+                  <jbossHome>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</jbossHome>
+                </configuration>
+              </execution>  
+
               <execution>
                 <id>deploy</id>
                 <phase>pre-integration-test</phase>
@@ -691,5 +878,13 @@
       </build>
     </profile>  
   </profiles>
+  
+  <repositories>
+    <repository>
+      <id>repository.jboss.org-public</id>
+      <name>JBoss repository</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public</url>
+    </repository>
+  </repositories>
   
 </project>

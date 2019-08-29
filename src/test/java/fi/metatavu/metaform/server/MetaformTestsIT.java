@@ -35,6 +35,29 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       dataBuilder.clean();
     }
   }
+
+  @Test
+  public void testCreateMetaformScript() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple-script");
+
+      assertNotNull(metaform);
+      assertNotNull(metaform.getId());
+      assertNotNull(metaform.getScripts());
+      assertNotNull(metaform.getScripts().getAfterCreateReply());
+      assertEquals(2, metaform.getScripts().getAfterCreateReply().size());
+      assertEquals("create-test", metaform.getScripts().getAfterCreateReply().get(0).getName());
+      assertEquals("js", metaform.getScripts().getAfterCreateReply().get(0).getLanguage());
+      assertEquals("form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));", metaform.getScripts().getAfterCreateReply().get(0).getContent());
+      assertNotNull(metaform.getScripts().getAfterUpdateReply());
+      assertEquals("update-test", metaform.getScripts().getAfterUpdateReply().get(0).getName());
+      assertEquals("js", metaform.getScripts().getAfterUpdateReply().get(0).getLanguage());
+      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://localhost:58081/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply().get(0).getContent());
+    } finally {
+      dataBuilder.clean();
+    }
+  }
   
   @Test
   public void testFindMetaform() throws IOException, URISyntaxException {

@@ -1,0 +1,5 @@
+embed-server --server-config=standalone-full-ha.xml
+/subsystem=datasources/jdbc-driver=mariadb:add(driver-name=mariadb, driver-module-name=com.mariadb.jdbc, xa-datasource-class=org.mariadb.jdbc.MySQLDataSource)
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql, driver-module-name=com.mysql.jdbc, xa-datasource-class=com.mysql.jdbc.jdbc2.optional.MysqlXADataSource)
+data-source add --name=metaform-api --jndi-name=java:jboss/datasources/metaform-api --enabled=true --jta=true --use-ccm=true --connection-url=jdbc:mysql://${env.METAFORM_API_DB_HOST}:${env.METAFORM_API_DB_PORT}/${env.METAFORM_API_DB_NAME}${env.METAFORM_API_DB_OPTS} --driver-name=mysql --user-name=${env.METAFORM_API_DB_USERNAME} --password=${env.METAFORM_API_DB_PASSWORD} --check-valid-connection-sql="SELECT 1" --validate-on-match=false --share-prepared-statements=false --max-pool-size=1000
+/subsystem=transactions:write-attribute(name=node-identifier,value=${env.METAFORM_TX_IDENTIFIER})

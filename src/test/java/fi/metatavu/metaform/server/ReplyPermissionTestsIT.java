@@ -13,10 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.junit.Rule;
 import org.junit.Test;
-
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import feign.FeignException;
 import fi.metatavu.metaform.client.Metaform;
@@ -28,9 +25,6 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
 public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
-
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
 
   /**
    * Test that asserts that user may find his / her own reply

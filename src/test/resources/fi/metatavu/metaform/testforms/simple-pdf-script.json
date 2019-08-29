@@ -1,0 +1,34 @@
+{
+  "title": "Simple",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "files",
+          "type": "files",
+          "title": "Files field"
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "afterCreateReply": [
+      {
+        "name": "create-test",
+        "language": "js",
+        "content": "const pdfData = form.getPdfServices().getReplyPdf(); console.log('pdf-out-data', pdfData.length); form.setVariableValue('pdf-data', pdfData);"
+      },
+      {
+        "name": "post-test",
+        "language": "js",
+        "content": "console.log('pdf-in-data', form.getVariableValue('pdf-data').length); const xhr = new XMLHttpRequest(); xhr.open('POST', 'http://localhost:58081/externalmock'); xhr.setRequestHeader('Content-Type', 'application/pdf'); xhr.send(form.getVariableValue('pdf-data'));"
+      }
+    ]
+  }
+}

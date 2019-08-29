@@ -9,12 +9,11 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Type;
-import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * JPA entity representing single item in list reply field
@@ -30,7 +29,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class ListReplyFieldItem {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @ManyToOne(optional = false)

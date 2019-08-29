@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -24,9 +26,13 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
+import org.junit.Rule;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 import feign.Feign.Builder;
+import fi.metatavu.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.ApiClient;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.ExportThemesApi;
@@ -35,7 +41,6 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
-import fi.metatavu.metaform.server.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.AttachmentsApi;
 
 
@@ -54,19 +59,15 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
+
+  @Rule
+  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
   
   @After
-  public void metaformsCleaned() {
-    int metaformCount = executeSelectSingle("SELECT count(id) as count FROM Metaform", (resultSet) -> {
-      try {
-        return resultSet.getInt("count");
-      } catch (SQLException e) {
-        fail(e.getMessage());
-        return null;
-      }
-    });
-    
-    assertEquals("Metaforms not properly cleaned after test", 0, metaformCount); 
+  public void properlyCleaned() {
+    assertCount("Metaforms not properly cleaned after test", "SELECT count(id) as count FROM Metaform", 0); 
+    assertCount("Replies not properly cleaned after test", "SELECT count(id) as count FROM Reply", 0);
+    assertCount("ExportThemeFiles not properly cleaned after test", "SELECT count(id) as count FROM ExportThemeFile", 0);
   }
   
   /**
@@ -207,7 +208,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     ApiClient apiClient = new ApiClient("bearer", authorization);
     
     Builder feignBuilder = apiClient.getFeignBuilder();
-    feignBuilder.errorDecoder(new UmaErrorDecoder(authorization, apiClient));
+    Consumer<String> authorizationChange = token -> apiClient.setApiKey(token);
+    feignBuilder.errorDecoder(new UmaErrorDecoder(feignBuilder, authorization, authorizationChange));
     String basePath = String.format("http://%s:%d/v1", getHost(), getPort());
     apiClient.setBasePath(basePath);
     return apiClient;
@@ -471,6 +473,25 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       assertEquals(expectedStatus, response.getStatusLine().getStatusCode());
     }
   }
-  
+
+  /**
+   * Asserts that given query returns expected value in "count" column
+   * 
+   * @param message assertion fail message
+   * @param sql SQL
+   * @param expected expected count
+   */
+  private void assertCount(String message, String sql, int expected) {
+    int metaformCount = executeSelectSingle(sql, (resultSet) -> {
+      try {
+        return resultSet.getInt("count");
+      } catch (SQLException e) {
+        fail(e.getMessage());
+        return null;
+      }
+    });
+    
+    assertEquals(message, expected, metaformCount);
+  }
   
 }

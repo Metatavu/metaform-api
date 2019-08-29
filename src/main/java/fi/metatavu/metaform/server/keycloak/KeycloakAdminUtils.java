@@ -2,16 +2,17 @@ package fi.metatavu.metaform.server.keycloak;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -21,6 +22,13 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -47,6 +55,9 @@ import org.keycloak.representations.idm.authorization.ScopePermissionRepresentat
 import org.keycloak.representations.idm.authorization.ScopeRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Utilities for Keycloak admin client
@@ -82,6 +93,7 @@ public class KeycloakAdminUtils {
     String clientSecret = (String) credentials.get("secret");
     String adminUser = (String) credentials.get("realm-admin-user");
     String adminPass = (String) credentials.get("realm-admin-pass");
+    String token = getAccessToken(configuration.getAuthServerUrl(), configuration.getRealm(), configuration.getResource(), clientSecret, adminUser, adminPass);
     
     return KeycloakBuilder.builder()
       .serverUrl(configuration.getAuthServerUrl())
@@ -91,6 +103,7 @@ public class KeycloakAdminUtils {
       .clientSecret(clientSecret)
       .username(adminUser)
       .password(adminPass)
+      .authorization(String.format("Bearer %s", token))
       .build();
   }
   
@@ -341,6 +354,54 @@ public class KeycloakAdminUtils {
   }
   
   /**
+   * Resolves an access token for realm, client, username and password
+   * 
+   * @param realm realm
+   * @param clientId clientId
+   * @param username username
+   * @param password password
+   * @return an access token
+   * @throws IOException thrown on communication failure
+   */
+  private static String getAccessToken(String serverUrl, String realm, String clientId, String clientSecret, String username, String password) {
+    String uri = String.format("%s/realms/%s/protocol/openid-connect/token", serverUrl, realm);
+    
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpPost httpPost = new HttpPost(uri);
+      List<NameValuePair> params = new ArrayList<>();
+      params.add(new BasicNameValuePair("client_id", clientId));
+      params.add(new BasicNameValuePair("grant_type", "password"));
+      params.add(new BasicNameValuePair("username", username));
+      params.add(new BasicNameValuePair("password", password));
+      params.add(new BasicNameValuePair("client_secret", clientSecret));
+      httpPost.setEntity(new UrlEncodedFormEntity(params));
+      
+      try (CloseableHttpResponse response = client.execute(httpPost)) {
+        try (InputStream inputStream = response.getEntity().getContent()) {
+          Map<String, Object> responseMap = readJsonMap(inputStream);
+          return (String) responseMap.get("access_token");
+        }
+      }
+    } catch (IOException e) {
+      logger.debug("Failed to retrieve access token", e);
+    }
+    
+    return null;
+  }
+
+  /**
+   * Reads JSON src into Map
+   * 
+   * @param src input
+   * @return map
+   * @throws IOException throws IOException when there is error when reading the input 
+   */
+  private static Map<String, Object> readJsonMap(InputStream src) throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    return objectMapper.readValue(src, new TypeReference<Map<String, Object>>() {});
+  }
+  
+  /**
    * Returns list of permitted users for a resource with given scopes 
    * 
    * @param realm realm name
@@ -437,7 +498,6 @@ public class KeycloakAdminUtils {
     return evaluationRequest;
   }  
   
-  
   /**
    * Finds a id from Keycloak create response 
    * 
@@ -457,16 +517,56 @@ public class KeycloakAdminUtils {
       return null;
     }
     
-    String location = response.getHeaderString("location");
-    if (StringUtils.isBlank(location)) {
-      return null;
+    UUID locationId = getCreateResponseLocationId(response);
+    if (locationId != null) {
+      return locationId;
     }
     
-    Pattern pattern = Pattern.compile(".*\\/(.*)$");
-    Matcher matcher = pattern.matcher(location);
+    return getCreateResponseBodyId(response);
+  }
+
+  /**
+   * Attempts to locate id from create location response
+   * 
+   * @param response response
+   * @return id or null if not found
+   */
+  private static UUID getCreateResponseLocationId(Response response) {
+    String location = response.getHeaderString("location");
+    if (StringUtils.isNotBlank(location)) {
+      Pattern pattern = Pattern.compile(".*\\/(.*)$");
+      Matcher matcher = pattern.matcher(location);
+      
+      if (matcher.find()) {
+        return UUID.fromString(matcher.group(1));
+      }
+    }
     
-    if (matcher.find()) {
-      return UUID.fromString(matcher.group(1));
+    return null;
+  }
+
+  /**
+   * Attempts to locate id from create response body
+   * 
+   * @param response response object
+   * @return id or null if not found
+   */
+  private static UUID getCreateResponseBodyId(Response response) {
+    if (response.getEntity() instanceof InputStream) {
+      try (InputStream inputStream = (InputStream) response.getEntity()) {
+        Map<String, Object> result = readJsonMap(inputStream);
+        if (result.get("_id") instanceof String) {
+          return UUID.fromString((String) result.get("_id"));
+        }
+        
+        if (result.get("id") instanceof String) {
+          return UUID.fromString((String) result.get("id"));
+        } 
+      } catch (IOException e) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Failed to locate id from response", e);
+        }
+      }
     }
     
     return null;

@@ -9,7 +9,6 @@ import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.Type;
 
 /**
  * JPA entity representing single row in table reply field
@@ -22,7 +21,6 @@ import org.hibernate.annotations.Type;
 public class TableReplyFieldRow {
 
   @Id
-  @Type(type="org.hibernate.type.PostgresUUIDType")
   private UUID id;
 
   @ManyToOne(optional = false)

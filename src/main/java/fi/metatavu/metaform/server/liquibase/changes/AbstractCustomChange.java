@@ -1,9 +1,5 @@
 package fi.metatavu.metaform.server.liquibase.changes;
 
-import java.sql.SQLException;
-
-import org.postgresql.util.PGobject;
-
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.exception.SetupException;
@@ -47,18 +43,5 @@ public abstract class AbstractCustomChange implements CustomTaskChange {
   public ValidationErrors validate(Database database) {
     return null;
   }
-  
-  /**
-   * Creates PostgreSQL UUID object from string
-   * 
-   * @param uuid uuid as string
-   * @return PostgreSQL object
-   * @throws SQLException thrown when creation fails
-   */
-  protected PGobject createPgUuid(String uuid) throws SQLException {
-    PGobject pgObject = new PGobject();
-    pgObject.setType("uuid");
-    pgObject.setValue(uuid);
-    return pgObject;
-  }
+
 }
