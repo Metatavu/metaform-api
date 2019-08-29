@@ -20,6 +20,9 @@ public class FormScriptBinding {
 
   @Inject
   private PdfServices pdfServices;
+
+  @Inject
+  private EncodingServices encodingServices;
   
   /**
    * Returns reply object
@@ -66,6 +69,15 @@ public class FormScriptBinding {
    */
   public PdfServices getPdfServices() {
     return pdfServices;
+  }
+
+  /**
+   * Returns encoding services
+   * 
+   * @return the encodingServices
+   */
+  public EncodingServices getEncodingServices() {
+    return encodingServices;
   }
   
 }

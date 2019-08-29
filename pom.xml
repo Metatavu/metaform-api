@@ -94,6 +94,7 @@
     
     <!-- Test -->
     
+    <feign-uma.version>1.0.2</feign-uma.version>
     <rest-assured.version>3.0.3</rest-assured.version>
     <metaform-api-client.version>0.1.6</metaform-api-client.version>
     <wiremock.version>2.24.0</wiremock.version>
@@ -453,6 +454,13 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
       <version>${awaitility.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>fi.metatavu.feign</groupId>
+      <artifactId>feign-uma</artifactId>
+      <version>${feign-uma.version}</version>
+      <scope>test</scope>
     </dependency>
     
     <dependency>

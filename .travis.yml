@@ -1,6 +1,6 @@
 language: java
 sudo: required
-jdk: oraclejdk8
+jdk: openjdk8
 cache:
   directories:
   - $HOME/.sonar
@@ -9,9 +9,6 @@ cache:
 addons:
   hosts:
     - api-itest.metaform.fi
-  apt:
-    packages:
-      - oracle-java8-installer
   sonarcloud:
     organization: "metatavu-oy"
     token:
