@@ -70,7 +70,7 @@
     
     <!-- Keycloak -->
     
-    <keycloak.version>4.5.0.Final</keycloak.version>
+    <keycloak.version>7.0.1</keycloak.version>
     
     <!-- Mailgun -->
     
