@@ -101,15 +101,22 @@ public abstract class AbstractDAO<T> {
     Query query = getEntityManager().createQuery("select count(o) from " + genericTypeClass.getName() + " o");
     return (Long) query.getSingleResult();
   }
+  
+  public void delete(T e) {
+    delete(e, true);
+  }
 
   /**
    * Deletes entity
    * 
    * @param e entity
    */
-  public void delete(T e) {
+  public void delete(T e, boolean flush) {
     getEntityManager().remove(e);
-    flush();
+    
+    if (flush) {
+      flush();
+    }
   }
 
   /**
