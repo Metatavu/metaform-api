@@ -79,4 +79,9 @@ public class AttachmentReplyFieldItemDAO extends AbstractDAO<AttachmentReplyFiel
     return entityManager.createQuery(criteria).getResultList();
   }
 
+  public AttachmentReplyFieldItem updateAttachment(AttachmentReplyFieldItem attachmentReplyFieldItem, Attachment attachment) {
+    attachmentReplyFieldItem.setAttachment(attachment);
+    return persist(attachmentReplyFieldItem);
+  }
+
 }
