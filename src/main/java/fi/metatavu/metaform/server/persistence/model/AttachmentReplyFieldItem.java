@@ -31,7 +31,7 @@ public class AttachmentReplyFieldItem {
   @ManyToOne(optional = false)
   private AttachmentReplyField field;
 
-  @ManyToOne(optional = false)
+  @ManyToOne
   private Attachment attachment;
   
   public void setId(UUID id) {

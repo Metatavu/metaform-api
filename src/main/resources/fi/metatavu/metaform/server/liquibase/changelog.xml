@@ -387,5 +387,9 @@
       <column name="name" type="varchar(191)"/>
     </createIndex>
   </changeSet>
+
+  <changeSet author="antti.leppa" id="attachmentdeletefix">
+    <dropNotNullConstraint tableName="attachmentreplyfielditem" columnName="attachment_id" columnDataType="binary(16)"/>
+  </changeSet>  
   
 </databaseChangeLog>
