@@ -79,6 +79,26 @@ public class AttachmentReplyFieldItemDAO extends AbstractDAO<AttachmentReplyFiel
     return entityManager.createQuery(criteria).getResultList();
   }
 
+  /**
+   * Counts items by attachment
+   * 
+   * @param attachment attachment
+   * @return items by attachment
+   */
+  public Long countByAttachment(Attachment attachment) {
+    EntityManager entityManager = getEntityManager();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    
+    CriteriaQuery<Long> criteria = criteriaBuilder.createQuery(Long.class);
+    Root<AttachmentReplyFieldItem> root = criteria.from(AttachmentReplyFieldItem.class);
+    
+    criteria.select(criteriaBuilder.count(root));
+    criteria.where(criteriaBuilder.equal(root.get(AttachmentReplyFieldItem_.attachment), attachment));
+    
+    return entityManager.createQuery(criteria).getSingleResult();
+  }
+
   public AttachmentReplyFieldItem updateAttachment(AttachmentReplyFieldItem attachmentReplyFieldItem, Attachment attachment) {
     attachmentReplyFieldItem.setAttachment(attachment);
     return persist(attachmentReplyFieldItem);
