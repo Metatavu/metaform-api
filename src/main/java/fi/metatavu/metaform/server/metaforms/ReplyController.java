@@ -694,9 +694,8 @@ public class ReplyController {
    */
   private void deleteAttachmentReplyFieldItem(AttachmentReplyFieldItem item) {
     Attachment attachment = item.getAttachment();
-    attachmentReplyFieldItemDAO.delete(item);
-    attachmentReplyFieldItemDAO.updateAttachment(item, null);
     attachmentController.deleteAttachment(attachment);
+    attachmentReplyFieldItemDAO.delete(item, false);
   }
   
   /**
