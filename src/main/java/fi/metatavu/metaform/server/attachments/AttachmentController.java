@@ -63,7 +63,7 @@ public class AttachmentController {
    * @param attachment attachment
    */
   public void deleteAttachment(Attachment attachment) {
-    attachmentDAO.delete(attachment, false);
+    attachmentDAO.delete(attachment);
   }
 
 }
