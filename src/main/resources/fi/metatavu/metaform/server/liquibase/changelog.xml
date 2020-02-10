@@ -387,9 +387,17 @@
       <column name="name" type="varchar(191)"/>
     </createIndex>
   </changeSet>
+  
+  <changeSet author="antti.leppa" id="attachmentdeletefix_1">
+    <dropForeignKeyConstraint baseTableName="attachmentreplyfielditem" constraintName="FK_ATTACHMENT_REPLY_ITEM_ATTACHMENT_ID" />
+  </changeSet>
 
-  <changeSet author="antti.leppa" id="attachmentdeletefix">
+  <changeSet author="antti.leppa" id="attachmentdeletefix_2">
     <dropNotNullConstraint tableName="attachmentreplyfielditem" columnName="attachment_id" columnDataType="binary(16)"/>
   </changeSet>  
   
+  <changeSet author="antti.leppa" id="attachmentdeletefix_3">
+    <addForeignKeyConstraint constraintName="FK_ATTACHMENT_REPLY_ITEM_ATTACHMENT_ID" referencedTableName="attachment" baseColumnNames="attachment_id" baseTableName="attachmentreplyfielditem" referencedColumnNames="id"/>
+  </changeSet>
+
 </databaseChangeLog>
