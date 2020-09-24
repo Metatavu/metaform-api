@@ -1,13 +1,10 @@
 package fi.metatavu.metaform.server.pdf;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-
-import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -16,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 import org.xml.sax.SAXException;
@@ -52,10 +50,6 @@ public class PdfPrinter {
    */
   private void printHtmlAsPdf(byte[] htmlData, OutputStream pdfStream) throws PdfRenderException {
     try (InputStream htmlStream = new ByteArrayInputStream (htmlData)) {    
-      try (FileOutputStream fos = new FileOutputStream("/tmp/fail.html")) {
-        fos.write(htmlData);
-      }
-      
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setNamespaceAware(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
