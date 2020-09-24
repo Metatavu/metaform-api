@@ -1226,9 +1226,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentEntities = fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES).stream()
       .map(fieldName -> {
         @SuppressWarnings("unchecked")
-        List<String> attachmentIds = (List<String>) replyEntity.getData().get(fieldName);
+        List<Object> attachmentIds = (List<Object>) replyEntity.getData().get(fieldName);
         if (attachmentIds != null) {
           return attachmentIds.stream()
+            .map(Object::toString)
             .map(UUID::fromString)
             .map(attachmentController::findAttachmentById)
             .map(attachmentTranslator::translateAttachment)
