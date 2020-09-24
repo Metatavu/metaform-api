@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.pdf;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,7 +51,11 @@ public class PdfPrinter {
    * @throws PdfRenderException error thrown on unsuccesfull render
    */
   private void printHtmlAsPdf(byte[] htmlData, OutputStream pdfStream) throws PdfRenderException {
-    try (InputStream htmlStream = new ByteArrayInputStream (htmlData)) {      
+    try (InputStream htmlStream = new ByteArrayInputStream (htmlData)) {    
+      try (FileOutputStream fos = new FileOutputStream("/tmp/fail.html")) {
+        fos.write(htmlData);
+      }
+      
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setNamespaceAware(true);
       DocumentBuilder builder = factory.newDocumentBuilder();
