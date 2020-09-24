@@ -58,9 +58,13 @@ import fi.metatavu.metaform.server.persistence.model.TableReplyField;
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRow;
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRowCell;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
+import fi.metatavu.metaform.server.rest.model.MetaformFieldOption;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
+import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.MetaformTableColumn;
 import fi.metatavu.metaform.server.rest.model.MetaformTableColumnType;
+import fi.metatavu.metaform.server.xlsx.XlsxBuilder;
+import fi.metatavu.metaform.server.xlsx.XlsxException;
 
 /**
  * Reply controller
@@ -417,6 +421,74 @@ public class ReplyController {
       }
     } catch (IOException e) {
       throw new PdfRenderException("Pdf rendering failed", e);
+    }
+  }
+  
+  /**
+   * Returns metaform replies as XLSX binary
+   * 
+   * @param metaform metaform
+   * @param metaformEntity metaform REST entity
+   * @param replyEntities metaform reply entites
+   * @return replies as XLSX binary
+   * @throws XlsxException thrown when export fails
+   */
+  public byte[] getRepliesAsXlsx(Metaform metaform, fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, List<fi.metatavu.metaform.server.rest.model.Reply> replyEntities) throws XlsxException {
+    try (ByteArrayOutputStream output = new ByteArrayOutputStream(); XlsxBuilder xlsxBuilder = new XlsxBuilder()) {      
+      for (int replyIndex = 0; replyIndex < replyEntities.size(); replyIndex++) {
+        fi.metatavu.metaform.server.rest.model.Reply replyEntity = replyEntities.get(replyIndex);
+        
+        Map<String, Object> replyData = replyEntity.getData();
+        String sheetId = xlsxBuilder.createSheet(String.valueOf(replyIndex + 1));
+        
+        List<MetaformField> fields = metaformEntity.getSections().stream()
+          .map(MetaformSection::getFields)
+          .flatMap(List::stream)
+          .filter(field -> StringUtils.isNotEmpty(field.getName()))
+          .collect(Collectors.toList());
+        
+        // Headers 
+        
+        for (int i = 0; i < fields.size(); i++) {
+          xlsxBuilder.setCellValue(sheetId, 0, i, fields.get(i).getTitle());
+        }
+        
+        // Values
+        
+        for (int columnIndex = 0; columnIndex < fields.size(); columnIndex++) {
+          MetaformField field = fields.get(columnIndex);
+          
+          for (int rowIndex = 0; rowIndex < replyData.size(); rowIndex++) {
+            Object value = replyData.get(field.getName());
+            if (value != null) {
+              switch (field.getType()) {
+                case DATE:
+                case DATE_TIME:
+                  xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, OffsetDateTime.parse(value.toString()));
+                break;
+                case SELECT:
+                case RADIO:
+                  String selectedValue = field.getOptions().stream()
+                    .filter(option -> option.getName()
+                    .equals(value.toString()))
+                    .map(MetaformFieldOption::getText)
+                    .findFirst()
+                    .orElse(value.toString());
+                  
+                  xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, selectedValue);
+                default:
+                  xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, value.toString());
+              }
+            }
+          }
+        }
+      }
+      
+      xlsxBuilder.write(output);
+      
+      return output.toByteArray();
+    } catch (Exception e) {
+      throw new XlsxException("Failed to create XLSX export", e);
     }
   }
 
