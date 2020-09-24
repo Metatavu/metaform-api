@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.rest.translate;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,7 +13,6 @@ import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
-import fi.metatavu.metaform.server.rest.model.ReplyData;
 
 /**
  * Translator for replies
@@ -39,7 +39,7 @@ public class ReplyTranslator {
     
     Map<String, ReplyField> replyFieldMap = fieldController.getReplyFieldMap(reply);
     
-    ReplyData replyData = new ReplyData();
+    Map<String, Object> replyData = new HashMap<>();
     
     metaformEntity.getSections().stream()
       .map(MetaformSection::getFields)
