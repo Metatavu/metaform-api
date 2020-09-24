@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import _fi.metatavu.metaform.server.rest.api.RealmsApi;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
@@ -50,18 +51,18 @@ import fi.metatavu.metaform.server.metaforms.FieldFilters;
 import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
+import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
 import fi.metatavu.metaform.server.rest.model.ExportTheme;
 import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
-import fi.metatavu.metaform.server.rest.model.MetaformFieldPermissioncontexts;
+import fi.metatavu.metaform.server.rest.model.MetaformFieldPermissionContexts;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 import fi.metatavu.metaform.server.rest.model.MetaformScript;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
-import fi.metatavu.metaform.server.rest.model.ReplyData;
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.ExportThemeTranslator;
@@ -139,10 +140,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
   @Inject
   private ScriptProcessor scriptProcessor;
-
+  
   @Override
   @SuppressWarnings ("squid:S3776")
-  public Response createReply(String realmName, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) throws Exception {
+  public Response createReply(String realmName, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
@@ -180,7 +181,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     // TODO: Support multiple
 
     fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(replyMode, metaform, anonymous, userId);
-    ReplyData data = payload.getData();
+    Map<String, Object> data = payload.getData();
     if (data == null) {
       logger.warn("Received a reply with null data");
     } else {
@@ -214,7 +215,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
+  public Response findReply(String realmId, UUID metaformId, UUID replyId) {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -242,7 +243,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
   
   @Override
-  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) throws Exception {
+  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) {
     if (firstResult != null) {
       return createNotImplemented("firstResult is not supported yet");
     }
@@ -285,7 +286,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return createOk(result);
   }
 
-  public Response updateReply(String realmName, UUID metaformId, UUID replyId, Reply payload) throws Exception {
+  public Response updateReply(String realmName, UUID metaformId, UUID replyId, Reply payload) {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -310,7 +311,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     Arrays.stream(AuthorizationScope.values()).forEach(scope -> newPermissionGroups.put(scope, new ArrayList<>()));
     
     List<String> fieldNames = new ArrayList<>(replyController.listFieldNames(reply));
-    ReplyData data = payload.getData();
+    Map<String, Object> data = payload.getData();
     Map<String, MetaformField> fieldMap = fieldController.getFieldMap(metaformEntity);
 
     for (Entry<String, Object> entry : data.entrySet()) {
@@ -342,7 +343,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response deleteReply(String realmId, UUID metaformId, UUID replyId) throws Exception {
+  public Response deleteReply(String realmId, UUID metaformId, UUID replyId) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -367,7 +368,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response replyExport(String realmId, UUID metaformId, UUID replyId, String format) throws Exception {
+  public Response replyExport(String realmId, UUID metaformId, UUID replyId, String format) {
     // TODO: Permission check
 
     Locale locale = getLocale();
@@ -400,13 +401,20 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
     Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
     Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap = getAttachmentMap(metaformEntity, replyEntity);
-    byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
+    
+    try {
+      byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
+      return streamResponse(pdfData, "application/pdf");
+    } catch (PdfRenderException e) {
+      logger.error("Failed to generate PDF", e);
+      return createInternalServerError(e.getMessage());
+    }
 
-    return streamResponse(pdfData, "application/pdf");
+    
   }
 
   @Override
-  public Response createMetaform(String realmId, Metaform payload) throws Exception {
+  public Response createMetaform(String realmId, Metaform payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to create Metaforms");
     }
@@ -416,7 +424,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createBadRequest("Invalid Metaform JSON");  
     }
     
-    Boolean allowAnonymous = payload.isAllowAnonymous();
+    Boolean allowAnonymous = payload.getAllowAnonymous();
     if (allowAnonymous == null) {
       allowAnonymous  = false;
     }
@@ -439,7 +447,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
-  public Response listMetaforms(String realmId) throws Exception {
+  public Response listMetaforms(String realmId) {
     // TODO: Permission check
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
@@ -450,7 +458,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }).collect(Collectors.toList()));
   }
 
-  public Response findMetaform(String realmId, UUID metaformId) throws Exception {
+  public Response findMetaform(String realmId, UUID metaformId) {
     // TODO: Permission check
     
     UUID loggedUserId = getLoggerUserId();
@@ -476,7 +484,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response updateMetaform(String realmId, UUID metaformId, Metaform payload) throws Exception {
+  public Response updateMetaform(String realmId, UUID metaformId, Metaform payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -491,7 +499,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    Boolean allowAnonymous = payload.isAllowAnonymous();
+    Boolean allowAnonymous = payload.getAllowAnonymous();
     if (allowAnonymous == null) {
       allowAnonymous = metaform.getAllowAnonymous();
     }
@@ -517,7 +525,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
   
   @Override
-  public Response deleteMetaform(String realmId, UUID metaformId) throws Exception {
+  public Response deleteMetaform(String realmId, UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to delete Metaforms");
     }
@@ -534,13 +542,13 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return createNoContent();
   }
 
-  public Response export(String realmId, UUID metaformId, String format) throws Exception {
+  public Response export(String realmId, UUID metaformId, String format) {
     // TODO Auto-generated method stub
     return null;
   }
   
   @Override
-  public Response findAttachment(String realmId, UUID attachmentId) throws Exception {
+  public Response findAttachment(String realmId, UUID attachmentId) {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -554,7 +562,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findAttachmentData(String realmId, UUID attachmentId) throws Exception {
+  public Response findAttachmentData(String realmId, UUID attachmentId) {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -761,7 +769,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) throws Exception {
+  public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -777,7 +785,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
+  public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -798,7 +806,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) throws Exception {
+  public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -817,7 +825,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response listEmailNotifications(String realmId, UUID metaformId) throws Exception {
+  public Response listEmailNotifications(String realmId, UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -831,7 +839,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId, EmailNotification payload) throws Exception {
+  public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId, EmailNotification payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -853,7 +861,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
 
 
   @Override
-  public Response createExportTheme(String realmId, ExportTheme payload) throws Exception {
+  public Response createExportTheme(String realmId, ExportTheme payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -875,7 +883,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response createExportThemeFile(String realmId, UUID exportThemeId, ExportThemeFile payload) throws Exception {
+  public Response createExportThemeFile(String realmId, UUID exportThemeId, ExportThemeFile payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -894,7 +902,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response deleteExportTheme(String realmId, UUID exportThemeId) throws Exception {
+  public Response deleteExportTheme(String realmId, UUID exportThemeId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -910,7 +918,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response deleteExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) throws Exception {
+  public Response deleteExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -935,7 +943,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findExportTheme(String realmId, UUID exportThemeId) throws Exception {
+  public Response findExportTheme(String realmId, UUID exportThemeId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -949,7 +957,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) throws Exception {
+  public Response findExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -972,7 +980,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response listExportThemeFiles(String realmId, UUID exportThemeId) throws Exception {
+  public Response listExportThemeFiles(String realmId, UUID exportThemeId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -988,7 +996,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response listExportThemes(String realmId) throws Exception {
+  public Response listExportThemes(String realmId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -999,7 +1007,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response updateExportTheme(String realmId, UUID exportThemeId, ExportTheme payload) throws Exception {
+  public Response updateExportTheme(String realmId, UUID exportThemeId, ExportTheme payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -1024,7 +1032,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response updateExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile payload) throws Exception {
+  public Response updateExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
     }
@@ -1081,7 +1089,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       .map(MetaformSection::getFields)
       .flatMap(List::stream)
       .filter(field -> field.getPermissionContexts() != null)
-      .filter(field -> field.getPermissionContexts().isEditGroup() || field.getPermissionContexts().isViewGroup() || field.getPermissionContexts().isNotifyGroup())
+      .filter(field -> field.getPermissionContexts().getEditGroup() || field.getPermissionContexts().getViewGroup() || field.getPermissionContexts().getNotifyGroup())
       .collect(Collectors.toList());
   }
 
@@ -1094,21 +1102,21 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param fieldValue field value
    */
   private void addPermissionContextGroups(EnumMap<AuthorizationScope, List<String>> permissionGroups, String formSlug, MetaformField field, Object fieldValue) {
-    MetaformFieldPermissioncontexts permissionContexts = field.getPermissionContexts();
+    MetaformFieldPermissionContexts permissionContexts = field.getPermissionContexts();
     
     if (permissionContexts != null && fieldValue instanceof String) {
       String fieldName = field.getName();
       String permissionGroupName = getReplySecurityContextGroup(formSlug, fieldName, (String) fieldValue);
       
-      if (permissionContexts.isEditGroup()) {
+      if (permissionContexts.getEditGroup()) {
         permissionGroups.get(AuthorizationScope.REPLY_EDIT).add(permissionGroupName); 
       }
       
-      if (permissionContexts.isViewGroup()) {
+      if (permissionContexts.getViewGroup()) {
         permissionGroups.get(AuthorizationScope.REPLY_VIEW).add(permissionGroupName); 
       }
       
-      if (permissionContexts.isNotifyGroup()) {
+      if (permissionContexts.getNotifyGroup()) {
         permissionGroups.get(AuthorizationScope.REPLY_NOTIFY).add(permissionGroupName); 
       }
     }
