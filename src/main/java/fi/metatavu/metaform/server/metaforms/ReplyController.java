@@ -434,51 +434,53 @@ public class ReplyController {
    * @throws XlsxException thrown when export fails
    */
   public byte[] getRepliesAsXlsx(Metaform metaform, fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, List<fi.metatavu.metaform.server.rest.model.Reply> replyEntities) throws XlsxException {
-    try (ByteArrayOutputStream output = new ByteArrayOutputStream(); XlsxBuilder xlsxBuilder = new XlsxBuilder()) {      
-      for (int replyIndex = 0; replyIndex < replyEntities.size(); replyIndex++) {
-        fi.metatavu.metaform.server.rest.model.Reply replyEntity = replyEntities.get(replyIndex);
+    String title = metaformEntity.getTitle();
+    if (StringUtils.isBlank(title)) {
+      title = metaform.getSlug();
+    }
+    
+    try (ByteArrayOutputStream output = new ByteArrayOutputStream(); XlsxBuilder xlsxBuilder = new XlsxBuilder()) { 
+      String sheetId = xlsxBuilder.createSheet(title);
         
-        Map<String, Object> replyData = replyEntity.getData();
-        String sheetId = xlsxBuilder.createSheet(String.valueOf(replyIndex + 1));
-        
-        List<MetaformField> fields = metaformEntity.getSections().stream()
-          .map(MetaformSection::getFields)
-          .flatMap(List::stream)
-          .filter(field -> StringUtils.isNotEmpty(field.getName()))
-          .collect(Collectors.toList());
-        
-        // Headers 
-        
-        for (int i = 0; i < fields.size(); i++) {
-          xlsxBuilder.setCellValue(sheetId, 0, i, fields.get(i).getTitle());
-        }
-        
-        // Values
-        
-        for (int columnIndex = 0; columnIndex < fields.size(); columnIndex++) {
-          MetaformField field = fields.get(columnIndex);
-          
-          for (int rowIndex = 0; rowIndex < replyData.size(); rowIndex++) {
-            Object value = replyData.get(field.getName());
-            if (value != null) {
-              switch (field.getType()) {
-                case DATE:
-                case DATE_TIME:
-                  xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, OffsetDateTime.parse(value.toString()));
-                break;
-                case SELECT:
-                case RADIO:
-                  String selectedValue = field.getOptions().stream()
-                    .filter(option -> option.getName()
-                    .equals(value.toString()))
-                    .map(MetaformFieldOption::getText)
-                    .findFirst()
-                    .orElse(value.toString());
-                  
-                  xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, selectedValue);
-                default:
-                  xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, value.toString());
-              }
+      List<MetaformField> fields = metaformEntity.getSections().stream()
+        .map(MetaformSection::getFields)
+        .flatMap(List::stream)
+        .filter(field -> StringUtils.isNotEmpty(field.getName()))
+        .collect(Collectors.toList());
+      
+      // Headers 
+      
+      for (int i = 0; i < fields.size(); i++) {
+        xlsxBuilder.setCellValue(sheetId, 0, i, fields.get(i).getTitle());
+      }
+      
+      // Values
+      
+      for (int columnIndex = 0; columnIndex < fields.size(); columnIndex++) {
+        MetaformField field = fields.get(columnIndex);
+
+        for (int rowIndex = 0; rowIndex < replyEntities.size(); rowIndex++) {          
+          Map<String, Object> replyData = replyEntities.get(rowIndex).getData();
+
+          Object value = replyData.get(field.getName());
+          if (value != null) {
+            switch (field.getType()) {
+              case DATE:
+              case DATE_TIME:
+                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, OffsetDateTime.parse(value.toString()));
+              break;
+              case SELECT:
+              case RADIO:
+                String selectedValue = field.getOptions().stream()
+                  .filter(option -> option.getName()
+                  .equals(value.toString()))
+                  .map(MetaformFieldOption::getText)
+                  .findFirst()
+                  .orElse(value.toString());
+                
+                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, selectedValue);
+              default:
+                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, value.toString());
             }
           }
         }
