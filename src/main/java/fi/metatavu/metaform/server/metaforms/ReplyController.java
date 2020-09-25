@@ -446,6 +446,7 @@ public class ReplyController {
         .map(MetaformSection::getFields)
         .flatMap(List::stream)
         .filter(field -> StringUtils.isNotEmpty(field.getName()))
+        .filter(field -> StringUtils.isNotEmpty(field.getTitle()))
         .collect(Collectors.toList());
       
       // Headers 
