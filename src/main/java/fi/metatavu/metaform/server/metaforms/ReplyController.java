@@ -459,28 +459,30 @@ public class ReplyController {
       for (int columnIndex = 0; columnIndex < fields.size(); columnIndex++) {
         MetaformField field = fields.get(columnIndex);
 
-        for (int rowIndex = 0; rowIndex < replyEntities.size(); rowIndex++) {          
-          Map<String, Object> replyData = replyEntities.get(rowIndex).getData();
+        for (int replyIndex = 0; replyIndex < replyEntities.size(); replyIndex++) {          
+          Map<String, Object> replyData = replyEntities.get(replyIndex).getData();
+          int rowIndex = replyIndex + 1;
 
           Object value = replyData.get(field.getName());
           if (value != null) {
             switch (field.getType()) {
               case DATE:
               case DATE_TIME:
-                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, OffsetDateTime.parse(value.toString()));
+                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, OffsetDateTime.parse(value.toString()));
               break;
               case SELECT:
               case RADIO:
                 String selectedValue = field.getOptions().stream()
-                  .filter(option -> option.getName()
-                  .equals(value.toString()))
+                  .filter(option -> option.getName().equals(value.toString()))
                   .map(MetaformFieldOption::getText)
                   .findFirst()
                   .orElse(value.toString());
                 
-                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, selectedValue);
+                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, selectedValue);
+              break;
               default:
-                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex + 1, value.toString());
+                xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, value.toString());
+              break;
             }
           }
         }
