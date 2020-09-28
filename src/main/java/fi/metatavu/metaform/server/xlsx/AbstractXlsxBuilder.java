@@ -50,7 +50,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
   /**
    * Creates new sheet
    * 
-   * @param id sheet id
    * @param label sheet label
    */
   @SuppressWarnings("unchecked")
