@@ -151,7 +151,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    * @param sheetId sheet id
    * @param rowNumber row number
    * @param columnNumber column number
-   * @param value value
+   * @param value value as integer
    * @return cell
    */
   public Cell setCellValue(String sheetId, int rowNumber, int columnNumber, Integer value) {
