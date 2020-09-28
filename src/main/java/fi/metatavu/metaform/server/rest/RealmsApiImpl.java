@@ -71,6 +71,7 @@ import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 import fi.metatavu.metaform.server.script.FormRuntimeContext;
 import fi.metatavu.metaform.server.script.RunnableScript;
 import fi.metatavu.metaform.server.script.ScriptProcessor;
+import fi.metatavu.metaform.server.xlsx.XlsxException;
 
 /**
  * Realms REST Service implementation
@@ -543,8 +544,34 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   public Response export(String realmId, UUID metaformId, String format) {
-    // TODO Auto-generated method stub
-    return null;
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to export Metaforms");
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if ("XLSX".equals(format)) {
+      Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+      if (metaformEntity == null) {
+        return createInternalServerError("Failed to translate metaform");
+      }
+      
+      List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, null, null, null, null, null, false, null);
+      List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply)).collect(Collectors.toList());
+      
+      try {
+        return streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      } catch (XlsxException e) {
+        logger.error("Failed to export replies as XLSX", e);
+        return createInternalServerError(e.getMessage());        
+      }
+    } else {
+      return createBadRequest(String.format("Unknown format %s", format));
+    }
+    
   }
   
   @Override
