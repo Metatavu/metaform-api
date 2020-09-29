@@ -20,10 +20,12 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.ClientAuthorizationContext;
+import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessToken;
 import org.keycloak.representations.AccessToken.Access;
 import org.slf4j.Logger;
 
+import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
 import fi.metatavu.metaform.server.rest.model.BadRequest;
 import fi.metatavu.metaform.server.rest.model.Forbidden;
 import fi.metatavu.metaform.server.rest.model.InternalServerError;
@@ -345,17 +347,18 @@ public abstract class AbstractApi {
   }
   
   /**
-   * Constructs authz client
+   * Constructs authz client for a realm
    * 
-   * @return created authz client
+   * @param realmName realm
+   * @return created authz client or null if client could not be created
    */
   protected AuthzClient getAuthzClient() {
-    ClientAuthorizationContext clientAuthorizationContext = getAuthorizationContext();
-    if (clientAuthorizationContext == null) {
-      return null;
+    Configuration configuration = KeycloakConfigProvider.getConfig();
+    if (configuration != null) {
+      return AuthzClient.create(configuration);
     }
-
-    return clientAuthorizationContext.getClient();
+    
+    return null;
   }
 
   /**

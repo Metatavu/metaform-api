@@ -75,11 +75,10 @@ public class KeycloakAdminUtils {
   /**
    * Creates admin client for a realm
    * 
-   * @param realmName realm
    * @return admin client
    */
-  public static Keycloak getAdminClient(String realmName) {
-    return getAdminClient(KeycloakConfigProvider.getConfig(realmName));
+  public static Keycloak getAdminClient() {
+    return getAdminClient(KeycloakConfigProvider.getConfig());
   }
   
   /**
@@ -110,11 +109,10 @@ public class KeycloakAdminUtils {
   /**
    * Constructs Keycloak realm configuration
    * 
-   * @param realmName realm
    * @return Keycloak realm configuration
    */
-  public static Configuration getKeycloakConfiguration(String realmName) {
-    return KeycloakConfigProvider.getConfig(realmName);
+  public static Configuration getKeycloakConfiguration() {
+    return KeycloakConfigProvider.getConfig();
   }
   
   /**
@@ -125,7 +123,7 @@ public class KeycloakAdminUtils {
    * @return Keycloak client
    */
   public static ClientRepresentation getKeycloakClient(Keycloak keycloak, String realmName) {
-    Configuration keycloakConfiguration = getKeycloakConfiguration(realmName);
+    Configuration keycloakConfiguration = getKeycloakConfiguration();
     return findClient(keycloak, realmName, keycloakConfiguration.getResource());
   }
   

@@ -59,7 +59,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
    */
   @SuppressWarnings ("squid:S1141")
   private void createMetaformResources(JdbcConnection connection, String metaformId, String realmName) throws CustomChangeException {
-    AuthzClient authzClient = getAuthzClient(realmName);
+    AuthzClient authzClient = getAuthzClient();
     int count = 0;
     
     try (PreparedStatement statement = connection.prepareStatement("SELECT id, userId FROM reply WHERE metaform_id = ?")) {

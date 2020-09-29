@@ -718,7 +718,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    */
   private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Reply replyEntity, EnumMap<AuthorizationScope, List<String>> newPermissionGroups) {
     String realmName = metaform.getRealmId();
-    Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration(realmName);
+    Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration();
     Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
     ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);
     
@@ -1231,7 +1231,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param metaformEntity Metaform REST entity
    */
   private void updateMetaformPermissionGroups(String realmName, String formSlug, Metaform metaformEntity) {
-    Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration(realmName);
+    Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration();
     Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
     ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);
     

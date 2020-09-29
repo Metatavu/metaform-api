@@ -40,7 +40,7 @@ public class CreateRealmAuthorizations extends AbstractAuthzCustomChange {
    */
   private void createRealmAuthorizations(String realmName) throws CustomChangeException {
     try {
-      Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration(realmName);
+      Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration();
       Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
       ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);    
       KeycloakAdminUtils.createAuthorizationScopes(adminClient, realmName, keycloakClient, Arrays.asList(AuthorizationScope.values()));

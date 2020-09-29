@@ -1,17 +1,11 @@
 package fi.metatavu.metaform.server.keycloak;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import org.keycloak.authorization.client.Configuration;
-import org.keycloak.util.JsonSerialization;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Keycloak realm config provider
@@ -19,81 +13,42 @@ import org.slf4j.LoggerFactory;
  * @author Antti Leppä
  */
 public class KeycloakConfigProvider {
-
-  private static Logger logger = LoggerFactory.getLogger(KeycloakConfigProvider.class.getName());
   
-  private KeycloakConfigProvider() {
-    // Private constructor
-  }
-
+  private static final String REALM = System.getenv("KEYCLOAK_REALM");
+  private static final String CLIENT_ID = System.getenv("KEYCLOAK_RESOURCE");
+  private static final String CLIENT_SECRET = System.getenv("KEYCLOAK_SECRET");
+  private static final String ADMIN_USER = System.getenv("KEYCLOAK_ADMIN_USER");
+  private static final String ADMIN_PASS = System.getenv("KEYCLOAK_ADMIN_PASS");
+  private static final String URL = System.getenv("KEYCLOAK_URL");
+  
   /**
    * Returns all configured realms
    * 
    * @return all configured realms
    */
   public static List<String> getConfiguredRealms() {
-    File configPath = new File(System.getProperty("metaform-api.config-path"));
-    
-    return Arrays.stream(configPath.listFiles())
-      .map(KeycloakConfigProvider::getConfig)
-      .map(Configuration::getRealm)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
+    return Collections.singletonList(REALM);
   }
-  /**
-   * Resolves Keycloak config file for a realm
-   * 
-   * @param realmName Keycloak realm name
-   * @return config file or null if not found
-   */
-  public static File getConfigFile(String realmName) {
-    String configParentSetting = System.getProperty("metaform-api.config-path");
-    if (configParentSetting == null) {
-      logger.error("Config parent setting not set");
-      return null;
-    }
-
-    File configParent = new File(configParentSetting);
-    if (!configParent.exists()) {
-      logger.error("Config parent setting folder does not exist");
-      return null;
-    }
-
-    File configFile = new File(configParent, String.format("%s.json", realmName));
-    if (!configFile.exists()) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(String.format("Keycloak config not found for realm %s", realmName));
-      }
-      
-      return null;
-    }
-    
-    return configFile;
-  }
-    
+     
   /**
    * Resolves Keycloak client configuration for a realm
    * 
-   * @param realmName realm
    * @return configuration or null if configuration could not be created
    */
-  public static Configuration getConfig(String realmName) {
-    File configFile = KeycloakConfigProvider.getConfigFile(realmName);
-    if (configFile != null) {
-      return getConfig(configFile);
-    }
+  public static Configuration getConfig() {
+    Map<String, Object> clientCredentials = new HashMap<>();
+    clientCredentials.put("secret", CLIENT_SECRET);
+    clientCredentials.put("provider", "secret");
+    clientCredentials.put("realm-admin-user", ADMIN_USER);
+    clientCredentials.put("realm-admin-pass", ADMIN_PASS);
     
-    return null;
+    Configuration result = new Configuration();
+    result.setAuthServerUrl(URL);
+    result.setRealm(REALM);
+    result.setResource(CLIENT_ID);
+    result.setCredentials(clientCredentials);
+    
+    return result;
   }
 
-  private static Configuration getConfig(File configFile) {
-    try (FileInputStream inputStream = new FileInputStream(configFile)) {
-      return JsonSerialization.readValue(inputStream, Configuration.class);
-    } catch (IOException e) {
-      logger.error("Failed to load Keycloak config {}", e);
-    }
-    
-    return null;
-  }  
-  
 }

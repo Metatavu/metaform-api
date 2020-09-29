@@ -55,7 +55,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   
   protected static final String REALM_1 = "test-1";
   protected static final String BASE_URL = "/v1";
-  protected static final String AUTH_SERVER_URL = "http://localhost:8280";
+  protected static final String AUTH_SERVER_URL = "http://test-keycloak:8080";
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
