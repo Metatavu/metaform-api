@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>fi.metatavu.metaform-api</groupId>
   <artifactId>metaform-api</artifactId>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>2.1.0-SNAPSHOT</version>
   <packaging>war</packaging>
   <name>Metaform API</name>
   <description>Metaform API is a central API service for Metaforms</description>
@@ -604,11 +604,11 @@
       </activation>
       
       <properties>
-        <it.port.http>58080</it.port.http>
-        <it.host>api-itest.metaform.fi</it.host>        
+        <it.port.http>1234</it.port.http>
+        <it.host>localhost</it.host>        
         <it.jdbc.driver>org.mariadb.jdbc.MySQLDataSource</it.jdbc.driver>
         <it.jdbc.module>com.mariadb.jdbc</it.jdbc.module>        
-        <it.jdbc.dbname>mftest</it.jdbc.dbname>
+        <it.jdbc.dbname>db</it.jdbc.dbname>
         <it.jdbc.username>sa</it.jdbc.username>
         <it.jdbc.password>sa</it.jdbc.password>
         <it.jdbc.url>jdbc:mysql://localhost:3306/${it.jdbc.dbname}?serverTimezone=Europe/Helsinki</it.jdbc.url>
@@ -622,6 +622,118 @@
       
       <build>
         <plugins>
+
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <configuration>
+              <images>
+                <image>
+                  <name>mysql:5.6</name>
+                  <alias>test-mysql</alias>
+                  <run>
+                    <ports>
+                      <port>3306:3306</port>
+                    </ports>
+                    <env>
+                      <MYSQL_ROOT_PASSWORD>rootpass</MYSQL_ROOT_PASSWORD>
+                      <MYSQL_DATABASE>db</MYSQL_DATABASE>
+                      <MYSQL_USER>sa</MYSQL_USER>
+                      <MYSQL_PASSWORD>sa</MYSQL_PASSWORD>
+                    </env>
+                    <wait>
+                      <log>ready for connections.</log>
+                    </wait>
+                    <cmd>--lower_case_table_names=1</cmd>
+                  </run>
+                </image>
+                <image>
+                  <name>jboss/keycloak:${keycloak.version}</name>
+                  <alias>test-keycloak</alias>
+                  <run>
+                    <env>
+                      <KEYCLOAK_USER>admin</KEYCLOAK_USER>
+                      <KEYCLOAK_PASSWORD>admin</KEYCLOAK_PASSWORD>
+                      <KEYCLOAK_IMPORT>/opt/docker/kc.json</KEYCLOAK_IMPORT>
+                    </env>
+                    <volumes>
+                      <bind>
+                        <volume>${project.basedir}/test-volumes/keycloak:/opt/docker</volume>
+                      </bind>
+                    </volumes>
+                    <ports>
+                      <port>8080:8080</port>
+                    </ports>
+                    <wait>
+                      <log>Resuming server</log>
+                      <time>120000</time>
+                    </wait>
+                  </run>
+                </image>
+                <image>
+                  <name>test-api</name>
+                  <build>
+                    <dockerFileDir>${project.basedir}</dockerFileDir>
+                    <filter>@</filter>
+                  </build>
+                  <run>
+                    <ports>
+                      <port>1234:8080</port>
+                    </ports>
+                    <links> 
+                      <link>test-mysql:test-mysql</link>
+                      <link>test-keycloak:test-keycloak</link>
+                    </links>                    
+                    <env>
+                      <METAFORM_API_CLUSTER_PASSWORD>clusterpass</METAFORM_API_CLUSTER_PASSWORD>
+                      <METAFORM_API_HOST>localhost</METAFORM_API_HOST>
+                      <METAFORM_API_DB_HOST>test-mysql</METAFORM_API_DB_HOST>
+                      <METAFORM_API_DB_PORT>3306</METAFORM_API_DB_PORT>
+                      <METAFORM_API_DB_NAME>db</METAFORM_API_DB_NAME>
+                      <METAFORM_API_DB_OPTS>?useSSL=false&amp;allowPublicKeyRetrieval=true</METAFORM_API_DB_OPTS>
+                      <METAFORM_API_DB_USERNAME>root</METAFORM_API_DB_USERNAME>
+                      <METAFORM_API_DB_PASSWORD>rootpass</METAFORM_API_DB_PASSWORD>
+                      <METAFORM_TX_IDENTIFIER>tx</METAFORM_TX_IDENTIFIER>
+                      <KEYCLOAK_REALM>test-1</KEYCLOAK_REALM>
+                      <KEYCLOAK_RESOURCE>metaform-api</KEYCLOAK_RESOURCE>
+                      <KEYCLOAK_URL>http://test-keycloak:8080/auth</KEYCLOAK_URL>
+                      <KEYCLOAK_SECRET>378833f9-dde8-4443-84ca-edfa26e2f0ee</KEYCLOAK_SECRET>
+                      <KEYCLOAK_ADMIN_USER>realm-admin</KEYCLOAK_ADMIN_USER>
+                      <KEYCLOAK_ADMIN_PASS>test</KEYCLOAK_ADMIN_PASS>
+                      <KUBERNETES_NAMESPACE>test</KUBERNETES_NAMESPACE>
+                      <KUBERNETES_LABELS>test</KUBERNETES_LABELS>
+                      <runmode>TEST</runmode>
+                    </env>
+                  </run>
+                </image>
+              </images>
+              <showLogs>true</showLogs>
+            </configuration>
+            <executions>
+              <execution>
+                <id>docker-test-api-build</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>docker-test-api-start</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>docker-test-api-stop</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>  
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
@@ -661,227 +773,6 @@
               </execution>
             </executions>
           </plugin>
-         
-          <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.1</version>
-            <configuration>
-              <destFile>${jacoco.reportPath}</destFile>
-              <dataFile>${jacoco.reportPath}</dataFile>
-              <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
-              <classDumpDir>${project.reporting.outputDirectory}/jacoco-it/classes</classDumpDir>
-              <excludes>
-                <exclude>**/*_.class</exclude>
-              </excludes>
-            </configuration>
-                
-            <executions>
-              <execution>
-                <id>jacoco-agent</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>prepare-agent</goal>
-                </goals>
-                <configuration>
-                  <destFile>${jacoco.reportPath}</destFile>
-                  <propertyName>jacoco.agent.itArgLine</propertyName>
-                </configuration>
-              </execution>
-              <execution>
-                <id>jacoco-report</id>
-                <phase>post-integration-test</phase>
-                <goals>
-                  <goal>dump</goal>
-                  <goal>report</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.cargo</groupId>
-            <artifactId>cargo-maven2-plugin</artifactId>
-            <version>1.7.6</version>
-            <configuration>
-              <container>
-                <containerId>wildfly16x</containerId>
-                <log>${project.basedir}/target/cargo.log</log>
-                <output>${project.basedir}/target/wildfly.log</output>
-                <zipUrlInstaller>
-                  <url>https://download.jboss.org/wildfly/${wildfly.version}/wildfly-${wildfly.version}.zip</url>
-                  <downloadDir>${project.basedir}/.cargo/downloads</downloadDir>
-                  <extractDir>${project.basedir}/.cargo/extracts</extractDir>
-                </zipUrlInstaller>         
-              </container>
-              <configuration>
-                <properties>
-                  <cargo.servlet.port>${it.port.http}</cargo.servlet.port>
-                  <cargo.jboss.configuration>standalone</cargo.jboss.configuration>
-                  <cargo.jvmargs>${jacoco.agent.itArgLine},output=tcpserver,port=6300 -Xmx2G -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -Drunmode=TEST</cargo.jvmargs>
-                </properties>    
-              </configuration>
-              <deployer/>
-            </configuration>
-            <executions>
-              <execution>
-                <id>start-cargo</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>start</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>stop-cargo</id>
-                <phase>post-integration-test</phase>
-                <goals>
-                  <goal>stop</goal>
-                </goals>
-                <configuration>
-                  <skip>${it.skipserverstop}</skip>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-              <execution>
-                <id>unpack-keycloak-wildfly-adapter</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>unpack-dependencies</goal>
-                </goals>
-                <configuration>
-                  <includeGroupIds>org.keycloak</includeGroupIds>
-                  <includeArtifactIds>keycloak-wildfly-adapter-dist</includeArtifactIds>
-                  <outputDirectory>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.8</version>
-            <executions>
-              <execution>
-                <id>unpack-mariadb-module</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target>
-                    <get src="https://static.metatavu.io/wildfly/wildfly-${wildfly.version}-mariadb-module-${mariadb-module.version}.zip" dest="${project.build.directory}/mariadb-module.zip" verbose="true" usetimestamp="true"/>
-                    <unzip src="${project.build.directory}/mariadb-module.zip" dest="${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}"/>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.wildfly.plugins</groupId>
-            <artifactId>wildfly-maven-plugin</artifactId>
-            <version>2.0.1.Final</version>
-            <executions>
-              <execution>
-                <id>wildfly-keycloak-configure</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>execute-commands</goal>
-                </goals>
-                <configuration>
-                  <batch>false</batch>
-                  <offline>true</offline>
-                  <fail-on-error>false</fail-on-error>
-                  <jbossHome>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</jbossHome>
-                  <scripts>
-                    <script>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}/bin/adapter-elytron-install-offline.cli</script>
-                  </scripts>
-                </configuration>
-              </execution>    
-              <execution>
-                <id>wildfly-configure</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>execute-commands</goal>
-                </goals>
-                <configuration>
-                  <batch>false</batch>
-                  <offline>true</offline>
-                  <jbossHome>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</jbossHome>
-                  <commands>
-                    <command>embed-server --server-config=standalone.xml</command>
-                    
-                    <!-- JDBC -->
-                    
-                    <command>if (outcome != success) of /subsystem=datasources/data-source=it:read-resource</command>
-                    <command>/subsystem=datasources/jdbc-driver=it:add(driver-name="it", driver-module-name=${it.jdbc.module},driver-xa-datasource-class-name=${it.jdbc.driver})</command>
-                    <command>data-source add --name=it --use-ccm=true --jta=true --enabled=true --driver-name=it --jndi-name=${it.jdbc.jndi} --user-name=${it.jdbc.username} --password=${it.jdbc.password} --connection-url=${it.jdbc.url}</command>
-                    <command>end-if</command>
-                    
-                    <!-- Host -->
-                                                          
-                    <command>if (outcome != success) of /subsystem=undertow/server=default-server/host=metaform-api:read-resource</command>
-                    <command>/subsystem=undertow/server=default-server/host=metaform-api:add(alias=["${it.host}"],default-web-module="metaform-api.war")</command>
-                    <command>/system-property=it-test:add(value="true")</command>
-                    <command>/system-property=metaform-api.config-path:add(value="${project.basedir}/test-config")</command>
-                    <command>end-if</command>
-                    
-                    <!-- Infinispan -->
-                    
-                    <command>if (outcome != success) of /subsystem=infinispan/cache-container=metaform:read-resource</command>
-                    <command>/subsystem=infinispan/cache-container=metaform:add()</command>
-                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-meta:add()</command>
-                    <command>/subsystem=infinispan/cache-container=metaform/local-cache=file-data:add()</command>
-                    <command>end-if</command>
-                    
-                    <!-- Logging -->
-                    
-                    <command>if (outcome != success) of /subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:read-resource</command>
-                    <command>/subsystem=logging/logger=org.keycloak.adapters.authorization.PolicyEnforcer:add(level=WARNING)</command> 
-                    <command>end-if</command>
-                  </commands>
-                </configuration>
-              </execution>
-
-              <execution>
-                <id>wildfly-stop</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>shutdown</goal>
-                </goals>
-              </execution>  
-              
-              <execution>
-                <id>wildfly-start</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>start</goal>
-                </goals>
-                <configuration>
-                  <javaOpts>-Djboss.http.port=${it.port.http} ${jacoco.agent.itArgLine},output=tcpserver,port=6300 -Xmx2G -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -Drunmode=TEST</javaOpts>
-                  <jbossHome>${project.build.directory}/../.cargo/extracts/wildfly-${wildfly.version}/wildfly-${wildfly.version}</jbossHome>
-                </configuration>
-              </execution>  
-
-              <execution>
-                <id>deploy</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>deploy</goal>
-                </goals>
-                <configuration>
-                  <filename>${project.build.finalName}.${project.packaging}</filename>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
                     
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
@@ -906,11 +797,6 @@
             </executions>
           </plugin>
           
-          <plugin>
-            <groupId>org.eluder.coveralls</groupId>
-            <artifactId>coveralls-maven-plugin</artifactId>
-            <version>4.3.0</version>
-          </plugin>
         </plugins>
       </build>
     </profile>  
