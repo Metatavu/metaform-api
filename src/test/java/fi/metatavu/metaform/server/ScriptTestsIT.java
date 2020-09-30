@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
@@ -34,6 +35,8 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testCreateReplyScript() throws IOException, URISyntaxException {
+    WireMock.resetAllRequests();
+    
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
     
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
@@ -63,7 +66,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testPdfScript() throws IOException, URISyntaxException {
-    wireMockRule.resetAll();
+    WireMock.resetAllRequests();
     
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
     
@@ -89,7 +92,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
         Reply reply = createReplyWithData(replyData);
         repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
         
-        List<ServeEvent> serveEvents = wireMockRule.getAllServeEvents();
+        List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
         assertEquals(1, serveEvents.size());
         
         assertPdfContains("PDF text value", serveEvents.get(0).getRequest().getBody());
@@ -103,7 +106,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testPdfBase64Script() throws IOException, URISyntaxException {
-    wireMockRule.resetAll();
+    WireMock.resetAllRequests();
     
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
     
@@ -129,7 +132,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
         Reply reply = createReplyWithData(replyData);
         repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
         
-        List<ServeEvent> serveEvents = wireMockRule.getAllServeEvents();
+        List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
         assertEquals(1, serveEvents.size());
         
         assertPdfContains("PDF text value", Base64.getDecoder().decode(serveEvents.get(0).getRequest().getBody()));

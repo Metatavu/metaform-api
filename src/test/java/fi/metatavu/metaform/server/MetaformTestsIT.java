@@ -53,7 +53,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       assertNotNull(metaform.getScripts().getAfterUpdateReply());
       assertEquals("update-test", metaform.getScripts().getAfterUpdateReply().get(0).getName());
       assertEquals("js", metaform.getScripts().getAfterUpdateReply().get(0).getLanguage());
-      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://localhost:58081/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply().get(0).getContent());
+      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply().get(0).getContent());
     } finally {
       dataBuilder.clean();
     }

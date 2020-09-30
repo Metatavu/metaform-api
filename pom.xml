@@ -671,6 +671,15 @@
                   </run>
                 </image>
                 <image>
+                  <name>rodolpheche/wiremock</name>
+                  <alias>test-wiremock</alias>
+                  <run>
+                    <ports>
+                      <port>8888:8080</port>
+                    </ports>
+                  </run>
+                </image>
+                <image>
                   <name>test-api</name>
                   <build>
                     <dockerFileDir>${project.basedir}</dockerFileDir>
@@ -683,6 +692,7 @@
                     <links> 
                       <link>test-mysql:test-mysql</link>
                       <link>test-keycloak:test-keycloak</link>
+                      <link>test-wiremock:test-wiremock</link>
                     </links>                    
                     <env>
                       <METAFORM_API_CLUSTER_PASSWORD>clusterpass</METAFORM_API_CLUSTER_PASSWORD>

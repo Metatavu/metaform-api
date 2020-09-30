@@ -26,14 +26,14 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
-import org.junit.Rule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
 import feign.Feign.Builder;
 import fi.metatavu.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.ApiClient;
+import fi.metatavu.metaform.client.AttachmentsApi;
 import fi.metatavu.metaform.client.EmailNotificationsApi;
 import fi.metatavu.metaform.client.ExportThemesApi;
 import fi.metatavu.metaform.client.Metaform;
@@ -41,7 +41,6 @@ import fi.metatavu.metaform.client.MetaformsApi;
 import fi.metatavu.metaform.client.RepliesApi;
 import fi.metatavu.metaform.client.Reply;
 import fi.metatavu.metaform.client.ReplyData;
-import fi.metatavu.metaform.client.AttachmentsApi;
 
 
 /**
@@ -60,9 +59,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
-  
   @After
   public void properlyCleaned() {
     assertCount("Metaforms not properly cleaned after test", "SELECT count(id) as count FROM Metaform", 0); 
@@ -492,6 +488,10 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     });
     
     assertEquals(message, expected, metaformCount);
+  }
+  
+  static {
+    WireMock.configureFor("localhost", 8888);
   }
   
 }

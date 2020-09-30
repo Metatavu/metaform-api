@@ -5,12 +5,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -45,7 +42,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         .post("/v1/realms/{realmId}/metaforms/{metaformId}/replies", "test-1", metaform.getId())
         .then()
         .assertThat()
-        .statusCode(403);
+        .statusCode(401);
       
     } finally {
       adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
@@ -458,12 +455,12 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   public void testMetafields() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      Metaform metaform = dataBuilder.createMetaform("simple-meta");      
-
+      Metaform metaform = dataBuilder.createMetaform("simple-meta");
+      
       Reply createdReply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.CUMULATIVE);
       
-      OffsetDateTime replyCreated = getReplyCreated(createdReply, TIMEZONE);
-      OffsetDateTime replyModified = getReplyModified(createdReply, TIMEZONE);
+      OffsetDateTime replyCreated = createdReply.getCreatedAt();
+      OffsetDateTime replyModified = createdReply.getModifiedAt();
 
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
@@ -526,46 +523,6 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     } finally {
       dataBuilder.clean();
     }
-  }
-
-  /**
-   * Returns when reply is created from the database
-   * 
-   * @param reply reply 
-   * @param zone zone
-   * @return when reply is created from the database
-   */
-  private OffsetDateTime getReplyCreated(Reply reply, ZoneId zone) {
-    Timestamp createdAt = executeSelectSingle("SELECT createdAt FROM Reply WHERE id = ?", (resultSet) -> {
-      try {
-        return resultSet.getTimestamp("createdAt");
-      } catch (SQLException e) {
-        fail(e.getMessage());
-        return null;
-      }
-    }, reply.getId());
-    
-    return OffsetDateTime.ofInstant(createdAt.toInstant(), zone);
-  }
-  
-  /**
-   * Returns when reply is last modified from the database
-   * 
-   * @param reply reply 
-   * @param zone zone
-   * @return when reply is last modified from the database
-   */
-  private OffsetDateTime getReplyModified(Reply reply, ZoneId zone) {
-    Timestamp modifiedAt = executeSelectSingle("SELECT modifiedAt FROM Reply WHERE id = ?", (resultSet) -> {
-      try {
-        return resultSet.getTimestamp("modifiedAt");
-      } catch (SQLException e) {
-        fail(e.getMessage());
-        return null;
-      }
-    }, reply.getId());
-    
-    return OffsetDateTime.ofInstant(modifiedAt.toInstant(), zone);
   }
 
   /**
