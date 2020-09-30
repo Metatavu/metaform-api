@@ -390,6 +390,16 @@
 
   <changeSet author="antti.leppa" id="attachmentdeletefix">
     <dropNotNullConstraint tableName="attachmentreplyfielditem" columnName="attachment_id" columnDataType="binary(16)"/>
-  </changeSet>  
+  </changeSet>
+  
+  <changeSet id="drop-realm" author="antti.leppa">
+    <dropIndex tableName="metaform" indexName="UN_METAFORM_SLUG"/>
+    <dropIndex tableName="metaform" indexName="IND_METAFORM_REALMID"/>
+    <dropColumn tableName="metaform" columnName="realmid"/>
+    
+    <createIndex indexName="UN_METAFORM_SLUG" tableName="metaform" unique="true">
+      <column name="slug" type="varchar(191)"/>
+    </createIndex>
+  </changeSet>
   
 </databaseChangeLog>

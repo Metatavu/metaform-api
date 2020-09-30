@@ -142,8 +142,8 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
       List<EmailNotification> list = adminEmailNotificationsApi.listEmailNotifications(REALM_1, metaform.getId());
       
       assertEquals(2, list.size());
-      assertEquals(notification1.toString(), list.get(0).toString());
-      assertEquals(notification2.toString(), list.get(1).toString());      
+      assertEquals(notification1.toString(), list.stream().filter(item -> item.getId().equals(notification1.getId())).toString());
+      assertEquals(notification2.toString(), list.stream().filter(item -> item.getId().equals(notification2.getId())).toString());
     } finally {
       dataBuilder.clean();
     }

@@ -37,14 +37,13 @@ public class MetaformController {
    * Creates new Metaform
    * 
    * @param exportTheme export theme
-   * @param realmId realm id
    * @param data form JSON
    * @return Metaform
    */
-  public Metaform createMetaform(ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String title, String data) {
+  public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, String data) {
     UUID id = UUID.randomUUID();
-    String slug = createSlug(realmId, title);
-    return metaformDAO.create(id, slug, exportTheme, realmId, allowAnonymous, data);    
+    String slug = createSlug(title);
+    return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);    
   }
 
   /**
@@ -58,13 +57,12 @@ public class MetaformController {
   }
   
   /**
-   * Lists Metaform from realm
+   * Lists Metaforms
    * 
-   * @param realmId realm
    * @return list of Metaforms
    */
-  public List<Metaform> listMetaforms(String realmId) {
-     return metaformDAO.listByRealmId(realmId);
+  public List<Metaform> listMetaforms() {
+     return metaformDAO.listAll();
   }
   
   /**
@@ -98,17 +96,16 @@ public class MetaformController {
   /**
    * Generates unique slug within a realm for a Metaform
    * 
-   * @param realmId realm id
    * @param title title
    * @return unique slug
    */
-  private String createSlug(String realmId, String title) {
+  private String createSlug(String title) {
     Slugify slugify = new Slugify();
     String prefix = StringUtils.isNotBlank(title) ? slugify.slugify(title) : "form";
     int count = 0;
     do {
       String slug = count > 0 ? String.format("%s-%d", prefix, count) : prefix;
-      if (metaformDAO.findByRealmIdAndSlug(realmId, slug) == null) {
+      if (metaformDAO.findBySlug(slug) == null) {
         return slug;
       }
       

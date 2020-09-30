@@ -40,11 +40,12 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import _fi.metatavu.metaform.server.rest.api.RealmsApi;
+import _fi.metatavu.metaform.server.rest.api.MetaformsApi;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
 import fi.metatavu.metaform.server.keycloak.KeycloakAdminUtils;
+import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
 import fi.metatavu.metaform.server.keycloak.ResourceType;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.metaforms.FieldFilters;
@@ -52,10 +53,7 @@ import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.pdf.PdfRenderException;
-import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.rest.model.EmailNotification;
-import fi.metatavu.metaform.server.rest.model.ExportTheme;
-import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldPermissionContexts;
@@ -65,7 +63,6 @@ import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
-import fi.metatavu.metaform.server.rest.translate.ExportThemeTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 import fi.metatavu.metaform.server.script.FormRuntimeContext;
@@ -80,20 +77,18 @@ import fi.metatavu.metaform.server.xlsx.XlsxException;
  */
 @RequestScoped
 @Stateful
-public class RealmsApiImpl extends AbstractApi implements RealmsApi {
+public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   
   private static final List<AuthorizationScope> REPLY_SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT, AuthorizationScope.REPLY_NOTIFY);
   private static final String USER_POLICY_NAME = "user";
   private static final String OWNER_POLICY_NAME = "owner";
   private static final String METAFORM_ADMIN_POLICY_NAME = "metaform-admin";
-  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/realms/%s/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/metaforms/%s/replies/%s";
   private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
   private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
   private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s:%s";
   
-  private static final String THEME_DOES_NOT_EXIST = "Theme %s does not exist";
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS = "You are not allowed to update Metaforms";
-  private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES = "You are not allowed to update themes";
   private static final String ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE = "Anonymous users are not allowed to list Metaforms";
   private static final String ANONYMOUS_USERS_FIND_METAFORM_MESSAGE = "Anonymous users are not allowed to find Metaforms";
   private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
@@ -122,9 +117,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   private ExportThemeController exportThemeController;
 
   @Inject
-  private ExportThemeTranslator exportThemeTranslator;
-
-  @Inject
   private AttachmentTranslator attachmentTranslator;
 
   @Inject
@@ -144,7 +136,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   
   @Override
   @SuppressWarnings ("squid:S3776")
-  public Response createReply(String realmName, UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) {
+  public Response createReply(UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
@@ -216,7 +208,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findReply(String realmId, UUID metaformId, UUID replyId) {
+  public Response findReply(UUID metaformId, UUID replyId) {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -244,7 +236,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
   
   @Override
-  public Response listReplies(String realmId, UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) {
+  public Response listReplies(UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) {
     if (firstResult != null) {
       return createNotImplemented("firstResult is not supported yet");
     }
@@ -287,7 +279,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return createOk(result);
   }
 
-  public Response updateReply(String realmName, UUID metaformId, UUID replyId, Reply payload) {
+  public Response updateReply(UUID metaformId, UUID replyId, Reply payload) {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -344,7 +336,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response deleteReply(String realmId, UUID metaformId, UUID replyId) {
+  public Response deleteReply(UUID metaformId, UUID replyId) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -369,7 +361,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response replyExport(String realmId, UUID metaformId, UUID replyId, String format) {
+  public Response replyExport(UUID metaformId, UUID replyId, String format) {
     // TODO: Permission check
 
     Locale locale = getLocale();
@@ -415,7 +407,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response createMetaform(String realmId, Metaform payload) {
+  public Response createMetaform(Metaform payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to create Metaforms");
     }
@@ -443,23 +435,24 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
     }
     
-    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, realmId, allowAnonymous, payload.getTitle(), data);
-    updateMetaformPermissionGroups(realmId, metaform.getSlug(), payload);
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), data);
+    updateMetaformPermissionGroups(metaform.getSlug(), payload);
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
-  public Response listMetaforms(String realmId) {
+  @Override
+  public Response listMetaforms() {
     // TODO: Permission check
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
     }
 
-    return createOk(metaformController.listMetaforms(realmId).stream().map((entity) -> {
+    return createOk(metaformController.listMetaforms().stream().map((entity) -> {
       return metaformTranslator.translateMetaform(entity);
     }).collect(Collectors.toList()));
   }
 
-  public Response findMetaform(String realmId, UUID metaformId) {
+  public Response findMetaform(UUID metaformId) {
     // TODO: Permission check
     
     UUID loggedUserId = getLoggerUserId();
@@ -477,15 +470,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
     }
     
-    if (!StringUtils.equals(metaform.getRealmId(), realmId)) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
   @Override
-  public Response updateMetaform(String realmId, UUID metaformId, Metaform payload) {
+  public Response updateMetaform(UUID metaformId, Metaform payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -518,7 +507,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       }
     }
 
-    updateMetaformPermissionGroups(realmId, metaform.getSlug(), payload);
+    updateMetaformPermissionGroups(metaform.getSlug(), payload);
     
     // TODO: Permission check
     
@@ -526,7 +515,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
   
   @Override
-  public Response deleteMetaform(String realmId, UUID metaformId) {
+  public Response deleteMetaform(UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to delete Metaforms");
     }
@@ -543,7 +532,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     return createNoContent();
   }
 
-  public Response export(String realmId, UUID metaformId, String format) {
+  public Response export(UUID metaformId, String format) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to export Metaforms");
     }
@@ -574,34 +563,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     
   }
   
-  @Override
-  public Response findAttachment(String realmId, UUID attachmentId) {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
-    Attachment attachment = attachmentController.findAttachmentById(attachmentId);
-    if (attachment == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    return createOk(attachmentTranslator.translateAttachment(attachment));
-  }
-
-  @Override
-  public Response findAttachmentData(String realmId, UUID attachmentId) {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
-    Attachment attachment = attachmentController.findAttachmentById(attachmentId);
-    if (attachment == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    return streamResponse(attachment.getContent(), attachment.getContentType());
-  }
-
   /**
    * Sets up runtime context for running scripts
    * 
@@ -717,37 +678,36 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param newPermissionGroups added permission groups
    */
   private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Reply replyEntity, EnumMap<AuthorizationScope, List<String>> newPermissionGroups) {
-    String realmName = metaform.getRealmId();
     Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration();
     Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
-    ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);
+    ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient);
     
     UUID resourceId = reply.getResourceId();
     String resourceName = getReplyResourceName(reply);
     
-    Set<UUID> notifiedUserIds = replyCreated ? Collections.emptySet() : KeycloakAdminUtils.getResourcePermittedUsers(adminClient, realmName, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY));
+    Set<UUID> notifiedUserIds = replyCreated ? Collections.emptySet() : KeycloakAdminUtils.getResourcePermittedUsers(adminClient, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY));
     
     resourceId = updateReplyPermissions(adminClient, keycloakClient, reply, newPermissionGroups);
     
-    Set<UUID> notifyUserIds = KeycloakAdminUtils.getResourcePermittedUsers(adminClient, realmName, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY)).stream()
+    Set<UUID> notifyUserIds = KeycloakAdminUtils.getResourcePermittedUsers(adminClient, keycloakClient, resourceId, resourceName, Arrays.asList(AuthorizationScope.REPLY_NOTIFY)).stream()
       .filter(notifyUserId -> !notifiedUserIds.contains(notifyUserId))
       .collect(Collectors.toSet());
 
-    emailNotificationController.listEmailNotificationByMetaform(metaform).forEach(emailNotification -> sendReplyEmailNotification(adminClient, realmName, replyCreated, emailNotification, replyEntity, notifyUserIds));
+    emailNotificationController.listEmailNotificationByMetaform(metaform).forEach(emailNotification -> sendReplyEmailNotification(adminClient, replyCreated, emailNotification, replyEntity, notifyUserIds));
   }
   
   /**
    * Sends reply email notifications
    * 
    * @param keycloak Keycloak admin client
-   * @param realmName realm name
    * @param replyCreated whether the reply was just created
    * @param emailNotification email notification
    * @param replyEntity reply REST entity
    * @param notifyUserIds notify user ids
    */
-  private void sendReplyEmailNotification(Keycloak keycloak, String realmName, boolean replyCreated, fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification, Reply replyEntity, Set<UUID> notifyUserIds) {
+  private void sendReplyEmailNotification(Keycloak keycloak, boolean replyCreated, fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification, Reply replyEntity, Set<UUID> notifyUserIds) {
     List<String> directEmails = replyCreated ? emailNotificationController.getEmailNotificationEmails(emailNotification) : Collections.emptyList();
+    String realmName = KeycloakConfigProvider.getConfig().getRealm();
     UsersResource usersResource = keycloak.realm(realmName).users();
     
     List<String> groupEmails = notifyUserIds.stream()
@@ -796,7 +756,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response createEmailNotification(String realmId, UUID metaformId, EmailNotification payload) {
+  public Response createEmailNotification(UUID metaformId, EmailNotification payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -812,7 +772,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response deleteEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) {
+  public Response deleteEmailNotification(UUID metaformId, UUID emailNotificationId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -833,7 +793,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response findEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId) {
+  public Response findEmailNotification(UUID metaformId, UUID emailNotificationId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -852,7 +812,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response listEmailNotifications(String realmId, UUID metaformId) {
+  public Response listEmailNotifications(UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -866,7 +826,7 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
   }
 
   @Override
-  public Response updateEmailNotification(String realmId, UUID metaformId, UUID emailNotificationId, EmailNotification payload) {
+  public Response updateEmailNotification(UUID metaformId, UUID emailNotificationId, EmailNotification payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
     }
@@ -884,205 +844,6 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     emailNotificationController.updateEmailNotification(emailNotification, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
     
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
-  }
-
-
-  @Override
-  public Response createExportTheme(String realmId, ExportTheme payload) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-    
-    UUID parentId = payload.getParentId();
-    fi.metatavu.metaform.server.persistence.model.ExportTheme parent = null;
-    UUID loggedUserId = getLoggerUserId();
-    
-    if (parentId != null) {
-      parent = exportThemeController.findExportTheme(parentId);
-      if (parent == null) {
-        return createBadRequest(String.format(THEME_DOES_NOT_EXIST, parentId));
-      }
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = exportThemeController.createExportTheme(payload.getLocales(), parent, payload.getName(), loggedUserId);
-    
-    return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
-  }
-
-  @Override
-  public Response createExportThemeFile(String realmId, UUID exportThemeId, ExportThemeFile payload) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
- 
-    UUID themeId = payload.getThemeId();
-    UUID loggedUserId = getLoggerUserId();
-    
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(themeId);
-    if (theme == null) {
-      return createBadRequest(String.format(THEME_DOES_NOT_EXIST, themeId));
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportThemeFile themeFile = exportThemeController.createExportThemeFile(theme, payload.getPath(), payload.getContent(), loggedUserId);
-    
-    return createOk(exportThemeTranslator.translateExportThemeFile(themeFile));
-  }
-
-  @Override
-  public Response deleteExportTheme(String realmId, UUID exportThemeId) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
-    if (theme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    exportThemeController.deleteTheme(theme);
-
-    return createNoContent();
-  }
-
-  @Override
-  public Response deleteExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
-    if (theme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile = exportThemeController.findExportThemeFile(exportThemeFileId);
-    if (exportThemeFile == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!exportThemeFile.getTheme().getId().equals(theme.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    exportThemeController.deleteThemeFile(exportThemeFile);
-
-    return createNoContent();
-  }
-
-  @Override
-  public Response findExportTheme(String realmId, UUID exportThemeId) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = exportThemeController.findExportTheme(exportThemeId);
-    if (exportTheme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
-  }
-
-  @Override
-  public Response findExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
-    if (theme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile = exportThemeController.findExportThemeFile(exportThemeFileId);
-    if (exportThemeFile == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!exportThemeFile.getTheme().getId().equals(theme.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
-  }
-
-  @Override
-  public Response listExportThemeFiles(String realmId, UUID exportThemeId) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
-    if (theme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    return createOk(exportThemeController.listExportThemeFiles(theme).stream()
-      .map(exportThemeTranslator::translateExportThemeFile)
-      .collect(Collectors.toList()));
-  }
-
-  @Override
-  public Response listExportThemes(String realmId) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    return createOk(exportThemeController.listExportThemes().stream()
-      .map(exportThemeTranslator::translateExportTheme)
-      .collect(Collectors.toList()));
-  }
-
-  @Override
-  public Response updateExportTheme(String realmId, UUID exportThemeId, ExportTheme payload) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
-    if (theme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    UUID parentId = payload.getParentId();
-    fi.metatavu.metaform.server.persistence.model.ExportTheme parent = null;
-    UUID loggedUserId = getLoggerUserId();
-    
-    if (parentId != null) {
-      parent = exportThemeController.findExportTheme(parentId);
-      if (parent == null) {
-        return createBadRequest(String.format(THEME_DOES_NOT_EXIST, parentId));
-      }
-    }
-
-    return createOk(exportThemeTranslator.translateExportTheme(exportThemeController.updateExportTheme(theme, payload.getLocales(), parent, payload.getName(), loggedUserId)));
-  }
-
-  @Override
-  public Response updateExportThemeFile(String realmId, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile payload) {
-    if (!isRealmMetaformSuper()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeController.findExportTheme(exportThemeId);
-    UUID loggedUserId = getLoggerUserId();
-    
-    if (theme == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile = exportThemeController.findExportThemeFile(exportThemeFileId);
-    if (exportThemeFile == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!exportThemeFile.getTheme().getId().equals(theme.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    exportThemeController.updateExportThemeFile(exportThemeFile, payload.getPath(), payload.getContent(), loggedUserId);
-
-    return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
   }
 
   /**
@@ -1186,13 +947,11 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    */
   private UUID updateReplyPermissions(Keycloak keycloak, ClientRepresentation keycloakClient, fi.metatavu.metaform.server.persistence.model.Reply reply, EnumMap<AuthorizationScope, List<String>> permissionGroups) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = reply.getMetaform();
-    String realmName = metaform.getRealmId();
     
     UUID resourceId = reply.getResourceId();
     
     if (resourceId == null) {
       resourceId = KeycloakAdminUtils.createProtectedResource(keycloak,
-        realmName,
         keycloakClient,
         reply.getUserId(), 
         getReplyResourceName(reply), 
@@ -1203,22 +962,22 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
       replyController.updateResourceId(reply, resourceId);
     }
     
-    Set<UUID> commonPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, realmName, keycloakClient, Arrays.asList(METAFORM_ADMIN_POLICY_NAME, OWNER_POLICY_NAME));
+    Set<UUID> commonPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, keycloakClient, Arrays.asList(METAFORM_ADMIN_POLICY_NAME, OWNER_POLICY_NAME));
 
     for (AuthorizationScope scope : AuthorizationScope.values()) {
       List<String> groupNames = permissionGroups.get(scope);
-      Set<UUID> groupPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, realmName, keycloakClient, groupNames);
+      Set<UUID> groupPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, keycloakClient, groupNames);
       
       HashSet<UUID> policyIds = new HashSet<>(groupPolicyIds);
       policyIds.addAll(commonPolicyIds);
       
-      KeycloakAdminUtils.upsertScopePermission(keycloak, realmName, keycloakClient, resourceId, Collections.singleton(scope), getReplyPermissionName(reply, scope.getName().toLowerCase()), DecisionStrategy.AFFIRMATIVE, policyIds);
+      KeycloakAdminUtils.upsertScopePermission(keycloak, keycloakClient, resourceId, Collections.singleton(scope), getReplyPermissionName(reply, scope.getName().toLowerCase()), DecisionStrategy.AFFIRMATIVE, policyIds);
     }
     
-    Set<UUID> userPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, realmName, keycloakClient, Arrays.asList(USER_POLICY_NAME));
+    Set<UUID> userPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, keycloakClient, Arrays.asList(USER_POLICY_NAME));
     
     if (metaform.getAllowAnonymous()) {
-      KeycloakAdminUtils.upsertScopePermission(keycloak, realmName, keycloakClient, resourceId, Collections.singleton(AuthorizationScope.REPLY_VIEW), "require-user", DecisionStrategy.AFFIRMATIVE, userPolicyIds);
+      KeycloakAdminUtils.upsertScopePermission(keycloak, keycloakClient, resourceId, Collections.singleton(AuthorizationScope.REPLY_VIEW), "require-user", DecisionStrategy.AFFIRMATIVE, userPolicyIds);
     }
     
     return resourceId;
@@ -1230,10 +989,10 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
    * @param realmName realm
    * @param metaformEntity Metaform REST entity
    */
-  private void updateMetaformPermissionGroups(String realmName, String formSlug, Metaform metaformEntity) {
+  private void updateMetaformPermissionGroups(String formSlug, Metaform metaformEntity) {
     Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration();
     Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
-    ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);
+    ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient);
     
     List<String> groupNames = getPermissionContextFields(metaformEntity).stream()
       .map(field -> field.getOptions().stream().map(option -> getReplySecurityContextGroup(formSlug, field.getName(), option.getName())).collect(Collectors.toList()))
@@ -1269,19 +1028,18 @@ public class RealmsApiImpl extends AbstractApi implements RealmsApi {
     }
     
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = reply.getMetaform();
-    return getReplyResourceUri(metaform.getRealmId(), metaform.getId(), reply.getId());
+    return getReplyResourceUri(metaform.getId(), reply.getId());
   }
   
   /**
    * Returns resource URI for reply
    * 
-   * @param realmName realm name
    * @param metaformId Metaform id
    * @param replyId reply id
    * @return resource URI
    */
-  private String getReplyResourceUri(String realmName, UUID metaformId, UUID replyId) {
-    return String.format(REPLY_RESOURCE_URI_TEMPLATE, realmName, metaformId, replyId);
+  private String getReplyResourceUri(UUID metaformId, UUID replyId) {
+    return String.format(REPLY_RESOURCE_URI_TEMPLATE, metaformId, replyId);
   }
   
   /**

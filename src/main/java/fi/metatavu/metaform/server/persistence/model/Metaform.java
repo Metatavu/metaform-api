@@ -26,17 +26,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Table (
   uniqueConstraints = {
-    @UniqueConstraint (columnNames = { "realmid", "slug" })  
+    @UniqueConstraint (columnNames = { "slug" })  
   }    
 )
 public class Metaform {
 
   @Id
   private UUID id;
-
-  @NotNull
-  @NotEmpty
-  private String realmId;
 
   @NotNull
   @NotEmpty
@@ -58,14 +54,6 @@ public class Metaform {
   
   public void setId(UUID id) {
     this.id = id;
-  }
-  
-  public void setRealmId(String realmId) {
-    this.realmId = realmId;
-  }
-  
-  public String getRealmId() {
-    return realmId;
   }
   
   public String getSlug() {
