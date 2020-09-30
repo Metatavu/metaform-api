@@ -16,11 +16,10 @@ import java.util.Map.Entry;
 import org.junit.Test;
 
 import feign.FeignException;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
@@ -34,25 +33,25 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-table"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
     try {
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
       
       Reply reply = createReplyWithData(replyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertTableDataEquals(replyData, foundReply.getData());
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
 
@@ -64,39 +63,39 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-table"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
     try {
-      ReplyData createReplyData = new ReplyData();
+      Map<String, Object> createReplyData = new HashMap<>();
       createReplyData.put("table", Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d)));
       Reply createReply = createReplyWithData(createReplyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), createReply, null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), createReply, null, ReplyMode.REVISION.toString());
       try {
         assertTableDataEquals(createReplyData, createReply.getData());
 
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());        
         
         assertTableDataEquals(createReplyData, foundReply.getData());
 
-        ReplyData updateReplyData = new ReplyData();
+        Map<String, Object> updateReplyData = new HashMap<>();
         updateReplyData.put("table", Arrays.asList(createSimpleTableRow("Added new text", -210d), createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Updated Text 2", 45.5d)));
         Reply updateReply = createReplyWithData(updateReplyData);
-        repliesApi.updateReply(REALM_1, metaform.getId(), createdReply.getId(), updateReply);
+        repliesApi.updateReply(metaform.getId(), createdReply.getId(), updateReply);
         
         assertTableDataEquals(updateReplyData, updateReply.getData());
         
-        Reply foundUpdatedReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundUpdatedReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundUpdatedReply);
         assertNotNull(foundUpdatedReply.getId());        
         assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
         
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -108,25 +107,25 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-table"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
     try {
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow(null, null));
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
       
       Reply reply = createReplyWithData(replyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertTableDataEquals(replyData, foundReply.getData());
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -138,24 +137,24 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-table"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
     try {
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", null);
       
       Reply reply = createReplyWithData(replyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertNull(foundReply.getData().get("table"));
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -166,20 +165,20 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     RepliesApi repliesApi = getRepliesApi(accessToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-table"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
     try {
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", "table data");
       
       try {
         Reply reply = createReplyWithData(replyData);
-        repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+        repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
         fail("Bad request should have been returned");
       } catch (FeignException e) {
         assertEquals(400, e.status());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -191,27 +190,27 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-table"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
     try {
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
       
       Reply reply = createReplyWithData(replyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
 
-      Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
       assertNotNull(foundReply);
-      adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+      adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       try {
-        repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        repliesApi.findReply(metaform.getId(), createdReply.getId());
         fail(String.format("Reply %s should not be present", createdReply.getId().toString()));
       } catch (FeignException e) {
         assertEquals(404, e.status());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -221,7 +220,7 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
    * @param expected expected table data
    * @param actual actual table data
    */
-  private void assertTableDataEquals(ReplyData expected, ReplyData actual) {
+  private void assertTableDataEquals(Map<String, Object> expected, Map<String, Object> actual) {
     assertNotNull(actual.get("table"));
     
     @SuppressWarnings("unchecked") List<Map<String, Object>> expectedTableData = (List<Map<String, Object>>) expected.get("table");

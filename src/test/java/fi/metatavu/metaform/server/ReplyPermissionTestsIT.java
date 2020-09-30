@@ -8,7 +8,9 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -16,11 +18,10 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import feign.FeignException;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
@@ -37,17 +38,17 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
     try {
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -63,16 +64,16 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     RepliesApi anonRepliesApi = getRepliesApi(anonymousToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context-anon"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context-anon"));
     try {
-      Reply createdReply = anonRepliesApi.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
+      Reply createdReply = anonRepliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
       try {
         assertForbiddenToFindReply(anonymousToken, REALM_1, metaform.getId(), createdReply.getId());
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -90,16 +91,16 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
     RepliesApi repliesApi = getRepliesApi(accessToken1);
 
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
     try {
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
       try {
         assertForbiddenToFindReply(accessToken2, REALM_1, metaform.getId(), createdReply.getId());
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
 
@@ -114,17 +115,17 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
     try {
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = adminRepliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = adminRepliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
 
@@ -145,24 +146,24 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi2 = getRepliesApi(accessToken2);
     RepliesApi repliesApi3 = getRepliesApi(accessToken3);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
     try {
-      Reply reply1 = repliesApi1.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = repliesApi2.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = repliesApi3.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-3"), null, ReplyMode.REVISION.toString());
+      Reply reply1 = repliesApi1.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
+      Reply reply2 = repliesApi2.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply3 = repliesApi3.createReply(metaform.getId(), createPermisionSelectReply("group-3"), null, ReplyMode.REVISION.toString());
       
       try {
-        List<Reply> replies = repliesApi1.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
+        List<Reply> replies = repliesApi1.listReplies(metaform.getId(), Collections.emptyMap());
         assertEquals(1, replies.size());
         assertEquals(reply1.getId(), replies.get(0).getId());
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply3.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId());
       }
       
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -183,16 +184,16 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi2 = getRepliesApi(accessToken2);
     RepliesApi repliesApi3 = getRepliesApi(accessToken3);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
     try {
-      Reply reply1 = repliesApi1.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = repliesApi2.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = repliesApi3.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply1 = repliesApi1.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply2 = repliesApi2.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply3 = repliesApi3.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
       
       try {
-        List<Reply> replies1 = repliesApi1.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
-        List<Reply> replies2 = repliesApi2.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
-        List<Reply> replies3 = repliesApi3.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
+        List<Reply> replies1 = repliesApi1.listReplies(metaform.getId(), Collections.emptyMap());
+        List<Reply> replies2 = repliesApi2.listReplies(metaform.getId(), Collections.emptyMap());
+        List<Reply> replies3 = repliesApi3.listReplies(metaform.getId(), Collections.emptyMap());
         
         assertEquals(1, replies1.size());
         assertEquals(reply1.getId(), replies1.get(0).getId());
@@ -207,13 +208,13 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         assertEquals(1, replies3.size());
         assertEquals(reply3.getId(), replies3.get(0).getId());        
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply3.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId());
       }
       
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -234,23 +235,23 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi2 = getRepliesApi(accessToken2);
     RepliesApi repliesApi3 = getRepliesApi(accessToken3);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple-permission-context"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
     try {
-      Reply reply1 = repliesApi1.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = repliesApi2.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = repliesApi3.createReply(REALM_1, metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply1 = repliesApi1.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply2 = repliesApi2.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply3 = repliesApi3.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
       
       try {
-        List<Reply> replies = adminRepliesApi.listReplies(REALM_1, metaform.getId(), Collections.emptyMap());
+        List<Reply> replies = adminRepliesApi.listReplies(metaform.getId(), Collections.emptyMap());
         assertEquals(3, replies.size());
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply1.getId());
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply2.getId());
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply3.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId());
       }
       
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
 
@@ -269,8 +270,8 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         dataBuilder.createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
         
         Reply createdReply = dataBuilder.createReply(metaform, createPermissionSelectReplyData("group-2"), ReplyMode.REVISION);
-        dataBuilder.getRepliesApi().updateReply(REALM_1, metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
-        dataBuilder.getRepliesApi().updateReply(REALM_1, metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
+        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
+        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
         
         mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
         mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
@@ -289,7 +290,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * @return permission select reply with given value
    */
   private Reply createPermisionSelectReply(String value) {
-    ReplyData replyData = createPermissionSelectReplyData(value);
+    Map<String, Object> replyData = createPermissionSelectReplyData(value);
     Reply reply = createReplyWithData(replyData);
     return reply;
   }
@@ -300,8 +301,8 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * @param value value
    * @return permission select reply data with given value
    */
-  private ReplyData createPermissionSelectReplyData(String value) {
-    ReplyData replyData = new ReplyData();
+  private Map<String, Object> createPermissionSelectReplyData(String value) {
+    Map<String, Object> replyData = new HashMap<>();
     replyData.put("permission-select", value);
     return replyData;
   }
@@ -317,7 +318,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   private void assertForbiddenToFindReply(String token, String realmId, UUID metaformId, UUID replyId) {
     RepliesApi repliesApi = getRepliesApi(token);
     try {
-      repliesApi.findReply(realmId, metaformId, replyId);
+      repliesApi.findReply(metaformId, replyId);
       fail(String.format("Reply %s should not be accessible", replyId.toString()));
     } catch (FeignException e) {
       assertEquals(403, e.status());

@@ -13,9 +13,10 @@ import java.util.UUID;
 import org.junit.Test;
 
 import feign.FeignException;
-import fi.metatavu.metaform.client.ExportTheme;
-import fi.metatavu.metaform.client.ExportThemeFile;
-import fi.metatavu.metaform.client.ExportThemesApi;
+import fi.metatavu.metaform.client.model.ExportTheme;
+import fi.metatavu.metaform.client.model.ExportThemeFile;
+import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
+import fi.metatavu.metaform.client.api.ExportThemesApi;
 
 @SuppressWarnings ("squid:S1192")
 public class ExportThemeTestsIT extends AbstractIntegrationTest {
@@ -35,7 +36,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       ExportTheme childTheme = dataBuilder.createExportTheme(childPayload);
       assertNotNull(childTheme);
       
-      ExportTheme foundChildTheme = superExportThemesApi.findExportTheme(REALM_1, childTheme.getId());
+      ExportTheme foundChildTheme = superExportThemesApi.findExportTheme(childTheme.getId());
       
       assertNotNull(foundChildTheme);
       assertEquals(childTheme.toString(), foundChildTheme.toString());
@@ -57,7 +58,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       assertNotNull(exportTheme);
       assertNotNull(exportTheme.getName());
       
-      ExportTheme foundExportTheme = superExportThemesApi.findExportTheme(REALM_1, exportTheme.getId());
+      ExportTheme foundExportTheme = superExportThemesApi.findExportTheme(exportTheme.getId());
       
       assertNotNull(foundExportTheme);
       assertEquals(exportTheme.getName(), foundExportTheme.getName());
@@ -75,7 +76,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       ExportTheme exportTheme1 = dataBuilder.createSimpleExportTheme("theme 1");
       ExportTheme exportTheme2 = dataBuilder.createSimpleExportTheme("theme 2");
       
-      List<ExportTheme> exportThemes = superExportThemesApi.listExportThemes(REALM_1);
+      List<ExportTheme> exportThemes = superExportThemesApi.listExportThemes();
       assertEquals(2, exportThemes.size());
       assertEquals(exportTheme1.toString(), exportThemes.get(0).toString());
       assertEquals(exportTheme2.toString(), exportThemes.get(1).toString());
@@ -102,7 +103,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       exportTheme.setLocales("locales");
       exportTheme.setParentId(parentTheme.getId());
       
-      ExportTheme updatedTheme = superExportThemesApi.updateExportTheme(REALM_1, exportTheme.getId(), exportTheme);
+      ExportTheme updatedTheme = superExportThemesApi.updateExportTheme(exportTheme.getId(), exportTheme);
       
       assertNotNull(updatedTheme);
       assertEquals("updated", updatedTheme.getName());
@@ -122,17 +123,17 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       
       ExportTheme payload = new ExportTheme();
       payload.setName("to be deleted");
-      ExportTheme exportTheme = superExportThemesApi.createExportTheme(REALM_1, payload);
+      ExportTheme exportTheme = superExportThemesApi.createExportTheme(payload);
       
-      assertEquals(1, superExportThemesApi.listExportThemes(REALM_1).size());
-      assertEquals(superExportThemesApi.findExportTheme(REALM_1, exportTheme.getId()).toString(), exportTheme.toString());
+      assertEquals(1, superExportThemesApi.listExportThemes().size());
+      assertEquals(superExportThemesApi.findExportTheme(exportTheme.getId()).toString(), exportTheme.toString());
       
-      superExportThemesApi.deleteExportTheme(REALM_1, exportTheme.getId());
+      superExportThemesApi.deleteExportTheme(exportTheme.getId());
 
-      assertEquals(0, superExportThemesApi.listExportThemes(REALM_1).size());
+      assertEquals(0, superExportThemesApi.listExportThemes().size());
       
       try {
-        superExportThemesApi.findExportTheme(REALM_1, exportTheme.getId());
+        superExportThemesApi.findExportTheme(exportTheme.getId());
         fail("Deleted export theme should not be found");
       } catch (FeignException e) {
         assertEquals(404, e.status());
@@ -162,12 +163,12 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void findExportThemeFileTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getSuperExportThemesApi();
+      ExportThemeFilesApi superExportThemeFilesApi = dataBuilder.getSuperExportThemeFilesApi();
       ExportTheme theme = dataBuilder.createSimpleExportTheme();
       ExportThemeFile createThemeFile = dataBuilder.createSimpleExportThemeFile(theme.getId(), "path/to/file1", "file content 1");  
       assertNotNull(createThemeFile);
       
-      ExportThemeFile foundFile = exportThemesApi.findExportThemeFile(REALM_1, theme.getId(), createThemeFile.getId());
+      ExportThemeFile foundFile = superExportThemeFilesApi.findExportThemeFile(theme.getId(), createThemeFile.getId());
       
       assertEquals(createThemeFile.toString(), foundFile.toString());
     } finally {
@@ -179,16 +180,16 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void listExportThemeFileTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getSuperExportThemesApi();
+      ExportThemeFilesApi superExportThemeFilesApi = dataBuilder.getSuperExportThemeFilesApi();
       
       ExportTheme theme = dataBuilder.createSimpleExportTheme();
       
-      assertEquals(0, exportThemesApi.listExportThemeFiles(REALM_1, theme.getId()).size());
+      assertEquals(0, superExportThemeFilesApi.listExportThemeFiles(theme.getId()).size());
       
       ExportThemeFile exportThemeFile1 = dataBuilder.createSimpleExportThemeFile(theme.getId(), "path/to/file1", "file content 1");
       ExportThemeFile exportThemeFile2 = dataBuilder.createSimpleExportThemeFile(theme.getId(), "path/to/file2", "file content 2");
       
-      List<ExportThemeFile> themeFiles = exportThemesApi.listExportThemeFiles(REALM_1, theme.getId());
+      List<ExportThemeFile> themeFiles = superExportThemeFilesApi.listExportThemeFiles(theme.getId());
       
       assertEquals(2, themeFiles.size());
       assertEquals(exportThemeFile1.toString(), themeFiles.get(0).toString());
@@ -202,7 +203,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void updateExportThemeFileTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi superExportThemesApi = dataBuilder.getSuperExportThemesApi();
+      ExportThemeFilesApi superExportThemeFilesApi = dataBuilder.getSuperExportThemeFilesApi();
       ExportTheme theme = dataBuilder.createSimpleExportTheme();
       
       ExportThemeFile createdThemeFile = dataBuilder.createSimpleExportThemeFile(theme.getId(), "not/updated", "not updated");
@@ -213,7 +214,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       createdThemeFile.setPath("is/updated");
       createdThemeFile.setContent("is updated");
       
-      ExportThemeFile updatedThemeFile = superExportThemesApi.updateExportThemeFile(REALM_1, theme.getId(), createdThemeFile.getId(), createdThemeFile);
+      ExportThemeFile updatedThemeFile = superExportThemeFilesApi.updateExportThemeFile(theme.getId(), createdThemeFile.getId(), createdThemeFile);
       assertEquals("is/updated", updatedThemeFile.getPath());
       assertEquals("is updated", updatedThemeFile.getContent());
       assertEquals(theme.getId(), updatedThemeFile.getThemeId());
@@ -226,20 +227,20 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void deleteExportThemeFileTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi superExportThemesApi = dataBuilder.getSuperExportThemesApi();
+      ExportThemeFilesApi superExportThemeFilesApi = dataBuilder.getSuperExportThemeFilesApi();
       ExportTheme theme = dataBuilder.createSimpleExportTheme();
       ExportThemeFile payload = new ExportThemeFile();
       payload.setContent("to be deleted");
       payload.setPath("to/be/dleted");
       payload.setThemeId(theme.getId());
-      ExportThemeFile exportThemeFile = superExportThemesApi.createExportThemeFile(REALM_1, theme.getId(), payload);
-      assertEquals(1, superExportThemesApi.listExportThemeFiles(REALM_1, theme.getId()).size());
-      assertEquals(superExportThemesApi.findExportThemeFile(REALM_1, theme.getId(), exportThemeFile.getId()).toString(), exportThemeFile.toString());
-      superExportThemesApi.deleteExportThemeFile(REALM_1, theme.getId(), exportThemeFile.getId());
-      assertEquals(0, superExportThemesApi.listExportThemeFiles(REALM_1, theme.getId()).size());
+      ExportThemeFile exportThemeFile = superExportThemeFilesApi.createExportThemeFile(theme.getId(), payload);
+      assertEquals(1, superExportThemeFilesApi.listExportThemeFiles(theme.getId()).size());
+      assertEquals(superExportThemeFilesApi.findExportThemeFile(theme.getId(), exportThemeFile.getId()).toString(), exportThemeFile.toString());
+      superExportThemeFilesApi.deleteExportThemeFile(theme.getId(), exportThemeFile.getId());
+      assertEquals(0, superExportThemeFilesApi.listExportThemeFiles(theme.getId()).size());
       
       try {
-        superExportThemesApi.findExportThemeFile(REALM_1, theme.getId(), exportThemeFile.getId());
+        superExportThemeFilesApi.findExportThemeFile(theme.getId(), exportThemeFile.getId());
         fail("Deleted export theme file should not be found");
       } catch (FeignException e) {
         assertEquals(404, e.status());
@@ -258,7 +259,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       try {
         ExportTheme exportTheme = new ExportTheme();
         exportTheme.setName("name");
-        exportThemesApi.createExportTheme(REALM_1, exportTheme);
+        exportThemesApi.createExportTheme(exportTheme);
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -275,7 +276,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
       
       try {
-        exportThemesApi.findExportTheme(REALM_1, UUID.randomUUID());
+        exportThemesApi.findExportTheme(UUID.randomUUID());
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -292,7 +293,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
       
       try {
-        exportThemesApi.listExportThemes(REALM_1);
+        exportThemesApi.listExportThemes();
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -310,7 +311,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       try {
         ExportTheme exportTheme = new ExportTheme();
         exportTheme.setName("name");
-        exportThemesApi.updateExportTheme(REALM_1, UUID.randomUUID(), exportTheme);
+        exportThemesApi.updateExportTheme(UUID.randomUUID(), exportTheme);
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -327,7 +328,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
       
       try {
-        exportThemesApi.deleteExportTheme(REALM_1, UUID.randomUUID());
+        exportThemesApi.deleteExportTheme(UUID.randomUUID());
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -341,7 +342,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void createExportThemeFilePermissionDeniedTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
+      ExportThemeFilesApi exportThemeFilesApi = dataBuilder.getExportThemeFilesApi();
       ExportTheme exportTheme = dataBuilder.createSimpleExportTheme();
       
       try {
@@ -349,7 +350,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
         payload.setContent("content");
         payload.setPath("path");
         payload.setThemeId(exportTheme.getId());
-        exportThemesApi.createExportThemeFile(REALM_1, exportTheme.getId(), payload);
+        exportThemeFilesApi.createExportThemeFile(exportTheme.getId(), payload);
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -363,11 +364,11 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void findExportThemeFilePermissionDeniedTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
+      ExportThemeFilesApi exportThemeFilesApi = dataBuilder.getExportThemeFilesApi();
       ExportTheme exportTheme = dataBuilder.createSimpleExportTheme();
       
       try {
-        exportThemesApi.findExportThemeFile(REALM_1, exportTheme.getId(), UUID.randomUUID());
+        exportThemeFilesApi.findExportThemeFile(exportTheme.getId(), UUID.randomUUID());
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -381,11 +382,11 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void listExportThemeFilePermissionDeniedTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
+      ExportThemeFilesApi exportThemeFilesApi = dataBuilder.getExportThemeFilesApi();
       ExportTheme exportTheme = dataBuilder.createSimpleExportTheme();
       
       try {
-        exportThemesApi.listExportThemeFiles(REALM_1, exportTheme.getId());
+        exportThemeFilesApi.listExportThemeFiles(exportTheme.getId());
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -399,7 +400,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void updateExportThemeFilePermissionDeniedTest()  throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
+      ExportThemeFilesApi exportThemeFilesApi = dataBuilder.getExportThemeFilesApi();
       ExportTheme exportTheme = dataBuilder.createSimpleExportTheme();
       
       try {
@@ -407,7 +408,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
         payload.setContent("content");
         payload.setPath("path");
         payload.setThemeId(exportTheme.getId());
-        exportThemesApi.updateExportThemeFile(REALM_1, exportTheme.getId(), UUID.randomUUID(), payload);
+        exportThemeFilesApi.updateExportThemeFile(exportTheme.getId(), UUID.randomUUID(), payload);
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());
@@ -421,9 +422,9 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void deleteExportThemeFilePermissionDeniedTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
-      ExportThemesApi exportThemesApi = dataBuilder.getExportThemesApi();
+      ExportThemeFilesApi exportThemeFilesApi = dataBuilder.getExportThemeFilesApi();
       try {
-        exportThemesApi.deleteExportThemeFile(REALM_1, UUID.randomUUID(), UUID.randomUUID());
+        exportThemeFilesApi.deleteExportThemeFile(UUID.randomUUID(), UUID.randomUUID());
         fail("Should not be permitted");
       } catch (FeignException e) {
         assertEquals(403, e.status());

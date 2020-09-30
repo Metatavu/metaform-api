@@ -32,15 +32,15 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import feign.Feign.Builder;
 import fi.metatavu.feign.UmaErrorDecoder;
-import fi.metatavu.metaform.ApiClient;
-import fi.metatavu.metaform.client.AttachmentsApi;
-import fi.metatavu.metaform.client.EmailNotificationsApi;
-import fi.metatavu.metaform.client.ExportThemesApi;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.ApiClient;
+import fi.metatavu.metaform.client.api.AttachmentsApi;
+import fi.metatavu.metaform.client.api.EmailNotificationsApi;
+import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
+import fi.metatavu.metaform.client.api.ExportThemesApi;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 
 
 /**
@@ -91,24 +91,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    */
   protected Integer getPort() {
     return NumberUtils.createInteger(System.getProperty("it.port.http"));
-  }
-
-  /**
-   * Returns WireMock port
-   * 
-   * @return WireMock port
-   */
-  protected int getWireMockPort() {
-    return getPort() + 1;
-  }
-  
-  /**
-   * Returns WireMock base path
-   * 
-   * @return WireMock base path
-   */
-  protected String getWireMockBasePath() {
-    return String.format("http://%s:%d", getHost(), getWireMockPort());
   }
 
   /**
@@ -191,7 +173,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(ExportThemesApi.class);
   }
-  
+
+  /**
+   * Returns exportThemeFiles API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return exportThemeFiles API authenticated by the given access token
+   */
+  protected ExportThemeFilesApi getExportThemeFilesApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(ExportThemeFilesApi.class);
+  }
   
   /**
    * Returns API client authenticated by the given access token
@@ -318,7 +310,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     String senderEmail = "metaform-test@example.com";
     String senderName = "Metaform Test";
 
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apiurl", String.format("%s/%s",getWireMockBasePath(), path));
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apiurl", String.format("http://%s:%d/%s", "test-wiremock", 8080, path));
     executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-domain", domain);
     executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apikey", apiKey);
     executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-sender-email", senderEmail);
@@ -345,7 +337,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    * @param replyData reply data
    * @return reply object with given data
    */
-  protected Reply createReplyWithData(ReplyData replyData) {
+  protected Reply createReplyWithData(Map<String, Object> replyData) {
     Reply reply = new Reply();
     reply.setData(replyData);
     return reply;

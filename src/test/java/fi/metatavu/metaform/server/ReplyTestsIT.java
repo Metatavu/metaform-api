@@ -12,16 +12,17 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
-import fi.metatavu.metaform.client.ExportTheme;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.model.ExportTheme;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
@@ -34,18 +35,18 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     String adminToken = getAdminToken(REALM_1);
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
     try {
       given()
         .baseUri(getBasePath())
         .header("Content-Type", "application/json")
-        .post("/v1/realms/{realmId}/metaforms/{metaformId}/replies", "test-1", metaform.getId())
+        .post("/v1/metaforms/{metaformId}/replies", metaform.getId())
         .then()
         .assertThat()
         .statusCode(401);
       
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -57,23 +58,23 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
     try {
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "Test text value");
       Reply reply = createReplyWithData(replyData);
       
-      Reply createdReply = repliesApi.createReply(REALM_1, metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertEquals("Test text value", foundReply.getData().get("text"));
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
   
@@ -85,31 +86,31 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
     try {
-      ReplyData replyData1 = new ReplyData();
+      Map<String, Object> replyData1 = new HashMap<>();
       replyData1.put("text", "Test text value");
       Reply reply1 = createReplyWithData(replyData1);
 
-      ReplyData replyData2 = new ReplyData();
+      Map<String, Object> replyData2 = new HashMap<>();
       replyData2.put("text", "Updated text value");
       Reply reply2 = createReplyWithData(replyData2);
       
-      Reply createdReply1 = repliesApi.createReply(REALM_1, metaform.getId(), reply1, null, ReplyMode.UPDATE.toString());
+      Reply createdReply1 = repliesApi.createReply(metaform.getId(), reply1, null, ReplyMode.UPDATE.toString());
       try {
         assertNotNull(createdReply1);
         assertNotNull(createdReply1.getId());
         assertEquals("Test text value", createdReply1.getData().get("text"));
 
-        Reply createdReply2 = repliesApi.createReply(REALM_1, metaform.getId(), reply2,  null, ReplyMode.UPDATE.toString());
+        Reply createdReply2 = repliesApi.createReply(metaform.getId(), reply2,  null, ReplyMode.UPDATE.toString());
         assertNotNull(createdReply2);
         assertEquals(createdReply1.getId(), createdReply2.getId());
         assertEquals("Updated text value", createdReply2.getData().get("text"));
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply1.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
 
@@ -121,38 +122,38 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
     RepliesApi repliesApi = getRepliesApi(accessToken);
     RepliesApi adminRepliesApi = getRepliesApi(adminToken);
     
-    Metaform metaform = adminMetaformsApi.createMetaform(REALM_1, readMetaform("simple"));
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
     try {
-      ReplyData replyData1 = new ReplyData();
+      Map<String, Object> replyData1 = new HashMap<>();
       replyData1.put("text", "Test text value");
       Reply reply1 = createReplyWithData(replyData1);
 
-      ReplyData replyData2 = new ReplyData();
+      Map<String, Object> replyData2 = new HashMap<>();
       replyData2.put("text", "Updated text value");
       Reply reply2 = createReplyWithData(replyData2);
       
-      Reply createdReply1 = repliesApi.createReply(REALM_1, metaform.getId(), reply1, null, ReplyMode.REVISION.toString());
+      Reply createdReply1 = repliesApi.createReply(metaform.getId(), reply1, null, ReplyMode.REVISION.toString());
       try {
         assertNotNull(createdReply1);
         assertNotNull(createdReply1.getId());
         assertEquals("Test text value", createdReply1.getData().get("text"));
 
-        Reply createdReply2 = repliesApi.createReply(REALM_1, metaform.getId(), reply2, null, ReplyMode.REVISION.toString());
+        Reply createdReply2 = repliesApi.createReply(metaform.getId(), reply2, null, ReplyMode.REVISION.toString());
         assertNotNull(createdReply2);
         assertNotEquals(createdReply1.getId(), createdReply2.getId());
         assertEquals("Updated text value", createdReply2.getData().get("text"));
         
-        List<Reply> replies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, null, null, null);
+        List<Reply> replies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, null, null, null);
         assertEquals(2, replies.size());
         assertNotNull(replies.get(0).getRevision());
         assertEquals("Test text value", replies.get(0).getData().get("text"));
         assertNull(replies.get(1).getRevision());
         assertEquals("Updated text value", replies.get(1).getData().get("text"));
       } finally {
-        adminRepliesApi.deleteReply(REALM_1, metaform.getId(), createdReply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply1.getId());
       }
     } finally {
-      adminMetaformsApi.deleteMetaform(REALM_1, metaform.getId());
+      adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
 
@@ -168,7 +169,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       dataBuilder.createSimpleReply(metaform, "val 2", ReplyMode.CUMULATIVE);
       dataBuilder.createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
       
-      List<Reply> replies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, null, null, null, null);
+      List<Reply> replies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, null, null, null, null);
       
       assertEquals(3, replies.size());
       assertEquals("val 1", replies.get(0).getData().get("text"));
@@ -187,13 +188,13 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       Metaform metaform = dataBuilder.createMetaform("simple");      
       Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
 
-      ReplyData updateData = new ReplyData();
+      Map<String, Object> updateData = new HashMap<>();
       updateData.put("text", "Updated text value");
       reply.setData(updateData);
       
-      repliesApi.updateReply(REALM_1, metaform.getId(), reply.getId(), reply);
+      repliesApi.updateReply(metaform.getId(), reply.getId(), reply);
       
-      Reply updatedReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      Reply updatedReply = repliesApi.findReply(metaform.getId(), reply.getId());
       assertEquals("Updated text value", updatedReply.getData().get("text"));
     } finally {
       dataBuilder.clean();
@@ -214,11 +215,11 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
 
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 1"), null, null);
-      List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 2"), null, null);
-      List<Reply> repliesBoth = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 1", "text:test 2"), null, null);
-      List<Reply> repliesNone = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:non", "text:existing"), null, null);
-      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text^test 1"), null, null);
+      List<Reply> replies1 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 1"), null, null);
+      List<Reply> replies2 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 2"), null, null);
+      List<Reply> repliesBoth = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:test 1", "text:test 2"), null, null);
+      List<Reply> repliesNone = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text:non", "text:existing"), null, null);
+      List<Reply> notReplies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("text^test 1"), null, null);
   
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -252,11 +253,11 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1"), null, null);
-      List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 2"), null, null);
-      List<Reply> repliesBoth = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1", "checklist:option 2"), null, null);
-      List<Reply> repliesNone = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:non", "checklist:existing"), null, null);
-      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist^option 1"), null, null);
+      List<Reply> replies1 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1"), null, null);
+      List<Reply> replies2 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 2"), null, null);
+      List<Reply> repliesBoth = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1", "checklist:option 2"), null, null);
+      List<Reply> repliesNone = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:non", "checklist:existing"), null, null);
+      List<Reply> notReplies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist^option 1"), null, null);
       
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -289,11 +290,11 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:1"), null, null);
-      List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:2.5"), null, null);
-      List<Reply> repliesBoth = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:1", "number:2.5"), null, null);
-      List<Reply> repliesNone = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:55", "number:66"), null, null);
-      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number^1"), null, null);
+      List<Reply> replies1 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:1"), null, null);
+      List<Reply> replies2 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:2.5"), null, null);
+      List<Reply> repliesBoth = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:1", "number:2.5"), null, null);
+      List<Reply> repliesNone = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number:55", "number:66"), null, null);
+      List<Reply> notReplies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("number^1"), null, null);
   
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -327,9 +328,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:true"), null, null);
-      List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:false"), null, null);
-      List<Reply> notReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean^false"), null, null);
+      List<Reply> replies1 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:true"), null, null);
+      List<Reply> replies2 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:false"), null, null);
+      List<Reply> notReplies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean^false"), null, null);
      
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -359,10 +360,10 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> replies1 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:true", "number:1"), null, null);
-      List<Reply> replies2 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:false", "number:1"), null, null);
-      List<Reply> replies3 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1", "boolean:true"), null, null);
-      List<Reply> replies4 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist^option 1", "boolean:false"), null, null);
+      List<Reply> replies1 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:true", "number:1"), null, null);
+      List<Reply> replies2 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("boolean:false", "number:1"), null, null);
+      List<Reply> replies3 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist:option 1", "boolean:true"), null, null);
+      List<Reply> replies4 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE, Arrays.asList("checklist^option 1", "boolean:false"), null, null);
       
       assertEquals(1, replies1.size());
       assertEquals("test 1", replies1.get(0).getData().get("text"));
@@ -395,9 +396,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> allReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null, null, null);
-      List<Reply> createdBefore26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, getIsoDateTime(2018, 5, 26, TIMEZONE), null, null, null, Boolean.FALSE, null, null, null);
-      List<Reply> createdAfter26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, null, Boolean.FALSE, null, null, null);
+      List<Reply> allReplies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null, null, null);
+      List<Reply> createdBefore26 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, getIsoDateTime(2018, 5, 26, TIMEZONE), null, null, null, Boolean.FALSE, null, null, null);
+      List<Reply> createdAfter26 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, null, Boolean.FALSE, null, null, null);
 
       assertEquals(3, allReplies.size());
       assertEquals("test 1", allReplies.get(0).getData().get("text"));
@@ -431,9 +432,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      List<Reply> allReplies = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null, null, null);
-      List<Reply> modifiedBefore26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, Boolean.FALSE, null, null, null);
-      List<Reply> modifiedAfter26 = repliesApi.listReplies(REALM_1, metaform.getId(), REALM1_USER_1_ID, null, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), Boolean.FALSE, null, null, null);
+      List<Reply> allReplies = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null, null, null);
+      List<Reply> modifiedBefore26 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, Boolean.FALSE, null, null, null);
+      List<Reply> modifiedAfter26 = repliesApi.listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), Boolean.FALSE, null, null, null);
       
       assertEquals(3, allReplies.size());
       assertEquals("test 1", allReplies.get(0).getData().get("text"));
@@ -464,7 +465,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
 
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      Reply reply = repliesApi.findReply(REALM_1, metaform.getId(), createdReply.getId());
+      Reply reply = repliesApi.findReply(metaform.getId(), createdReply.getId());
       assertEquals(replyCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("created")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       assertEquals(replyModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("modified")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       assertEquals(REALM1_USER_1_ID.toString(), reply.getData().get("lastEditor"));
@@ -483,13 +484,13 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
       Metaform metaform = dataBuilder.createMetaform("simple");
       metaform.setExportThemeId(theme.getId());
-      adminMetaformsApi.updateMetaform(REALM_1, metaform.getId(), metaform);
+      adminMetaformsApi.updateMetaform(metaform.getId(), metaform);
       Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
 
       given()
         .baseUri(getBasePath())
         .header("Authorization", String.format("Bearer %s", getAdminToken(REALM_1)))
-        .get("/v1/realms/{realmId}/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", REALM_1, metaform.getId().toString(), reply.getId().toString())
+        .get("/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.getId().toString(), reply.getId().toString())
         .then()
         .assertThat()
         .statusCode(200)
@@ -509,13 +510,13 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
       Metaform metaform = dataBuilder.createMetaform("simple-files");
       metaform.setExportThemeId(theme.getId());
-      adminMetaformsApi.updateMetaform(REALM_1, metaform.getId(), metaform);
+      adminMetaformsApi.updateMetaform(metaform.getId(), metaform);
       Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
 
       given()
         .baseUri(getBasePath())
         .header("Authorization", String.format("Bearer %s", getAdminToken(REALM_1)))
-        .get("/v1/realms/{realmId}/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", REALM_1, metaform.getId().toString(), reply.getId().toString())
+        .get("/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.getId().toString(), reply.getId().toString())
         .then()
         .assertThat()
         .statusCode(200)

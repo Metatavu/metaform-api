@@ -29,19 +29,18 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
   private static final Logger logger = LoggerFactory.getLogger(CreateReplyAuthzResources.class);
   private static final List<AuthorizationScope> SCOPES = Arrays.asList(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT);
   private static final String RESOURCE_TYPE = "urn:metaform:resources:reply";
-  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/realms/%s/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/metaforms/%s/replies/%s";
   private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
 
   @Override
   public void execute(Database database) throws CustomChangeException {
     JdbcConnection connection = (JdbcConnection) database.getConnection();
 
-    try (PreparedStatement statement = connection.prepareStatement("SELECT id, realmId FROM metaform")) {
+    try (PreparedStatement statement = connection.prepareStatement("SELECT id FROM metaform")) {
       try (ResultSet resultSet = statement.executeQuery()) {
         while (resultSet.next()) {
           String id = resultSet.getString(1);
-          String realmName = resultSet.getString(2);
-          createMetaformResources(connection, id, realmName);
+          createMetaformResources(connection, id);
         }
       }
     } catch (Exception e) {
@@ -58,7 +57,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
    * @throws CustomChangeException when migration fails
    */
   @SuppressWarnings ("squid:S1141")
-  private void createMetaformResources(JdbcConnection connection, String metaformId, String realmName) throws CustomChangeException {
+  private void createMetaformResources(JdbcConnection connection, String metaformId) throws CustomChangeException {
     AuthzClient authzClient = getAuthzClient();
     int count = 0;
     
@@ -70,7 +69,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
           String replyId = resultSet.getString(1);
           UUID userId = UUID.fromString(resultSet.getString(2));
           String name = getReplyResourceName(replyId);
-          String uri = getReplyResourceUri(realmName, metaformId, replyId);
+          String uri = getReplyResourceUri(metaformId, replyId);
               
           try {
             ResourceRepresentation resource = createProtectedResource(authzClient, userId, name, uri, RESOURCE_TYPE, SCOPES);
@@ -79,11 +78,11 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
           } catch (Exception e) {
             String keycloakErrorMessage = getKeycloakErrorMessage(e);
             if (StringUtils.isNotBlank(keycloakErrorMessage)) {
-              logger.warn("Skipped reply {} from realm {} because of error: {}", replyId, realmName, keycloakErrorMessage);
+              logger.warn("Skipped reply {} from realm {} because of error: {}", replyId, keycloakErrorMessage);
               continue;
             }
             
-            throw new CustomChangeException(String.format("Creating user %s into realm %s failed", userId, realmName), e);
+            throw new CustomChangeException(String.format("Creating user %s into realm %s failed", userId), e);
           }
         }
       }
@@ -91,7 +90,7 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
       throw new CustomChangeException(e);
     }
     
-    appendConfirmationMessage(String.format("Created %d resources into realm %s", count, realmName));
+    appendConfirmationMessage(String.format("Created %d resources", count));
   }
 
   /**
@@ -129,13 +128,12 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
   /**
    * Returns resource URI for reply
    * 
-   * @param realmName realm name
    * @param metaformId Metaform id
    * @param replyId reply id
    * @return resource URI
    */
-  private String getReplyResourceUri(String realmName, String metaformId, String replyId) {
-    return String.format(REPLY_RESOURCE_URI_TEMPLATE, realmName, metaformId, replyId);
+  private String getReplyResourceUri(String metaformId, String replyId) {
+    return String.format(REPLY_RESOURCE_URI_TEMPLATE, metaformId, replyId);
   }
 
 }

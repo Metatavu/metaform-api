@@ -42,12 +42,12 @@ public class CreateRealmAuthorizations extends AbstractAuthzCustomChange {
     try {
       Configuration keycloakConfiguration = KeycloakAdminUtils.getKeycloakConfiguration();
       Keycloak adminClient = KeycloakAdminUtils.getAdminClient(keycloakConfiguration);
-      ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient, realmName);    
+      ClientRepresentation keycloakClient = KeycloakAdminUtils.getKeycloakClient(adminClient);    
       KeycloakAdminUtils.createAuthorizationScopes(adminClient, realmName, keycloakClient, Arrays.asList(AuthorizationScope.values()));
-      UUID defaultPolicyId = KeycloakAdminUtils.getPolicyIdByName(adminClient, realmName, keycloakClient, "Default Policy");
+      UUID defaultPolicyId = KeycloakAdminUtils.getPolicyIdByName(adminClient, keycloakClient, "Default Policy");
       List<AuthorizationScope> scopes = Arrays.asList(AuthorizationScope.REPLY_CREATE, AuthorizationScope.REPLY_VIEW);
-      UUID resourceId = KeycloakAdminUtils.createProtectedResource(adminClient, realmName, keycloakClient, null, "replies", "/v1/realms/{realmId}/metaforms/{metaformId}/replies", ResourceType.REPLY.getUrn(), scopes);
-      KeycloakAdminUtils.upsertScopePermission(adminClient, realmName, keycloakClient, resourceId, scopes, "replies", DecisionStrategy.UNANIMOUS, Collections.singleton(defaultPolicyId));
+      UUID resourceId = KeycloakAdminUtils.createProtectedResource(adminClient, keycloakClient, null, "replies", "/v1/metaforms/{metaformId}/replies", ResourceType.REPLY.getUrn(), scopes);
+      KeycloakAdminUtils.upsertScopePermission(adminClient, keycloakClient, resourceId, scopes, "replies", DecisionStrategy.UNANIMOUS, Collections.singleton(defaultPolicyId));
       appendConfirmationMessage(String.format("Created default permissions into realm %s", realmName));  
     } catch (Exception e) {
       String keycloakErrorMessage = getKeycloakErrorMessage(e);

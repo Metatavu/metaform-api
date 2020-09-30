@@ -43,6 +43,10 @@
 
   <properties>
   
+    <!-- Java -->
+    
+    <annotation-api.version>1.3</annotation-api.version>
+    
     <!-- Project -->
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -90,13 +94,17 @@
     
     <!-- POI -->
     
-    <poi.version>4.1.2</poi.version>      
+    <poi.version>4.1.2</poi.version> 
     
     <!-- Test -->
     
+    <feign-version>9.4.0</feign-version>
+    <feign-form-version>2.1.0</feign-form-version>
     <feign-uma.version>1.0.2</feign-uma.version>
+    <openapitools.jackson-databind-nullable.version>0.2.0</openapitools.jackson-databind-nullable.version>
+    <swagger-annotations.version>1.5.3</swagger-annotations.version>
+    <jsr305.version>3.0.2</jsr305.version>
     <rest-assured.version>3.0.3</rest-assured.version>
-    <metaform-api-client.version>0.1.6</metaform-api-client.version>
     <wiremock.version>2.24.0</wiremock.version>
     <awaitility.version>3.1.2</awaitility.version>
     <pdfbox.version>2.0.8</pdfbox.version>    
@@ -149,6 +157,29 @@
               </configOptions>
             </configuration>
           </execution>
+          
+          <execution>
+            <id>openapi-generate-client</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/metaform-api-spec/swagger.yaml</inputSpec>
+              <generatorName>java</generatorName>
+              <configOptions>
+                <sourceFolder>src/gen/java/main</sourceFolder>
+                <library>feign</library>
+                <dateLibrary>java8</dateLibrary>
+                <java8>true</java8>
+                <apiPackage>fi.metatavu.metaform.client.api</apiPackage>
+                <modelPackage>fi.metatavu.metaform.client.model</modelPackage>
+                <groupId>fi.metatavu.metaform.client</groupId>
+                <invokerPackage>fi.metatavu.metaform.client</invokerPackage>
+                <useSwaggerAnnotations>false</useSwaggerAnnotations>
+              </configOptions>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       
@@ -175,6 +206,11 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
             <version>5.3.5.Final</version>
+          </dependency>
+          <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>${annotation-api.version}</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -499,6 +535,48 @@
       <version>${feign-uma.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-core</artifactId>
+        <version>${feign-version}</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-jackson</artifactId>
+        <version>${feign-version}</version>
+    </dependency>
+    <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-slf4j</artifactId>
+        <version>${feign-version}</version>
+    </dependency>
+    <dependency>
+        <groupId>io.github.openfeign.form</groupId>
+        <artifactId>feign-form</artifactId>
+        <version>${feign-form-version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>jackson-databind-nullable</artifactId>
+      <version>${openapitools.jackson-databind-nullable.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-annotations</artifactId>
+      <version>${swagger-annotations.version}</version>
+    </dependency>
+    
+    <!-- Findbugs -->
+    
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
+    </dependency>    
     
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
@@ -509,47 +587,6 @@
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    
-    <dependency>
-      <groupId>fi.metatavu.metaform</groupId>
-      <artifactId>metaform-api-client</artifactId>
-      <version>${metaform-api-client.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-client</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-multipart-provider</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.jboss.resteasy</groupId>
-          <artifactId>resteasy-jackson-provider</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.github.joschi.jackson</groupId>
-          <artifactId>jackson-datatype-threetenbp</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.datatype</groupId>
-          <artifactId>jackson-datatype-jsr310</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

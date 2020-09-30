@@ -11,17 +11,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import fi.metatavu.metaform.client.AttachmentsApi;
-import fi.metatavu.metaform.client.EmailNotification;
-import fi.metatavu.metaform.client.EmailNotificationsApi;
-import fi.metatavu.metaform.client.ExportTheme;
-import fi.metatavu.metaform.client.ExportThemeFile;
-import fi.metatavu.metaform.client.ExportThemesApi;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.api.AttachmentsApi;
+import fi.metatavu.metaform.client.model.EmailNotification;
+import fi.metatavu.metaform.client.api.EmailNotificationsApi;
+import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
+import fi.metatavu.metaform.client.model.ExportTheme;
+import fi.metatavu.metaform.client.model.ExportThemeFile;
+import fi.metatavu.metaform.client.api.ExportThemesApi;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 /**
@@ -135,7 +135,27 @@ public class TestDataBuilder {
   public ExportThemesApi getSuperExportThemesApi() throws IOException {
     return test.getExportThemesApi(getSuperToken());
   }
+  
+  /**
+   * Returns initialized exportThemeFiles API
+   * 
+   * @return initialized exportThemeFiles API
+   * @throws IOException
+   */
+  public ExportThemeFilesApi getExportThemeFilesApi() throws IOException {
+    return test.getExportThemeFilesApi(getAccessToken());
+  }
 
+  /**
+   * Returns initialized exportThemeFiles API with super rights
+   * 
+   * @return initialized exportThemeFiles API with super rights
+   * @throws IOException
+   */
+  public ExportThemeFilesApi getSuperExportThemeFilesApi() throws IOException {
+    return test.getExportThemeFilesApi(getSuperToken());
+  }
+  
   /**
    * Creates new Metaform from JSON template
    * 
@@ -144,7 +164,7 @@ public class TestDataBuilder {
    * @throws IOException
    */
   public Metaform createMetaform(String form) throws IOException {
-    Metaform metaform = getAdminMetaformsApi().createMetaform(realm, test.readMetaform(form));
+    Metaform metaform = getAdminMetaformsApi().createMetaform(test.readMetaform(form));
     return addMetaform(metaform);
   }
   
@@ -163,7 +183,7 @@ public class TestDataBuilder {
     notification.setContentTemplate(contentTemplate);
     notification.setSubjectTemplate(subjectTemplate);
     notification.setEmails(emails);
-    EmailNotification emailNotification = getAdminEmailNotificationsApi().createEmailNotification(realm, metaform.getId(), notification);
+    EmailNotification emailNotification = getAdminEmailNotificationsApi().createEmailNotification(metaform.getId(), notification);
     return addEmailNotifications(metaform, emailNotification);
   }
   
@@ -179,13 +199,13 @@ public class TestDataBuilder {
    * @throws IOException
    */
   public Reply createTBNCReply(Metaform metaform, String text, Boolean bool, double number, String[] checklist) throws IOException {
-    ReplyData replyData = new ReplyData();
+    Map<String, Object> replyData = new HashMap<>();
     replyData.put("text", text);
     replyData.put("boolean", bool);
     replyData.put("number", number);
     replyData.put("checklist", checklist);
     Reply reply = createReplyWithData(replyData);
-    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, ReplyMode.REVISION.toString()));
+    return addReply(metaform, getRepliesApi().createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString()));
   }
   
   /**
@@ -197,10 +217,10 @@ public class TestDataBuilder {
    * @throws IOException
    */
   public Reply createSimplePermissionContextReply(Metaform metaform, String permissionSelectValue) throws IOException {
-    ReplyData replyData = new ReplyData();
+    Map<String, Object> replyData = new HashMap<>();
     replyData.put("permission-select", permissionSelectValue);
     Reply reply = createReplyWithData(replyData);
-    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, ReplyMode.REVISION.toString()));
+    return addReply(metaform, getRepliesApi().createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString()));
   }
 
   /**
@@ -225,10 +245,10 @@ public class TestDataBuilder {
    * @throws IOException
    */
   public Reply createSimpleReply(Metaform metaform, String value, ReplyMode replyMode) throws IOException {
-    ReplyData replyData1 = new ReplyData();
+    Map<String, Object> replyData1 = new HashMap<>();
     replyData1.put("text", value);
     Reply reply = createReplyWithData(replyData1);
-    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
+    return addReply(metaform, getRepliesApi().createReply(metaform.getId(), reply, null, replyMode.toString()));
   }
 
   /**
@@ -240,9 +260,9 @@ public class TestDataBuilder {
    * @return created reply
    * @throws IOException thrown when creation fails
    */
-  public Reply createReply(Metaform metaform, ReplyData replyData, ReplyMode replyMode) throws IOException {
+  public Reply createReply(Metaform metaform, Map<String, Object> replyData, ReplyMode replyMode) throws IOException {
     Reply reply = createReplyWithData(replyData);
-    return addReply(metaform, getRepliesApi().createReply(realm, metaform.getId(), reply, null, replyMode.toString()));
+    return addReply(metaform, getRepliesApi().createReply(metaform.getId(), reply, null, replyMode.toString()));
   }
 
   /**
@@ -263,7 +283,7 @@ public class TestDataBuilder {
    * @throws IOException thrown when request fails
    */
   public ExportTheme createSimpleExportTheme(String name) throws IOException {
-    fi.metatavu.metaform.client.ExportTheme payload = new fi.metatavu.metaform.client.ExportTheme();
+    fi.metatavu.metaform.client.model.ExportTheme payload = new fi.metatavu.metaform.client.model.ExportTheme();
     payload.setName(name);
     return createExportTheme(payload);
   }
@@ -276,7 +296,7 @@ public class TestDataBuilder {
    * @throws IOException thrown when request fails
    */
   public ExportTheme createExportTheme(ExportTheme payload) throws IOException {
-    return addExportTheme(getSuperExportThemesApi().createExportTheme(realm, payload));
+    return addExportTheme(getSuperExportThemesApi().createExportTheme(payload));
   }
 
   /**
@@ -306,7 +326,7 @@ public class TestDataBuilder {
    * @throws IOException thrown when request fails
    */
   public ExportThemeFile createExportThemeFile(ExportThemeFile payload) throws IOException {
-    return addExportThemeFile(payload.getThemeId(), getSuperExportThemesApi().createExportThemeFile(realm, payload.getThemeId(),payload));
+    return addExportThemeFile(payload.getThemeId(), getSuperExportThemeFilesApi().createExportThemeFile(payload.getThemeId(), payload));
   }
 
   /**
@@ -316,7 +336,7 @@ public class TestDataBuilder {
     replies.stream().forEach((reply) -> {
       UUID metaformId = childEntityMetaforms.get(reply.getId());
       try {
-        getAdminRepliesApi().deleteReply(realm, metaformId, reply.getId());
+        getAdminRepliesApi().deleteReply(metaformId, reply.getId());
       } catch (IOException e) {
         fail(e.getMessage());
       }
@@ -325,7 +345,7 @@ public class TestDataBuilder {
     emailNotifications.stream().forEach((emailNotification) -> {
       UUID metaformId = childEntityMetaforms.get(emailNotification.getId());
       try {
-        getAdminEmailNotificationsApi().deleteEmailNotification(realm, metaformId, emailNotification.getId());
+        getAdminEmailNotificationsApi().deleteEmailNotification(metaformId, emailNotification.getId());
       } catch (IOException e) {
         fail(e.getMessage());
       }  
@@ -333,7 +353,7 @@ public class TestDataBuilder {
     
     metaforms.stream().forEach((metaform) -> {
       try {
-        getAdminMetaformsApi().deleteMetaform(realm, metaform.getId());
+        getAdminMetaformsApi().deleteMetaform(metaform.getId());
       } catch (IOException e) {
         fail(e.getMessage());
       }  
@@ -361,14 +381,14 @@ public class TestDataBuilder {
           if (files != null) {
             files.stream().forEach((exportThemeFile) -> {
               try {
-                getSuperExportThemesApi().deleteExportThemeFile(realm, exportTheme.getId(), exportThemeFile.getId());
+                getSuperExportThemeFilesApi().deleteExportThemeFile(exportTheme.getId(), exportThemeFile.getId());
               } catch (IOException e) {
                 fail(e.getMessage());
               }
             });
           }
           
-          getSuperExportThemesApi().deleteExportTheme(realm, exportTheme.getId());
+          getSuperExportThemesApi().deleteExportTheme(exportTheme.getId());
         } catch (IOException e) {
           fail(e.getMessage());
         }  
@@ -445,7 +465,7 @@ public class TestDataBuilder {
    * @param replyData reply data
    * @return reply object with given data
    */
-  private Reply createReplyWithData(ReplyData replyData) {
+  private Reply createReplyWithData(Map<String, Object> replyData) {
     Reply reply = new Reply();
     reply.setData(replyData);
     return reply;
