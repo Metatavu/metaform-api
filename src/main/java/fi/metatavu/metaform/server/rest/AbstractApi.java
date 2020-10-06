@@ -349,7 +349,6 @@ public abstract class AbstractApi {
   /**
    * Constructs authz client for a realm
    * 
-   * @param realmName realm
    * @return created authz client or null if client could not be created
    */
   protected AuthzClient getAuthzClient() {
@@ -392,4 +391,3 @@ public abstract class AbstractApi {
   }
   
 }
-
