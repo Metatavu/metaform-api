@@ -24,7 +24,9 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
    * Creates new Metaform
    * 
    * @param id id
+   * @param slug form slug
    * @param exportTheme export theme
+   * @param allowAnonymous whether to allow anonymous repliers
    * @param data form JSON
    * @return created Metaform
    */

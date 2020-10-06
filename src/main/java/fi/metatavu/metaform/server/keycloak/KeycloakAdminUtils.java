@@ -129,12 +129,13 @@ public class KeycloakAdminUtils {
   /**
    * Creates protected resource into Keycloak
    * 
+   * @param keycloak Keycloak instance
+   * @param keycloakClient Keycloak client representation
    * @param ownerId resource owner id
    * @param name resource's human readable name
    * @param uri resource's uri
    * @param type resource's type
    * @param scopes resource's scopes
-   * 
    * @return created resource
    */
   @SuppressWarnings ("squid:S00107")
@@ -280,7 +281,7 @@ public class KeycloakAdminUtils {
    * 
    * @param keycloak Keycloak admin client
    * @param client client
-   * @param names group names
+   * @param name group name
    * @return list of group policy ids
    */
   public static UUID getPolicyIdByName(Keycloak keycloak, ClientRepresentation client, String name) {

@@ -37,6 +37,8 @@ public class MetaformController {
    * Creates new Metaform
    * 
    * @param exportTheme export theme
+   * @param allowAnonymous allow anonymous
+   * @param title title
    * @param data form JSON
    * @return Metaform
    */

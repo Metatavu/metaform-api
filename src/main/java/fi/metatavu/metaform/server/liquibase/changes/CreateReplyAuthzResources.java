@@ -53,7 +53,6 @@ public class CreateReplyAuthzResources extends AbstractAuthzCustomChange {
    * 
    * @param connection JDBC connection
    * @param metaformId metaform id
-   * @param realmName realm name
    * @throws CustomChangeException when migration fails
    */
   @SuppressWarnings ("squid:S1141")
