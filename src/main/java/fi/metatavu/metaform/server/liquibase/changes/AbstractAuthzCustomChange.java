@@ -56,11 +56,10 @@ public abstract class AbstractAuthzCustomChange extends AbstractCustomChange {
   /**
    * Constructs authz client for a realm
    * 
-   * @param realmName realm
    * @return created authz client or null if client could not be created
    */
-  protected AuthzClient getAuthzClient(String realmName) {
-    Configuration configuration = KeycloakConfigProvider.getConfig(realmName);
+  protected AuthzClient getAuthzClient() {
+    Configuration configuration = KeycloakConfigProvider.getConfig();
     if (configuration != null) {
       return AuthzClient.create(configuration);
     }

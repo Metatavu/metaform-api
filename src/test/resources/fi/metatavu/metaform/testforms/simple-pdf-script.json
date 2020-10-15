@@ -27,7 +27,7 @@
       {
         "name": "post-test",
         "language": "js",
-        "content": "console.log('pdf-in-data', form.getVariableValue('pdf-data').length); const xhr = new XMLHttpRequest(); xhr.open('POST', 'http://localhost:58081/externalmock'); xhr.setRequestHeader('Content-Type', 'application/pdf'); xhr.send(form.getVariableValue('pdf-data'));"
+        "content": "console.log('pdf-in-data', form.getVariableValue('pdf-data').length); const xhr = new XMLHttpRequest(); xhr.open('POST', 'http://test-wiremock:8080/externalmock'); xhr.setRequestHeader('Content-Type', 'application/pdf'); xhr.send(form.getVariableValue('pdf-data'));"
       }
     ]
   }

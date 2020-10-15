@@ -8,6 +8,8 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -26,22 +28,21 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.After;
-import org.junit.Rule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
 import feign.Feign.Builder;
 import fi.metatavu.feign.UmaErrorDecoder;
-import fi.metatavu.metaform.ApiClient;
-import fi.metatavu.metaform.client.EmailNotificationsApi;
-import fi.metatavu.metaform.client.ExportThemesApi;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
-import fi.metatavu.metaform.client.AttachmentsApi;
+import fi.metatavu.metaform.client.ApiClient;
+import fi.metatavu.metaform.client.api.AttachmentsApi;
+import fi.metatavu.metaform.client.api.EmailNotificationsApi;
+import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
+import fi.metatavu.metaform.client.api.ExportThemesApi;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 
 
 /**
@@ -55,19 +56,38 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   
   protected static final String REALM_1 = "test-1";
   protected static final String BASE_URL = "/v1";
-  protected static final String AUTH_SERVER_URL = "http://localhost:8280";
+  protected static final String AUTH_SERVER_URL = "http://test-keycloak:8080";
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
 
-  @Rule
-  public WireMockRule wireMockRule = new WireMockRule(getWireMockPort());
-  
   @After
   public void properlyCleaned() {
-    assertCount("Metaforms not properly cleaned after test", "SELECT count(id) as count FROM Metaform", 0); 
-    assertCount("Replies not properly cleaned after test", "SELECT count(id) as count FROM Reply", 0);
-    assertCount("ExportThemeFiles not properly cleaned after test", "SELECT count(id) as count FROM ExportThemeFile", 0);
+    List<String> tables = Arrays.asList(
+      "Attachment",
+      "AttachmentReplyField",
+      "AttachmentReplyFieldItem",
+      "BooleanReplyField",
+      "ExportTheme",
+      "ExportThemeFile",
+      "ListReplyField",
+      "ListReplyFieldItem",
+      "Metaform",
+      "NumberReplyField",
+      "Reply",
+      "ReplyField",
+      "StringReplyField",
+      "SystemSetting",
+      "TableReplyField",
+      "TableReplyFieldNumberRowCell",
+      "TableReplyFieldRow",
+      "TableReplyFieldRowCell",
+      "TableReplyFieldStringRowCell"
+    );
+    
+    for (String table : tables) {
+      assertCount(String.format("%s not properly cleaned after test", table), String.format("SELECT count(id) as count FROM %s", table), 0); 
+    }
   }
   
   /**
@@ -95,24 +115,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    */
   protected Integer getPort() {
     return NumberUtils.createInteger(System.getProperty("it.port.http"));
-  }
-
-  /**
-   * Returns WireMock port
-   * 
-   * @return WireMock port
-   */
-  protected int getWireMockPort() {
-    return getPort() + 1;
-  }
-  
-  /**
-   * Returns WireMock base path
-   * 
-   * @return WireMock base path
-   */
-  protected String getWireMockBasePath() {
-    return String.format("http://%s:%d", getHost(), getWireMockPort());
   }
 
   /**
@@ -195,7 +197,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(ExportThemesApi.class);
   }
-  
+
+  /**
+   * Returns exportThemeFiles API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return exportThemeFiles API authenticated by the given access token
+   */
+  protected ExportThemeFilesApi getExportThemeFilesApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(ExportThemeFilesApi.class);
+  }
   
   /**
    * Returns API client authenticated by the given access token
@@ -322,7 +334,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     String senderEmail = "metaform-test@example.com";
     String senderName = "Metaform Test";
 
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apiurl", String.format("%s/%s",getWireMockBasePath(), path));
+    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apiurl", String.format("http://%s:%d/%s", "test-wiremock", 8080, path));
     executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-domain", domain);
     executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apikey", apiKey);
     executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-sender-email", senderEmail);
@@ -349,7 +361,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    * @param replyData reply data
    * @return reply object with given data
    */
-  protected Reply createReplyWithData(ReplyData replyData) {
+  protected Reply createReplyWithData(Map<String, Object> replyData) {
     Reply reply = new Reply();
     reply.setData(replyData);
     return reply;
@@ -492,6 +504,10 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     });
     
     assertEquals(message, expected, metaformCount);
+  }
+  
+  static {
+    WireMock.configureFor("localhost", 8888);
   }
   
 }

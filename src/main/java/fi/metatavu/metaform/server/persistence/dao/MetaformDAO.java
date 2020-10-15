@@ -1,6 +1,5 @@
 package fi.metatavu.metaform.server.persistence.dao;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -25,18 +24,18 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
    * Creates new Metaform
    * 
    * @param id id
+   * @param slug form slug
    * @param exportTheme export theme
-   * @param realmId realm
+   * @param allowAnonymous whether to allow anonymous repliers
    * @param data form JSON
    * @return created Metaform
    */
-  public Metaform create(UUID id, String slug, ExportTheme exportTheme, String realmId, Boolean allowAnonymous, String data) {
+  public Metaform create(UUID id, String slug, ExportTheme exportTheme, Boolean allowAnonymous, String data) {
     Metaform metaform = new Metaform(); 
     
     metaform.setId(id);
     metaform.setExportTheme(exportTheme);
     metaform.setData(data);
-    metaform.setRealmId(realmId);
     metaform.setSlug(slug);
     metaform.setAllowAnonymous(allowAnonymous);
     
@@ -44,43 +43,21 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
   }
   
   /**
-   * Finds Metaform by realmId and slug
+   * Finds Metaform by slug
    * 
-   * @param realmId realmId
    * @param slug slug
    * @return found Metaform or null if non found
    */
-  public Metaform findByRealmIdAndSlug(String realmId, String slug) {
+  public Metaform findBySlug(String slug) {
     EntityManager entityManager = getEntityManager();
 
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Metaform> criteria = criteriaBuilder.createQuery(Metaform.class);
     Root<Metaform> root = criteria.from(Metaform.class);
     criteria.select(root);
-    criteria.where(
-      criteriaBuilder.equal(root.get(Metaform_.realmId), realmId),
-      criteriaBuilder.equal(root.get(Metaform_.slug), slug)
-    );
+    criteria.where(criteriaBuilder.equal(root.get(Metaform_.slug), slug));
 
     return getSingleResult(entityManager.createQuery(criteria));
-  }
-  
-  /**
-   * List Metaforms by realm
-   * 
-   * @param realmId realm id
-   * @return list of Metaforms
-   */
-  public List<Metaform> listByRealmId(String realmId) {
-    EntityManager entityManager = getEntityManager();
-
-    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-    CriteriaQuery<Metaform> criteria = criteriaBuilder.createQuery(Metaform.class);
-    Root<Metaform> root = criteria.from(Metaform.class);
-    criteria.select(root);
-    criteria.where(criteriaBuilder.equal(root.get(Metaform_.realmId), realmId));
-    
-    return entityManager.createQuery(criteria).getResultList();
   }
 
   /**

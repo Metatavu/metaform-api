@@ -9,8 +9,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.MetaformsApi;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.MetaformsApi;
 
 @SuppressWarnings ("squid:S1192")
 public class MetaformTestsIT extends AbstractIntegrationTest {
@@ -30,7 +30,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       assertEquals("text", metaform.getSections().get(0).getFields().get(0).getName());
       assertEquals("text", metaform.getSections().get(0).getFields().get(0).getType().toString());
       assertEquals("Text field", metaform.getSections().get(0).getFields().get(0).getTitle());
-      assertEquals(true, metaform.isAllowDrafts());
+      assertEquals(true, metaform.getAllowDrafts());
     } finally {
       dataBuilder.clean();
     }
@@ -53,7 +53,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       assertNotNull(metaform.getScripts().getAfterUpdateReply());
       assertEquals("update-test", metaform.getScripts().getAfterUpdateReply().get(0).getName());
       assertEquals("js", metaform.getScripts().getAfterUpdateReply().get(0).getLanguage());
-      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://localhost:58081/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply().get(0).getContent());
+      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply().get(0).getContent());
     } finally {
       dataBuilder.clean();
     }
@@ -65,7 +65,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
     try {
       MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
       Metaform metaform = dataBuilder.createMetaform("simple");
-      Metaform foundMetaform = adminMetaformsApi.findMetaform(REALM_1, metaform.getId());
+      Metaform foundMetaform = adminMetaformsApi.findMetaform(metaform.getId());
       assertEquals(metaform.toString(), foundMetaform.toString());
     } finally {
       dataBuilder.clean();
@@ -78,7 +78,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
     try {
       MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
       
-      assertEquals(0, adminMetaformsApi.listMetaforms(REALM_1).size());
+      assertEquals(0, adminMetaformsApi.listMetaforms().size());
       
       Metaform metaform1 = dataBuilder.createMetaform("simple");
       Metaform metaform2 = dataBuilder.createMetaform("simple");
@@ -86,10 +86,10 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       metaform1.setTitle("first");
       metaform2.setTitle("second");
       
-      adminMetaformsApi.updateMetaform(REALM_1, metaform1.getId(), metaform1);
-      adminMetaformsApi.updateMetaform(REALM_1, metaform2.getId(), metaform2);
+      adminMetaformsApi.updateMetaform(metaform1.getId(), metaform1);
+      adminMetaformsApi.updateMetaform(metaform2.getId(), metaform2);
 
-      List<Metaform> list = adminMetaformsApi.listMetaforms(REALM_1);
+      List<Metaform> list = adminMetaformsApi.listMetaforms();
       
       list.sort((o1, o2) -> {
         return o1.getTitle().compareTo(o2.getTitle());
@@ -110,7 +110,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       Metaform metaform = dataBuilder.createMetaform("simple");
       
       Metaform updatePayload = readMetaform("tbnc");
-      Metaform updatedMetaform = adminMetaformsApi.updateMetaform(REALM_1, metaform.getId(), updatePayload);
+      Metaform updatedMetaform = adminMetaformsApi.updateMetaform(metaform.getId(), updatePayload);
       
       assertEquals(metaform.getId(), updatedMetaform.getId());
       assertEquals(1, updatedMetaform.getSections().size());

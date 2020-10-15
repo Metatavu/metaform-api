@@ -14,6 +14,7 @@ ADD --chown=jboss ./docker/jdbc.cli /opt/docker/jdbc.cli
 ADD --chown=jboss ./docker/interfaces.cli /opt/docker/interfaces.cli
 ADD --chown=jboss ./docker/env.cli /opt/docker/env.cli
 ADD --chown=jboss ./docker/infinispan.cli /opt/docker/infinispan.cli
+ADD --chown=jboss ./docker/keycloak.cli /opt/docker/keycloak.cli
 RUN chmod a+x /opt/docker/entrypoint.sh
 
 RUN curl -o /tmp/mariadb-module.zip -L https://static.metatavu.io/wildfly/wildfly-${WILDFLY_VERSION}-mariadb-module-${MARIADB_MODULE_VERSION}.zip
@@ -30,6 +31,7 @@ RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/interfaces.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/env.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/infinispan.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --properties=/opt/docker/jboss-cli.properties --file=/opt/jboss/wildfly/bin/adapter-elytron-install-offline.cli
+RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/keycloak.cli
 RUN rm /tmp/*.zip
 
 EXPOSE 8080

@@ -9,9 +9,9 @@ import java.util.List;
 
 import org.junit.Test;
 
-import fi.metatavu.metaform.client.EmailNotification;
-import fi.metatavu.metaform.client.EmailNotificationsApi;
-import fi.metatavu.metaform.client.Metaform;
+import fi.metatavu.metaform.client.model.EmailNotification;
+import fi.metatavu.metaform.client.api.EmailNotificationsApi;
+import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
@@ -120,7 +120,7 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
       
       Metaform metaform = dataBuilder.createMetaform("simple");
       EmailNotification createdEmailNotification = dataBuilder.createEmailNotification(metaform, "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"));
-      EmailNotification foundEmailNotification = adminEmailNotificationsApi.findEmailNotification(REALM_1, metaform.getId(), createdEmailNotification.getId());
+      EmailNotification foundEmailNotification = adminEmailNotificationsApi.findEmailNotification(metaform.getId(), createdEmailNotification.getId());
       
       assertEquals(createdEmailNotification.toString(), foundEmailNotification.toString());
     } finally {
@@ -139,11 +139,15 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
       EmailNotification notification1 = dataBuilder.createEmailNotification(metaform, "Subject 1", "Content 2", Arrays.asList("user@example.com"));
       EmailNotification notification2 = dataBuilder.createEmailNotification(metaform, "Subject 2", "Content 2", Arrays.asList("user@example.com"));
       
-      List<EmailNotification> list = adminEmailNotificationsApi.listEmailNotifications(REALM_1, metaform.getId());
+      List<EmailNotification> list = adminEmailNotificationsApi.listEmailNotifications(metaform.getId());
       
       assertEquals(2, list.size());
-      assertEquals(notification1.toString(), list.get(0).toString());
-      assertEquals(notification2.toString(), list.get(1).toString());      
+
+      EmailNotification listNotification1 = list.stream().filter(item -> item.getId().equals(notification1.getId())).findFirst().get();
+      EmailNotification listNotification2 = list.stream().filter(item -> item.getId().equals(notification2.getId())).findFirst().get();
+      
+      assertEquals(notification1.toString(), listNotification1.toString());
+      assertEquals(notification2.toString(), listNotification2.toString());
     } finally {
       dataBuilder.clean();
     }

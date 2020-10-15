@@ -9,7 +9,9 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -17,12 +19,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import feign.FeignException;
-import fi.metatavu.metaform.client.Attachment;
-import fi.metatavu.metaform.client.AttachmentsApi;
-import fi.metatavu.metaform.client.Metaform;
-import fi.metatavu.metaform.client.RepliesApi;
-import fi.metatavu.metaform.client.Reply;
-import fi.metatavu.metaform.client.ReplyData;
+import fi.metatavu.metaform.client.model.Attachment;
+import fi.metatavu.metaform.client.api.AttachmentsApi;
+import fi.metatavu.metaform.client.model.Metaform;
+import fi.metatavu.metaform.client.api.RepliesApi;
+import fi.metatavu.metaform.client.model.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
@@ -40,7 +41,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       AttachmentsApi adminAttachmentsApi = dataBuilder.getAdminAttachmentsApi();
       FileUploadResponse fileUpload = uploadResourceFile("test-image-480-320.jpg");
       
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("files", fileUpload.getFileRef());
       
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
@@ -48,7 +49,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       assertNotNull(reply.getData());
       assertEquals(Arrays.asList(fileUpload.getFileRef().toString()), reply.getData().get("files"));
 
-      Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
       assertNotNull(foundReply);
       assertNotNull(foundReply.getData());
       assertEquals(Arrays.asList(fileUpload.getFileRef().toString()), foundReply.getData().get("files"));
@@ -77,13 +78,13 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       String fileRef2 = fileUpload2.getFileRef().toString();
       List<String> fileRefs = Arrays.asList(fileRef1, fileRef2);
       
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("files", fileRefs);
       
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
 
-      Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
@@ -112,24 +113,24 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       String fileRef2 = fileUpload2.getFileRef().toString();
       List<String> fileRefs = Arrays.asList(fileRef1, fileRef2);
       
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("files", fileRefs);
       
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
       
-      Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
 
-      ReplyData updateData = new ReplyData();
+      Map<String, Object> updateData = new HashMap<>();
       updateData.put("files", Arrays.asList(fileRef2));
       
-      repliesApi.updateReply(REALM_1, metaform.getId(), reply.getId(), createReplyWithData(updateData));
+      repliesApi.updateReply(metaform.getId(), reply.getId(), createReplyWithData(updateData));
       
-      Reply updatedReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      Reply updatedReply = repliesApi.findReply(metaform.getId(), reply.getId());
       assertEquals(Arrays.asList(fileRef2), updatedReply.getData().get("files"));
 
       assertAttachmentNotFound(adminAttachmentsApi, fileUpload1.getFileRef());
@@ -157,19 +158,19 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       String fileRef2 = fileUpload2.getFileRef().toString();
       List<String> fileRefs = Arrays.asList(fileRef1, fileRef2);
       
-      ReplyData replyData = new ReplyData();
+      Map<String, Object> replyData = new HashMap<>();
       replyData.put("files", fileRefs);
       
-      Reply reply = repliesApi.createReply(REALM_1, metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
+      Reply reply = repliesApi.createReply(metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files")); 
       
-      Reply foundReply = repliesApi.findReply(REALM_1, metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
       
-      adminRepliesApi.deleteReply(REALM_1, metaform.getId(), reply.getId());
+      adminRepliesApi.deleteReply(metaform.getId(), reply.getId());
 
       assertAttachmentNotFound(adminAttachmentsApi, fileUpload1.getFileRef());
       assertAttachmentNotFound(adminAttachmentsApi, fileUpload2.getFileRef());
@@ -179,14 +180,14 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   }
 
   private void assertAttachmentExists(AttachmentsApi adminAttachmentsApi, FileUploadResponse fileUpload1) {
-    Attachment attachment1 = adminAttachmentsApi.findAttachment(REALM_1, fileUpload1.getFileRef());
+    Attachment attachment1 = adminAttachmentsApi.findAttachment(fileUpload1.getFileRef());
     assertNotNull(attachment1);
     assertEquals(fileUpload1.getFileRef(), attachment1.getId());
   }
 
   private void assertAttachmentNotFound(AttachmentsApi adminAttachmentsApi, UUID fileRef) {
     try {
-      adminAttachmentsApi.findAttachment(REALM_1, fileRef);
+      adminAttachmentsApi.findAttachment(fileRef);
       fail(String.format("Attachment %s should not be present", fileRef.toString()));
     } catch (FeignException e) {
       assertEquals(404, e.status());
@@ -194,7 +195,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   }
   
   private byte[] getAttachmentData(String accessToken, UUID id) throws IOException {
-    URL url = new URL(String.format("%s/v1/realms/%s/attachments/%s/data", getBasePath(), REALM_1, id.toString()));
+    URL url = new URL(String.format("%s/v1/attachments/%s/data", getBasePath(), id.toString()));
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestProperty("Authorization", String.format("Bearer %s", accessToken));
     connection.setDoOutput(true);

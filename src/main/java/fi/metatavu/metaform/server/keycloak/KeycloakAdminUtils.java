@@ -75,11 +75,10 @@ public class KeycloakAdminUtils {
   /**
    * Creates admin client for a realm
    * 
-   * @param realmName realm
    * @return admin client
    */
-  public static Keycloak getAdminClient(String realmName) {
-    return getAdminClient(KeycloakConfigProvider.getConfig(realmName));
+  public static Keycloak getAdminClient() {
+    return getAdminClient(KeycloakConfigProvider.getConfig());
   }
   
   /**
@@ -110,38 +109,38 @@ public class KeycloakAdminUtils {
   /**
    * Constructs Keycloak realm configuration
    * 
-   * @param realmName realm
    * @return Keycloak realm configuration
    */
-  public static Configuration getKeycloakConfiguration(String realmName) {
-    return KeycloakConfigProvider.getConfig(realmName);
+  public static Configuration getKeycloakConfiguration() {
+    return KeycloakConfigProvider.getConfig();
   }
   
   /**
    * Resolves Keycloak API client
    * 
    * @param keycloak admin client
-   * @param realmName realm name
    * @return Keycloak client
    */
-  public static ClientRepresentation getKeycloakClient(Keycloak keycloak, String realmName) {
-    Configuration keycloakConfiguration = getKeycloakConfiguration(realmName);
-    return findClient(keycloak, realmName, keycloakConfiguration.getResource());
+  public static ClientRepresentation getKeycloakClient(Keycloak keycloak) {
+    Configuration keycloakConfiguration = getKeycloakConfiguration();
+    return findClient(keycloak, keycloakConfiguration.getResource());
   }
   
   /**
    * Creates protected resource into Keycloak
    * 
+   * @param keycloak Keycloak instance
+   * @param keycloakClient Keycloak client representation
    * @param ownerId resource owner id
    * @param name resource's human readable name
    * @param uri resource's uri
    * @param type resource's type
    * @param scopes resource's scopes
-   * 
    * @return created resource
    */
   @SuppressWarnings ("squid:S00107")
-  public static UUID createProtectedResource(Keycloak keycloak, String realmName, ClientRepresentation keycloakClient, UUID ownerId, String name, String uri, String type, List<AuthorizationScope> scopes) {
+  public static UUID createProtectedResource(Keycloak keycloak, ClientRepresentation keycloakClient, UUID ownerId, String name, String uri, String type, List<AuthorizationScope> scopes) {
+    String realmName = KeycloakConfigProvider.getConfig().getRealm();
     ResourcesResource resources = keycloak.realm(realmName).clients().get(keycloakClient.getId()).authorization().resources();
     
     Set<ScopeRepresentation> scopeRepresentations = scopes.stream()
@@ -177,7 +176,6 @@ public class KeycloakAdminUtils {
    * Creates new scope permission for resource
    * 
    * @param keycloak keycloak admin client
-   * @param realmName realm's name
    * @param clientId client id
    * @param resourceId resource id
    * @param scope authorization scope
@@ -187,7 +185,8 @@ public class KeycloakAdminUtils {
    * @return created permission
    */
   @SuppressWarnings ("squid:S00107")
-  public static void upsertScopePermission(Keycloak keycloak, String realmName, ClientRepresentation client, UUID resourceId, Collection<AuthorizationScope> scopes, String name, DecisionStrategy decisionStrategy, Collection<UUID> policyIds) {
+  public static void upsertScopePermission(Keycloak keycloak, ClientRepresentation client, UUID resourceId, Collection<AuthorizationScope> scopes, String name, DecisionStrategy decisionStrategy, Collection<UUID> policyIds) {
+    String realmName = KeycloakConfigProvider.getConfig().getRealm();
     RealmResource realm = keycloak.realm(realmName);    
     ScopePermissionsResource scopeResource = realm.clients().get(client.getId()).authorization().permissions().scope();    
     ScopePermissionRepresentation existingPermission = scopeResource.findByName(name);
@@ -265,14 +264,14 @@ public class KeycloakAdminUtils {
    * Returns list of permitted users for a resource with given scopes 
    * 
    * @param keycloak keycloak client instance
-   * @param realmName realm name
    * @param clientId client id
    * @param resourceId resource id
    * @param resourceName resource name
    * @param scopes scopes
    * @return set of user ids
    */
-  public static Set<UUID> getResourcePermittedUsers(Keycloak keycloak, String realmName, ClientRepresentation client, UUID resourceId, String resourceName, List<AuthorizationScope> scopes) {
+  public static Set<UUID> getResourcePermittedUsers(Keycloak keycloak, ClientRepresentation client, UUID resourceId, String resourceName, List<AuthorizationScope> scopes) {
+    String realmName = KeycloakConfigProvider.getConfig().getRealm();
     RealmResource realm = keycloak.realm(realmName);
     return getPermittedUsers(realm, client, resourceId, resourceName, scopes);      
   }
@@ -281,13 +280,12 @@ public class KeycloakAdminUtils {
    * Find policy id by name
    * 
    * @param keycloak Keycloak admin client
-   * @param realmName realm name
    * @param client client
-   * @param names group names
+   * @param name group name
    * @return list of group policy ids
    */
-  public static UUID getPolicyIdByName(Keycloak keycloak, String realmName, ClientRepresentation client, String name) {
-    Set<UUID> ids = getPolicyIdsByNames(keycloak, realmName, client, Arrays.asList(name));
+  public static UUID getPolicyIdByName(Keycloak keycloak, ClientRepresentation client, String name) {
+    Set<UUID> ids = getPolicyIdsByNames(keycloak, client, Arrays.asList(name));
     if (ids.isEmpty()) {
       return null;
     }
@@ -299,12 +297,12 @@ public class KeycloakAdminUtils {
    * Lists policy ids by names
    * 
    * @param keycloak Keycloak admin client
-   * @param realmName realm name
    * @param client client
    * @param names group names
    * @return list of group policy ids
    */
-  public static Set<UUID> getPolicyIdsByNames(Keycloak keycloak, String realmName, ClientRepresentation client, List<String> names) {
+  public static Set<UUID> getPolicyIdsByNames(Keycloak keycloak, ClientRepresentation client, List<String> names) {
+    String realmName = KeycloakConfigProvider.getConfig().getRealm();
     RealmResource realm = keycloak.realm(realmName);
     PoliciesResource policies = realm.clients().get(client.getId()).authorization().policies();
     
@@ -576,11 +574,12 @@ public class KeycloakAdminUtils {
    * Finds a Keycloak client by realm and clientId 
    * 
    * @param keycloak keycloak admin client
-   * @param realmName realm's name
    * @param clientId clientId 
    * @return client or null if not found
    */
-  private static ClientRepresentation findClient(Keycloak keycloak, String realmName, String clientId) {
+  private static ClientRepresentation findClient(Keycloak keycloak, String clientId) {
+    String realmName = KeycloakConfigProvider.getConfig().getRealm();
+    
     List<ClientRepresentation> clients = keycloak.realm(realmName).clients().findByClientId(clientId);
     if (!clients.isEmpty()) {
       return clients.get(0);
