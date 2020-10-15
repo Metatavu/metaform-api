@@ -8,6 +8,8 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -61,9 +63,31 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   @After
   public void properlyCleaned() {
-    assertCount("Metaforms not properly cleaned after test", "SELECT count(id) as count FROM Metaform", 0); 
-    assertCount("Replies not properly cleaned after test", "SELECT count(id) as count FROM Reply", 0);
-    assertCount("ExportThemeFiles not properly cleaned after test", "SELECT count(id) as count FROM ExportThemeFile", 0);
+    List<String> tables = Arrays.asList(
+      "Attachment",
+      "AttachmentReplyField",
+      "AttachmentReplyFieldItem",
+      "BooleanReplyField",
+      "ExportTheme",
+      "ExportThemeFile",
+      "ListReplyField",
+      "ListReplyFieldItem",
+      "Metaform",
+      "NumberReplyField",
+      "Reply",
+      "ReplyField",
+      "StringReplyField",
+      "SystemSetting",
+      "TableReplyField",
+      "TableReplyFieldNumberRowCell",
+      "TableReplyFieldRow",
+      "TableReplyFieldRowCell",
+      "TableReplyFieldStringRowCell"
+    );
+    
+    for (String table : tables) {
+      assertCount(String.format("%s not properly cleaned after test", table), String.format("SELECT count(id) as count FROM %s", table), 0); 
+    }
   }
   
   /**

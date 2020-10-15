@@ -8,6 +8,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.removeStub;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -36,6 +38,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testCreateReplyScript() throws IOException, URISyntaxException {
+    waitThemeFlush();
     WireMock.resetAllRequests();
     
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
@@ -67,6 +70,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testPdfScript() throws IOException, URISyntaxException {
+    waitThemeFlush();
     WireMock.resetAllRequests();
     
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
@@ -107,6 +111,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testPdfBase64Script() throws IOException, URISyntaxException {
+    waitThemeFlush();
     WireMock.resetAllRequests();
     
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
@@ -143,6 +148,13 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
     } finally {
       removeStub(externalStub);
     }
+  }
+
+  /**
+   * Wait until theme file caches are flushed
+   */
+  private void waitThemeFlush() {
+    await().atMost(1, TimeUnit.MINUTES).until(() -> true);
   }
   
 }
