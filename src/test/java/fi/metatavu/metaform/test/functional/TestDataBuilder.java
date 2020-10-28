@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;

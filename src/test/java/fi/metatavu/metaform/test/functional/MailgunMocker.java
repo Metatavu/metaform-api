@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;

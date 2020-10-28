@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 /**
  * Model for uploaded file meta

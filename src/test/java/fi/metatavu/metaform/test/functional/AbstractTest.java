@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
