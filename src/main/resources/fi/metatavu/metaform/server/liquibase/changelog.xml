@@ -402,4 +402,10 @@
     </createIndex>
   </changeSet>
   
+  <changeSet id="email-notification-notify-if" author="Antti Leppa">
+    <addColumn tableName="emailnotification">
+      <column name="email" type="longtext"/>
+    </addColumn>
+  </changeSet>
+  
 </databaseChangeLog>

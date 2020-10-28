@@ -38,6 +38,9 @@ public class EmailNotification {
   @Lob
   @Type(type = "org.hibernate.type.TextType")
   private String contentTemplate;
+  
+  @Lob
+  private String notifyIf;
 
   @ManyToOne(optional = false)
   private Metaform metaform;
@@ -47,7 +50,7 @@ public class EmailNotification {
 
   @Column (nullable = false)
   private OffsetDateTime modifiedAt;
-  
+    
   public UUID getId() {
     return id;
   }
@@ -78,6 +81,14 @@ public class EmailNotification {
   
   public void setSubjectTemplate(String subjectTemplate) {
     this.subjectTemplate = subjectTemplate;
+  }
+  
+  public void setNotifyIf(String notifyIf) {
+    this.notifyIf = notifyIf;
+  }
+  
+  public String getNotifyIf() {
+    return notifyIf;
   }
   
   public OffsetDateTime getCreatedAt() {

@@ -766,7 +766,17 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification = emailNotificationController.createEmailNotification(metaform, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
+    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification;
+    try {
+      emailNotification = emailNotificationController.createEmailNotification(
+          metaform, 
+          payload.getSubjectTemplate(), 
+          payload.getContentTemplate(), 
+          payload.getEmails(),
+          payload.getNotifyIf());
+    } catch (JsonProcessingException e) {
+      return createBadRequest(e.getMessage());
+    }
     
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));    
   }

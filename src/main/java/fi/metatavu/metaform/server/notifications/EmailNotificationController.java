@@ -13,6 +13,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -25,6 +26,7 @@ import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotificationEmail;
+import fi.metatavu.metaform.server.rest.model.FieldRule;
 import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
@@ -59,10 +61,12 @@ public class EmailNotificationController {
    * @param subjectTemplate subject template
    * @param contentTemplate content template
    * @param emails list of email addresses
+   * @param notifyIf notify if rule or null if not defined
    * @return created email notification
+   * @throws JsonProcessingException thrown when notify if JSON processing fails
    */
-  public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails) {
-    EmailNotification emailNotification = emailNotificationDAO.create(UUID.randomUUID(), metaform, subjectTemplate, contentTemplate);
+  public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) throws JsonProcessingException {
+    EmailNotification emailNotification = emailNotificationDAO.create(UUID.randomUUID(), metaform, subjectTemplate, contentTemplate, serializeFieldRule(notifyIf));
     emails.stream().forEach(email -> emailNotificationEmailDAO.create(UUID.randomUUID(), emailNotification, email));
     return emailNotification;
   }
@@ -162,6 +166,22 @@ public class EmailNotificationController {
     }
     
     return null;
+  }
+  
+  /**
+   * Serializes field rule as string
+   * 
+   * @param fieldRule field rule
+   * @return serialized field rule
+   * @throws JsonProcessingException
+   */
+  private String serializeFieldRule(FieldRule fieldRule) throws JsonProcessingException {
+    if (fieldRule == null) {
+      return null;
+    }
+    
+    ObjectMapper objectMapper = new ObjectMapper();
+    return objectMapper.writeValueAsString(fieldRule);
   }
 
   /**
