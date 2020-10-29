@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 import static org.junit.Assert.assertEquals;
 
@@ -10,6 +10,7 @@ import java.util.List;
 import org.junit.Test;
 
 import fi.metatavu.metaform.client.model.EmailNotification;
+import fi.metatavu.metaform.client.model.FieldRule;
 import fi.metatavu.metaform.client.api.EmailNotificationsApi;
 import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.server.rest.ReplyMode;
@@ -27,6 +28,52 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
         dataBuilder.createEmailNotification(metaform, "Simple subject", "Simple content", Arrays.asList("user@example.com"));
         dataBuilder.createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content");
+      } finally {
+        stopMailgunMocker(mailgunMocker);
+      }
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  @Test
+  public void notifyIfEqualsTest() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      MailgunMocker mailgunMocker = startMailgunMocker();
+      try {
+        Metaform metaform = dataBuilder.createMetaform("simple");
+        
+        dataBuilder.createEmailNotification(metaform, "subject", "content", Arrays.asList("val1@example.com"), createFieldRule("text", "val 1", null));
+        dataBuilder.createEmailNotification(metaform, "subject", "content", Arrays.asList("val2@example.com"), createFieldRule("text", "val 2", null));
+
+        dataBuilder.createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        dataBuilder.createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
+        mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content");
+        mailgunMocker.verifyHtmlMessageSent(0, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content");
+      } finally {
+        stopMailgunMocker(mailgunMocker);
+      }
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+  
+  @Test
+  public void notifyIfNotEqualsTest() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      MailgunMocker mailgunMocker = startMailgunMocker();
+      try {
+        Metaform metaform = dataBuilder.createMetaform("simple");
+        
+        dataBuilder.createEmailNotification(metaform, "subject", "content", Arrays.asList("val1@example.com"), createFieldRule("text", null, "val 1"));
+        dataBuilder.createEmailNotification(metaform, "subject", "content", Arrays.asList("val2@example.com"), createFieldRule("text", null, "val 2"));
+
+        dataBuilder.createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        dataBuilder.createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
+        mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content");
+        mailgunMocker.verifyHtmlMessageSent(2, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content");
       } finally {
         stopMailgunMocker(mailgunMocker);
       }
@@ -113,13 +160,13 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   }
   
   @Test
-  public void testFindEmailNotification() throws IOException, URISyntaxException {
+  public void testCreateEmailNotification() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
       EmailNotificationsApi adminEmailNotificationsApi = dataBuilder.getAdminEmailNotificationsApi();
       
       Metaform metaform = dataBuilder.createMetaform("simple");
-      EmailNotification createdEmailNotification = dataBuilder.createEmailNotification(metaform, "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"));
+      EmailNotification createdEmailNotification = dataBuilder.createEmailNotification(metaform, "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"), createFieldRule("field", "eq", "neq"));
       EmailNotification foundEmailNotification = adminEmailNotificationsApi.findEmailNotification(metaform.getId(), createdEmailNotification.getId());
       
       assertEquals(createdEmailNotification.toString(), foundEmailNotification.toString());
@@ -152,4 +199,37 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
       dataBuilder.clean();
     }
   }
+  
+  /**
+   * Creates a field rule
+   * 
+   * @param field field name
+   * @param equals equals value
+   * @param notEquals not equals value
+   * @return created rule
+   */
+  private FieldRule createFieldRule(String field, String equals, String notEquals) {
+    return createFieldRule(field, equals, notEquals, null, null);
+  }
+  
+  /**
+   * Creates a field rule
+   * 
+   * @param field field name
+   * @param equals equals value
+   * @param notEquals not equals value
+   * @param ands list of ands or null if none defined
+   * @param ors list of ors or null if none defined
+   * @return created rule
+   */
+  private FieldRule createFieldRule(String field, String equals, String notEquals, List<FieldRule> ands, List<FieldRule> ors) {
+    FieldRule rule = new FieldRule();
+    rule.setField(field);
+    rule.setEquals(equals);
+    rule.setNotEquals(notEquals);
+    rule.setAnd(ands);
+    rule.setOr(ors);
+    return rule;
+  }
+  
 }

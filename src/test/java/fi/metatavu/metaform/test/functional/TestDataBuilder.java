@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -17,6 +17,7 @@ import fi.metatavu.metaform.client.api.EmailNotificationsApi;
 import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
 import fi.metatavu.metaform.client.model.ExportTheme;
 import fi.metatavu.metaform.client.model.ExportThemeFile;
+import fi.metatavu.metaform.client.model.FieldRule;
 import fi.metatavu.metaform.client.api.ExportThemesApi;
 import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.client.api.MetaformsApi;
@@ -179,10 +180,26 @@ public class TestDataBuilder {
    * @throws IOException
    */
   public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails) throws IOException {
+    return createEmailNotification(metaform, subjectTemplate, contentTemplate, emails, null);
+  }
+  
+  /**
+   * Creates new email notification for a Metaform
+   * 
+   * @param metaform metaform 
+   * @param subjectTemplate freemarker template for subject
+   * @param contentTemplate freemarker template for content
+   * @param emails email addresses
+   * @param notifyIf notify if rule
+   * @return email notification
+   * @throws IOException
+   */
+  public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) throws IOException {
     EmailNotification notification = new EmailNotification();
     notification.setContentTemplate(contentTemplate);
     notification.setSubjectTemplate(subjectTemplate);
     notification.setEmails(emails);
+    notification.setNotifyIf(notifyIf);
     EmailNotification emailNotification = getAdminEmailNotificationsApi().createEmailNotification(metaform.getId(), notification);
     return addEmailNotifications(metaform, emailNotification);
   }

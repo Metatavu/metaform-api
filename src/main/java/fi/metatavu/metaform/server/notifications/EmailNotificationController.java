@@ -13,6 +13,7 @@ import javax.inject.Inject;
 
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -20,12 +21,15 @@ import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer;
 import fi.metatavu.metaform.server.email.EmailProvider;
 import fi.metatavu.metaform.server.email.EmailTemplateSource;
 import fi.metatavu.metaform.server.email.mailgun.MailFormat;
+import fi.metatavu.metaform.server.metaforms.FieldRuleEvaluator;
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO;
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotificationEmail;
+import fi.metatavu.metaform.server.rest.model.FieldRule;
 import fi.metatavu.metaform.server.rest.model.Reply;
+import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 
 /**
  * Email notification controller
@@ -39,6 +43,9 @@ public class EmailNotificationController {
 
   @Inject
   private Logger logger;
+
+  @Inject
+  private EmailNotificationTranslator emailNotificationTranslator;
   
   @Inject
   private EmailProvider emailProvider;
@@ -59,10 +66,12 @@ public class EmailNotificationController {
    * @param subjectTemplate subject template
    * @param contentTemplate content template
    * @param emails list of email addresses
+   * @param notifyIf notify if rule or null if not defined
    * @return created email notification
+   * @throws JsonProcessingException thrown when notify if JSON processing fails
    */
-  public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails) {
-    EmailNotification emailNotification = emailNotificationDAO.create(UUID.randomUUID(), metaform, subjectTemplate, contentTemplate);
+  public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) throws JsonProcessingException {
+    EmailNotification emailNotification = emailNotificationDAO.create(UUID.randomUUID(), metaform, subjectTemplate, contentTemplate, serializeFieldRule(notifyIf));
     emails.stream().forEach(email -> emailNotificationEmailDAO.create(UUID.randomUUID(), emailNotification, email));
     return emailNotification;
   }
@@ -94,14 +103,44 @@ public class EmailNotificationController {
    * @param subjectTemplate subject template
    * @param contentTemplate content template
    * @param emails list of email addresses
+   * @param notifyIf notify if rule or null if not defined
    * @return updated email notification
+   * @throws JsonProcessingException thrown when notify if JSON processing fails
    */
-  public EmailNotification updateEmailNotification(EmailNotification emailNotification, String subjectTemplate, String contentTemplate, List<String> emails) {
+  public EmailNotification updateEmailNotification(EmailNotification emailNotification, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) throws JsonProcessingException {
     emailNotificationDAO.updateSubjectTemplate(emailNotification, subjectTemplate);
     emailNotificationDAO.updateContentTemplate(emailNotification, contentTemplate);
+    emailNotificationDAO.updateNotifyIf(emailNotification, serializeFieldRule(notifyIf));
     deleteNotificationEmails(emailNotification);
     emails.stream().forEach(email -> emailNotificationEmailDAO.create(UUID.randomUUID(), emailNotification, email));
     return emailNotification;
+  }
+
+  /**
+   * Returns whether email notification should be send according to notify if rule
+   * 
+   * @param emailNotification email notification
+   * @param replyEntity reply entity
+   * @return whether email notification should be send according to notify if rule
+   */
+  public boolean evaluateEmailNotificationNotifyIf(EmailNotification emailNotification, Reply replyEntity) {
+    return evaluateEmailNotificationNotifyIf(emailNotificationTranslator.translateEmailNotification(emailNotification), replyEntity);
+  }
+  
+  /**
+   * Returns whether email notification should be send according to notify if rule
+   * 
+   * @param emailNotificationEntity email notification entity
+   * @param replyEntity reply entity
+   * @return whether email notification should be send according to notify if rule
+   */
+  public boolean evaluateEmailNotificationNotifyIf(fi.metatavu.metaform.server.rest.model.EmailNotification emailNotificationEntity, Reply replyEntity) {
+    FieldRule notifyIf = emailNotificationEntity.getNotifyIf();
+    if (notifyIf != null) {
+      return new FieldRuleEvaluator().evaluate(notifyIf, replyEntity);
+    }
+    
+    return true;
   }
   
   /**
@@ -162,6 +201,22 @@ public class EmailNotificationController {
     }
     
     return null;
+  }
+  
+  /**
+   * Serializes field rule as string
+   * 
+   * @param fieldRule field rule
+   * @return serialized field rule
+   * @throws JsonProcessingException
+   */
+  private String serializeFieldRule(FieldRule fieldRule) throws JsonProcessingException {
+    if (fieldRule == null) {
+      return null;
+    }
+    
+    ObjectMapper objectMapper = new ObjectMapper();
+    return objectMapper.writeValueAsString(fieldRule);
   }
 
   /**

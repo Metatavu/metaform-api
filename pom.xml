@@ -751,6 +751,10 @@
                       <KUBERNETES_LABELS>test</KUBERNETES_LABELS>
                       <runmode>TEST</runmode>
                     </env>
+                    <wait>
+                      <log>Resuming server</log>
+                      <time>240000</time>
+                    </wait>
                   </run>
                 </image>
               </images>

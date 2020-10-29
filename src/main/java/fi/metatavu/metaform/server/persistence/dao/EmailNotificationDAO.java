@@ -23,20 +23,22 @@ import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotifica
 public class EmailNotificationDAO extends AbstractDAO<EmailNotification> {
   
   /**
-   * Creates new emailNotification
+   * Creates new email notification
    * 
    * @param id id
    * @param metaform Metaform
    * @param subjectTemplate subject template
    * @param contentTemplate content template
-   * @return created Metaform
+   * @param notifyIf notify if JSON
+   * @return created email notification
    */
-  public EmailNotification create(UUID id, Metaform metaform, String subjectTemplate, String contentTemplate) {
+  public EmailNotification create(UUID id, Metaform metaform, String subjectTemplate, String contentTemplate, String notifyIf) {
     EmailNotification emailNotification = new EmailNotification(); 
     emailNotification.setId(id);
     emailNotification.setMetaform(metaform);
     emailNotification.setSubjectTemplate(subjectTemplate);
     emailNotification.setContentTemplate(contentTemplate);
+    emailNotification.setNotifyIf(notifyIf);
     return persist(emailNotification);
   }
   
@@ -84,5 +86,16 @@ public class EmailNotificationDAO extends AbstractDAO<EmailNotification> {
     return persist(emailNotification);
   }
   
+  /**
+   * Updates nofify if JSON of email notification
+   * 
+   * @param emailNotification email notification
+   * @param notifyIf notify if JSON
+   * @return updated email notification
+   */
+  public EmailNotification updateNotifyIf(EmailNotification emailNotification, String notifyIf) {
+    emailNotification.setNotifyIf(notifyIf);
+    return persist(emailNotification);
+  }
   
 }

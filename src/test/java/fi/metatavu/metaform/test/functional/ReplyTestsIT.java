@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server;
+package fi.metatavu.metaform.test.functional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;

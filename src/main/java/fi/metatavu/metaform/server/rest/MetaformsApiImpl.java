@@ -706,6 +706,10 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * @param notifyUserIds notify user ids
    */
   private void sendReplyEmailNotification(Keycloak keycloak, boolean replyCreated, fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification, Reply replyEntity, Set<UUID> notifyUserIds) {
+    if (!emailNotificationController.evaluateEmailNotificationNotifyIf(emailNotification, replyEntity)) {
+      return;
+    }
+    
     List<String> directEmails = replyCreated ? emailNotificationController.getEmailNotificationEmails(emailNotification) : Collections.emptyList();
     String realmName = KeycloakConfigProvider.getConfig().getRealm();
     UsersResource usersResource = keycloak.realm(realmName).users();
@@ -766,7 +770,17 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification = emailNotificationController.createEmailNotification(metaform, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
+    fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification;
+    try {
+      emailNotification = emailNotificationController.createEmailNotification(
+          metaform, 
+          payload.getSubjectTemplate(), 
+          payload.getContentTemplate(), 
+          payload.getEmails(),
+          payload.getNotifyIf());
+    } catch (JsonProcessingException e) {
+      return createBadRequest(e.getMessage());
+    }
     
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));    
   }
@@ -841,8 +855,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    emailNotificationController.updateEmailNotification(emailNotification, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails());
-    
+    try {
+      emailNotificationController.updateEmailNotification(emailNotification, payload.getSubjectTemplate(), payload.getContentTemplate(), payload.getEmails(), payload.getNotifyIf());
+    } catch (JsonProcessingException e) {
+      return createBadRequest(e.getMessage());
+    }
+  
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
   }
 
