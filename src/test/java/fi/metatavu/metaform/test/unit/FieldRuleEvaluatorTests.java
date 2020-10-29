@@ -63,14 +63,6 @@ public class FieldRuleEvaluatorTests {
     assertFalse(fieldRuleEvaluator.evaluate(orRule, createTwoFieldReply("field1", "false", "field2", "false")));
   }
   
-  @Test
-  public void testNulls() throws IOException, URISyntaxException {
-    FieldRuleEvaluator fieldRuleEvaluator = new FieldRuleEvaluator();
-    assertFalse(fieldRuleEvaluator.evaluate(createRule("field1", null, "true"), null));
-    assertTrue(fieldRuleEvaluator.evaluate(null, null));
-    assertTrue(fieldRuleEvaluator.evaluate(null, createSingleFieldReply("field1", "true")));
-  }
-
   /**
    * Creates reply with single field
    * 

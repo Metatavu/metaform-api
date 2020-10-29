@@ -404,7 +404,7 @@
   
   <changeSet id="email-notification-notify-if" author="Antti Leppa">
     <addColumn tableName="emailnotification">
-      <column name="email" type="longtext"/>
+      <column name="notifyif" type="longtext"/>
     </addColumn>
   </changeSet>
   

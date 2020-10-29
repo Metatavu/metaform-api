@@ -18,6 +18,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
 /**
@@ -64,6 +65,7 @@ public class MailgunMocker {
   public void stopMock() {
     if (okStub != null) {
       removeStub(okStub);
+      WireMock.reset();
       okStub = null;
     }
   }
