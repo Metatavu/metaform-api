@@ -707,10 +707,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    */
   private void sendReplyEmailNotification(Keycloak keycloak, boolean replyCreated, fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification emailNotification, Reply replyEntity, Set<UUID> notifyUserIds) {
     if (!emailNotificationController.evaluateEmailNotificationNotifyIf(emailNotification, replyEntity)) {
-      System.out.println("skipping");
       return;
-    } else {
-      System.out.println("sending");
     }
     
     List<String> directEmails = replyCreated ? emailNotificationController.getEmailNotificationEmails(emailNotification) : Collections.emptyList();

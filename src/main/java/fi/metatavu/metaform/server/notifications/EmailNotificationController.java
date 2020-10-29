@@ -137,9 +137,7 @@ public class EmailNotificationController {
   public boolean evaluateEmailNotificationNotifyIf(fi.metatavu.metaform.server.rest.model.EmailNotification emailNotificationEntity, Reply replyEntity) {
     FieldRule notifyIf = emailNotificationEntity.getNotifyIf();
     if (notifyIf != null) {
-      boolean result = new FieldRuleEvaluator().evaluate(notifyIf, replyEntity);
-      System.out.println("evaluateEmailNotificationNotifyIf: eval rules: " + notifyIf.toString() + ", result: " + result);
-      return result;
+      return new FieldRuleEvaluator().evaluate(notifyIf, replyEntity);
     }
     
     return true;
