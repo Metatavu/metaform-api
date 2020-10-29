@@ -15,24 +15,24 @@ import fi.metatavu.metaform.server.rest.model.Reply;
  * @author Antti Leppä
  */
 public class FieldRuleEvaluator {
-	
+
   /**
    * Evaluates field rule
    * 
-   * @param rule rule
+   * @param rule  rule
    * @param reply reply data
    * @return evaluation result
    */
-	public boolean evaluate(FieldRule rule, Reply reply) {
-	  Map<String, Object> data = reply.getData();
-	  String field = rule.getField();
-	  Object fieldData = data.get(field);
-	  
-    boolean result = false;  
-	  String fieldValue = Objects.toString(fieldData, null);
+  public boolean evaluate(FieldRule rule, Reply reply) {
+    Map<String, Object> data = reply.getData();
+    String field = rule.getField();
+    Object fieldData = data.get(field);
+
+    boolean result = false;
+    String fieldValue = Objects.toString(fieldData, null);
     String ruleEquals = rule.getEquals();
     String ruleNotEquals = rule.getNotEquals();
-    
+
     List<FieldRule> andRules = rule.getAnd();
     List<FieldRule> orRules = rule.getOr();
 
@@ -43,7 +43,7 @@ public class FieldRuleEvaluator {
     if (StringUtils.isNotBlank(field) && StringUtils.isNotBlank(ruleNotEquals)) {
       result = !StringUtils.equals(ruleNotEquals, fieldValue);
     }
-    
+
     if (andRules != null) {
       for (int i = 0; i < andRules.size(); i++) {
         if (!evaluate(andRules.get(i), reply)) {
@@ -51,7 +51,7 @@ public class FieldRuleEvaluator {
         }
       }
     }
-    
+
     if (orRules != null) {
       for (int i = 0; i < orRules.size(); i++) {
         if (evaluate(orRules.get(i), reply)) {
@@ -61,6 +61,6 @@ public class FieldRuleEvaluator {
     }
 
     return result;
-	}
-	
+  }
+
 }
