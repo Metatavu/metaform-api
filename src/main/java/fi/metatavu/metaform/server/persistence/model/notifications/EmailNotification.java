@@ -50,7 +50,6 @@ public class EmailNotification {
 
   @Column (nullable = false)
   private OffsetDateTime modifiedAt;
-    
   public UUID getId() {
     return id;
   }
