@@ -25,6 +25,8 @@ public class MailgunEmailProviderImpl implements EmailProvider {
   @Override
   @SuppressWarnings ("squid:S3457")
   public void sendMail(String toEmail, String subject, String content, MailFormat format) {
+    logger.info("Sending email to {}", toEmail);
+    
     String domain = System.getenv(MailgunConsts.DOMAIN_SETTING_KEY);
     if (StringUtils.isEmpty(domain)) {
       logger.error("Domain setting is missing");
