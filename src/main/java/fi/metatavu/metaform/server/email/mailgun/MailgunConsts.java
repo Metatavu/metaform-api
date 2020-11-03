@@ -8,11 +8,11 @@ package fi.metatavu.metaform.server.email.mailgun;
  */
 public class MailgunConsts {
 
-  public static final String APIURL_SETTING_KEY = "mailgun-apiurl";
-  public static final String DOMAIN_SETTING_KEY = "mailgun-domain";
-  public static final String APIKEY_SETTING_KEY = "mailgun-apikey";
-  public static final String SENDER_EMAIL_SETTING_KEY = "mailgun-sender-email";
-  public static final String SENDER_NAME_SETTING_KEY = "mailgun-sender-name";
+  public static final String API_URL_SETTING_KEY = "MAILGUN_API_URL";
+  public static final String DOMAIN_SETTING_KEY = "MAILGUN_DOMAIN";
+  public static final String API_KEY_SETTING_KEY = "MAILGUN_API_KEY";
+  public static final String SENDER_EMAIL_SETTING_KEY = "MAILGUN_SENDER_EMAIL";
+  public static final String SENDER_NAME_SETTING_KEY = "MAILGUN_SENDER_NAME";
 
   private MailgunConsts() {
   }
