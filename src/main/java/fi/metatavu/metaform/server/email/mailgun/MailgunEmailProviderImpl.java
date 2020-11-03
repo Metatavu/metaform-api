@@ -79,6 +79,8 @@ public class MailgunEmailProviderImpl implements EmailProvider {
     }
     
     mailBuilder.build().send();
+    
+    logger.info("Send email to {}", toEmail);
   }
 
 }
