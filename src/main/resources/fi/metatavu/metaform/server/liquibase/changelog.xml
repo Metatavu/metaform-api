@@ -408,4 +408,8 @@
     </addColumn>
   </changeSet>
   
+  <changeSet id="drop-system-settings" author="Antti Leppa">
+    <dropTable tableName="systemsetting"/>
+  </changeSet>
+  
 </databaseChangeLog>

@@ -77,7 +77,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       "Reply",
       "ReplyField",
       "StringReplyField",
-      "SystemSetting",
       "TableReplyField",
       "TableReplyFieldNumberRowCell",
       "TableReplyFieldRow",
