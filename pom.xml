@@ -74,7 +74,7 @@
     
     <!-- Mailgun -->
     
-    <mailgun.version>1.8.0</mailgun.version>
+    <mailgun.version>1.9.2</mailgun.version>
     
     <!-- Flying Saurcer -->
     

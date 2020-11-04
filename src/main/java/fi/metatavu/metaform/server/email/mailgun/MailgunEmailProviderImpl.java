@@ -1,4 +1,5 @@
 package fi.metatavu.metaform.server.email.mailgun;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -20,14 +21,13 @@ import net.sargue.mailgun.Response;
 @ApplicationScoped
 public class MailgunEmailProviderImpl implements EmailProvider {
 
+  private Configuration configuration;
+  
   @Inject
   private Logger logger;
   
-  @Override
-  @SuppressWarnings ("squid:S3457")
-  public void sendMail(String toEmail, String subject, String content, MailFormat format) {
-    logger.info("Sending email to {}", toEmail);
-    
+  @PostConstruct
+  public void init() {
     String domain = System.getenv(MailgunConsts.DOMAIN_SETTING_KEY);
     if (StringUtils.isEmpty(domain)) {
       logger.error("Domain setting is missing");
@@ -62,6 +62,12 @@ public class MailgunEmailProviderImpl implements EmailProvider {
     if (StringUtils.isNotEmpty(apiUrl)) {
       configuration.apiUrl(apiUrl);
     }
+  }
+  
+  @Override
+  @SuppressWarnings ("squid:S3457")
+  public void sendMail(String toEmail, String subject, String content, MailFormat format) {
+    logger.info("Sending email to {}", toEmail);
     
     MailBuilder mailBuilder = Mail.using(configuration)
       .to(toEmail)
@@ -81,7 +87,7 @@ public class MailgunEmailProviderImpl implements EmailProvider {
     
     Response response = mailBuilder.build().send();
     if (response.isOk()) {
-      logger.info("Sending email to {}", toEmail);
+      logger.info("Send email to {}", toEmail);
     } else {
       logger.info("Sending email to {} failed with message {}", toEmail, response.responseMessage());
     }
