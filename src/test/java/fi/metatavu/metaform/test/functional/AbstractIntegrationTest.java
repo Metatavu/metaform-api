@@ -77,7 +77,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       "Reply",
       "ReplyField",
       "StringReplyField",
-      "SystemSetting",
       "TableReplyField",
       "TableReplyFieldNumberRowCell",
       "TableReplyFieldRow",
@@ -331,15 +330,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     String domain = "domain.example.com";
     String path = "mgapi";
     String apiKey = "fakekey";
-    String senderEmail = "metaform-test@example.com";
-    String senderName = "Metaform Test";
-
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apiurl", String.format("http://%s:%d/%s", "test-wiremock", 8080, path));
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-domain", domain);
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-apikey", apiKey);
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-sender-email", senderEmail);
-    executeInsert("INSERT INTO SystemSetting (id, settingkey, value) VALUES (?, ?, ?)", UUID.randomUUID(), "mailgun-sender-name", senderName);
-    
     MailgunMocker mailgunMocker = new MailgunMocker(String.format("/%s", path), domain, apiKey);
     mailgunMocker.startMock();
     return mailgunMocker;
@@ -352,7 +342,6 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
    */
   protected void stopMailgunMocker(MailgunMocker mailgunMocker) {
     mailgunMocker.stopMock();
-    executeDelete("DELETE FROM SystemSetting WHERE settingKey in ('mailgun-apiurl', 'mailgun-domain', 'mailgun-apikey', 'mailgun-sender-email', 'mailgun-sender-name')");
   }
 
   /**
