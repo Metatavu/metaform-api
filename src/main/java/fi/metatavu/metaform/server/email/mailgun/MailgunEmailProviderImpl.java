@@ -54,7 +54,7 @@ public class MailgunEmailProviderImpl implements EmailProvider {
     
     String apiUrl = System.getenv(MailgunConsts.API_URL_SETTING_KEY);
 
-    Configuration configuration = new Configuration()
+    configuration = new Configuration()
       .domain(domain)
       .apiKey(apiKey)
       .from(senderName, senderEmail);

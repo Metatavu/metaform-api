@@ -747,6 +747,11 @@
                       <KEYCLOAK_SECRET>378833f9-dde8-4443-84ca-edfa26e2f0ee</KEYCLOAK_SECRET>
                       <KEYCLOAK_ADMIN_USER>realm-admin</KEYCLOAK_ADMIN_USER>
                       <KEYCLOAK_ADMIN_PASS>test</KEYCLOAK_ADMIN_PASS>
+                      <MAILGUN_API_URL>http://test-wiremock:8080/mgapi</MAILGUN_API_URL>
+                      <MAILGUN_DOMAIN>domain.example.com</MAILGUN_DOMAIN>
+                      <MAILGUN_API_KEY>fakekey</MAILGUN_API_KEY>
+                      <MAILGUN_SENDER_EMAIL>metaform-test@example.com</MAILGUN_SENDER_EMAIL>
+                      <MAILGUN_SENDER_NAME>Metaform Test</MAILGUN_SENDER_NAME>
                       <KUBERNETES_NAMESPACE>test</KUBERNETES_NAMESPACE>
                       <KUBERNETES_LABELS>test</KUBERNETES_LABELS>
                       <runmode>TEST</runmode>
