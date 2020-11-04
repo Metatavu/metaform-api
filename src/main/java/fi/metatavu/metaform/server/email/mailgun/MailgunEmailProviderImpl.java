@@ -9,6 +9,7 @@ import fi.metatavu.metaform.server.email.EmailProvider;
 import net.sargue.mailgun.Configuration;
 import net.sargue.mailgun.Mail;
 import net.sargue.mailgun.MailBuilder;
+import net.sargue.mailgun.Response;
 
 /**
  * Mailgun email provider implementation
@@ -78,9 +79,12 @@ public class MailgunEmailProviderImpl implements EmailProvider {
         return;
     }
     
-    mailBuilder.build().send();
-    
-    logger.info("Send email to {}", toEmail);
+    Response response = mailBuilder.build().send();
+    if (response.isOk()) {
+      logger.info("Sending email to {}", toEmail);
+    } else {
+      logger.info("Sending email to {} failed with message {}", toEmail, response.responseMessage());
+    }
   }
 
 }
