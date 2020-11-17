@@ -1,0 +1,81 @@
+version: "3"
+services:
+  mysql-metaform-api:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    command: --lower_case_table_names=1
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: metaform-api
+      MYSQL_USER: metaform
+      MYSQL_PASSWORD: metaform
+  metaform-api-1:
+    build: .
+    ports:
+      - 1234:8080
+    depends_on:
+      - mysql-metaform-api
+    environment:
+      METAFORM_API_CLUSTER_PASSWORD: clusterpass
+      METAFORM_API_HOST: metaform-api-1
+      METAFORM_API_DB_HOST: mysql-metaform-api
+      METAFORM_API_DB_PORT: 3306
+      METAFORM_API_DB_NAME: metaform-api
+      METAFORM_API_DB_OPTS: ?useSSL=false&allowPublicKeyRetrieval=true
+      METAFORM_API_DB_USERNAME: root
+      METAFORM_API_DB_PASSWORD: root
+      METAFORM_TX_IDENTIFIER: tx
+      KEYCLOAK_REALM: test-1
+      KEYCLOAK_RESOURCE: metaform-api
+      KEYCLOAK_URL: http://test-keycloak:8080/auth
+      KEYCLOAK_SECRET: 6a7a6013-b79b-478a-9f1a-356b8e2717c4
+      KEYCLOAK_ADMIN_USER: api-admin
+      KEYCLOAK_ADMIN_PASS: test
+      KUBERNETES_NAMESPACE: test
+      KUBERNETES_LABELS: test
+  metaform-api-2:
+    build: .
+    ports:
+      - 5678:8080
+    depends_on:
+      - mysql-metaform-api
+    environment:
+      METAFORM_API_CLUSTER_PASSWORD: clusterpass
+      METAFORM_API_HOST: metaform-api-2
+      METAFORM_API_DB_HOST: mysql-metaform-api
+      METAFORM_API_DB_PORT: 3306
+      METAFORM_API_DB_NAME: metaform-api
+      METAFORM_API_DB_OPTS: ?useSSL=false&allowPublicKeyRetrieval=true
+      METAFORM_API_DB_USERNAME: root
+      METAFORM_API_DB_PASSWORD: root
+      METAFORM_TX_IDENTIFIER: tx
+      KEYCLOAK_REALM: test-1
+      KEYCLOAK_RESOURCE: metaform-api
+      KEYCLOAK_URL: http://test-keycloak:8080/auth
+      KEYCLOAK_SECRET: 6a7a6013-b79b-478a-9f1a-356b8e2717c4
+      KEYCLOAK_ADMIN_USER: api-admin
+      KEYCLOAK_ADMIN_PASS: test
+      KUBERNETES_NAMESPACE: test
+      KUBERNETES_LABELS: test
+  test-keycloak:
+    image: jboss/keycloak:4.5.0.Final
+    environment:
+      DB_VENDOR: MYSQL
+      DB_ADDR: mysql-metaform-api
+      DB_DATABASE: metaform-api
+      DB_USER: metaform
+      DB_PASSWORD: metaform
+      KEYCLOAK_USER: testi
+      KEYCLOAK_PASSWORD: testi
+      JDBC_PARAMS: useSSL=false&allowPublicKeyRetrieval=true
+      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the MySQL JDBC driver documentation in order to use it.
+      #JDBC_PARAMS: "connectTimeout=30000"
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql-metaform-api
+volumes:
+  db_data: {}
