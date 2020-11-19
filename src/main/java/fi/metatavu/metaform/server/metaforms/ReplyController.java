@@ -548,7 +548,7 @@ public class ReplyController {
       Map<Object, Object> mapItem = (Map<Object, Object>) listItem;
       for (Object key : mapItem.keySet()) {
         if (!(key instanceof String)) {
-          logger.warn("Table field item value is not instance of a String");
+          logger.warn("Table field item value {} is not instance of a String", String.valueOf(key));
           return null;
         }
         
