@@ -23,6 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
 import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
@@ -527,7 +530,7 @@ public class ReplyController {
     }
     
     if (!(value instanceof List)) {
-      logger.warn("Table field value is not instance of a List");
+      logger.warn("Table field value {} is not instance of a List", serializeObject(value));
       return null;
     }
     
@@ -538,7 +541,7 @@ public class ReplyController {
     
     for (Object listItem : listValue) {
       if (!(listItem instanceof Map)) {
-        logger.warn("Table field list item is not instance of a Map");
+        logger.warn("Table field list item {} is not instance of a Map", serializeObject(listItem));
         return null;
       }
       
@@ -563,7 +566,7 @@ public class ReplyController {
         }
       }
     }
-    
+   
     return (List<Map<String, Object>>) value;
   }
   
@@ -911,6 +914,20 @@ public class ReplyController {
     byte[] content = file.getData();
     String contentType = file.getMeta().getContentType();
     return attachmentController.create(id, name, content, contentType, userId);
+  }
+  
+  /**
+   * Serializes object as JSON. Used only for debugging purposes
+   * 
+   * @param object object
+   * @return serialzied object JSON
+   */
+  private String serializeObject(Object object) {
+    try {
+      return new ObjectMapper().writeValueAsString(object);
+    } catch (JsonProcessingException e) {
+      return e.getMessage();
+    }
   }
 
 }
