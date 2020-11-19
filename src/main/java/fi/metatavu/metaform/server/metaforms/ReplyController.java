@@ -527,6 +527,7 @@ public class ReplyController {
     }
     
     if (!(value instanceof List)) {
+      logger.warn("Table field value is not instance of a List");
       return null;
     }
     
@@ -537,19 +538,27 @@ public class ReplyController {
     
     for (Object listItem : listValue) {
       if (!(listItem instanceof Map)) {
+        logger.warn("Table field list item is not instance of a Map");
         return null;
       }
       
       Map<Object, Object> mapItem = (Map<Object, Object>) listItem;
       for (Object key : mapItem.keySet()) {
         if (!(key instanceof String)) {
+          logger.warn("Table field item value is not instance of a String");
           return null;
         }
         
         String columnName = (String) key;
         MetaformTableColumn column = columnMap.get(columnName);
+
+        if (column == null) {
+          logger.warn("Table field item column {} not found", columnName);
+          return null;
+        }
         
-        if (column == null || !isSupportedTableColumnType(column.getType())) {
+        if (!isSupportedTableColumnType(column.getType())) {
+          logger.warn("Table field item value type {} is not supported", column.getType());
           return null;
         }
       }
@@ -606,6 +615,7 @@ public class ReplyController {
    */
   private Map<String, MetaformTableColumn> getTableColumnMap(MetaformField field) {
     if (field.getColumns() == null) {
+      logger.warn("Table field does not have columns");
       return Collections.emptyMap();
     }
     
