@@ -8,9 +8,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Row;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +48,8 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
 
     this.dateTimeCellStyle = workbook.createCellStyle();
     this.dateTimeCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("DD.MM.YYYY HH:MM"));
+    
+    workbook.setForceFormulaRecalculation(true);
   }
 
   /**
@@ -182,12 +187,54 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
   }
 
   /**
+   * Sets cell link
+   * 
+   * @param sheetId sheet id
+   * @param rowNumber row number
+   * @param columnNumber column number
+   * @param type link type
+   * @param address link address
+   * @param cellText cell text
+   * @return cell
+   */
+  public Cell setCellLink(String sheetId, int rowNumber, int columnNumber, HyperlinkType type, String address, String cellText) {
+    Cell cell = findOrCreateCell(sheetId, rowNumber, columnNumber);
+    if (cell != null) {
+      Hyperlink link = workbook.getCreationHelper().createHyperlink(type);
+      link.setAddress(address);
+      cell.setCellValue(cellText);
+      cell.setHyperlink(link);
+    }
+    
+    return cell;
+  }
+
+  /**
+   * Sets cell formula
+   * 
+   * @param sheetId sheet id
+   * @param rowNumber row number
+   * @param columnNumber column number
+   * @param formula formula
+   * @return cell
+   */
+  public Cell setCellFormula(String sheetId, int rowNumber, int columnNumber, String formula) {
+    Cell cell = findOrCreateCell(sheetId, rowNumber, columnNumber);
+    if (cell != null) {
+      cell.setCellFormula(formula);
+    }
+    
+    return cell;
+  }
+
+  /**
    * Writes sheet into stream
    * 
    * @param stream stream
    * @throws IOException thrown when writing fails
    */
   public void write(OutputStream stream) throws IOException {
+    workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
     workbook.write(stream);
   }
 
