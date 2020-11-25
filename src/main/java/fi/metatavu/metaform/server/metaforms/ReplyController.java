@@ -21,6 +21,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.poi.common.usermodel.HyperlinkType;
+import org.apache.poi.ss.util.CellReference;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.attachments.AttachmentController;
@@ -423,7 +425,7 @@ public class ReplyController {
       throw new PdfRenderException("Pdf rendering failed", e);
     }
   }
-  
+
   /**
    * Returns metaform replies as XLSX binary
    * 
@@ -481,6 +483,12 @@ public class ReplyController {
                 
                 xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, selectedValue);
               break;
+              case TABLE:
+                String sheetName = createXlsxTableSheet(xlsxBuilder, replyIndex, field, value);
+                if (StringUtils.isNotBlank(sheetName)) {
+                  xlsxBuilder.setCellLink(sheetId, rowIndex, columnIndex, HyperlinkType.DOCUMENT, sheetName, sheetName);
+                }
+              break;
               default:
                 xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, value.toString());
               break;
@@ -495,6 +503,90 @@ public class ReplyController {
     } catch (Exception e) {
       throw new XlsxException("Failed to create XLSX export", e);
     }
+  }
+
+  /**
+   * Creates new sheet for table values 
+   * 
+   * @param xlsxBuilder
+   * @param replyIndex
+   * @param field
+   * @param value
+   * @return
+   */
+  private String createXlsxTableSheet(XlsxBuilder xlsxBuilder, int replyIndex, MetaformField field, Object value) {
+    List<MetaformTableColumn> columns = field.getColumns();
+    
+    if (columns.isEmpty()) {
+      return null;
+    }
+    
+    Map<String, MetaformTableColumn> columnMap = getTableColumnMap(field);
+    List<Map<String, Object>> tableValue = getTableValue(columnMap, value);
+
+    if (!tableValue.isEmpty()) {
+      String fieldTitle = field.getTitle(); 
+      if (StringUtils.isBlank(fieldTitle)) {
+        fieldTitle = field.getName();
+      }
+      
+      String sheetName = String.format("%s - %s", StringUtils.truncate(fieldTitle, 20), replyIndex + 1);
+      String sheetId = xlsxBuilder.createSheet(sheetName);
+      
+      // Headers 
+      
+      for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
+        MetaformTableColumn column = columns.get(columnIndex);
+        String columnTitle = column.getTitle();
+        if (StringUtils.isBlank(columnTitle)) {
+          columnTitle = column.getName(); 
+        }
+        
+        xlsxBuilder.setCellValue(sheetId, 0, columnIndex, columnTitle);
+      }
+      
+      // Values
+
+      for (int rowIndex = 0; rowIndex < tableValue.size(); rowIndex++) {
+        Map<String, Object> row = tableValue.get(rowIndex);
+        int rowNumber = rowIndex + 1;
+
+        for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
+          MetaformTableColumn column = columns.get(columnIndex);
+          Object cellValue = row.get(column.getName());
+
+          if (cellValue != null) {
+            switch (column.getType()) {
+              case DATE:
+              case TIME:
+                xlsxBuilder.setCellValue(sheetId, rowNumber, columnIndex, OffsetDateTime.parse(cellValue.toString()));
+              break;
+              case NUMBER:
+                xlsxBuilder.setCellValue(sheetId, rowNumber, columnIndex, NumberUtils.createDouble(cellValue.toString()));
+              break;
+              default:
+                xlsxBuilder.setCellValue(sheetId, rowNumber, columnIndex, cellValue.toString());
+              break;
+            }
+          }
+        }
+      }
+      
+      // Sums
+
+      for (int columnIndex = 0; columnIndex < columns.size(); columnIndex++) {
+        MetaformTableColumn column = columns.get(columnIndex);
+        
+        if (Boolean.TRUE.equals(column.getCalculateSum())) {
+          String columnString = CellReference.convertNumToColString(columnIndex);
+          xlsxBuilder.setCellFormula(sheetId, tableValue.size() + 1, columnIndex, String.format("SUM(%s%d:%s%d)", columnString, 2, columnString, tableValue.size() + 1));
+        }
+      }
+
+      return sheetName;      
+    }
+
+    return null;
   }
 
   /**

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -206,6 +207,27 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected ExportThemeFilesApi getExportThemeFilesApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(ExportThemeFilesApi.class);
+  }
+  
+  /**
+   * Creates test table row data
+   * 
+   * @param tableText text
+   * @param tableNumber number
+   * @return created test data row
+   */
+  protected Map<String, Object> createSimpleTableRow(String tableText, Double tableNumber) {
+    Map<String, Object> result = new HashMap<>();
+    
+    if (tableText != null) {
+      result.put("tabletext", tableText);
+    }
+    
+    if (tableNumber != null) {
+      result.put("tablenumber", tableNumber);
+    }
+    
+    return result;
   }
   
   /**

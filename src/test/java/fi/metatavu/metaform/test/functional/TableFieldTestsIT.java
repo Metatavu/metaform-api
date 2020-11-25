@@ -234,26 +234,5 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       }
     }
   }
-  
-  /**
-   * Creates test table row data
-   * 
-   * @param tableText text
-   * @param tableNumber number
-   * @return created test data row
-   */
-  private Map<String, Object> createSimpleTableRow(String tableText, Double tableNumber) {
-    Map<String, Object> result = new HashMap<>();
-    
-    if (tableText != null) {
-      result.put("tabletext", tableText);
-    }
-    
-    if (tableNumber != null) {
-      result.put("tablenumber", tableNumber);
-    }
-    
-    return result;
-  }
 
 }
