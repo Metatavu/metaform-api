@@ -22,7 +22,7 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
 public class ExportXlsxTestsIT extends AbstractIntegrationTest {
-  
+
   @Test
   public void testExportXlsxTable() throws Exception {
     String adminToken = getAdminToken(REALM_1);
@@ -58,6 +58,32 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
         assertEquals(30d, tableSheet.getRow(3).getCell(1).getNumericCellValue(), 0);
         assertEquals("SUM(B2:B3)", tableSheet.getRow(3).getCell(1).getCellFormula());
         
+      }
+    } finally {
+      adminMetaformsApi.deleteMetaform(metaform.getId());
+    }
+  }
+
+  @Test
+  public void testExportXlsxTableScripted() throws Exception {
+    String adminToken = getAdminToken(REALM_1);
+    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
+    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
+    RepliesApi repliesApi = getRepliesApi(accessToken);
+    
+    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("scripted-xlsx-table"));
+    try {
+      List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("table", tableData);
+      
+      repliesApi.createReply(metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
+      
+      try (Workbook workbook = getXlsxReport(metaform)) {
+        Sheet simpleSheet = workbook.getSheet("Simple");
+        assertNotNull(simpleSheet);
+        assertEquals("Sum field", simpleSheet.getRow(0).getCell(1).getStringCellValue());
+        assertEquals("SUM('Table field - 1'!B1:'Table field - 1'!B3)", simpleSheet.getRow(1).getCell(1).getCellFormula());        
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());

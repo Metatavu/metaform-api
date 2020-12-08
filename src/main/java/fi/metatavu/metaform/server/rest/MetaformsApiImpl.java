@@ -67,6 +67,7 @@ import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 import fi.metatavu.metaform.server.script.FormRuntimeContext;
 import fi.metatavu.metaform.server.script.RunnableScript;
+import fi.metatavu.metaform.server.script.ScriptController;
 import fi.metatavu.metaform.server.script.ScriptProcessor;
 import fi.metatavu.metaform.server.xlsx.XlsxException;
 
@@ -132,7 +133,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private FormRuntimeContext formRuntimeContext;
 
   @Inject
-  private ScriptProcessor scriptProcessor;
+  private ScriptController scriptController;
   
   @Override
   @SuppressWarnings ("squid:S3776")
@@ -199,7 +200,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     if (metaformEntity.getScripts() != null && metaformEntity.getScripts().getAfterCreateReply() != null) {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
-      runScripts(metaformEntity.getScripts().getAfterCreateReply());
+      scriptController.runScripts(metaformEntity.getScripts().getAfterCreateReply());
     }
     
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
@@ -327,7 +328,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     if (metaformEntity.getScripts() != null && metaformEntity.getScripts().getAfterUpdateReply() != null) {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
-      runScripts(metaformEntity.getScripts().getAfterUpdateReply());
+      scriptController.runScripts(metaformEntity.getScripts().getAfterUpdateReply());
     }
     
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
@@ -862,26 +863,6 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
   
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
-  }
-
-  /**
-   * Runs given scripts
-   * 
-   * @param scripts scripts
-   */
-  private void runScripts(List<MetaformScript> scripts) {
-    scripts.stream().forEach(this::runScript);
-  }
-  
-  /**
-   * Runs given script
-   * 
-   * @param script
-   */
-  private void runScript(MetaformScript script) {
-    if (script != null) {
-      scriptProcessor.processScript(new RunnableScript(script.getLanguage(), script.getContent(), script.getName()), new HashMap<>());
-    }
   }
 
   /**
