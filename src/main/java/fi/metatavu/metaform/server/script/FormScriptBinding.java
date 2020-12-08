@@ -22,6 +22,9 @@ public class FormScriptBinding {
   private PdfServices pdfServices;
 
   @Inject
+  private XlsxServices xlsxServices;
+
+  @Inject
   private EncodingServices encodingServices;
   
   /**
@@ -80,4 +83,13 @@ public class FormScriptBinding {
     return encodingServices;
   }
   
+  /**
+   * Returns XLSX services
+   * 
+   * @return XLSX services
+   */
+  public XlsxServices getXlsxServices() {
+    return xlsxServices;
+  }
+    
 }

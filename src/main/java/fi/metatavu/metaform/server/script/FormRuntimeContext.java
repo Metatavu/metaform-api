@@ -10,6 +10,7 @@ import javax.enterprise.context.RequestScoped;
 
 import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.Reply;
+import fi.metatavu.metaform.server.xlsx.XlsxBuilder;
 
 /**
  * Form runtime context for holding state within single request
@@ -22,6 +23,7 @@ public class FormRuntimeContext {
   private UUID loggedUserId;
   private Metaform metaform;
   private Reply reply;
+  private XlsxBuilder xlsxBuilder;
   private Map<String, Object> variableValues;
   private Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap;
   private String exportThemeName;
@@ -87,6 +89,24 @@ public class FormRuntimeContext {
    */
   public void setReply(Reply reply) {
     this.reply = reply;
+  }
+  
+  /**
+   * Sets XLSX builder instance
+   * 
+   * @param xlsxBuilder XLSX builder instance
+   */
+  public void setXlsxBuilder(XlsxBuilder xlsxBuilder) {
+    this.xlsxBuilder = xlsxBuilder;
+  }
+  
+  /**
+   * Returns XLSX builder instance. Builder is only available on XLSX report scripts
+   * 
+   * @return XLSX builder instance
+   */
+  public XlsxBuilder getXlsxBuilder() {
+    return xlsxBuilder;
   }
   
   /**

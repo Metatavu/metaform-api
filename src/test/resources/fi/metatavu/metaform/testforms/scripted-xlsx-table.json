@@ -1,0 +1,38 @@
+{
+  "title": "Simple",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "table",
+          "title": "Table field",
+          "type": "table",
+          "add-rows": true,
+          "columns": [
+            {
+              "type": "text",
+              "name": "tabletext",
+              "title": "Text table field"
+            },
+            {
+              "type": "number",
+              "name": "tablenumber",
+              "title": "Number table field",
+              "calculate-sum": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "scripts": {
+    "metaformExportXlsx": [
+      {
+        "name": "tables",
+        "language": "js",
+        "content": "const xlsxServices = form.getXlsxServices();\n\nconst sheetId = xlsxServices.getSheetIdByName(\"Simple\");\nconst rowCount = xlsxServices.getRowCount(sheetId);\nconst columnCount = xlsxServices.getColumnCount(sheetId, 0);\n\nfor (let columnIndex = columnCount - 1; columnIndex >= 0; columnIndex--) {\n  const cellSource = xlsxServices.getCellSource(sheetId, columnIndex, 0);\n  const cellField = cellSource ? cellSource.getField() : null;\n  const fieldType = cellField ? String(cellField.getType()) : null;\n  \n  if (fieldType === \"table\") {\n    xlsxServices.insertColumnAfter(sheetId, columnIndex);\n    columnCount++;\n  }\n}\n\nfor (let columnIndex = columnCount - 1; columnIndex >= 0; columnIndex--) {\n  for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {\n    const cell = xlsxServices.getCell(sheetId, rowIndex, columnIndex);\n    const cellSource = xlsxServices.getCellSource(sheetId, rowIndex, columnIndex);\n\n    if (cell && cellSource) {\n      const cellSourceType = String(cellSource.getType());\n      const cellField = cellSource.getField();\n      const fieldType = String(cellField.getType());\n\n      if (fieldType == \"table\") {\n        switch (cellSourceType) {\n          case \"HEADER\":                    \n            xlsxServices.setCellValueString(sheetId, 0, columnIndex + 1, \"Sum field\");\n          break;\n          case \"VALUE\":\n            const link = cell.getHyperlink();\n            if (link) {\n              const tableSheetName = link.getAddress();\n              const tableSheetId = xlsxServices.getSheetIdByName(tableSheetName);\n              const tableRows = xlsxServices.getRowCount(tableSheetId);\n              const formula = `SUM('${tableSheetName}'!B1:'${tableSheetName}'!B${tableRows - 1})`;\n              xlsxServices.setCellFormula(sheetId, rowIndex, columnIndex + 1, formula);\n            }\n          break;\n        }\n      }\n    }\n  }\n}"
+      }
+    ]
+  }
+}
