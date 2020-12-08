@@ -62,6 +62,7 @@ import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRowCell;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldOption;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
+import fi.metatavu.metaform.server.rest.model.MetaformScripts;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.MetaformTableColumn;
 import fi.metatavu.metaform.server.rest.model.MetaformTableColumnType;
@@ -510,7 +511,11 @@ public class ReplyController {
       }
       
       formRuntimeContext.setXlsxBuilder(xlsxBuilder);
-      scriptController.runScripts(metaformEntity.getScripts().getMetaformExportXlsx());
+      
+      MetaformScripts scripts = metaformEntity.getScripts();
+      if (scripts != null) {
+        scriptController.runScripts(scripts.getMetaformExportXlsx());
+      }
       
       xlsxBuilder.write(output);
       

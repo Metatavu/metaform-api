@@ -23,7 +23,9 @@ public class ScriptController {
    * @param scripts scripts
    */
   public void runScripts(List<MetaformScript> scripts) {
-    scripts.stream().forEach(this::runScript);
+    if (scripts != null) {
+      scripts.stream().forEach(this::runScript);
+    }
   }
   
   /**
