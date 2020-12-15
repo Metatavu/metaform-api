@@ -498,6 +498,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
     String key = String.format("%s-%s", sheetId, rowNumber);
 
     if (!rows.containsKey(key)) {
+      System.out.println("created row " + rowNumber);
       rows.put(key, sheet.createRow(rowNumber));
     }
 
