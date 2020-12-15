@@ -186,11 +186,25 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    * @param referenceColumnIndex reference column index
    */
   public void insertColumnBefore(String sheetId, int referenceColumnIndex) {
+    System.out.println("insertColumnBefore ------ ");
+
     int rowCount = this.getRowCount(sheetId);
+
+    System.out.println("  rowCount: " + rowCount);
+
     for (int rowIndex = rowCount - 1; rowIndex >= 0; rowIndex--) {
+      System.out.println("    rowIndex: " + rowIndex);
+
       int columnCount = this.getColumnCount(sheetId, rowIndex);
+
+      System.out.println("    columnCount: " + columnCount);
+
       for (int oldColumnIndex = columnCount - 1; oldColumnIndex >= referenceColumnIndex; oldColumnIndex--) {
         int newColumnIndex = oldColumnIndex + 1;
+
+        System.out.println("      oldColumnIndex: " + oldColumnIndex);
+        System.out.println("      newColumnIndex: " + newColumnIndex);
+
         String oldCellKey = getCellKey(sheetId, rowIndex, oldColumnIndex);
 
         Cell oldCell = cells.get(oldCellKey);
@@ -226,6 +240,8 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
         }
       }
     }
+
+    System.out.println("------ insertColumnBefore");
   }
 
   /**
