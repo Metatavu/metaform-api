@@ -467,6 +467,43 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   }
 
   @Override
+  @SuppressWarnings ("squid:S3776")
+  public Response updateDraft(UUID metaformId, UUID draftId, Draft payload) {
+    UUID loggedUserId = getLoggerUserId();
+    if (loggedUserId == null) {
+      return createForbidden(UNAUTHORIZED);
+    }
+  
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    if (BooleanUtils.isNotTrue(metaformEntity.getAllowDrafts())) {
+      return createForbidden(DRAFTS_NOT_ALLOWED);
+    }
+    
+    boolean anonymous = !isRealmUser();
+    if (!metaform.getAllowAnonymous() && anonymous) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Draft draft = draftController.findDraftById(draftId);
+    if (draft == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!draft.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Draft updatedDraft = draftController.updateDraft(draft, payload.getData());
+    
+    return createOk(draftTranslator.translateDraft(updatedDraft));
+  }
+
+  @Override
   public Response deleteDraft(UUID metaformId, UUID draftId) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {

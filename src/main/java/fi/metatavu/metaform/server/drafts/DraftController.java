@@ -55,6 +55,17 @@ public class DraftController {
   }
 
   /**
+   * Updates a draft
+   * 
+   * @param draft draftt
+   * @param data data
+   * @return updated draft
+   */
+  public Draft updateDraft(Draft draft, Map<String, Object> data) {
+    return draftDAO.updateData(draft, serializeData(data));
+  }
+
+  /**
    * Deletes an draft
    * 
    * @param theme theme to be deleted

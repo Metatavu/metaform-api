@@ -27,7 +27,7 @@ import fi.metatavu.metaform.client.model.Draft;
 public class DraftTestsIT extends AbstractIntegrationTest {
   
   @Test
-  public void createReply() throws IOException, URISyntaxException {
+  public void createDraft() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
       Metaform metaform = dataBuilder.createMetaform("simple");
@@ -48,5 +48,39 @@ public class DraftTestsIT extends AbstractIntegrationTest {
       dataBuilder.clean();
     }
   }
+
+  @Test
+  public void updateDraft() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple");
+      
+      Map<String, Object> draftData = new HashMap<>();
+      draftData.put("text", "draft value");
+
+      Draft createdDraft = dataBuilder.createDraft(metaform, draftData);
+      assertNotNull(createdDraft);
+      assertNotNull(createdDraft.getId());
+      assertEquals("draft value", createdDraft.getData().get("text"));
+
+      Draft updatePayload = createdDraft;
+      draftData.put("text", "updated value");
+      updatePayload.setData(draftData);
+      
+      Draft updateDraft = dataBuilder.getDraftsApi().updateDraft(metaform.getId(), createdDraft.getId(), updatePayload);
+      assertNotNull(updateDraft);
+      assertEquals(createdDraft.getId(), updateDraft.getId());
+      assertEquals("updated value", updateDraft.getData().get("text"));
+
+      Draft foundDraft = dataBuilder.getDraftsApi().findDraft(metaform.getId(), createdDraft.getId());
+      assertNotNull(foundDraft);
+      assertEquals(updateDraft.getId(), foundDraft.getId());
+      assertEquals(updateDraft.getData().get("text"), foundDraft.getData().get("text"));
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+
+  
   
 }
