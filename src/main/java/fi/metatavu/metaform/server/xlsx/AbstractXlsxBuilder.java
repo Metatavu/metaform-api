@@ -151,7 +151,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    */
   public int getRowCount(String sheetId) {
     S sheet = this.getSheet(sheetId);
-    return sheet != null ? sheet.getPhysicalNumberOfRows() : 0;
+    return sheet != null ? sheet.getLastRowNum() + 1 : 0;
   }
 
   /**
@@ -163,7 +163,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    */
   public int getColumnCount(String sheetId, int rowNumber) {  
     Row row = getRow(sheetId, rowNumber);
-    return row != null ? row.getPhysicalNumberOfCells() : 0;
+    return row != null ? row.getLastCellNum() : 0;
   }
 
   /**

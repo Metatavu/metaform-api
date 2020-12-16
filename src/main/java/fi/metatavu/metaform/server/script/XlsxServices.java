@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.CellReference;
 
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.xlsx.CellSource;
@@ -187,6 +188,18 @@ public class XlsxServices {
   public int getColumnCount(String sheetId, int rowNumber) {  
     XlsxBuilder xlsxBuilder = formRuntimeContext.getXlsxBuilder();
     return xlsxBuilder.getColumnCount(sheetId, rowNumber);
+  }
+
+  /**
+   * Returns cell reference with sheet id
+   * 
+   * @param sheetName sheet name
+   * @param rowNumber row number
+   * @param columnNumber column number
+   * @return cell reference with sheet id
+   */
+  public String getCellReferenceWithSheet(String sheetName, int rowNumber, int columnNumber) {
+    return new CellReference(sheetName, rowNumber, columnNumber, false, false).formatAsString(true);
   }
   
   /**
