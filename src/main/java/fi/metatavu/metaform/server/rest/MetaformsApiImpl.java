@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -42,6 +44,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import _fi.metatavu.metaform.server.rest.api.MetaformsApi;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.drafts.DraftController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
 import fi.metatavu.metaform.server.keycloak.KeycloakAdminUtils;
@@ -61,6 +64,7 @@ import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 import fi.metatavu.metaform.server.rest.model.MetaformScript;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
+import fi.metatavu.metaform.server.rest.model.Draft;
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
@@ -70,6 +74,8 @@ import fi.metatavu.metaform.server.script.RunnableScript;
 import fi.metatavu.metaform.server.script.ScriptController;
 import fi.metatavu.metaform.server.script.ScriptProcessor;
 import fi.metatavu.metaform.server.xlsx.XlsxException;
+import fi.metatavu.metaform.server.drafts.DraftController;
+import fi.metatavu.metaform.server.rest.translate.DraftTranslator;
 
 /**
  * Realms REST Service implementation
@@ -95,6 +101,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private static final String NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE = "You are not allowed to view this reply";
   private static final String NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE = "You are not allowed to edit this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
+  private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
 
   @Inject
   private Logger logger;
@@ -134,6 +141,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
   @Inject
   private ScriptController scriptController;
+
+  @Inject
+  private DraftTranslator draftTranslator;
+
+  @Inject
+  private DraftController draftController;
   
   @Override
   @SuppressWarnings ("squid:S3776")
@@ -403,8 +416,79 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       logger.error("Failed to generate PDF", e);
       return createInternalServerError(e.getMessage());
     }
+  }
 
+  @Override
+  @SuppressWarnings ("squid:S3776")
+  public Response createDraft(UUID metaformId, Draft payload) {
+    UUID loggedUserId = getLoggerUserId();
+    if (loggedUserId == null) {
+      return createForbidden(UNAUTHORIZED);
+    }
+  
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+    if (BooleanUtils.isNotTrue(metaformEntity.getAllowDrafts())) {
+      return createForbidden(DRAFTS_NOT_ALLOWED);
+    }
     
+    boolean anonymous = !isRealmUser();
+    if (!metaform.getAllowAnonymous() && anonymous) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Draft draft = draftController.createDraft(metaform, getLoggerUserId(), payload.getData());
+    Draft draftEntity = draftTranslator.translateDraft(draft);
+
+    return createOk(draftEntity);
+  }
+
+  @Override
+  public Response findDraft(UUID metaformId, UUID draftId) {
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.metaform.server.persistence.model.Draft draft = draftController.findDraftById(draftId);
+    if (draft == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!draft.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(draftTranslator.translateDraft(draft));
+  }
+
+  @Override
+  public Response deleteDraft(UUID metaformId, UUID draftId) {
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Draft draft = draftController.findDraftById(draftId);
+    if (draft == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to delete drafts");
+    }
+
+    if (!draft.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    draftController.deleteDraft(draft);
+    
+    return null;
   }
 
   @Override

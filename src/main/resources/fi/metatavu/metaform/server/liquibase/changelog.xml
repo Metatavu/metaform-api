@@ -411,5 +411,28 @@
   <changeSet id="drop-system-settings" author="Antti Leppa">
     <dropTable tableName="systemsetting"/>
   </changeSet>
+
+  <changeSet id="drafts" author="Antti Leppa">
+    <createTable tableName="draft">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="userid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="metaform_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_DRAFT_METAFORM_ID" referencedTableName="metaform" referencedColumnNames="id"/>
+      </column>
+    </createTable>
+  </changeSet>
   
 </databaseChangeLog>

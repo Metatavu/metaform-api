@@ -44,6 +44,7 @@ import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.client.api.MetaformsApi;
 import fi.metatavu.metaform.client.api.RepliesApi;
 import fi.metatavu.metaform.client.model.Reply;
+import fi.metatavu.metaform.client.api.DraftsApi;
 
 
 /**
@@ -152,6 +153,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected RepliesApi getRepliesApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(RepliesApi.class);
+  }
+  
+  /**
+   * Returns drafts API authenticated by the given access token
+   * 
+   * @param accessTokenaccess token
+   * @return drafts API authenticated by the given access token
+   */
+  protected DraftsApi getDraftsApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(DraftsApi.class);
   }
 
   /**
