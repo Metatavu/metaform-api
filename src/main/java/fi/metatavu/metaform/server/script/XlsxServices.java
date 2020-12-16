@@ -199,7 +199,7 @@ public class XlsxServices {
    * @return cell reference with sheet id
    */
   public String getCellReferenceWithSheet(String sheetName, int rowNumber, int columnNumber) {
-    return CellReference(sheetName, rowNumber, columnNumber, false, false).formatAsString(true);
+    return new CellReference(sheetName, rowNumber, columnNumber, false, false).formatAsString(true);
   }
   
   /**
