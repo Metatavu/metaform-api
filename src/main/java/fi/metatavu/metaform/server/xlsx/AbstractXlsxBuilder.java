@@ -187,7 +187,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    */
   public void insertColumnBefore(String sheetId, int referenceColumnIndex) {
     int rowCount = this.getRowCount(sheetId);
-
     for (int rowIndex = rowCount - 1; rowIndex >= 0; rowIndex--) {
       int columnCount = this.getColumnCount(sheetId, rowIndex);
       for (int oldColumnIndex = columnCount - 1; oldColumnIndex >= referenceColumnIndex; oldColumnIndex--) {
@@ -483,7 +482,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
     String key = String.format("%s-%s", sheetId, rowNumber);
 
     if (!rows.containsKey(key)) {
-      System.out.println("created row " + rowNumber);
       rows.put(key, sheet.createRow(rowNumber));
     }
 
