@@ -23,6 +23,9 @@ import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.client.api.MetaformsApi;
 import fi.metatavu.metaform.client.api.RepliesApi;
 import fi.metatavu.metaform.client.model.Reply;
+import fi.metatavu.metaform.client.model.Draft;
+import fi.metatavu.metaform.client.api.DraftsApi;
+
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 /**
@@ -44,6 +47,7 @@ public class TestDataBuilder {
   private Set<ExportTheme> exportThemes;
   private Map<UUID, Set<ExportThemeFile>> exportThemeFiles;
   private Set<Reply> replies;
+  private Set<Draft> drafts;
   private Map<UUID, UUID> childEntityMetaforms;
   
   /**
@@ -62,6 +66,7 @@ public class TestDataBuilder {
     this.emailNotifications = new HashSet<>();
     this.metaforms = new HashSet<>();
     this.replies = new HashSet<>();
+    this.drafts = new HashSet<>();
     this.exportThemes = new HashSet<>();
     this.childEntityMetaforms = new HashMap<>();
     this.exportThemeFiles = new HashMap<>();
@@ -85,6 +90,26 @@ public class TestDataBuilder {
    */
   public RepliesApi getAdminRepliesApi() throws IOException {
     return test.getRepliesApi(getAdminToken());
+  }
+  
+  /**
+   * Returns initialized drafts API with administrative rights
+   * 
+   * @return initialized drafts API with administrative rights
+   * @throws IOException
+   */
+  public DraftsApi getAdminDraftsApi() throws IOException {
+    return test.getDraftsApi(getAdminToken());
+  }
+  
+  /**
+   * Returns initialized drafts API
+   * 
+   * @return initialized drafts API
+   * @throws IOException
+   */
+  public DraftsApi getDraftsApi() throws IOException {
+    return test.getDraftsApi(getAccessToken());
   }
   
   /**
@@ -283,6 +308,20 @@ public class TestDataBuilder {
   }
 
   /**
+   * Creates new draft
+   * 
+   * @param metaform metaform
+   * @param value value
+   * @return draft
+   * @throws IOException
+   */
+  public Draft createDraft(Metaform metaform, Map<String, Object> draftData) throws IOException {
+    Draft draft = new Draft();
+    draft.setData(draftData);
+    return addDraft(metaform, getDraftsApi().createDraft(metaform.getId(), draft));
+  }
+
+  /**
    * Creates simple export theme
    * 
    * @return export theme
@@ -350,6 +389,15 @@ public class TestDataBuilder {
    * Cleans created test data
    */
   public void clean() {
+    drafts.stream().forEach(draft -> {
+      UUID metaformId = childEntityMetaforms.get(draft.getId());
+      try {
+        getAdminDraftsApi().deleteDraft(metaformId, draft.getId());
+      } catch (IOException e) {
+        fail(e.getMessage());
+      }
+    });
+    
     replies.stream().forEach((reply) -> {
       UUID metaformId = childEntityMetaforms.get(reply.getId());
       try {
@@ -499,6 +547,19 @@ public class TestDataBuilder {
     replies.add(reply);
     childEntityMetaforms.put(reply.getId(), metaform.getId());
     return reply;
+  }
+  
+  /**
+   * Adds reply to clean queue
+   * 
+   * @param metaform metaform
+   * @param reply reply
+   * @return reply
+   */
+  private Draft addDraft(Metaform metaform, Draft draft) {
+    drafts.add(draft);
+    childEntityMetaforms.put(draft.getId(), metaform.getId());
+    return draft;
   }
 
   /**
