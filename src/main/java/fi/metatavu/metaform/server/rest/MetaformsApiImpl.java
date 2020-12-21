@@ -1,11 +1,13 @@
 package fi.metatavu.metaform.server.rest;
 
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +46,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import _fi.metatavu.metaform.server.rest.api.MetaformsApi;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.crypto.CryptoController;
 import fi.metatavu.metaform.server.drafts.DraftController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
@@ -61,7 +64,6 @@ import fi.metatavu.metaform.server.rest.model.Metaform;
 import fi.metatavu.metaform.server.rest.model.MetaformField;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldPermissionContexts;
 import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
-import fi.metatavu.metaform.server.rest.model.MetaformScript;
 import fi.metatavu.metaform.server.rest.model.MetaformSection;
 import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.model.Draft;
@@ -70,11 +72,8 @@ import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator;
 import fi.metatavu.metaform.server.script.FormRuntimeContext;
-import fi.metatavu.metaform.server.script.RunnableScript;
 import fi.metatavu.metaform.server.script.ScriptController;
-import fi.metatavu.metaform.server.script.ScriptProcessor;
 import fi.metatavu.metaform.server.xlsx.XlsxException;
-import fi.metatavu.metaform.server.drafts.DraftController;
 import fi.metatavu.metaform.server.rest.translate.DraftTranslator;
 
 /**
@@ -147,6 +146,9 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
   @Inject
   private DraftController draftController;
+
+  @Inject
+  private CryptoController cryptoController;
   
   @Override
   @SuppressWarnings ("squid:S3776")
@@ -184,10 +186,19 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     EnumMap<AuthorizationScope, List<String>> permissionGroups = new EnumMap<>(AuthorizationScope.class);
     Arrays.stream(AuthorizationScope.values()).forEach(scope -> permissionGroups.put(scope, new ArrayList<>()));
-   
+
+    PrivateKey privateKey = null;
+    PublicKey publicKey = null;
+
+    if (BooleanUtils.isTrue(metaformEntity.getAllowReplyOwnerKeys())) {
+      KeyPair keyPair = cryptoController.generateRsaKeyPair();
+      privateKey = keyPair.getPrivate();
+      publicKey = keyPair.getPublic();
+    }
+
     // TODO: Support multiple
 
-    fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(replyMode, metaform, anonymous, userId);
+    fi.metatavu.metaform.server.persistence.model.Reply reply = createReplyResolveReply(replyMode, metaform, anonymous, userId, privateKey);
     Map<String, Object> data = payload.getData();
     if (data == null) {
       logger.warn("Received a reply with null data");
@@ -209,7 +220,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       }
     } 
 
-    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply, publicKey);
 
     if (metaformEntity.getScripts() != null && metaformEntity.getScripts().getAfterCreateReply() != null) {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
@@ -222,11 +233,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   }
 
   @Override
-  public Response findReply(UUID metaformId, UUID replyId) {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
+  public Response findReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -237,7 +244,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    if (!isPermittedReply(reply, AuthorizationScope.REPLY_VIEW)) {
+    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_VIEW)) {
       return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
     }
 
@@ -246,7 +253,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
-    return createOk(replyTranslator.translateReply(metaformEntity, reply));
+    return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
   
   @Override
@@ -287,20 +294,20 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         fieldFilters);
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
-      .map(entity -> replyTranslator.translateReply(metaformEntity, entity))
+      .map(entity -> replyTranslator.translateReply(metaformEntity, entity, null))
       .collect(Collectors.toList());
     
     return createOk(result);
   }
 
-  public Response updateReply(UUID metaformId, UUID replyId, Reply payload) {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
+  public Response updateReply(UUID metaformId, UUID replyId, Reply payload, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    if (!isRealmUser()) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
     
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
@@ -308,7 +315,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    if (!isPermittedReply(reply, AuthorizationScope.REPLY_EDIT)) {
+    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_EDIT)) {
       return createForbidden(NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE);
     }
     
@@ -337,7 +344,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     replyController.deleteReplyFields(reply, fieldNames);
 
-    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply, null);
 
     if (metaformEntity.getScripts() != null && metaformEntity.getScripts().getAfterUpdateReply() != null) {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
@@ -350,7 +357,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   }
 
   @Override
-  public Response deleteReply(UUID metaformId, UUID replyId) {
+  public Response deleteReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -361,7 +368,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    if (!isPermittedReply(reply, AuthorizationScope.REPLY_EDIT)) {
+    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_EDIT)) {
       return createForbidden(NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE);
     }
 
@@ -406,7 +413,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createBadRequest("Metaform does not have an export theme");
     }
     
-    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply);
+    Reply replyEntity = replyTranslator.translateReply(metaformEntity, reply, null);
     Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap = getAttachmentMap(metaformEntity, replyEntity);
     
     try {
@@ -671,7 +678,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       }
       
       List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, null, null, null, null, null, false, null);
-      List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply)).collect(Collectors.toList());
+      List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply, null)).collect(Collectors.toList());
       
       try {
         return streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -708,15 +715,24 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * Returns whether given reply is permitted within given scope
    * 
    * @param reply reply
+   * @param ownerKey reply owner key
    * @param authorizationScope scope
    * @return whether given reply is permitted within given scope
    */
-  private boolean isPermittedReply(fi.metatavu.metaform.server.persistence.model.Reply reply, AuthorizationScope authorizationScope) {
+  private boolean isPermittedReply(fi.metatavu.metaform.server.persistence.model.Reply reply, String ownerKey, AuthorizationScope authorizationScope) {
     if (isRealmMetaformAdmin() || isRealmMetaformSuper()) {
       return true;
     }
     
     if (reply == null || reply.getResourceId() == null) {
+      return false;
+    }
+
+    if (replyController.isValidOwnerKey(reply, ownerKey)) {
+      return true;
+    }
+    
+    if (!isRealmUser()) {
       return false;
     }
     
@@ -859,21 +875,21 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * @param userId user id
    * @return reply object
    */
-  private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(ReplyMode replyMode, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId) {
+  private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(ReplyMode replyMode, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId, PrivateKey privateKey) {
     fi.metatavu.metaform.server.persistence.model.Reply reply = null;
     
     if (anonymous || replyMode == ReplyMode.CUMULATIVE) {
-      reply = replyController.createReply(userId, metaform);
+      reply = replyController.createReply(userId, metaform, privateKey);
     } else {
       reply = replyController.findActiveReplyByMetaformAndUserId(metaform, userId);
       if (reply == null) {
-        reply = replyController.createReply(userId, metaform);
+        reply = replyController.createReply(userId, metaform, privateKey);
       } else {
         if (replyMode == ReplyMode.REVISION) {
           // If there is already an existing reply but we are not updating it
           // We need to change the existing reply into a revision and create new reply
           replyController.convertToRevision(reply);
-          reply = replyController.createReply(userId, metaform);
+          reply = replyController.createReply(userId, metaform, privateKey);
         }
       }
     }

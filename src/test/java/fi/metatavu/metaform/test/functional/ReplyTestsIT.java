@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import feign.FeignException;
 import fi.metatavu.metaform.client.model.ExportTheme;
 import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.client.api.MetaformsApi;
@@ -66,12 +68,12 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       
       Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertEquals("Test text value", foundReply.getData().get("text"));
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -107,7 +109,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         assertEquals(createdReply1.getId(), createdReply2.getId());
         assertEquals("Updated text value", createdReply2.getData().get("text"));
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply1.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -150,7 +152,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         assertNull(replies.get(1).getRevision());
         assertEquals("Updated text value", replies.get(1).getData().get("text"));
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply1.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply1.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -192,9 +194,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       updateData.put("text", "Updated text value");
       reply.setData(updateData);
       
-      repliesApi.updateReply(metaform.getId(), reply.getId(), reply);
+      repliesApi.updateReply(metaform.getId(), reply.getId(), reply, (String) null);
       
-      Reply updatedReply = repliesApi.findReply(metaform.getId(), reply.getId());
+      Reply updatedReply = repliesApi.findReply(metaform.getId(), reply.getId(), (String) null);
       assertEquals("Updated text value", updatedReply.getData().get("text"));
     } finally {
       dataBuilder.clean();
@@ -465,10 +467,82 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
 
       RepliesApi repliesApi = dataBuilder.getRepliesApi();
       
-      Reply reply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+      Reply reply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
       assertEquals(replyCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("created")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       assertEquals(replyModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("modified")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       assertEquals(REALM1_USER_1_ID.toString(), reply.getData().get("lastEditor"));
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+
+  @Test
+  public void testFindReplyOwnerKeys() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple-owner-keys");
+      
+      Reply reply1 = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.CUMULATIVE);
+      Reply reply2 = dataBuilder.createSimpleReply(metaform, "test 2", ReplyMode.CUMULATIVE);
+      assertNotNull(reply1.getOwnerKey());
+      assertNotNull(reply2.getOwnerKey());
+      assertNotEquals(reply1.getOwnerKey(), reply2.getOwnerKey());
+
+      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken(REALM_1));
+      anonymousRepliesApi.findReply(metaform.getId(), reply1.getId(), reply1.getOwnerKey());
+
+      assertReplyOwnerKeyFindForbidden(anonymousRepliesApi, metaform, reply1, null);
+      assertReplyOwnerKeyFindForbidden(anonymousRepliesApi, metaform, reply1, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgZEinFR6yjNnV4utVbvU9KQ8lZasbAWKQJXjp2VzcyQfE1WvH5dMJmI-sgmPyaZFcJLk9tgLfZilytGmeopfafkWp7yVa9zWYAfni0eJmCL9EcemRb_rDNw07Mf1Vb1lbLhLth8r6a2SVGk_dK14TXeGQSX9zROmiqjeT_FXe2Yz8EnvUweLQ5TobVE-azzyW0dqzjoSkBNfZ8r2hot4hQ2mQthU5xaAnOfDeCc95E7cci4-Dnx3B8U_UaHOn7Srf6DdsL_ZDvnSh1CvYiGNOYMpk-TLK6ixH-m83rweBjQ1hl1N_5I3cplmuJGCJLBxDauyjfBYIfR9WkBoau1eDQIDAQAB");
+      assertReplyOwnerKeyFindForbidden(anonymousRepliesApi, metaform, reply1, reply2.getOwnerKey());
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+
+  @Test
+  public void testUpdateReplyOwnerKeys() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple-owner-keys");
+      
+      Reply reply1 = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.CUMULATIVE);
+      Reply reply2 = dataBuilder.createSimpleReply(metaform, "test 2", ReplyMode.CUMULATIVE);
+      assertNotNull(reply1.getOwnerKey());
+      assertNotNull(reply2.getOwnerKey());
+      assertNotEquals(reply1.getOwnerKey(), reply2.getOwnerKey());
+
+      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken(REALM_1));
+      anonymousRepliesApi.updateReply(metaform.getId(), reply1.getId(), reply1, reply1.getOwnerKey());
+
+      assertReplyOwnerKeyUpdateForbidden(anonymousRepliesApi, metaform, reply1, null);
+      assertReplyOwnerKeyUpdateForbidden(anonymousRepliesApi, metaform, reply1, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgZEinFR6yjNnV4utVbvU9KQ8lZasbAWKQJXjp2VzcyQfE1WvH5dMJmI-sgmPyaZFcJLk9tgLfZilytGmeopfafkWp7yVa9zWYAfni0eJmCL9EcemRb_rDNw07Mf1Vb1lbLhLth8r6a2SVGk_dK14TXeGQSX9zROmiqjeT_FXe2Yz8EnvUweLQ5TobVE-azzyW0dqzjoSkBNfZ8r2hot4hQ2mQthU5xaAnOfDeCc95E7cci4-Dnx3B8U_UaHOn7Srf6DdsL_ZDvnSh1CvYiGNOYMpk-TLK6ixH-m83rweBjQ1hl1N_5I3cplmuJGCJLBxDauyjfBYIfR9WkBoau1eDQIDAQAB");
+      assertReplyOwnerKeyUpdateForbidden(anonymousRepliesApi, metaform, reply1, reply2.getOwnerKey());
+    } finally {
+      dataBuilder.clean();
+    }
+  }
+
+  @Test
+  public void testDeleteReplyOwnerKeys() throws IOException, URISyntaxException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      Metaform metaform = dataBuilder.createMetaform("simple-owner-keys");
+      
+      Reply reply1 = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.CUMULATIVE);
+      Reply reply2 = dataBuilder.createSimpleReply(metaform, "test 2", ReplyMode.CUMULATIVE);
+      assertNotNull(reply1.getOwnerKey());
+      assertNotNull(reply2.getOwnerKey());
+      assertNotEquals(reply1.getOwnerKey(), reply2.getOwnerKey());
+
+      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken(REALM_1));
+      
+      assertReplyOwnerKeyDeleteForbidden(anonymousRepliesApi, metaform, reply1, null);
+      assertReplyOwnerKeyDeleteForbidden(anonymousRepliesApi, metaform, reply1, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgZEinFR6yjNnV4utVbvU9KQ8lZasbAWKQJXjp2VzcyQfE1WvH5dMJmI-sgmPyaZFcJLk9tgLfZilytGmeopfafkWp7yVa9zWYAfni0eJmCL9EcemRb_rDNw07Mf1Vb1lbLhLth8r6a2SVGk_dK14TXeGQSX9zROmiqjeT_FXe2Yz8EnvUweLQ5TobVE-azzyW0dqzjoSkBNfZ8r2hot4hQ2mQthU5xaAnOfDeCc95E7cci4-Dnx3B8U_UaHOn7Srf6DdsL_ZDvnSh1CvYiGNOYMpk-TLK6ixH-m83rweBjQ1hl1N_5I3cplmuJGCJLBxDauyjfBYIfR9WkBoau1eDQIDAQAB");
+      assertReplyOwnerKeyDeleteForbidden(anonymousRepliesApi, metaform, reply1, reply2.getOwnerKey());
+      
+      anonymousRepliesApi.deleteReply(metaform.getId(), reply1.getId(), reply1.getOwnerKey());
+
+      dataBuilder.removeReply(reply1);
     } finally {
       dataBuilder.clean();
     }
@@ -546,6 +620,57 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   private void updateReplyModified(Reply reply, OffsetDateTime modified) {
     executeUpdate("UPDATE Reply SET modifiedAt = ? WHERE id = ?", modified, reply.getId());
     flushCache();
+  }
+
+  /**
+   * Asserts reply can not be found with given owner key
+   * 
+   * @param anonymousRepliesApi replies API instance
+   * @param metaform metaform
+   * @param reply reply
+   * @param ownerKey owner key
+   */
+  private void assertReplyOwnerKeyFindForbidden(RepliesApi anonymousRepliesApi, Metaform metaform, Reply reply, String ownerKey) {
+    try {
+      anonymousRepliesApi.findReply(metaform.getId(), reply.getId(), ownerKey);
+      fail(String.format("Should not be able to find reply %s", reply.getId().toString()));
+    } catch (FeignException e) {
+      assertEquals(403, e.status());
+    }
+  }
+
+  /**
+   * Asserts reply can not be updated with given owner key
+   * 
+   * @param anonymousRepliesApi replies API instance
+   * @param metaform metaform
+   * @param reply reply
+   * @param ownerKey owner key
+   */
+  private void assertReplyOwnerKeyUpdateForbidden(RepliesApi anonymousRepliesApi, Metaform metaform, Reply reply, String ownerKey) {
+    try {
+      anonymousRepliesApi.updateReply(metaform.getId(), reply.getId(), reply, ownerKey);
+      fail(String.format("Should not be able to update reply %s", reply.getId().toString()));
+    } catch (FeignException e) {
+      assertEquals(403, e.status());
+    }
+  }
+
+  /**
+   * Asserts reply can not be deleted with given owner key
+   * 
+   * @param anonymousRepliesApi replies API instance
+   * @param metaform metaform
+   * @param reply reply
+   * @param ownerKey owner key
+   */
+  private void assertReplyOwnerKeyDeleteForbidden(RepliesApi anonymousRepliesApi, Metaform metaform, Reply reply, String ownerKey) {
+    try {
+      anonymousRepliesApi.deleteReply(metaform.getId(), reply.getId(), ownerKey);
+      fail(String.format("Should not be able to update reply %s", reply.getId().toString()));
+    } catch (FeignException e) {
+      assertEquals(403, e.status());
+    }
   }
   
 }

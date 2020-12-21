@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.rest.translate;
 
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Objects;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.server.crypto.CryptoController;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
 import fi.metatavu.metaform.server.rest.model.Metaform;
@@ -21,6 +23,9 @@ import fi.metatavu.metaform.server.rest.model.Reply;
  */
 @ApplicationScoped
 public class ReplyTranslator {
+
+  @Inject
+  private CryptoController cryptoController;
   
   @Inject
   private FieldController fieldController;
@@ -30,9 +35,10 @@ public class ReplyTranslator {
    * 
    * @param metaformEntity Metaform entity
    * @param reply JPA reply object
+   * @param ownerKey reply owner public key
    * @return REST reply
    */
-  public Reply translateReply(Metaform metaformEntity, fi.metatavu.metaform.server.persistence.model.Reply reply) {
+  public Reply translateReply(Metaform metaformEntity, fi.metatavu.metaform.server.persistence.model.Reply reply, PublicKey ownerKey) {
     if (reply == null) {
       return null;
     }
@@ -60,6 +66,7 @@ public class ReplyTranslator {
     result.setRevision(reply.getRevision());
     result.setCreatedAt(reply.getCreatedAt());
     result.setModifiedAt(reply.getModifiedAt());
+    result.setOwnerKey(cryptoController.getPublicKeyBase64(ownerKey));
     
     return result;
   }

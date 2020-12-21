@@ -434,5 +434,11 @@
       </column>
     </createTable>
   </changeSet>
+
+  <changeSet id="reply-key" author="Antti Leppa">
+     <addColumn tableName="reply">
+      <column name="privateKey" type="longtext"/>
+    </addColumn>
+  </changeSet>
   
 </databaseChangeLog>

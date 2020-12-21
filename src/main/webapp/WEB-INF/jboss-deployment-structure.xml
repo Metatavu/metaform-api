@@ -5,6 +5,7 @@
             <module name="org.apache.httpcomponents"/>
             <module name="org.apache.commons.io"/>
             <module name="org.apache.commons.lang3"/>
+            <module name="org.apache.commons.codec"/>
             <module name="com.fasterxml.jackson.core.jackson-annotations"/>
             <module name="com.fasterxml.jackson.core.jackson-databind"/>
             <module name="com.fasterxml.jackson.datatype.jackson-datatype-jsr310"/>

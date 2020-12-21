@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,6 +28,7 @@ import org.apache.poi.ss.util.CellReference;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.crypto.CryptoController;
 import fi.metatavu.metaform.server.exporttheme.ExportThemeFreemarkerRenderer;
 import fi.metatavu.metaform.server.exporttheme.ReplyExportDataModel;
 import fi.metatavu.metaform.server.files.File;
@@ -145,6 +148,9 @@ public class ReplyController {
 
   @Inject
   private ScriptController scriptController;
+
+  @Inject
+  private CryptoController cryptoController;
   
   @Inject
   private FormRuntimeContext formRuntimeContext;
@@ -154,11 +160,12 @@ public class ReplyController {
    * 
    * @param userId user id 
    * @param metaform Metaform
+   * @param privateKey private key
    * @return Created reply
    */
-  public Reply createReply(UUID userId, Metaform metaform) {
+  public Reply createReply(UUID userId, Metaform metaform, PrivateKey privateKey) {
     UUID id = UUID.randomUUID();
-    return replyDAO.create(id, userId, metaform, null);
+    return replyDAO.create(id, userId, metaform, null, privateKey != null ? privateKey.getEncoded() : null);
   }
   
   /**
@@ -523,6 +530,43 @@ public class ReplyController {
     } catch (Exception e) {
       throw new XlsxException("Failed to create XLSX export", e);
     }
+  }
+
+  /**
+   * Returns whether owner key is valid for given reply
+   * 
+   * @param reply reply
+   * @param ownerKey owner key
+   * @return whether owner key is valid for given reply
+   */
+  public boolean isValidOwnerKey(Reply reply, String ownerKey) {
+    PublicKey publicKey = cryptoController.loadPublicKeyBase64(ownerKey);
+    if (publicKey == null) {
+      return false;
+    }
+
+    return isValidOwnerKey(reply, publicKey);
+  }
+
+  /**
+   * Returns whether owner key is valid for given reply
+   * 
+   * @param reply reply
+   * @param ownerKey owner key
+   * @return whether owner key is valid for given reply
+   */
+  private boolean isValidOwnerKey(Reply reply, PublicKey ownerKey) {
+    PrivateKey privateKey = cryptoController.loadPrivateKey(reply.getPrivateKey());
+    if (privateKey == null) {
+      return false;
+    }
+
+    byte[] signature = cryptoController.signUUID(privateKey, reply.getId());
+    if (cryptoController.verifyUUID(ownerKey, signature, reply.getId())) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

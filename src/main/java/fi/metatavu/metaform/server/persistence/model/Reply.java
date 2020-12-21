@@ -7,6 +7,7 @@ import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
@@ -31,6 +32,9 @@ public class Reply {
   @Column(nullable = false)
   @NotNull
   private UUID userId;
+
+  @Lob
+  private byte[] privateKey;
   
   @Column
   private OffsetDateTime revision;
@@ -84,6 +88,14 @@ public class Reply {
   
   public void setResourceId(UUID resourceId) {
     this.resourceId = resourceId;
+  }
+
+  public byte[] getPrivateKey() {
+    return privateKey;
+  }
+
+  public void setPrivateKey(byte[] privateKey) {
+    this.privateKey = privateKey;
   }
   
   public OffsetDateTime getCreatedAt() {
