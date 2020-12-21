@@ -440,5 +440,13 @@
       <column name="privateKey" type="longtext"/>
     </addColumn>
   </changeSet>
+
+  <changeSet id="reply-key-blob" author="Antti Leppa">
+     <dropColumn tableName="reply" columnName="privateKey"/>
+     
+     <addColumn tableName="reply">
+      <column name="privateKey" type="longblob"/>
+    </addColumn>
+  </changeSet>
   
 </databaseChangeLog>
