@@ -58,14 +58,16 @@ public class ReplyDAO extends AbstractDAO<Reply> {
    * @param userId user id
    * @param metaform Metaform
    * @param resourceId authorization resource id
+   * @param privateKey private key
    * @return created Metaform
    */
-  public Reply create(UUID id, UUID userId, Metaform metaform, UUID resourceId) {
+  public Reply create(UUID id, UUID userId, Metaform metaform, UUID resourceId, byte[] privateKey) {
     Reply reply = new Reply(); 
     reply.setId(id);
     reply.setMetaform(metaform);
     reply.setUserId(userId);
     reply.setResourceId(resourceId);
+    reply.setPrivateKey(privateKey);
     return persist(reply);
   }
   

@@ -42,10 +42,10 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     try {
       Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -70,7 +70,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       try {
         assertForbiddenToFindReply(anonymousToken, REALM_1, metaform.getId(), createdReply.getId());
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -97,7 +97,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       try {
         assertForbiddenToFindReply(accessToken2, REALM_1, metaform.getId(), createdReply.getId());
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -119,10 +119,10 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     try {
       Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = adminRepliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = adminRepliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -157,9 +157,9 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         assertEquals(1, replies.size());
         assertEquals(reply1.getId(), replies.get(0).getId());
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId());
-        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId());
-        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId(), (String) null);
+        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId(), (String) null);
+        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId(), (String) null);
       }
       
     } finally {
@@ -208,9 +208,9 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         assertEquals(1, replies3.size());
         assertEquals(reply3.getId(), replies3.get(0).getId());        
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId());
-        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId());
-        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId(), (String) null);
+        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId(), (String) null);
+        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId(), (String) null);
       }
       
     } finally {
@@ -245,9 +245,9 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         List<Reply> replies = adminRepliesApi.listReplies(metaform.getId(), Collections.emptyMap());
         assertEquals(3, replies.size());
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId());
-        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId());
-        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId(), (String) null);
+        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId(), (String) null);
+        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId(), (String) null);
       }
       
     } finally {
@@ -270,8 +270,8 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
         dataBuilder.createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
         
         Reply createdReply = dataBuilder.createReply(metaform, createPermissionSelectReplyData("group-2"), ReplyMode.REVISION);
-        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
-        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"));
+        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"), (String) null);
+        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"), (String) null);
         
         mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
         mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
@@ -318,7 +318,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   private void assertForbiddenToFindReply(String token, String realmId, UUID metaformId, UUID replyId) {
     RepliesApi repliesApi = getRepliesApi(token);
     try {
-      repliesApi.findReply(metaformId, replyId);
+      repliesApi.findReply(metaformId, replyId, (String) null);
       fail(String.format("Reply %s should not be accessible", replyId.toString()));
     } catch (FeignException e) {
       assertEquals(403, e.status());

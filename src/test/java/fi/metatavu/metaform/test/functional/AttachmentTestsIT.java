@@ -49,7 +49,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       assertNotNull(reply.getData());
       assertEquals(Arrays.asList(fileUpload.getFileRef().toString()), reply.getData().get("files"));
 
-      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId(), (String) null);
       assertNotNull(foundReply);
       assertNotNull(foundReply.getData());
       assertEquals(Arrays.asList(fileUpload.getFileRef().toString()), foundReply.getData().get("files"));
@@ -84,7 +84,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
 
-      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId(), (String) null);
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
@@ -119,7 +119,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       Reply reply = dataBuilder.createReply(metaform, replyData, ReplyMode.REVISION);
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
       
-      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId(), (String) null);
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
@@ -128,9 +128,9 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       Map<String, Object> updateData = new HashMap<>();
       updateData.put("files", Arrays.asList(fileRef2));
       
-      repliesApi.updateReply(metaform.getId(), reply.getId(), createReplyWithData(updateData));
+      repliesApi.updateReply(metaform.getId(), reply.getId(), createReplyWithData(updateData), (String) null);
       
-      Reply updatedReply = repliesApi.findReply(metaform.getId(), reply.getId());
+      Reply updatedReply = repliesApi.findReply(metaform.getId(), reply.getId(), (String) null);
       assertEquals(Arrays.asList(fileRef2), updatedReply.getData().get("files"));
 
       assertAttachmentNotFound(adminAttachmentsApi, fileUpload1.getFileRef());
@@ -164,13 +164,13 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       Reply reply = repliesApi.createReply(metaform.getId(), createReplyWithData(replyData), null, ReplyMode.REVISION.toString());
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files")); 
       
-      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), reply.getId(), (String) null);
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
       
       assertAttachmentExists(adminAttachmentsApi, fileUpload1);
       assertAttachmentExists(adminAttachmentsApi, fileUpload2);
       
-      adminRepliesApi.deleteReply(metaform.getId(), reply.getId());
+      adminRepliesApi.deleteReply(metaform.getId(), reply.getId(), (String) null);
 
       assertAttachmentNotFound(adminAttachmentsApi, fileUpload1.getFileRef());
       assertAttachmentNotFound(adminAttachmentsApi, fileUpload2.getFileRef());

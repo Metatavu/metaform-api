@@ -43,12 +43,12 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       
       Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertTableDataEquals(replyData, foundReply.getData());
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -73,7 +73,7 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       try {
         assertTableDataEquals(createReplyData, createReply.getData());
 
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());        
         
@@ -82,17 +82,17 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
         Map<String, Object> updateReplyData = new HashMap<>();
         updateReplyData.put("table", Arrays.asList(createSimpleTableRow("Added new text", -210d), createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Updated Text 2", 45.5d)));
         Reply updateReply = createReplyWithData(updateReplyData);
-        repliesApi.updateReply(metaform.getId(), createdReply.getId(), updateReply);
+        repliesApi.updateReply(metaform.getId(), createdReply.getId(), updateReply, (String) null);
         
         assertTableDataEquals(updateReplyData, updateReply.getData());
         
-        Reply foundUpdatedReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundUpdatedReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundUpdatedReply);
         assertNotNull(foundUpdatedReply.getId());        
         assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
         
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -117,12 +117,12 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       
       Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertTableDataEquals(replyData, foundReply.getData());
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -146,12 +146,12 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       
       Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
       try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
         assertNull(foundReply.getData().get("table"));
       } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -200,11 +200,11 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       
       Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
 
-      Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId());
+      Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
       assertNotNull(foundReply);
-      adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId());
+      adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
       try {
-        repliesApi.findReply(metaform.getId(), createdReply.getId());
+        repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         fail(String.format("Reply %s should not be present", createdReply.getId().toString()));
       } catch (FeignException e) {
         assertEquals(404, e.status());

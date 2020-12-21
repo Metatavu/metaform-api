@@ -386,6 +386,16 @@ public class TestDataBuilder {
   }
 
   /**
+   * Removes reply from clean queue
+   * 
+   * @param reply reply
+   */
+  public void removeReply(Reply reply) {
+    childEntityMetaforms.remove(reply.getId());
+    replies.removeIf(item -> item.getId().equals(reply.getId()));
+  }
+
+  /**
    * Cleans created test data
    */
   public void clean() {
@@ -401,7 +411,7 @@ public class TestDataBuilder {
     replies.stream().forEach((reply) -> {
       UUID metaformId = childEntityMetaforms.get(reply.getId());
       try {
-        getAdminRepliesApi().deleteReply(metaformId, reply.getId());
+        getAdminRepliesApi().deleteReply(metaformId, reply.getId(), (String) null);
       } catch (IOException e) {
         fail(e.getMessage());
       }
