@@ -180,14 +180,14 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
   }
 
   private void assertAttachmentExists(AttachmentsApi adminAttachmentsApi, FileUploadResponse fileUpload1) {
-    Attachment attachment1 = adminAttachmentsApi.findAttachment(fileUpload1.getFileRef());
+    Attachment attachment1 = adminAttachmentsApi.findAttachment(fileUpload1.getFileRef(), "");
     assertNotNull(attachment1);
     assertEquals(fileUpload1.getFileRef(), attachment1.getId());
   }
 
   private void assertAttachmentNotFound(AttachmentsApi adminAttachmentsApi, UUID fileRef) {
     try {
-      adminAttachmentsApi.findAttachment(fileRef);
+      adminAttachmentsApi.findAttachment(fileRef, "");
       fail(String.format("Attachment %s should not be present", fileRef.toString()));
     } catch (FeignException e) {
       assertEquals(404, e.status());
