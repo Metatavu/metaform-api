@@ -6,7 +6,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import fi.metatavu.metaform.server.persistence.dao.AttachmentDAO;
+import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
+import fi.metatavu.metaform.server.persistence.model.AttachmentReplyFieldItem;
+import fi.metatavu.metaform.server.persistence.model.Reply;
 
 /**
  * Controller for attachment related operations
@@ -19,6 +22,9 @@ public class AttachmentController {
   @Inject
   private AttachmentDAO attachmentDAO;
 
+  @Inject
+  private AttachmentReplyFieldItemDAO attachmentReplyFieldItemDAO;
+
   /**
    * Creates new attachment
    *
@@ -28,20 +34,34 @@ public class AttachmentController {
    * @param userId userId
    * @return created attachment
    */
-   public Attachment create(UUID id, String name, byte[] content, String contentType, UUID userId) {
-     return attachmentDAO.create(id, name, content, contentType, userId);
-   }
+  public Attachment create(UUID id, String name, byte[] content, String contentType, UUID userId) {
+    return attachmentDAO.create(id, name, content, contentType, userId);
+  }
 
-   /**
+  /**
     * Finds attachment by id
     * 
     * @param attachmentId attachment id
     * @return
     */
-   public Attachment findAttachmentById(UUID attachmentId) {
-     return attachmentDAO.findById(attachmentId);
-   }
-   
+  public Attachment findAttachmentById(UUID attachmentId) {
+    return attachmentDAO.findById(attachmentId);
+  }
+
+  /**
+   * Finds reply by attachment
+   * 
+   * @param attachment attachment to find reply for
+   * @return reply
+   */
+  public Reply findReplyByAttachment(Attachment attachment) {
+    AttachmentReplyFieldItem item = attachmentReplyFieldItemDAO.findByAttachment(attachment);
+    if (item == null) {
+      return null;
+    }
+    return item.getField().getReply();
+  }
+
   /**
    * Update attachment
    *

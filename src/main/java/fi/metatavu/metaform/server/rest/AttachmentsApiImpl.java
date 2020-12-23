@@ -9,7 +9,9 @@ import javax.ws.rs.core.Response;
 
 import _fi.metatavu.metaform.server.rest.api.AttachmentsApi;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
+import fi.metatavu.metaform.server.persistence.model.Reply;
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator;
 
 /**
@@ -28,33 +30,55 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
 
   @Inject
   private AttachmentTranslator attachmentTranslator;
+
+  @Inject
+  private ReplyController replyController;
   
   @Override
-  public Response findAttachment(UUID attachmentId) {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
+  public Response findAttachment(UUID attachmentId, String ownerKey) {
     Attachment attachment = attachmentController.findAttachmentById(attachmentId);
     if (attachment == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!isPermittedAttachment(attachment, ownerKey)) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
 
     return createOk(attachmentTranslator.translateAttachment(attachment));
   }
 
   @Override
-  public Response findAttachmentData(UUID attachmentId) {
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
+  public Response findAttachmentData(UUID attachmentId, String ownerKey) {
     Attachment attachment = attachmentController.findAttachmentById(attachmentId);
     if (attachment == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
+    if (!isPermittedAttachment(attachment, ownerKey)) {
+      return createForbidden(ANONYMOUS_USERS_MESSAGE);
+    }
+
     return streamResponse(attachment.getContent(), attachment.getContentType());
   }
-  
+
+  /**
+   * Returns whether given attachment is permitted
+   * 
+   * @param attachment attachment
+   * @param ownerKey reply owner key
+   * @return whether given attachment is permitted
+   */
+  private boolean isPermittedAttachment(Attachment attachment, String ownerKey) {
+    if (isRealmMetaformAdmin() || isRealmMetaformSuper() || isRealmUser()) {
+      return true;
+    }
+    
+    Reply reply = attachmentController.findReplyByAttachment(attachment);
+    if (reply == null || reply.getResourceId() == null) {
+      return false;
+    }
+
+    return replyController.isValidOwnerKey(reply, ownerKey);
+  }
 }

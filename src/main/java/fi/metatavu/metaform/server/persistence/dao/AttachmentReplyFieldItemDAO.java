@@ -57,6 +57,24 @@ public class AttachmentReplyFieldItemDAO extends AbstractDAO<AttachmentReplyFiel
     
     return entityManager.createQuery(criteria).getResultList();
   }
+
+  /**
+   * Finds attachment reply field item by attachment
+   * 
+   * @param attachment attachment to find reply field item for
+   * @return AttachmentReplyFieldItem
+   */
+  public AttachmentReplyFieldItem findByAttachment(Attachment attachment) {
+    EntityManager entityManager = getEntityManager();
+    
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<AttachmentReplyFieldItem> criteria = criteriaBuilder.createQuery(AttachmentReplyFieldItem.class);
+    Root<AttachmentReplyFieldItem> root = criteria.from(AttachmentReplyFieldItem.class);
+    criteria.select(root);
+    criteria.where(criteriaBuilder.equal(root.get(AttachmentReplyFieldItem_.attachment), attachment));
+    
+    return entityManager.createQuery(criteria).getSingleResult();
+  }
   
   /**
    * List attachment ids by field
