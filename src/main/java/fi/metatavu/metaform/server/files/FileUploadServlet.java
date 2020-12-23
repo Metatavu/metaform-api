@@ -48,7 +48,7 @@ public class FileUploadServlet extends HttpServlet {
       resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       return;
     }
-    
+    setCorsHeaders(resp);
     boolean meta = "true".equalsIgnoreCase(req.getParameter("meta"));
     if (meta) {
       getFileMeta(resp, fileRef);      
@@ -74,7 +74,7 @@ public class FileUploadServlet extends HttpServlet {
       Map<String, String> result = new HashMap<>();
       result.put(FILE_REF, fileRef);
       result.put("fileName", fileName);
-
+      setCorsHeaders(resp);
       resp.setContentType("application/json");
       ServletOutputStream servletOutputStream = resp.getOutputStream();
       try {
@@ -98,8 +98,19 @@ public class FileUploadServlet extends HttpServlet {
     }
     
     fileController.deleteFile(fileRef);
-    
+    setCorsHeaders(resp);
     resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+  }
+
+  /**
+   * Sets CORS headers for the response
+   * 
+   * @param resp reponse
+   */
+  private void setCorsHeaders(HttpServletResponse resp) {
+    resp.setHeader("Access-Control-Allow-Origin", "*");
+    resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    resp.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
   }
 
   /**
