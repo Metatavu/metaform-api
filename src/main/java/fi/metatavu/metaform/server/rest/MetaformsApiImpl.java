@@ -292,9 +292,9 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         userId, 
         createdBefore, 
         createdAfter, 
-        modifiedBefore, 
+        modifiedBefore,
         modifiedAfter,
-            includeRevisions != null && includeRevisions,
+        includeRevisions != null && includeRevisions,
         fieldFilters);
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
