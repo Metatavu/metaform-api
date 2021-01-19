@@ -448,5 +448,31 @@
       <column name="privateKey" type="longblob"/>
     </addColumn>
   </changeSet>
+
+  <changeSet id="audit-log" author="Katja Danilova">
+    <createTable tableName="auditlogentry">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="userid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="replyId" type="binary(16)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="attachmentId" type="binary(16)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="time" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="message" type="longtext">
+        <constraints nullable="true"/>
+      </column>
+      <column name="logEntryType" type="varchar(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
   
 </databaseChangeLog>

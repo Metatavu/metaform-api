@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import fi.metatavu.metaform.client.api.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -36,15 +37,8 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import feign.Feign.Builder;
 import fi.metatavu.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.ApiClient;
-import fi.metatavu.metaform.client.api.AttachmentsApi;
-import fi.metatavu.metaform.client.api.EmailNotificationsApi;
-import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
-import fi.metatavu.metaform.client.api.ExportThemesApi;
 import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.api.RepliesApi;
 import fi.metatavu.metaform.client.model.Reply;
-import fi.metatavu.metaform.client.api.DraftsApi;
 
 
 /**
@@ -154,7 +148,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(RepliesApi.class);
   }
-  
+
+  /**
+   * Returns AuditLogEntriesApi authenticated by the given access token
+   *
+   * @param accessTokenaccess token
+   * @return replies API authenticated by the given access token
+   */
+  protected AuditLogEntriesApi getAuditLogEntriesApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(AuditLogEntriesApi.class);
+  }
   /**
    * Returns drafts API authenticated by the given access token
    * 
