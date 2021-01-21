@@ -67,7 +67,17 @@
       "composite" : false,
       "clientRole" : false,
       "containerId" : "test-1"
-    } ],
+    },
+      {
+        "id": "37c3c28f-0707-40fd-a6c6-4764aa6eac2c",
+        "name": "metaform-view-all-audit-logs",
+        "description" : "${role_metaform-view-all-audit-logs}",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "test-1"
+      }
+
+    ],
     "client" : {
       "realm-management" : [ {
         "id" : "cfb6986e-5a49-464f-a682-e6ff5a04f647",
@@ -440,7 +450,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "user", "offline_access", "uma_authorization", "metaform-view-all-audit-logs" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
