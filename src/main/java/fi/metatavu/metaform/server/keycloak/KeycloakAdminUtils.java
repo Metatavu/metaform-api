@@ -235,7 +235,12 @@ public class KeycloakAdminUtils {
   public static void updatePermissionGroups(Keycloak keycloak, String realmName, ClientRepresentation client, List<String> groupNames) {
     RealmResource realm = keycloak.realm(realmName);
     GroupsResource groups = realm.groups();
-    GroupPoliciesResource groupPolicies = realm.clients().get(client.getId()).authorization().policies().group();
+    GroupPoliciesResource groupPolicies = realm
+      .clients()
+      .get(client.getId())
+      .authorization()
+      .policies()
+      .group();
     
     Map<String, UUID> existingGroups = groups.groups().stream()
       .collect(Collectors.toMap(GroupRepresentation::getName, group -> UUID.fromString(group.getId())));
