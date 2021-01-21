@@ -584,8 +584,13 @@ public class KeycloakAdminUtils {
    */
   private static ClientRepresentation findClient(Keycloak keycloak, String clientId) {
     String realmName = KeycloakConfigProvider.getConfig().getRealm();
+
+    System.out.println("findClient, REALM " + realmName);
     
     List<ClientRepresentation> clients = keycloak.realm(realmName).clients().findByClientId(clientId);
+
+    System.out.println("findClient, clients " + clients.size());
+
     if (!clients.isEmpty()) {
       return clients.get(0);
     }
