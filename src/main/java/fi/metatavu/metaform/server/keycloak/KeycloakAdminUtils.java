@@ -586,6 +586,7 @@ public class KeycloakAdminUtils {
     String realmName = KeycloakConfigProvider.getConfig().getRealm();
 
     System.out.println("findClient, REALM " + realmName);
+    System.out.println("findClient, clientId " + clientId);
     
     List<ClientRepresentation> clients = keycloak.realm(realmName).clients().findByClientId(clientId);
 
