@@ -642,7 +642,7 @@
       
       <properties>
         <it.port.http>1234</it.port.http>
-        <it.host>localhost</it.host>        
+        <it.host>localhost</it.host>
         <it.jdbc.driver>org.mariadb.jdbc.MySQLDataSource</it.jdbc.driver>
         <it.jdbc.module>com.mariadb.jdbc</it.jdbc.module>        
         <it.jdbc.dbname>db</it.jdbc.dbname>
