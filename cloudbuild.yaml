@@ -8,7 +8,7 @@ steps:
       git submodule update
   - name: maven:3.6.1-jdk-8-alpine
     entrypoint: 'bash'
-      timeout: 1200s
+    timeout: 1200s
     args:
       - '-c'
       - |
