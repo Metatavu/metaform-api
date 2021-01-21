@@ -47,6 +47,13 @@ public class KeycloakConfigProvider {
     result.setRealm(REALM);
     result.setResource(CLIENT_ID);
     result.setCredentials(clientCredentials);
+
+    System.out.println("REALM: " + REALM);
+    System.out.println("CLIENT_ID: " + CLIENT_ID);
+    System.out.println("CLIENT_SECRET: " + CLIENT_SECRET);
+    System.out.println("ADMIN_USER: " + ADMIN_USER);
+    System.out.println("ADMIN_PASS: " + ADMIN_PASS);
+    System.out.println("URL: " + URL);
     
     return result;
   }
