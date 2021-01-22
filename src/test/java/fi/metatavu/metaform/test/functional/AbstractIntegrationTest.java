@@ -7,6 +7,7 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import io.restassured.response.ValidatableResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -147,18 +149,18 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   /**
    * Returns replies API authenticated by the given access token
    * 
-   * @param accessTokenaccess token
+   * @param accessToken token
    * @return replies API authenticated by the given access token
    */
   protected RepliesApi getRepliesApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(RepliesApi.class);
   }
-  
+
   /**
    * Returns drafts API authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return drafts API authenticated by the given access token
    */
   protected DraftsApi getDraftsApi(String accessToken) {
@@ -168,8 +170,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   /**
    * Returns metaforms API authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return metaforms API authenticated by the given access token
    */
   protected MetaformsApi getMetaformsApi(String accessToken) {
@@ -179,8 +181,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   /**
    * Returns metaforms API authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return metaforms API authenticated by the given access token
    */
   protected AttachmentsApi getAttachmentsApi(String accessToken) {
@@ -190,19 +192,19 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   /**
    * Returns EmailNotificationsApi authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return metaforms API authenticated by the given access token
    */
   protected EmailNotificationsApi getEmailNotificationsApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(EmailNotificationsApi.class);
   }
-  
+
   /**
    * Returns exportThemes API authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return exportThemes API authenticated by the given access token
    */
   protected ExportThemesApi getExportThemesApi(String accessToken) {
@@ -212,40 +214,40 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   /**
    * Returns exportThemeFiles API authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return exportThemeFiles API authenticated by the given access token
    */
   protected ExportThemeFilesApi getExportThemeFilesApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(ExportThemeFilesApi.class);
   }
-  
+
   /**
    * Creates test table row data
-   * 
+   *
    * @param tableText text
    * @param tableNumber number
    * @return created test data row
    */
   protected Map<String, Object> createSimpleTableRow(String tableText, Double tableNumber) {
     Map<String, Object> result = new HashMap<>();
-    
+
     if (tableText != null) {
       result.put("tabletext", tableText);
     }
-    
+
     if (tableNumber != null) {
       result.put("tablenumber", tableNumber);
     }
-    
+
     return result;
   }
-  
+
   /**
    * Returns API client authenticated by the given access token
-   * 
-   * @param accessTokenaccess token
+   *
+   * @param accessToken token
    * @return API client authenticated by the given access token
    */
   private ApiClient getApiClient(String accessToken) {
@@ -253,7 +255,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
     ApiClient apiClient = new ApiClient("bearer", authorization);
     
     Builder feignBuilder = apiClient.getFeignBuilder();
-    Consumer<String> authorizationChange = token -> apiClient.setApiKey(token);
+    Consumer<String> authorizationChange = apiClient::setApiKey;
     feignBuilder.errorDecoder(new UmaErrorDecoder(feignBuilder, authorization, authorizationChange));
     String basePath = String.format("http://%s:%d/v1", getHost(), getPort());
     apiClient.setBasePath(basePath);
@@ -297,16 +299,15 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
 
   /**
    * Resolves an anonymous access token for realm
-   * 
-   * @param realm realm
+   *
    * @return an access token
    * @throws IOException thrown on communication failure
    */
-  protected String getAnonymousToken(String realm) throws IOException {
-    String path = String.format("/auth/realms/%s/protocol/openid-connect/token", realm);
+  protected String getAnonymousToken() throws IOException {
+    String path = String.format("/auth/realms/%s/protocol/openid-connect/token", AbstractIntegrationTest.REALM_1);
     
     String password = String.format("%s:%s", DEFAULT_UI_CLIENT_ID, DEFAULT_UI_CLIENT_SECRET);
-    String passwordEncoded = Base64.encodeBase64String(password.getBytes("UTF-8"));
+    String passwordEncoded = Base64.encodeBase64String(password.getBytes(StandardCharsets.UTF_8));
     String authorization = String.format("Basic %s", passwordEncoded);
 
     String response = given()
@@ -400,6 +401,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected String getResourceMd5(String resourceName) throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
     try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
+      assert fileStream != null;
       return DigestUtils.md5Hex(fileStream);
     }    
   }
@@ -443,7 +445,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   /**
    * Returns file meta for a uploaded file
    * 
-   * @param fileRef
+   * @param fileRef file ref
    * @return meta
    * @throws IOException thrown on io exception
    */
@@ -494,13 +496,35 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   }
 
   /**
+   * Assert PDF download status code
+   *
+   * @param expected expected status code
+   * @param accessToken access token
+   * @param metaform metaform
+   * @param reply reply
+   */
+  protected void assertPdfDownloadStatus(int expected, String accessToken, Metaform metaform, Reply reply) {
+    ValidatableResponse response = given()
+      .baseUri(getBasePath())
+      .header("Authorization", String.format("Bearer %s", accessToken))
+      .get("/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.getId().toString(), reply.getId().toString())
+      .then()
+      .assertThat()
+      .statusCode(expected);
+
+    if (expected == 200) {
+      response.header("Content-Type", "application/pdf");
+    }
+  }
+
+  /**
    * Asserts that given file upload does not exist 
    * 
    * @param fileRef fileRef
    * @param expectedStatus expected status code
    * @throws IOException throw then request fails
    */
-  private void assertUploadStatus(String fileRef, int expectedStatus) throws IOException, ClientProtocolException {
+  private void assertUploadStatus(String fileRef, int expectedStatus) throws IOException {
     HttpClientBuilder clientBuilder = HttpClientBuilder.create();
     try (CloseableHttpClient client = clientBuilder.build()) {
       HttpGet get = new HttpGet(String.format("%s/fileUpload?fileRef=%s", getBasePath(), fileRef));

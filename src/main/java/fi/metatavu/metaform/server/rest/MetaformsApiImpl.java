@@ -208,6 +208,10 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
         MetaformField field = fieldMap.get(fieldName);
+
+        if (field == null) {
+          return createBadRequest(String.format("Invalid field %s", fieldName));
+        }
         
         if (fieldValue != null) {
           if (!replyController.isValidFieldValue(field, fieldValue)) {
@@ -288,9 +292,9 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         userId, 
         createdBefore, 
         createdAfter, 
-        modifiedBefore, 
+        modifiedBefore,
         modifiedAfter,
-        includeRevisions == null ? false : includeRevisions,
+        includeRevisions != null && includeRevisions,
         fieldFilters);
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
@@ -400,7 +404,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
+    if (!isPermittedReply(reply, null, AuthorizationScope.REPLY_VIEW)) {
       return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
     }
     
@@ -576,9 +580,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
     }
 
-    return createOk(metaformController.listMetaforms().stream().map((entity) -> {
-      return metaformTranslator.translateMetaform(entity);
-    }).collect(Collectors.toList()));
+    return createOk(metaformController.listMetaforms().stream().map(entity -> metaformTranslator.translateMetaform(entity)).collect(Collectors.toList()));
   }
 
   public Response findMetaform(UUID metaformId) {
@@ -750,12 +752,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     if (isRealmMetaformAdmin() || isRealmMetaformSuper() || hasRealmRole(VIEW_ALL_REPLIES_ROLE)) {
       return replies;
     }
-    
+
     Set<UUID> resourceIds = replies.stream()
-      .filter(reply -> reply.getResourceId() != null)
       .map(fi.metatavu.metaform.server.persistence.model.Reply::getResourceId)
+      .filter(Objects::nonNull)
       .collect(Collectors.toSet());
-    
+
     Set<UUID> permittedResourceIds = getPermittedResourceIds(resourceIds, authorizationScope);
     
     return replies.stream()
@@ -786,7 +788,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     try {
       AuthorizationRequest request = new AuthorizationRequest();
       
-      resourceIds.stream().forEach(resourceId -> request.addPermission(resourceId.toString(), authorizationScope.getName()));
+      resourceIds.forEach(resourceId -> request.addPermission(resourceId.toString(), authorizationScope.getName()));
 
       AuthorizationResponse response = getAuthzClient().authorization(getTokenString()).authorize(request);
       TokenIntrospectionResponse irt = getAuthzClient().protection().introspectRequestingPartyToken(response.getToken());
@@ -809,10 +811,9 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * Handles reply post persist tasks. Tasks include adding to user groups permissions and notifying users about the reply
    * 
    * @param replyCreated whether the reply was just created
-   * @param metaform
-   * @param reply
-   * @param metaformEntity
-   * @param replyEntity
+   * @param metaform metaform
+   * @param reply reply
+   * @param replyEntity reply entity
    * @param newPermissionGroups added permission groups
    */
   private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Reply replyEntity, EnumMap<AuthorizationScope, List<String>> newPermissionGroups) {
@@ -876,7 +877,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * @return reply object
    */
   private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(ReplyMode replyMode, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId, PrivateKey privateKey) {
-    fi.metatavu.metaform.server.persistence.model.Reply reply = null;
+    fi.metatavu.metaform.server.persistence.model.Reply reply;
     
     if (anonymous || replyMode == ReplyMode.CUMULATIVE) {
       reply = replyController.createReply(userId, metaform, privateKey);
@@ -1106,13 +1107,15 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       
       HashSet<UUID> policyIds = new HashSet<>(groupPolicyIds);
       policyIds.addAll(commonPolicyIds);
-      
+
+      assert resourceId != null;
       KeycloakAdminUtils.upsertScopePermission(keycloak, keycloakClient, resourceId, Collections.singleton(scope), getReplyPermissionName(reply, scope.getName().toLowerCase()), DecisionStrategy.AFFIRMATIVE, policyIds);
     }
     
     Set<UUID> userPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, keycloakClient, Arrays.asList(USER_POLICY_NAME));
     
     if (metaform.getAllowAnonymous()) {
+      assert resourceId != null;
       KeycloakAdminUtils.upsertScopePermission(keycloak, keycloakClient, resourceId, Collections.singleton(AuthorizationScope.REPLY_VIEW), "require-user", DecisionStrategy.AFFIRMATIVE, userPolicyIds);
     }
     
@@ -1122,7 +1125,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   /**
    * Updates permission groups to match metaform
    * 
-   * @param realmName realm
+   * @param formSlug form slug
    * @param metaformEntity Metaform REST entity
    */
   private void updateMetaformPermissionGroups(String formSlug, Metaform metaformEntity) {
