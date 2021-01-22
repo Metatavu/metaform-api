@@ -28,6 +28,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -244,14 +245,26 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
       scriptController.runScripts(metaformEntity.getScripts().getAfterCreateReply());
     }
-    
+
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
-    auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.CREATE_REPLY, reply.getId(),
-            null, reply.getId()+" was created by user "+getLoggerUserId());
+
+    createAuditLog(reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
     return createOk(replyEntity);
   }
 
-  @Override
+	@Override
+	public Response deleteAuditLogEntry(UUID metaformId, @NotNull UUID auditLogEntryId) {
+		fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+		if (metaform == null) {
+			return createNotFound(NOT_FOUND_MESSAGE);
+		}
+
+  	AuditLogEntry auditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId);
+		auditLogEntryController.deleteAuditLogEntry(auditLogEntry);
+		return null;
+	}
+
+	@Override
   public Response findReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -272,11 +285,38 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
-    auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.VIEW_REPLY, reply.getId(),
-            null, reply.getId()+" was viewed by user "+getLoggerUserId());
+
+    createAuditLog(reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
-  
+
+
+	@Override
+  public Response listAuditLogEntries(UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
+    if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE))
+      return createForbidden(String.format("Only users with %s can access this view", VIEW_AUDIT_LOGS_ROLE));
+
+    OffsetDateTime createdBeforeTime = parseTime(createdBefore);
+    OffsetDateTime createdAfterTime = parseTime(createdAfter);
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      throw new NotFoundException(NOT_FOUND_MESSAGE);
+    }
+    List<AuditLogEntry> auditLogEntries;
+    if (replyId != null)
+			auditLogEntries = auditLogEntryController.listAuditLogEntries(Collections.singletonList(replyId), userId, createdBeforeTime, createdAfterTime);
+    else {
+      List<UUID> repliyIds = replyController.listReplies(metaform, null, null, null, null,null, true, null).stream().map(fi.metatavu.metaform.server.persistence.model.Reply::getId).collect(Collectors.toList());
+      auditLogEntries = auditLogEntryController.listAuditLogEntries(repliyIds, userId, createdBeforeTime, createdAfterTime);
+    }
+    List<fi.metatavu.metaform.server.rest.model.AuditLogEntry> result = auditLogEntries.stream()
+            .map(entity -> auditLogEntryTranslator.translateAuditLogEntry(entity))
+            .collect(Collectors.toList());
+
+    return createOk(result);
+  }
+
   @Override
   public Response listReplies(UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) {
     if (firstResult != null) {
@@ -313,47 +353,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         modifiedAfter,
         includeRevisions != null && includeRevisions,
         fieldFilters);
-    replies.forEach(reply -> auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.VIEW_REPLY,
-            reply.getId(), null, reply.getId()+" was viewed by user "+getLoggerUserId()));
+
+    replies.forEach(reply -> createAuditLog(reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
+    
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
       .map(entity -> replyTranslator.translateReply(metaformEntity, entity, null))
       .collect(Collectors.toList());
-
-    return createOk(result);
-  }
-
-  @Override
-  public Response findAuditLogEntries(UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam) {
-    if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE)) {
-      return createForbidden("Only users with "+VIEW_AUDIT_LOGS_ROLE+" can access this view");
-    }
-    OffsetDateTime createdBefore = parseTime(createdBeforeParam);
-    OffsetDateTime createdAfter = parseTime(createdAfterParam);
-    OffsetDateTime modifiedBefore = parseTime(modifiedBeforeParam);
-    OffsetDateTime modifiedAfter = parseTime(modifiedAfterParam);
-
-    if (!isRealmUser()) {
-      throw new ForbiddenException(ANONYMOUS_USERS_MESSAGE);
-    }
-
-    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
-    if (metaform == null) {
-      throw new NotFoundException(NOT_FOUND_MESSAGE);
-    }
-
-    List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform,
-            userId,
-            createdBefore,
-            createdAfter,
-            modifiedBefore,
-            modifiedAfter,
-            false,
-            null);
-
-    List<AuditLogEntry> auditLogEntries = auditLogEntryController.listAuditLogEntries(replies);
-    List<fi.metatavu.metaform.server.rest.model.AuditLogEntry> result = auditLogEntries.stream()
-            .map(entity -> auditLogEntryTranslator.translateAuditLogEntry(entity))
-            .collect(Collectors.toList());
 
     return createOk(result);
   }
@@ -409,8 +414,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       scriptController.runScripts(metaformEntity.getScripts().getAfterUpdateReply());
     }
 
-    auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.MODIFY_REPLY, reply.getId(),
-            null, reply.getId()+ " was updated by user "+getLoggerUserId());
+    createAuditLog(reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
@@ -437,9 +441,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
 
     replyController.deleteReply(reply);
-    auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.DELETE_REPLY, reply.getId(), null,
-            reply.getId()+" was deleted by user "+getLoggerUserId());
-
+    createAuditLog(reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
     return null;
   }
 
@@ -480,13 +482,6 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     try {
       byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
-      if (attachmentMap.isEmpty())
-        auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.VIEW_REPLY, reply.getId(),
-                null, reply.getId()+ " was exported to pdf by user "+getLoggerUserId());
-      else
-        for (fi.metatavu.metaform.server.rest.model.Attachment attachment : attachmentMap.values())
-          auditLogEntryController.createAuditLogEntry(getLoggerUserId(), AuditLogEntryType.VIEW_REPLY_ATTACHMENT, reply.getId(),
-                  attachment.getId(), reply.getId()+ " was exported to pdf by user "+getLoggerUserId());
 
       return streamResponse(pdfData, "application/pdf");
     } catch (PdfRenderException e) {
@@ -1332,5 +1327,28 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       
     return null;
   }
-  
+
+  /**
+   * crates and saves audit log based on the parameters
+   * @param replyId replyId
+   * @param attachmentId attachmentId
+   * @param type  logEntryType
+   */
+  private void createAuditLog( UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
+    UUID userId = getLoggerUserId();
+		String defaction = "";
+		if (type==AuditLogEntryType.DELETE_REPLY)
+			defaction = "deleted reply";
+		else if (type == AuditLogEntryType.CREATE_REPLY)
+			defaction = "created reply";
+		else if (type == AuditLogEntryType.MODIFY_REPLY)
+			defaction = "modified reply";
+		else if (type == AuditLogEntryType.LIST_REPLY)
+			defaction = "listed reply";
+		else if (type == AuditLogEntryType.VIEW_REPLY)
+			defaction = "viewed reply";
+    auditLogEntryController.createAuditLogEntry(userId, type, replyId,
+            attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
+  }
+
 }

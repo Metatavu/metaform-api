@@ -58,6 +58,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
+	protected static final UUID REALM1_USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5");
 
   @After
   public void properlyCleaned() {
@@ -154,13 +155,14 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   /**
    * Returns AuditLogEntriesApi authenticated by the given access token
    *
-   * @param accessTokenaccess token
+   * @param accessToken token
    * @return replies API authenticated by the given access token
    */
   protected AuditLogEntriesApi getAuditLogEntriesApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(AuditLogEntriesApi.class);
   }
+
   /**
    * Returns drafts API authenticated by the given access token
    *

@@ -467,7 +467,7 @@
         <constraints nullable="false"/>
       </column>
       <column name="message" type="longtext">
-        <constraints nullable="true"/>
+        <constraints nullable="false"/>
       </column>
       <column name="logEntryType" type="varchar(16)">
         <constraints nullable="false"/>
