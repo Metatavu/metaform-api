@@ -10,3 +10,5 @@
 .DS_Store
 /keycloak-4.3.0.Final/
 /keycloak-4.5.0.Final/
+.idea
+metaform-api.iml

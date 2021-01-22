@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import fi.metatavu.metaform.client.model.ExportTheme;
 import org.junit.Test;
 
 import feign.FeignException;
@@ -31,7 +32,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Test that asserts that user may find his / her own reply
    */
   @Test
-  public void findOwnReply() throws IOException, URISyntaxException {
+  public void findOwnReply() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
@@ -56,9 +57,9 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Test that asserts that anonymous users may not find their "own" replies
    */
   @Test
-  public void findOwnReplyAnonymous() throws IOException, URISyntaxException {
+  public void findOwnReplyAnonymous() throws IOException {
     String adminToken = getAdminToken(REALM_1);
-    String anonymousToken = getAnonymousToken(REALM_1);
+    String anonymousToken = getAnonymousToken();
     
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     RepliesApi anonRepliesApi = getRepliesApi(anonymousToken);
@@ -81,7 +82,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Test that asserts that other users may not find their replies
    */
   @Test
-  public void findOthersReplyUser() throws IOException, URISyntaxException {
+  public void findOthersReplyUser() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
     String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
@@ -108,7 +109,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Test that asserts that metaform-admin may find replies created by others
    */
   @Test
-  public void findOthersReplyAdmin() throws IOException, URISyntaxException {
+  public void findOthersReplyAdmin() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
@@ -133,7 +134,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Test that asserts that user may list only his / her own replies
    */
   @Test
-  public void listOwnReplies() throws IOException, URISyntaxException {
+  public void listOwnReplies() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     
     String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
@@ -171,7 +172,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Test that asserts that user in permission context group may see replies targeted to that group
    */
   @Test
-  public void listPermissionContextReplies() throws IOException, URISyntaxException {
+  public void listPermissionContextReplies() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     
     String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
@@ -217,12 +218,61 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
+
+  /**
+   * Test that asserts that user in permission context group may see replies targeted to that group
+   */
+  @Test
+  public void exportPermissionContextReplyPdf() throws IOException {
+    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
+    try {
+      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
+
+      ExportTheme theme = dataBuilder.createSimpleExportTheme();
+      dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
+      Metaform metaform = dataBuilder.createMetaform("simple-permission-context");
+      metaform.setExportThemeId(theme.getId());
+      adminMetaformsApi.updateMetaform(metaform.getId(), metaform);
+
+      String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
+      String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
+      String accessToken3 = getAccessToken(REALM_1, "test3.realm1", "test");
+      String anonymousToken = getAnonymousToken();
+
+      Reply reply1 = getRepliesApi(accessToken1).createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply2 = getRepliesApi(accessToken2).createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Reply reply3 = getRepliesApi(accessToken3).createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+
+      // test1.realm1 may download only own reply
+      assertPdfDownloadStatus(200, accessToken1, metaform, reply1);
+      assertPdfDownloadStatus(403, accessToken1, metaform, reply2);
+      assertPdfDownloadStatus(403, accessToken1, metaform, reply3);
+
+      // test2.realm1 may download all the replies
+      assertPdfDownloadStatus(200, accessToken2, metaform, reply1);
+      assertPdfDownloadStatus(200, accessToken2, metaform, reply2);
+      assertPdfDownloadStatus(200, accessToken2, metaform, reply3);
+
+      // test3.realm1 may download only own reply
+      assertPdfDownloadStatus(403, accessToken3, metaform, reply1);
+      assertPdfDownloadStatus(403, accessToken3, metaform, reply2);
+      assertPdfDownloadStatus(200, accessToken3, metaform, reply3);
+
+      // anonymous may not download any replies
+      assertPdfDownloadStatus(403, anonymousToken, metaform, reply1);
+      assertPdfDownloadStatus(403, anonymousToken, metaform, reply2);
+      assertPdfDownloadStatus(403, anonymousToken, metaform, reply3);
+
+    } finally {
+      dataBuilder.clean();
+    }
+  }
   
   /**
    * Test that asserts that admin may list all replies
    */
   @Test
-  public void listRepliesAdmin() throws IOException, URISyntaxException {
+  public void listRepliesAdmin() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     
     String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
@@ -260,7 +310,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * another user receives when reply is updated
    */
   @Test
-  public void notifyPermissionContextReply() throws IOException, URISyntaxException {
+  public void notifyPermissionContextReply() throws IOException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test3.realm1", "test");
     try {
       MailgunMocker mailgunMocker = startMailgunMocker();
@@ -291,8 +341,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    */
   private Reply createPermisionSelectReply(String value) {
     Map<String, Object> replyData = createPermissionSelectReplyData(value);
-    Reply reply = createReplyWithData(replyData);
-    return reply;
+    return createReplyWithData(replyData);
   }
 
   /**

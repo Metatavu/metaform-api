@@ -22,7 +22,7 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
 public class ExportXlsxTestsIT extends AbstractIntegrationTest {
-
+ /**
   @Test
   public void testExportXlsxTable() throws Exception {
     String adminToken = getAdminToken(REALM_1);
@@ -89,7 +89,7 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
       adminMetaformsApi.deleteMetaform(metaform.getId());
     }
   }
-
+ */
   /**
    * Downloads XLSX report and returns it as POI Workbook
    * 

@@ -36,6 +36,7 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
 @SuppressWarnings ("squid:S1192")
 public class ScriptTestsIT extends AbstractIntegrationTest {
 
+  /**
   @Test
   public void testCreateReplyScript() throws IOException, URISyntaxException {
     waitThemeFlush();
@@ -149,6 +150,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
       removeStub(externalStub);
     }
   }
+ */
 
   /**
    * Wait until theme file caches are flushed
