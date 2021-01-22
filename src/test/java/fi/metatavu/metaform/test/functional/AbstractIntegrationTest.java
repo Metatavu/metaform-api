@@ -347,10 +347,10 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
       .post(path)
       .getBody()
       .asString();
-    
+
     Map<String, Object> responseMap = readJsonMap(response);
     String token = (String) responseMap.get("access_token");
-    assertNotNull(token);
+    assertNotNull(String.format("Unexpected response from auth server: %s", response), token);
     
     return token;
   }
