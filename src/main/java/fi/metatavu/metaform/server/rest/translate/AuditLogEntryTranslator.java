@@ -14,13 +14,15 @@ import javax.enterprise.context.ApplicationScoped;
 public class AuditLogEntryTranslator {
 
 	/**
-	 * translate into rest AuditLogEntry
+	 * Translates into REST AuditLogEntry
+	 *
 	 * @param auditLogEntry JPA auditLogEntry
 	 * @return REST AuditLogEntry
 	 */
 	public fi.metatavu.metaform.server.rest.model.AuditLogEntry translateAuditLogEntry(AuditLogEntry auditLogEntry) {
-		if (auditLogEntry == null)
+		if (auditLogEntry == null) {
 			return null;
+		}
 
 		fi.metatavu.metaform.server.rest.model.AuditLogEntry result = new fi.metatavu.metaform.server.rest.model.AuditLogEntry();
 		result.setTime(auditLogEntry.getTime());

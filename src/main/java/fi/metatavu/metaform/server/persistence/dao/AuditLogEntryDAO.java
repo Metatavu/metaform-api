@@ -22,8 +22,9 @@ import java.util.UUID;
  */
 @ApplicationScoped
 public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
+
 	/**
-	 * Create AuditLogEntry
+	 * Creates AuditLogEntry
 	 *
 	 * @param id uuid of log entry
 	 * @param metaform metaform
@@ -50,7 +51,7 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
 	}
 
     /**
-     * get audit log entries by replies, user id, created before and after parameters
+     * Gets audit log entries by replies, user id, created before and after parameters
 		 *
 		 * @param metaform replyId
      * @param replyId replyId
@@ -103,8 +104,6 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
 		criteria.where(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform));
 		TypedQuery<AuditLogEntry> query = entityManager.createQuery(criteria);
 
-
 		return query.getResultList();
-		//return listAuditLogEntries(metaform, null, null, null, null);
 	}
 }

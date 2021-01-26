@@ -23,7 +23,7 @@ public class AuditLogEntryController {
 	private AuditLogEntryDAO auditLogEntryDAO;
 
 	/**
-	 *Create AuditLogEntry and fill the missing fields (generate uuid, fill current time)
+	 * Creates AuditLogEntry and fill the missing fields (generate uuid, fill current time)
 	 *
 	 * @param metaform metaform
 	 * @param userId userId
@@ -38,7 +38,7 @@ public class AuditLogEntryController {
 	}
 
 	/**
-	 * List audit log entries by replies, userId, createdBefore and createdAfter
+	 * Lists audit log entries by replies, userId, createdBefore and createdAfter
 	 *
 	 * @param metaform filter results by metaform
    * @param replyId (optional) filter results by list of corresponding replies
@@ -52,7 +52,7 @@ public class AuditLogEntryController {
 	}
 
 	/**
-	 * deletes audit log entry
+	 * Deletes audit log entry
 	 *
 	 * @param auditLogEntry auditLogEntry
 	 */
@@ -61,7 +61,7 @@ public class AuditLogEntryController {
 	}
 
 	/**
-	 * finds audit log entry by id
+	 * Finds audit log entry by id
 	 *
  	 * @param auditLogEntryId	auditLogEntryId
 	 * @return audit log entry

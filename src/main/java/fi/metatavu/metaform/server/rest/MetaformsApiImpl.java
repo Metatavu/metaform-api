@@ -310,6 +310,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     if (metaform == null) {
       throw new NotFoundException(NOT_FOUND_MESSAGE);
     }
+
     List<AuditLogEntry> auditLogEntries = auditLogEntryController.listAuditLogEntries(metaform, replyId, userId, createdBeforeTime, createdAfterTime);
 
     List<fi.metatavu.metaform.server.rest.model.AuditLogEntry> result = auditLogEntries.stream()
@@ -1340,16 +1341,19 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private void createAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
     UUID userId = getLoggerUserId();
 		String defaction = "";
-		if (type==AuditLogEntryType.DELETE_REPLY)
-			defaction = "deleted reply";
-		else if (type == AuditLogEntryType.CREATE_REPLY)
-			defaction = "created reply";
-		else if (type == AuditLogEntryType.MODIFY_REPLY)
-			defaction = "modified reply";
-		else if (type == AuditLogEntryType.LIST_REPLY)
-			defaction = "listed reply";
-		else if (type == AuditLogEntryType.VIEW_REPLY)
-			defaction = "viewed reply";
+		switch (type) {
+			case DELETE_REPLY:
+				defaction = "deleted reply";
+			case CREATE_REPLY:
+				defaction = "created reply";
+			case MODIFY_REPLY:
+				defaction = "modified reply";
+			case LIST_REPLY:
+				defaction = "listed reply";
+			case VIEW_REPLY:
+				defaction = "viewed reply";
+		}
+
     auditLogEntryController.createAuditLogEntry(metaform, userId, type, replyId,
             attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
   }
