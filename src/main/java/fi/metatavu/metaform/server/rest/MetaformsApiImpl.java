@@ -253,7 +253,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
-    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
+		auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
     return createOk(replyEntity);
   }
 
@@ -293,7 +293,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
 
-    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
+		auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
 
@@ -357,7 +357,8 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         includeRevisions != null && includeRevisions,
         fieldFilters);
 
-    replies.forEach(reply -> createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
+    UUID loggedUser = getLoggerUserId();
+    replies.forEach(reply -> auditLogEntryController.createAuditLog(metaform, loggedUser, reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
       .map(entity -> replyTranslator.translateReply(metaformEntity, entity, null))
@@ -417,7 +418,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       scriptController.runScripts(metaformEntity.getScripts().getAfterUpdateReply());
     }
 
-    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
+    auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
@@ -444,7 +445,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
 
     replyController.deleteReply(reply);
-    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
+    auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
     return null;
   }
 
@@ -1329,33 +1330,6 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
       
     return null;
-  }
-
-  /**
-   * crates and saves audit log based on the parameters
-	 * @param metaform metaform
-   * @param replyId replyId
-   * @param attachmentId attachmentId
-   * @param type  logEntryType
-   */
-  private void createAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
-    UUID userId = getLoggerUserId();
-		String defaction = "";
-		switch (type) {
-			case DELETE_REPLY:
-				defaction = "deleted reply";
-			case CREATE_REPLY:
-				defaction = "created reply";
-			case MODIFY_REPLY:
-				defaction = "modified reply";
-			case LIST_REPLY:
-				defaction = "listed reply";
-			case VIEW_REPLY:
-				defaction = "viewed reply";
-		}
-
-    auditLogEntryController.createAuditLogEntry(metaform, userId, type, replyId,
-            attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
   }
 
 }

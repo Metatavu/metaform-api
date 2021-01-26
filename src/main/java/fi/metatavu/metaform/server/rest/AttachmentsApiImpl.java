@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 
 import _fi.metatavu.metaform.server.rest.api.AttachmentsApi;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.persistence.model.Reply;

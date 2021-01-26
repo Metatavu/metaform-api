@@ -69,4 +69,37 @@ public class AuditLogEntryController {
 	public AuditLogEntry findAuditLogEntryById(UUID auditLogEntryId) {
 		return auditLogEntryDAO.findById(auditLogEntryId);
 	}
+
+	/**
+	 * Creates and saves audit log based on the parameters
+	 *
+	 * @param metaform metaform
+	 * @param userId userId
+	 * @param replyId replyId
+	 * @param attachmentId attachmentId
+	 * @param type  logEntryType
+	 */
+	public void createAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID userId, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
+		String defaction = "";
+		switch (type) {
+			case DELETE_REPLY:
+				defaction = "deleted reply";
+				break;
+			case CREATE_REPLY:
+				defaction = "created reply";
+				break;
+			case MODIFY_REPLY:
+				defaction = "modified reply";
+				break;
+			case LIST_REPLY:
+				defaction = "listed reply";
+				break;
+			case VIEW_REPLY:
+				defaction = "viewed reply";
+				break;
+		}
+		System.out.println("selected from "+type + " def action is "+defaction);
+
+		createAuditLogEntry(metaform, userId, type, replyId, attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
+	}
 }
