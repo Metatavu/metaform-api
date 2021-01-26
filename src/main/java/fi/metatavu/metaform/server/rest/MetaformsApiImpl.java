@@ -23,6 +23,7 @@ import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
 import fi.metatavu.metaform.server.persistence.model.AuditLogEntry;
 import fi.metatavu.metaform.server.rest.model.*;
 import fi.metatavu.metaform.server.rest.translate.*;
+import fi.metatavu.metaform.server.settings.SystemSettingController;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.ejb.Stateful;
@@ -110,6 +111,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private static final String NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE = "You are not allowed to edit this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
+	private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
 
   @Inject
   private Logger logger;
@@ -164,6 +166,9 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
   @Inject
   private AuditLogEntryTranslator auditLogEntryTranslator;
+
+  @Inject
+	private SystemSettingController systemSettingController;
 
   @Override
   @SuppressWarnings ("squid:S3776")
@@ -248,12 +253,14 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
-    createAuditLog(reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
+    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
     return createOk(replyEntity);
   }
 
 	@Override
-	public Response deleteAuditLogEntry(UUID metaformId, @NotNull UUID auditLogEntryId) {
+	public Response deleteAuditLogEntry(UUID metaformId, UUID auditLogEntryId) {
+  	if (!systemSettingController.inTestMode())
+  		return createForbidden(YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS);
 		fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
 		if (metaform == null) {
 			return createNotFound(NOT_FOUND_MESSAGE);
@@ -286,7 +293,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
 
-    createAuditLog(reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
+    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
 
@@ -303,13 +310,8 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     if (metaform == null) {
       throw new NotFoundException(NOT_FOUND_MESSAGE);
     }
-    List<AuditLogEntry> auditLogEntries;
-    if (replyId != null)
-			auditLogEntries = auditLogEntryController.listAuditLogEntries(Collections.singletonList(replyId), userId, createdBeforeTime, createdAfterTime);
-    else {
-      List<UUID> repliyIds = replyController.listReplies(metaform, null, null, null, null,null, true, null).stream().map(fi.metatavu.metaform.server.persistence.model.Reply::getId).collect(Collectors.toList());
-      auditLogEntries = auditLogEntryController.listAuditLogEntries(repliyIds, userId, createdBeforeTime, createdAfterTime);
-    }
+    List<AuditLogEntry> auditLogEntries = auditLogEntryController.listAuditLogEntries(metaform, replyId, userId, createdBeforeTime, createdAfterTime);
+
     List<fi.metatavu.metaform.server.rest.model.AuditLogEntry> result = auditLogEntries.stream()
             .map(entity -> auditLogEntryTranslator.translateAuditLogEntry(entity))
             .collect(Collectors.toList());
@@ -354,7 +356,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         includeRevisions != null && includeRevisions,
         fieldFilters);
 
-    replies.forEach(reply -> createAuditLog(reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
+    replies.forEach(reply -> createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
       .map(entity -> replyTranslator.translateReply(metaformEntity, entity, null))
@@ -414,7 +416,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       scriptController.runScripts(metaformEntity.getScripts().getAfterUpdateReply());
     }
 
-    createAuditLog(reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
+    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
@@ -441,7 +443,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
 
     replyController.deleteReply(reply);
-    createAuditLog(reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
+    createAuditLog(metaform, reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
     return null;
   }
 
@@ -1330,11 +1332,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
   /**
    * crates and saves audit log based on the parameters
+	 * @param metaform metaform
    * @param replyId replyId
    * @param attachmentId attachmentId
    * @param type  logEntryType
    */
-  private void createAuditLog( UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
+  private void createAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
     UUID userId = getLoggerUserId();
 		String defaction = "";
 		if (type==AuditLogEntryType.DELETE_REPLY)
@@ -1347,7 +1350,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 			defaction = "listed reply";
 		else if (type == AuditLogEntryType.VIEW_REPLY)
 			defaction = "viewed reply";
-    auditLogEntryController.createAuditLogEntry(userId, type, replyId,
+    auditLogEntryController.createAuditLogEntry(metaform, userId, type, replyId,
             attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
   }
 

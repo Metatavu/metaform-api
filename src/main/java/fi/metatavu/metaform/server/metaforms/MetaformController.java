@@ -6,6 +6,9 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
+import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO;
+import fi.metatavu.metaform.server.persistence.model.AuditLogEntry;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.slugify.Slugify;
@@ -32,6 +35,12 @@ public class MetaformController {
 
   @Inject
   private ReplyDAO replyDAO;
+
+  @Inject
+	private AuditLogEntryDAO auditLogEntryDAO;
+
+  @Inject
+	private AuditLogEntryController auditLogEntryController;
   
   /**
    * Creates new Metaform
@@ -89,9 +98,11 @@ public class MetaformController {
    */
   public void deleteMetaform(Metaform metaform) {
     List<Reply> replies = replyDAO.listByMetaform(metaform);
-    
+
     replies.stream().forEach(replyController::deleteReply);
-    
+    List<AuditLogEntry> auditLogEntries = auditLogEntryDAO.listByMetaform(metaform);
+
+    auditLogEntries.stream().forEach(auditLogEntryController::deleteAuditLogEntry);
     metaformDAO.delete(metaform);
   }
 

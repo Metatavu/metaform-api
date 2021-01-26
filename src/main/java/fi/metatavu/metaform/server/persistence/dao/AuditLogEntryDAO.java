@@ -24,36 +24,42 @@ import java.util.UUID;
 public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
 	/**
 	 * Create AuditLogEntry
+	 *
 	 * @param id uuid of log entry
+	 * @param metaform metaform
 	 * @param userId userId
 	 * @param time time
 	 * @param replyId replyId
 	 * @param attachmentId attachmentId
 	 * @param message message
-	 * @return created AuditLogEntry
+	 * @return created auditlogentry
 	 */
-	public AuditLogEntry create(UUID id, UUID userId, OffsetDateTime time, AuditLogEntryType auditLogEntryType, UUID replyId,
+	public AuditLogEntry create(UUID id, Metaform metaform, UUID userId, OffsetDateTime time, AuditLogEntryType auditLogEntryType, UUID replyId,
 															UUID attachmentId, String message){
 		AuditLogEntry auditLogEntry = new AuditLogEntry();
 		auditLogEntry.setId(id);
+		auditLogEntry.setMetaform(metaform);
 		auditLogEntry.setUserId(userId);
     auditLogEntry.setTime(time);
     auditLogEntry.setLogEntryType(auditLogEntryType);
     auditLogEntry.setReplyId(replyId);
     auditLogEntry.setAttachmentId(attachmentId);
     auditLogEntry.setMessage(message);
+    System.out.println("saving "+auditLogEntry + "\n"+metaform.getId());
     return persist(auditLogEntry);
 	}
 
     /**
      * get audit log entries by replies, user id, created before and after parameters
-     * @param replies list of replies
+		 *
+		 * @param metaform replyId
+     * @param replyId replyId
      * @param userId userId
      * @param createdBefore created before
      * @param createdAfter created after
      * @return list of AuditLogEntry
      */
-    public List<AuditLogEntry> listAuditLogEntries(List<UUID> replies, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter) {
+    public List<AuditLogEntry> listAuditLogEntries(Metaform metaform, UUID replyId, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter) {
 			EntityManager entityManager = getEntityManager();
 
 			CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -62,8 +68,10 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
 
 			List<Predicate> restrictions = new ArrayList<>();
 
-			Predicate predicateReplyId = root.get(AuditLogEntry_.replyId).in(replies);
-			restrictions.add(predicateReplyId);
+			restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform));
+
+			if (replyId != null)
+				restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.replyId), replyId));
 			if (userId != null)
 				restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.userId), userId));
 			if (createdBefore != null)
@@ -77,4 +85,26 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
 			TypedQuery<AuditLogEntry> query = entityManager.createQuery(criteria);
 			return query.getResultList();
     }
+
+	/**
+	 * Lists audit log entries by metaform
+	 *
+	 * @param metaform metaform
+	 * @return list of audit log entries
+	 */
+	public List<AuditLogEntry> listByMetaform(Metaform metaform) {
+		EntityManager entityManager = getEntityManager();
+
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<AuditLogEntry> criteria = criteriaBuilder.createQuery(AuditLogEntry.class);
+		Root<AuditLogEntry> root = criteria.from(AuditLogEntry.class);
+
+		criteria.select(root);
+		criteria.where(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform));
+		TypedQuery<AuditLogEntry> query = entityManager.createQuery(criteria);
+
+
+		return query.getResultList();
+		//return listAuditLogEntries(metaform, null, null, null, null);
+	}
 }

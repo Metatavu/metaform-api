@@ -454,6 +454,9 @@
       <column name="id" type="binary(16)">
         <constraints nullable="false" primaryKey="true"/>
       </column>
+      <column name="metaform_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_AUDIT_LOG_METAFORM_ID" referencedTableName="metaform" referencedColumnNames="id"/>
+      </column>
       <column name="userid" type="binary(16)">
         <constraints nullable="false"/>
       </column>

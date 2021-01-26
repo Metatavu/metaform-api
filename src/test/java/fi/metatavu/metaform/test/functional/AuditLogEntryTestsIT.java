@@ -4,11 +4,7 @@ import feign.FeignException;
 import fi.metatavu.metaform.client.api.*;
 import fi.metatavu.metaform.client.model.*;
 import fi.metatavu.metaform.server.rest.ReplyMode;
-import fi.metatavu.metaform.server.rest.translate.MetaformTranslator;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.omg.CORBA.DATA_CONVERSION;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -23,13 +19,8 @@ import static org.junit.Assert.*;
  */
 public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 
-	/**
-   * test creation of audit logs for reply creation, viewing and deleting
-	 * @throws IOException
-	 * @throws URISyntaxException
-	 */
 	@Test
-	public void basicActionsOnReply() throws IOException{
+	public void basicActionsOnReplyTest() throws IOException{
 	  String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
 		RepliesApi repliesApi = getRepliesApi(accessToken);
 		AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(accessToken);
@@ -56,7 +47,6 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 			assertEquals("user "+REALM1_USER_1_ID+" deleted reply "+createdReply.getId(), auditLogEntries.get(4).getMessage());
 
 		} finally {
-			clearLogEntries(metaform, auditLogEntriesApi);
 			adminMetaformsApi.deleteMetaform(metaform.getId());
 		}
 	}
@@ -89,8 +79,39 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 			assertEquals("user " + REALM1_USER_1_ID + " created reply " + createdReply1.getId(), auditLogEntriesForUser1.get(0).getMessage());
 			assertEquals("user " + REALM1_USER_2_ID + " created reply " + createdReply2.getId(), auditLogEntriesForUser2.get(0).getMessage());
 		} finally {
-			clearLogEntries(metaform, auditLogEntriesApi);
 			adminMetaformsApi.deleteMetaform(metaform.getId());
+		}
+	}
+
+	@Test
+	public void queryByMetaformTest() throws Exception {
+		String user1token = getAccessToken(REALM_1, "test1.realm1", "test");
+		RepliesApi repliesApi = getRepliesApi(user1token);
+
+		AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(user1token);
+		MetaformsApi adminMetaformsApi = getMetaformsApi(getAdminToken(REALM_1));
+
+		Metaform metaform1 = adminMetaformsApi.createMetaform(readMetaform("simple"));
+		Metaform metaform2 = adminMetaformsApi.createMetaform(readMetaform("simple"));
+
+		Map<String, Object> replyData = new HashMap<>();
+		replyData.put("text", "Test text value");
+		Reply reply = createReplyWithData(replyData);
+
+		try {
+			Reply createdReply1 = repliesApi.createReply(metaform1.getId(), reply, null, ReplyMode.REVISION.toString());
+			Reply createdReply2 = repliesApi.createReply(metaform2.getId(), reply, null, ReplyMode.REVISION.toString());
+
+			List<AuditLogEntry> metaform1AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform1.getId(), null, null, null, null);
+			List<AuditLogEntry>	metaform2AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform2.getId(), null, null, null, null);
+
+			assertEquals(1, metaform1AuditLogs.size());
+			assertEquals(1, metaform2AuditLogs.size());
+			assertEquals("user " + REALM1_USER_1_ID + " created reply " + createdReply1.getId(), metaform1AuditLogs.get(0).getMessage());
+			assertEquals("user " + REALM1_USER_1_ID + " created reply " + createdReply2.getId(), metaform2AuditLogs.get(0).getMessage());
+		} finally {
+			adminMetaformsApi.deleteMetaform(metaform1.getId());
+			adminMetaformsApi.deleteMetaform(metaform2.getId());
 		}
 	}
 
@@ -122,15 +143,12 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 			assertEquals(1, entryByReply.size());
 			assertEquals("user b6039e55-3758-4252-9858-a973b0988b63 created reply "+createdReply.getId(), entryByReply.get(0).getMessage());
 
-
 		} finally {
-			clearLogEntries(metaform, auditLogEntriesApi);
 			adminMetaformsApi.deleteMetaform(metaform.getId());
-
 		}
 	}
 
-    /**
+	/**
      * Tests accessing the audit logs
      * @throws IOException
      */
@@ -164,14 +182,7 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 				}
     	}
     	finally {
-				clearLogEntries(metaform, auditLogEntriesApi);
 				adminMetaformsApi.deleteMetaform(metaform.getId());
     	}
     }
-
-    private void clearLogEntries(Metaform metaform, AuditLogEntriesApi auditApi){
-			List<AuditLogEntry> allAuditLogEntries = auditApi.listAuditLogEntries(metaform.getId(), null, null, null, null);
-			allAuditLogEntries.forEach(entry -> auditApi.deleteAuditLogEntry(metaform.getId(), entry.getId()));
-
-		}
 }

@@ -18,6 +18,7 @@ import java.util.UUID;
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class AuditLogEntry {
+
   @Id
   private UUID id;
 
@@ -42,93 +43,150 @@ public class AuditLogEntry {
   @NotNull
   private AuditLogEntryType logEntryType;
 
+	@ManyToOne(optional = false)
+	private Metaform metaform;
+
   /**
+	 * Gets audit log entry id
+	 *
    * @return id
    */
   public UUID getId() {
     return id;
 }
 
+	/**
+	 * Sets audit log entry id
+	 *
+	 * @param id id
+	 */
   public void setId(UUID id) {
       this.id = id;
   }
 
   /**
+	 * Gets userId of the user who accessed the Reply
+	 *
    * @return userId
    */
   public UUID getUserId() {
       return userId;
   }
 
+	/**
+	 * Sets userId
+	 *
+	 * @param userId userId
+	 */
   public void setUserId(UUID userId) {
       this.userId = userId;
   }
 
   /**
+	 * Gets time of the log creation
+	 *
    * @return time
    */
   public OffsetDateTime getTime() {
       return time;
   }
 
+	/**
+	 * Sets log creation time
+	 *
+	 * @param time time
+	 */
   public void setTime(OffsetDateTime time) {
       this.time = time;
   }
 
   /**
+	 * Gets replyId
+	 *
    * @return replyId
    */
   public UUID getReplyId() {
       return replyId;
   }
 
+	/**
+	 * Sets replyId
+	 *
+	 * @param replyId replyId
+	 */
   public void setReplyId(UUID replyId) {
       this.replyId = replyId;
   }
 
   /**
+	 * Gets attachmentId
+	 *
    * @return attachmentId
    */
   public UUID getAttachmentId() {
       return attachmentId;
   }
 
+	/**
+	 * Sets attachmentId
+	 *
+	 * @param attachmentId attachmentId
+	 */
   public void setAttachmentId(UUID attachmentId) {
       this.attachmentId = attachmentId;
   }
 
   /**
+	 * Gets log message
+	 *
    * @return message
    */
   public String getMessage() {
       return message;
   }
 
+	/**
+	 * Sets log message
+	 *
+	 * @param message message
+	 */
   public void setMessage(String message) {
       this.message = message;
   }
 
   /**
+	 * Gets log entry type
+	 *
    * @return logEntryType
    */
   public AuditLogEntryType getLogEntryType() {
       return logEntryType;
   }
 
+	/**
+	 * Sets log entry type
+	 *
+	 * @param logEntryType logEntryType
+	 */
   public void setLogEntryType(AuditLogEntryType logEntryType) {
       this.logEntryType = logEntryType;
   }
 
-	@Override
-	public String toString() {
-		return "AuditLogEntry{" +
-			"id=" + id +
-			", userId=" + userId +
-			", time=" + time +
-			", replyId=" + replyId +
-			", attachmentId=" + attachmentId +
-			", message='" + message + '\'' +
-			", logEntryType=" + logEntryType +
-			'}';
+	/**
+	 * Gets metaform
+	 *
+	 * @return metaform
+	 */
+	public Metaform getMetaform() {
+		return metaform;
+	}
+
+	/**
+	 * Sets metaform
+	 *
+	 * @param metaform metaform
+	 */
+	public void setMetaform(Metaform metaform) {
+		this.metaform = metaform;
 	}
 }
