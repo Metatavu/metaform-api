@@ -37,7 +37,7 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
   private ReplyController replyController;
 
   @Inject
-	private AuditLogEntryController auditLogEntryController;
+  private AuditLogEntryController auditLogEntryController;
   
   @Override
   public Response findAttachment(UUID attachmentId, String ownerKey) {
@@ -50,9 +50,9 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
 
-		logAttachmentAccess(attachment, null, AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT);
+    logAttachmentAccess(attachment, null, AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT);
 
-		return createOk(attachmentTranslator.translateAttachment(attachment));
+    return createOk(attachmentTranslator.translateAttachment(attachment));
   }
 
   @Override
@@ -91,16 +91,16 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
     return replyController.isValidOwnerKey(reply, ownerKey);
   }
 
-	/**
-	 * Creates audit log entry for attachment and saves it
-	 *
-	 * @param attachment attachment
-	 * @param action action
-	 * @param auditLogEntryType auditLogEntryType
-	 */
+  /**
+   * Creates audit log entry for attachment and saves it
+   *
+   * @param attachment attachment
+   * @param action action
+   * @param auditLogEntryType auditLogEntryType
+   */
   private void logAttachmentAccess(Attachment attachment, String action, AuditLogEntryType auditLogEntryType){
-		Reply replyByAttachment = attachmentController.findReplyByAttachment(attachment);
-		auditLogEntryController.generateAuditLog(replyByAttachment.getMetaform(), getLoggerUserId(),
-			replyByAttachment.getId(), attachment.getId(), action, auditLogEntryType);
-	}
+    Reply replyByAttachment = attachmentController.findReplyByAttachment(attachment);
+    auditLogEntryController.generateAuditLog(replyByAttachment.getMetaform(), getLoggerUserId(),
+      replyByAttachment.getId(), attachment.getId(), action, auditLogEntryType);
+  }
 }

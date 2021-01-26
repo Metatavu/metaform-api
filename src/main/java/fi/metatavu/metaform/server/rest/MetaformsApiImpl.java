@@ -107,7 +107,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private static final String NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE = "You are not allowed to edit this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
-	private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
+  private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
 
   @Inject
   private Logger logger;
@@ -164,7 +164,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private AuditLogEntryTranslator auditLogEntryTranslator;
 
   @Inject
-	private SystemSettingController systemSettingController;
+  private SystemSettingController systemSettingController;
 
   @Override
   @SuppressWarnings ("squid:S3776")
@@ -249,27 +249,27 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
-		auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
     return createOk(replyEntity);
   }
 
-	@Override
-	public Response deleteAuditLogEntry(UUID metaformId, UUID auditLogEntryId) {
-  	if (!systemSettingController.inTestMode()) {
-			return createForbidden(YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS);
-		}
+  @Override
+  public Response deleteAuditLogEntry(UUID metaformId, UUID auditLogEntryId) {
+    if (!systemSettingController.inTestMode()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS);
+    }
 
-		fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
-		if (metaform == null) {
-			return createNotFound(NOT_FOUND_MESSAGE);
-		}
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
 
-  	AuditLogEntry auditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId);
-		auditLogEntryController.deleteAuditLogEntry(auditLogEntry);
-		return null;
-	}
+    AuditLogEntry auditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId);
+    auditLogEntryController.deleteAuditLogEntry(auditLogEntry);
+    return null;
+  }
 
-	@Override
+  @Override
   public Response findReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -291,12 +291,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
 
-		auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
 
 
-	@Override
+  @Override
   public Response listAuditLogEntries(UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
     if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE))
       return createForbidden(String.format("Only users with %s can access this view", VIEW_AUDIT_LOGS_ROLE));
@@ -484,7 +484,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     try {
       byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
-			auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), replyId, null, null, AuditLogEntryType.EXPORT_REPLY_PDF);
+      auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), replyId, null, null, AuditLogEntryType.EXPORT_REPLY_PDF);
 
       return streamResponse(pdfData, "application/pdf");
     } catch (PdfRenderException e) {
