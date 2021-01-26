@@ -46,7 +46,7 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
     auditLogEntry.setReplyId(replyId);
     auditLogEntry.setAttachmentId(attachmentId);
     auditLogEntry.setMessage(message);
-    System.out.println("saving "+auditLogEntry + "\n"+metaform.getId());
+
     return persist(auditLogEntry);
 	}
 

@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 import fi.metatavu.metaform.client.model.AuditLogEntryType;
 import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
 import fi.metatavu.metaform.server.persistence.model.AuditLogEntry;
-import fi.metatavu.metaform.server.rest.model.*;
 import fi.metatavu.metaform.server.rest.translate.*;
 import fi.metatavu.metaform.server.settings.SystemSettingController;
 import org.apache.commons.lang3.BooleanUtils;
@@ -29,13 +28,10 @@ import org.apache.commons.lang3.BooleanUtils;
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
@@ -253,14 +249,16 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
-		auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
+		auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
     return createOk(replyEntity);
   }
 
 	@Override
 	public Response deleteAuditLogEntry(UUID metaformId, UUID auditLogEntryId) {
-  	if (!systemSettingController.inTestMode())
-  		return createForbidden(YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS);
+  	if (!systemSettingController.inTestMode()) {
+			return createForbidden(YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS);
+		}
+
 		fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
 		if (metaform == null) {
 			return createNotFound(NOT_FOUND_MESSAGE);
@@ -293,7 +291,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
 
-		auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
+		auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
 
@@ -358,7 +356,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         fieldFilters);
 
     UUID loggedUser = getLoggerUserId();
-    replies.forEach(reply -> auditLogEntryController.createAuditLog(metaform, loggedUser, reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
+    replies.forEach(reply -> auditLogEntryController.generateAuditLog(metaform, loggedUser, reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
       .map(entity -> replyTranslator.translateReply(metaformEntity, entity, null))
@@ -418,7 +416,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       scriptController.runScripts(metaformEntity.getScripts().getAfterUpdateReply());
     }
 
-    auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
@@ -445,7 +443,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
 
     replyController.deleteReply(reply);
-    auditLogEntryController.createAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
     return null;
   }
 
@@ -486,6 +484,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     try {
       byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
+			auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), replyId, null, null, AuditLogEntryType.EXPORT_REPLY_PDF);
 
       return streamResponse(pdfData, "application/pdf");
     } catch (PdfRenderException e) {
@@ -746,7 +745,10 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       
       List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, null, null, null, null, null, false, null);
       List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply, null)).collect(Collectors.toList());
-      
+
+      UUID userId = getLoggerUserId();
+      replies.forEach(r->auditLogEntryController.generateAuditLog(metaform, userId, r.getId(), null, null, AuditLogEntryType.EXPORT_REPLY_XLSX));
+
       try {
         return streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       } catch (XlsxException e) {

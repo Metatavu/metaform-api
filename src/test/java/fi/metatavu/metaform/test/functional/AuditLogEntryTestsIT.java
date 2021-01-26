@@ -147,41 +147,37 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 		}
 	}
 
-	/**
-     * Tests accessing the audit logs
-     * @throws IOException
-     */
-    @Test
-		public void accessRightsTest() throws IOException {
-    	String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    	String accessToken1 = getAccessToken(REALM_1, "test2.realm1", "test");
-    	String adminToken = getAdminToken(REALM_1);
+	@Test
+	public void accessRightsTest() throws IOException {
+		String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
+		String accessToken1 = getAccessToken(REALM_1, "test2.realm1", "test");
+		String adminToken = getAdminToken(REALM_1);
 
-    	MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    	RepliesApi repliesApi = getRepliesApi(accessToken);
-    	AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(accessToken);
-    	AuditLogEntriesApi auditLogEntriesApi1 = getAuditLogEntriesApi(accessToken1);
+		MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
+		RepliesApi repliesApi = getRepliesApi(accessToken);
+		AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(accessToken);
+		AuditLogEntriesApi auditLogEntriesApi1 = getAuditLogEntriesApi(accessToken1);
 
-    	Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
-			List<AuditLogEntry> auditLogEntries = null;
-    	try {
-    		//reply to metaform
-				Map<String, Object> replyData = new HashMap<>();
-				replyData.put("text", "Test text value");
-				Reply reply = createReplyWithData(replyData);
-				repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+		Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
+		List<AuditLogEntry> auditLogEntries = null;
+		try {
+			//reply to metaform
+			Map<String, Object> replyData = new HashMap<>();
+			replyData.put("text", "Test text value");
+			Reply reply = createReplyWithData(replyData);
+			repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
 
-				auditLogEntries = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, null, null, null);
-				assertNotNull(auditLogEntries);
-				try {
-					auditLogEntriesApi1.listAuditLogEntries(metaform.getId(), null, null, null, null);
-					fail(String.format("Only users with metaform-view-all-audit-logs can access this view"));
-				} catch (FeignException e) {
-					assertEquals(403, e.status());
-				}
-    	}
-    	finally {
-				adminMetaformsApi.deleteMetaform(metaform.getId());
-    	}
-    }
+			auditLogEntries = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, null, null, null);
+			assertNotNull(auditLogEntries);
+			try {
+				auditLogEntriesApi1.listAuditLogEntries(metaform.getId(), null, null, null, null);
+				fail(String.format("Only users with metaform-view-all-audit-logs can access this view"));
+			} catch (FeignException e) {
+				assertEquals(403, e.status());
+			}
+		}
+		finally {
+			adminMetaformsApi.deleteMetaform(metaform.getId());
+		}
+	}
 }

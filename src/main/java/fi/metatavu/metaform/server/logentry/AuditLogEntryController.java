@@ -79,7 +79,7 @@ public class AuditLogEntryController {
 	 * @param attachmentId attachmentId
 	 * @param type  logEntryType
 	 */
-	public void createAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID userId, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
+	public AuditLogEntry generateAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID userId, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
 		String defaction = "";
 		switch (type) {
 			case DELETE_REPLY:
@@ -97,9 +97,20 @@ public class AuditLogEntryController {
 			case VIEW_REPLY:
 				defaction = "viewed reply";
 				break;
+			case VIEW_REPLY_ATTACHMENT:
+				defaction = "viewed attachment of reply ";
+				break;
+			case DOWNLOAD_REPLY_ATTACHMENT:
+				defaction = "downloaded attachment of reply ";
+				break;
+			case EXPORT_REPLY_PDF:
+				defaction = "exported to pdf ";
+				break;
+			case EXPORT_REPLY_XLSX:
+				defaction = "exported to xlsx";
+				break;
 		}
-		System.out.println("selected from "+type + " def action is "+defaction);
 
-		createAuditLogEntry(metaform, userId, type, replyId, attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
+		return createAuditLogEntry(metaform, userId, type, replyId, attachmentId, action != null ? action : String.format("user %1$s %2$s %3$s", userId.toString(), defaction, replyId.toString()));
 	}
 }
