@@ -466,7 +466,7 @@
       <column name="attachmentid" type="binary(16)">
         <constraints nullable="true"/>
       </column>
-      <column name="time" type="datetime(6)">
+      <column name="createdAt" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
       <column name="message" type="longtext">

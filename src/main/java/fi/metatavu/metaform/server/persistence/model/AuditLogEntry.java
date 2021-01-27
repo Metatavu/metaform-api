@@ -27,7 +27,7 @@ public class AuditLogEntry {
   private UUID userId;
 
   @Column (nullable = false)
-  private OffsetDateTime time;
+  private OffsetDateTime createdAt;
 
   @Column
   private UUID replyId;
@@ -86,17 +86,17 @@ public class AuditLogEntry {
    *
    * @return time
    */
-  public OffsetDateTime getTime() {
-      return time;
+  public OffsetDateTime getCreatedAt() {
+      return createdAt;
   }
 
   /**
    * Sets log creation time
    *
-   * @param time time
+   * @param createdAt time
    */
-  public void setTime(OffsetDateTime time) {
-      this.time = time;
+  public void setCreatedAt(OffsetDateTime createdAt) {
+      this.createdAt = createdAt;
   }
 
   /**
@@ -191,6 +191,6 @@ public class AuditLogEntry {
 
   @PrePersist
   public void onCreate() {
-    setTime(OffsetDateTime.now());
+    setCreatedAt(OffsetDateTime.now());
   }
 }

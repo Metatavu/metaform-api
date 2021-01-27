@@ -747,7 +747,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply, null)).collect(Collectors.toList());
 
       UUID loggedUserId = getLoggerUserId();
-      replies.forEach(r->auditLogEntryController.generateAuditLog(metaform, loggedUserId, r.getId(), null, null, AuditLogEntryType.EXPORT_REPLY_XLSX));
+      replies.forEach(reply->auditLogEntryController.generateAuditLog(metaform, loggedUserId, reply.getId(), null, null, AuditLogEntryType.EXPORT_REPLY_XLSX));
 
       try {
         return streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

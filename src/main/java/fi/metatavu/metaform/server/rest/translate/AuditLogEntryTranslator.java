@@ -25,7 +25,7 @@ public class AuditLogEntryTranslator {
     }
 
     fi.metatavu.metaform.server.rest.model.AuditLogEntry result = new fi.metatavu.metaform.server.rest.model.AuditLogEntry();
-    result.setTime(auditLogEntry.getTime());
+    result.setCreatedAt(auditLogEntry.getCreatedAt());
     result.setId(auditLogEntry.getId());
     result.setMessage(auditLogEntry.getMessage());
     result.setUserId(auditLogEntry.getUserId());

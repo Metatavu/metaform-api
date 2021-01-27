@@ -77,16 +77,16 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
     }
 
     if (createdBefore != null) {
-      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(AuditLogEntry_.time), createdBefore));
+      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(AuditLogEntry_.createdAt), createdBefore));
     }
 
     if (createdAfter != null) {
-      restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(AuditLogEntry_.time), createdAfter));
+      restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(AuditLogEntry_.createdAt), createdAfter));
     }
 
     criteria.select(root);
     criteria.where(criteriaBuilder.and(restrictions.toArray(new Predicate[0])));
-    criteria.orderBy(criteriaBuilder.asc(root.get(AuditLogEntry_.time)));
+    criteria.orderBy(criteriaBuilder.asc(root.get(AuditLogEntry_.createdAt)));
     TypedQuery<AuditLogEntry> query = entityManager.createQuery(criteria);
 
     return query.getResultList();
