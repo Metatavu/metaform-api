@@ -37,10 +37,10 @@ public class MetaformController {
   private ReplyDAO replyDAO;
 
   @Inject
-	private AuditLogEntryDAO auditLogEntryDAO;
+  private AuditLogEntryDAO auditLogEntryDAO;
 
   @Inject
-	private AuditLogEntryController auditLogEntryController;
+  private AuditLogEntryController auditLogEntryController;
   
   /**
    * Creates new Metaform
@@ -100,9 +100,8 @@ public class MetaformController {
     List<Reply> replies = replyDAO.listByMetaform(metaform);
 
     replies.stream().forEach(replyController::deleteReply);
-    List<AuditLogEntry> auditLogEntries = auditLogEntryDAO.listByMetaform(metaform);
-
-    auditLogEntries.stream().forEach(auditLogEntryController::deleteAuditLogEntry);
+    auditLogEntryDAO.listByMetaform(metaform).stream()
+            .forEach(auditLogEntryController::deleteAuditLogEntry);
     metaformDAO.delete(metaform);
   }
 

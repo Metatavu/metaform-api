@@ -39,11 +39,12 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 
       List<AuditLogEntry> auditLogEntries = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, createdReply.getId(), null, null);
 
-      assertEquals("user "+REALM1_USER_1_ID+" created reply "+createdReply.getId(), auditLogEntries.get(0).getMessage() );
-      assertEquals("user "+REALM1_USER_1_ID+" viewed reply "+createdReply.getId(), auditLogEntries.get(1).getMessage());
-      assertEquals("user "+REALM1_USER_1_ID+" listed reply "+createdReply.getId(), auditLogEntries.get(2).getMessage());
-      assertEquals("user "+REALM1_USER_1_ID+" modified reply "+createdReply.getId(), auditLogEntries.get(3).getMessage());
-      assertEquals("user "+REALM1_USER_1_ID+" deleted reply "+createdReply.getId(), auditLogEntries.get(4).getMessage());
+      assertEquals(5, auditLogEntries.size());
+      assertEquals(String.format("user %s created reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(0).getMessage() );
+      assertEquals(String.format("user %s viewed reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(1).getMessage());
+      assertEquals(String.format("user %s listed reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(2).getMessage());
+      assertEquals(String.format("user %s modified reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(3).getMessage());
+      assertEquals(String.format("user %s deleted reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(4).getMessage());
 
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
@@ -75,8 +76,8 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
       List<AuditLogEntry> auditLogEntriesForUser1 = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), REALM1_USER_1_ID, null, null, null);
       List<AuditLogEntry>	auditLogEntriesForUser2 = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), REALM1_USER_2_ID, null, null, null);
 
-      assertEquals("user " + REALM1_USER_1_ID + " created reply " + createdReply1.getId(), auditLogEntriesForUser1.get(0).getMessage());
-      assertEquals("user " + REALM1_USER_2_ID + " created reply " + createdReply2.getId(), auditLogEntriesForUser2.get(0).getMessage());
+      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()), auditLogEntriesForUser1.get(0).getMessage());
+      assertEquals(String.format("user %s created reply %s", REALM1_USER_2_ID, createdReply2.getId()), auditLogEntriesForUser2.get(0).getMessage());
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());
     }
@@ -102,12 +103,12 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
       Reply createdReply2 = repliesApi.createReply(metaform2.getId(), reply, null, ReplyMode.REVISION.toString());
 
       List<AuditLogEntry> metaform1AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform1.getId(), null, null, null, null);
-      List<AuditLogEntry>	metaform2AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform2.getId(), null, null, null, null);
+      List<AuditLogEntry> metaform2AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform2.getId(), null, null, null, null);
 
       assertEquals(1, metaform1AuditLogs.size());
       assertEquals(1, metaform2AuditLogs.size());
-      assertEquals("user " + REALM1_USER_1_ID + " created reply " + createdReply1.getId(), metaform1AuditLogs.get(0).getMessage());
-      assertEquals("user " + REALM1_USER_1_ID + " created reply " + createdReply2.getId(), metaform2AuditLogs.get(0).getMessage());
+      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()), metaform1AuditLogs.get(0).getMessage());
+      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply2.getId()), metaform2AuditLogs.get(0).getMessage());
     } finally {
       adminMetaformsApi.deleteMetaform(metaform1.getId());
       adminMetaformsApi.deleteMetaform(metaform2.getId());
@@ -140,7 +141,7 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 
       List<AuditLogEntry> entryByReply = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, createdReply.getId(), null, null);
       assertEquals(1, entryByReply.size());
-      assertEquals("user b6039e55-3758-4252-9858-a973b0988b63 created reply "+createdReply.getId(), entryByReply.get(0).getMessage());
+      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply.getId()), entryByReply.get(0).getMessage());
 
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());

@@ -266,7 +266,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
     AuditLogEntry auditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId);
     auditLogEntryController.deleteAuditLogEntry(auditLogEntry);
-    return null;
+    return createNoContent();
   }
 
   @Override
@@ -746,8 +746,8 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, null, null, null, null, null, false, null);
       List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply, null)).collect(Collectors.toList());
 
-      UUID userId = getLoggerUserId();
-      replies.forEach(r->auditLogEntryController.generateAuditLog(metaform, userId, r.getId(), null, null, AuditLogEntryType.EXPORT_REPLY_XLSX));
+      UUID loggedUserId = getLoggerUserId();
+      replies.forEach(r->auditLogEntryController.generateAuditLog(metaform, loggedUserId, r.getId(), null, null, AuditLogEntryType.EXPORT_REPLY_XLSX));
 
       try {
         return streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

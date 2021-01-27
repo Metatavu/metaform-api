@@ -460,10 +460,10 @@
       <column name="userid" type="binary(16)">
         <constraints nullable="false"/>
       </column>
-      <column name="replyId" type="binary(16)">
+      <column name="replyid" type="binary(16)">
         <constraints nullable="true"/>
       </column>
-      <column name="attachmentId" type="binary(16)">
+      <column name="attachmentid" type="binary(16)">
         <constraints nullable="true"/>
       </column>
       <column name="time" type="datetime(6)">
@@ -472,7 +472,7 @@
       <column name="message" type="longtext">
         <constraints nullable="false"/>
       </column>
-      <column name="logEntryType" type="varchar(16)">
+      <column name="logentrytype" type="varchar(16)">
         <constraints nullable="false"/>
       </column>
     </createTable>

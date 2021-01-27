@@ -32,9 +32,8 @@ public class AuditLogEntryController {
    * @param message message
    * @return created entry
    */
-  public AuditLogEntry createAuditLogEntry(Metaform metaform, UUID userId, AuditLogEntryType type, UUID replyId,
-                                           UUID attachmentId, String message) {
-    return auditLogEntryDAO.create(UUID.randomUUID(), metaform, userId, OffsetDateTime.now(), type, replyId, attachmentId, message);
+  public AuditLogEntry createAuditLogEntry(Metaform metaform, UUID userId, AuditLogEntryType type, UUID replyId, UUID attachmentId, String message) {
+    return auditLogEntryDAO.create(UUID.randomUUID(), metaform, userId, type, replyId, attachmentId, message);
   }
 
   /**
@@ -48,7 +47,7 @@ public class AuditLogEntryController {
    * @return list of AuditLogEntries
    */
   public List<AuditLogEntry> listAuditLogEntries(Metaform metaform, UUID replyId, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter) {
-    return auditLogEntryDAO.listAuditLogEntries(metaform, replyId, userId, createdBefore, createdAfter);
+    return auditLogEntryDAO.list(metaform, replyId, userId, createdBefore, createdAfter);
   }
 
   /**
@@ -63,7 +62,7 @@ public class AuditLogEntryController {
   /**
    * Finds audit log entry by id
    *
-   * @param auditLogEntryId	auditLogEntryId
+   * @param auditLogEntryId auditLogEntryId
    * @return audit log entry
    */
   public AuditLogEntry findAuditLogEntryById(UUID auditLogEntryId) {
@@ -77,7 +76,7 @@ public class AuditLogEntryController {
    * @param userId userId
    * @param replyId replyId
    * @param attachmentId attachmentId
-   * @param type  logEntryType
+   * @param type logEntryType
    */
   public AuditLogEntry generateAuditLog(fi.metatavu.metaform.server.persistence.model.Metaform metaform, UUID userId, UUID replyId, UUID attachmentId, String action, AuditLogEntryType type){
     String defaction = "";

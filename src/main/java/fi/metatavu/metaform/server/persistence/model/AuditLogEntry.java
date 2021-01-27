@@ -26,8 +26,7 @@ public class AuditLogEntry {
   @NotNull
   private UUID userId;
 
-  @Column(nullable = false)
-  @NotNull
+  @Column (nullable = false)
   private OffsetDateTime time;
 
   @Column
@@ -65,9 +64,9 @@ public class AuditLogEntry {
   }
 
   /**
-   * Gets userId of the user who accessed the Reply
+   * Gets id of user who caused creation of the audit log entry
    *
-   * @return userId
+   * @return id of user who caused creation of the audit log entry
    */
   public UUID getUserId() {
       return userId;
@@ -188,5 +187,10 @@ public class AuditLogEntry {
    */
   public void setMetaform(Metaform metaform) {
     this.metaform = metaform;
+  }
+
+  @PrePersist
+  public void onCreate() {
+    setTime(OffsetDateTime.now());
   }
 }

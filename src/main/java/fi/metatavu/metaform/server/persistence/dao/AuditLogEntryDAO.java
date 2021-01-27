@@ -29,19 +29,16 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
    * @param id uuid of log entry
    * @param metaform metaform
    * @param userId userId
-   * @param time time
    * @param replyId replyId
    * @param attachmentId attachmentId
    * @param message message
    * @return created auditlogentry
    */
-  public AuditLogEntry create(UUID id, Metaform metaform, UUID userId, OffsetDateTime time, AuditLogEntryType auditLogEntryType, UUID replyId,
-                              UUID attachmentId, String message){
+  public AuditLogEntry create(UUID id, Metaform metaform, UUID userId, AuditLogEntryType auditLogEntryType, UUID replyId, UUID attachmentId, String message) {
     AuditLogEntry auditLogEntry = new AuditLogEntry();
     auditLogEntry.setId(id);
     auditLogEntry.setMetaform(metaform);
     auditLogEntry.setUserId(userId);
-    auditLogEntry.setTime(time);
     auditLogEntry.setLogEntryType(auditLogEntryType);
     auditLogEntry.setReplyId(replyId);
     auditLogEntry.setAttachmentId(attachmentId);
@@ -50,42 +47,50 @@ public class AuditLogEntryDAO extends AbstractDAO<AuditLogEntry> {
     return persist(auditLogEntry);
   }
 
-    /**
-     * Gets audit log entries by replies, user id, created before and after parameters
-     *
-     * @param metaform replyId
-     * @param replyId replyId
-     * @param userId userId
-     * @param createdBefore created before
-     * @param createdAfter created after
-     * @return list of AuditLogEntry
-     */
-    public List<AuditLogEntry> listAuditLogEntries(Metaform metaform, UUID replyId, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter) {
-      EntityManager entityManager = getEntityManager();
+  /**
+   * Gets audit log entries by replies, user id, created before and after parameters
+   *
+   * @param metaform replyId
+   * @param replyId replyId
+   * @param userId userId
+   * @param createdBefore created before
+   * @param createdAfter created after
+   * @return list of AuditLogEntry
+   */
+  public List<AuditLogEntry> list(Metaform metaform, UUID replyId, UUID userId, OffsetDateTime createdBefore, OffsetDateTime createdAfter) {
+    EntityManager entityManager = getEntityManager();
 
-      CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-      CriteriaQuery<AuditLogEntry> criteria = criteriaBuilder.createQuery(AuditLogEntry.class);
-      Root<AuditLogEntry> root = criteria.from(AuditLogEntry.class);
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<AuditLogEntry> criteria = criteriaBuilder.createQuery(AuditLogEntry.class);
+    Root<AuditLogEntry> root = criteria.from(AuditLogEntry.class);
 
-      List<Predicate> restrictions = new ArrayList<>();
+    List<Predicate> restrictions = new ArrayList<>();
 
-      restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform));
+    restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform));
 
-      if (replyId != null)
-        restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.replyId), replyId));
-      if (userId != null)
-        restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.userId), userId));
-      if (createdBefore != null)
-        restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(AuditLogEntry_.time), createdBefore));
-      if (createdAfter != null)
-        restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(AuditLogEntry_.time), createdAfter));
-
-      criteria.select(root);
-      criteria.where(criteriaBuilder.and(restrictions.toArray(new Predicate[0])));
-      criteria.orderBy(criteriaBuilder.asc(root.get(AuditLogEntry_.time)));
-      TypedQuery<AuditLogEntry> query = entityManager.createQuery(criteria);
-      return query.getResultList();
+    if (replyId != null) {
+      restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.replyId), replyId));
     }
+
+    if (userId != null) {
+      restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.userId), userId));
+    }
+
+    if (createdBefore != null) {
+      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(AuditLogEntry_.time), createdBefore));
+    }
+
+    if (createdAfter != null) {
+      restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(AuditLogEntry_.time), createdAfter));
+    }
+
+    criteria.select(root);
+    criteria.where(criteriaBuilder.and(restrictions.toArray(new Predicate[0])));
+    criteria.orderBy(criteriaBuilder.asc(root.get(AuditLogEntry_.time)));
+    TypedQuery<AuditLogEntry> query = entityManager.createQuery(criteria);
+
+    return query.getResultList();
+  }
 
   /**
    * Lists audit log entries by metaform
