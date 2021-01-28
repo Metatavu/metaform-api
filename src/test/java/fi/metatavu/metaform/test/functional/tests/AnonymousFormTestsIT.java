@@ -7,7 +7,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Tests for testing anonymous user functionality
+ * Tests for testing anonymous user form functionality
  */
 public class AnonymousFormTestsIT {
 
