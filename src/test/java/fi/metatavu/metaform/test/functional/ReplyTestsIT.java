@@ -33,7 +33,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   private static final ZoneId TIMEZONE = ZoneId.of("Europe/Helsinki");
 
   @Test
-  public void createReplyNotLoggedIn() throws IOException, URISyntaxException {
+  public void createReplyNotLoggedIn() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
     
@@ -53,7 +53,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   }
   
   @Test
-  public void createReply() throws IOException, URISyntaxException {
+  public void createReply() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
@@ -71,6 +71,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
         Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
         assertNotNull(foundReply);
         assertNotNull(foundReply.getId());
+        assertNotNull(foundReply.getData());
         assertEquals("Test text value", foundReply.getData().get("text"));
       } finally {
         adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
@@ -81,7 +82,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   }
   
   @Test
-  public void createReplyUpdateExisting() throws IOException, URISyntaxException {
+  public void createReplyUpdateExisting() throws IOException {
     String adminToken = getAdminToken(REALM_1);
     String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
     MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
@@ -102,6 +103,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       try {
         assertNotNull(createdReply1);
         assertNotNull(createdReply1.getId());
+        assertNotNull(createdReply1.getData());
         assertEquals("Test text value", createdReply1.getData().get("text"));
 
         Reply createdReply2 = repliesApi.createReply(metaform.getId(), reply2,  null, ReplyMode.UPDATE.toString());
@@ -488,7 +490,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       assertNotNull(reply2.getOwnerKey());
       assertNotEquals(reply1.getOwnerKey(), reply2.getOwnerKey());
 
-      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken(REALM_1));
+      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken());
       anonymousRepliesApi.findReply(metaform.getId(), reply1.getId(), reply1.getOwnerKey());
 
       assertReplyOwnerKeyFindForbidden(anonymousRepliesApi, metaform, reply1, null);
@@ -511,7 +513,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       assertNotNull(reply2.getOwnerKey());
       assertNotEquals(reply1.getOwnerKey(), reply2.getOwnerKey());
 
-      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken(REALM_1));
+      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken());
       anonymousRepliesApi.updateReply(metaform.getId(), reply1.getId(), reply1, reply1.getOwnerKey());
 
       assertReplyOwnerKeyUpdateForbidden(anonymousRepliesApi, metaform, reply1, null);
@@ -534,7 +536,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       assertNotNull(reply2.getOwnerKey());
       assertNotEquals(reply1.getOwnerKey(), reply2.getOwnerKey());
 
-      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken(REALM_1));
+      RepliesApi anonymousRepliesApi = getRepliesApi(getAnonymousToken());
       
       assertReplyOwnerKeyDeleteForbidden(anonymousRepliesApi, metaform, reply1, null);
       assertReplyOwnerKeyDeleteForbidden(anonymousRepliesApi, metaform, reply1, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgZEinFR6yjNnV4utVbvU9KQ8lZasbAWKQJXjp2VzcyQfE1WvH5dMJmI-sgmPyaZFcJLk9tgLfZilytGmeopfafkWp7yVa9zWYAfni0eJmCL9EcemRb_rDNw07Mf1Vb1lbLhLth8r6a2SVGk_dK14TXeGQSX9zROmiqjeT_FXe2Yz8EnvUweLQ5TobVE-azzyW0dqzjoSkBNfZ8r2hot4hQ2mQthU5xaAnOfDeCc95E7cci4-Dnx3B8U_UaHOn7Srf6DdsL_ZDvnSh1CvYiGNOYMpk-TLK6ixH-m83rweBjQ1hl1N_5I3cplmuJGCJLBxDauyjfBYIfR9WkBoau1eDQIDAQAB");
@@ -561,14 +563,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       adminMetaformsApi.updateMetaform(metaform.getId(), metaform);
       Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
 
-      given()
-        .baseUri(getBasePath())
-        .header("Authorization", String.format("Bearer %s", getAdminToken(REALM_1)))
-        .get("/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.getId().toString(), reply.getId().toString())
-        .then()
-        .assertThat()
-        .statusCode(200)
-        .header("Content-Type", "application/pdf");   
+      assertPdfDownloadStatus(200, getAdminToken(REALM_1), metaform, reply);
     } finally {
       dataBuilder.clean();
     }
@@ -587,14 +582,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       adminMetaformsApi.updateMetaform(metaform.getId(), metaform);
       Reply reply = dataBuilder.createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
 
-      given()
-        .baseUri(getBasePath())
-        .header("Authorization", String.format("Bearer %s", getAdminToken(REALM_1)))
-        .get("/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.getId().toString(), reply.getId().toString())
-        .then()
-        .assertThat()
-        .statusCode(200)
-        .header("Content-Type", "application/pdf");   
+      assertPdfDownloadStatus(200, getAdminToken(REALM_1), metaform, reply);
     } finally {
       dataBuilder.clean();
     }

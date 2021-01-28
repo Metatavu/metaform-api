@@ -18,11 +18,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import fi.metatavu.metaform.client.model.AuditLogEntryType;
+import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
+import fi.metatavu.metaform.server.persistence.model.AuditLogEntry;
+import fi.metatavu.metaform.server.rest.translate.*;
+import fi.metatavu.metaform.server.settings.SystemSettingController;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.EnumUtils;
@@ -101,6 +107,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   private static final String NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE = "You are not allowed to edit this reply";
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
+  private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
 
   @Inject
   private Logger logger;
@@ -149,7 +156,16 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
 
   @Inject
   private CryptoController cryptoController;
-  
+
+  @Inject
+  private AuditLogEntryController auditLogEntryController;
+
+  @Inject
+  private AuditLogEntryTranslator auditLogEntryTranslator;
+
+  @Inject
+  private SystemSettingController systemSettingController;
+
   @Override
   @SuppressWarnings ("squid:S3776")
   public Response createReply(UUID metaformId, Reply payload, Boolean updateExisting, String replyModeParam) {
@@ -208,7 +224,11 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         String fieldName = entry.getKey();
         Object fieldValue = entry.getValue();
         MetaformField field = fieldMap.get(fieldName);
-        
+
+        if (field == null) {
+          return createBadRequest(String.format("Invalid field %s", fieldName));
+        }
+
         if (fieldValue != null) {
           if (!replyController.isValidFieldValue(field, fieldValue)) {
             return createBadRequest(String.format("Invalid field value for field %s", fieldName));
@@ -226,10 +246,27 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
       scriptController.runScripts(metaformEntity.getScripts().getAfterCreateReply());
     }
-    
+
     handleReplyPostPersist(true, metaform, reply, replyEntity, permissionGroups);
 
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.CREATE_REPLY);
     return createOk(replyEntity);
+  }
+
+  @Override
+  public Response deleteAuditLogEntry(UUID metaformId, UUID auditLogEntryId) {
+    if (!systemSettingController.inTestMode()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    AuditLogEntry auditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId);
+    auditLogEntryController.deleteAuditLogEntry(auditLogEntry);
+    return createNoContent();
   }
 
   @Override
@@ -253,9 +290,34 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     }
     
     Metaform metaformEntity = metaformTranslator.translateMetaform(metaform);
+
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.VIEW_REPLY);
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
-  
+
+
+  @Override
+  public Response listAuditLogEntries(UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
+    if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE))
+      return createForbidden(String.format("Only users with %s can access this view", VIEW_AUDIT_LOGS_ROLE));
+
+    OffsetDateTime createdBeforeTime = parseTime(createdBefore);
+    OffsetDateTime createdAfterTime = parseTime(createdAfter);
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
+    if (metaform == null) {
+      throw new NotFoundException(NOT_FOUND_MESSAGE);
+    }
+
+    List<AuditLogEntry> auditLogEntries = auditLogEntryController.listAuditLogEntries(metaform, replyId, userId, createdBeforeTime, createdAfterTime);
+
+    List<fi.metatavu.metaform.server.rest.model.AuditLogEntry> result = auditLogEntries.stream()
+            .map(entity -> auditLogEntryTranslator.translateAuditLogEntry(entity))
+            .collect(Collectors.toList());
+
+    return createOk(result);
+  }
+
   @Override
   public Response listReplies(UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) {
     if (firstResult != null) {
@@ -288,15 +350,18 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
         userId, 
         createdBefore, 
         createdAfter, 
-        modifiedBefore, 
+        modifiedBefore,
         modifiedAfter,
-        includeRevisions == null ? false : includeRevisions,
+        includeRevisions != null && includeRevisions,
         fieldFilters);
+
+    UUID loggedUser = getLoggerUserId();
+    replies.forEach(reply -> auditLogEntryController.generateAuditLog(metaform, loggedUser, reply.getId(), null, null, AuditLogEntryType.LIST_REPLY));
     
     List<Reply> result = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW).stream()
       .map(entity -> replyTranslator.translateReply(metaformEntity, entity, null))
       .collect(Collectors.toList());
-    
+
     return createOk(result);
   }
 
@@ -350,7 +415,8 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       setupFormRuntimeContext(metaform, metaformEntity, replyEntity);
       scriptController.runScripts(metaformEntity.getScripts().getAfterUpdateReply());
     }
-    
+
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.MODIFY_REPLY);
     handleReplyPostPersist(false, metaform, reply, replyEntity, newPermissionGroups);
     
     return createNoContent();
@@ -376,9 +442,10 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
+    auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
     replyController.deleteReply(reply);
-    
-    return null;
+
+    return createNoContent();
   }
 
   @Override
@@ -400,7 +467,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    if (!isRealmMetaformAdmin() && !getLoggerUserId().equals(reply.getUserId())) {
+    if (!isPermittedReply(reply, null, AuthorizationScope.REPLY_VIEW)) {
       return createForbidden(NOT_ALLOWED_TO_VIEW_REPLY_MESSAGE);
     }
     
@@ -418,6 +485,8 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     
     try {
       byte[] pdfData = replyController.getReplyPdf(metaform.getExportTheme().getName(), metaformEntity, replyEntity, attachmentMap, locale);
+      auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), replyId, null, null, AuditLogEntryType.EXPORT_REPLY_PDF);
+
       return streamResponse(pdfData, "application/pdf");
     } catch (PdfRenderException e) {
       logger.error("Failed to generate PDF", e);
@@ -576,29 +645,32 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
     }
 
-    return createOk(metaformController.listMetaforms().stream().map((entity) -> {
-      return metaformTranslator.translateMetaform(entity);
-    }).collect(Collectors.toList()));
+    return createOk(metaformController.listMetaforms().stream().map(entity -> metaformTranslator.translateMetaform(entity)).collect(Collectors.toList()));
   }
 
-  public Response findMetaform(UUID metaformId) {
-    // TODO: Permission check
-    
+  @Override
+  public Response findMetaform(UUID metaformId, UUID replyId, String ownerKey) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
     }
-    
+
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
-    boolean anonymous = !isRealmUser();
-    if (!metaform.getAllowAnonymous() && anonymous) {
-      return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+
+    if (!metaform.getAllowAnonymous() && !isRealmUser()) {
+      fi.metatavu.metaform.server.persistence.model.Reply reply = replyId != null ? replyController.findReplyById(replyId) : null;
+      if (reply == null || !metaform.getId().equals(reply.getMetaform().getId()) || ownerKey == null) {
+        return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+      }
+
+      if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_VIEW)) {
+        return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+      }
     }
-    
+
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
@@ -679,7 +751,10 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       
       List<fi.metatavu.metaform.server.persistence.model.Reply> replies = replyController.listReplies(metaform, null, null, null, null, null, false, null);
       List<Reply> replyEntities = replies.stream().map(reply -> replyTranslator.translateReply(metaformEntity, reply, null)).collect(Collectors.toList());
-      
+
+      UUID loggedUserId = getLoggerUserId();
+      replies.forEach(reply->auditLogEntryController.generateAuditLog(metaform, loggedUserId, reply.getId(), null, null, AuditLogEntryType.EXPORT_REPLY_XLSX));
+
       try {
         return streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
       } catch (XlsxException e) {
@@ -750,12 +825,12 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     if (isRealmMetaformAdmin() || isRealmMetaformSuper() || hasRealmRole(VIEW_ALL_REPLIES_ROLE)) {
       return replies;
     }
-    
+
     Set<UUID> resourceIds = replies.stream()
-      .filter(reply -> reply.getResourceId() != null)
       .map(fi.metatavu.metaform.server.persistence.model.Reply::getResourceId)
+      .filter(Objects::nonNull)
       .collect(Collectors.toSet());
-    
+
     Set<UUID> permittedResourceIds = getPermittedResourceIds(resourceIds, authorizationScope);
     
     return replies.stream()
@@ -774,7 +849,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     Set<UUID> permittedResourceIds = getPermittedResourceIds(Collections.singleton(resourceId), authorizationScope);
     return permittedResourceIds.size() == 1 && resourceId.equals(permittedResourceIds.iterator().next());
   }
-  
+
   /**
    * Filters out resource ids without permission
    * 
@@ -786,7 +861,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     try {
       AuthorizationRequest request = new AuthorizationRequest();
       
-      resourceIds.stream().forEach(resourceId -> request.addPermission(resourceId.toString(), authorizationScope.getName()));
+      resourceIds.forEach(resourceId -> request.addPermission(resourceId.toString(), authorizationScope.getName()));
 
       AuthorizationResponse response = getAuthzClient().authorization(getTokenString()).authorize(request);
       TokenIntrospectionResponse irt = getAuthzClient().protection().introspectRequestingPartyToken(response.getToken());
@@ -809,10 +884,9 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * Handles reply post persist tasks. Tasks include adding to user groups permissions and notifying users about the reply
    * 
    * @param replyCreated whether the reply was just created
-   * @param metaform
-   * @param reply
-   * @param metaformEntity
-   * @param replyEntity
+   * @param metaform metaform
+   * @param reply reply
+   * @param replyEntity reply entity
    * @param newPermissionGroups added permission groups
    */
   private void handleReplyPostPersist(boolean replyCreated, fi.metatavu.metaform.server.persistence.model.Metaform metaform, fi.metatavu.metaform.server.persistence.model.Reply reply, Reply replyEntity, EnumMap<AuthorizationScope, List<String>> newPermissionGroups) {
@@ -876,7 +950,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
    * @return reply object
    */
   private fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(ReplyMode replyMode, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId, PrivateKey privateKey) {
-    fi.metatavu.metaform.server.persistence.model.Reply reply = null;
+    fi.metatavu.metaform.server.persistence.model.Reply reply;
     
     if (anonymous || replyMode == ReplyMode.CUMULATIVE) {
       reply = replyController.createReply(userId, metaform, privateKey);
@@ -1106,13 +1180,15 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       
       HashSet<UUID> policyIds = new HashSet<>(groupPolicyIds);
       policyIds.addAll(commonPolicyIds);
-      
+
+      assert resourceId != null;
       KeycloakAdminUtils.upsertScopePermission(keycloak, keycloakClient, resourceId, Collections.singleton(scope), getReplyPermissionName(reply, scope.getName().toLowerCase()), DecisionStrategy.AFFIRMATIVE, policyIds);
     }
     
     Set<UUID> userPolicyIds = KeycloakAdminUtils.getPolicyIdsByNames(keycloak, keycloakClient, Arrays.asList(USER_POLICY_NAME));
     
     if (metaform.getAllowAnonymous()) {
+      assert resourceId != null;
       KeycloakAdminUtils.upsertScopePermission(keycloak, keycloakClient, resourceId, Collections.singleton(AuthorizationScope.REPLY_VIEW), "require-user", DecisionStrategy.AFFIRMATIVE, userPolicyIds);
     }
     
@@ -1122,7 +1198,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
   /**
    * Updates permission groups to match metaform
    * 
-   * @param realmName realm
+   * @param formSlug form slug
    * @param metaformEntity Metaform REST entity
    */
   private void updateMetaformPermissionGroups(String formSlug, Metaform metaformEntity) {
@@ -1263,5 +1339,5 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       
     return null;
   }
-  
+
 }
