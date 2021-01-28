@@ -57,7 +57,7 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
         assertEquals(20d, tableSheet.getRow(2).getCell(1).getNumericCellValue(), 0);
         assertEquals(30d, tableSheet.getRow(3).getCell(1).getNumericCellValue(), 0);
         assertEquals("SUM(B2:B3)", tableSheet.getRow(3).getCell(1).getCellFormula());
-        
+
       }
     } finally {
       adminMetaformsApi.deleteMetaform(metaform.getId());

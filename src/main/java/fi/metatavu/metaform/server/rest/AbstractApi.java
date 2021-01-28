@@ -43,6 +43,7 @@ public abstract class AbstractApi {
   protected static final String ADMIN_ROLE = "metaform-admin";
   protected static final String SUPER_ROLE = "metaform-super";
   protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
+  protected static final String VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs";
   protected static final String NOT_FOUND_MESSAGE = "Not found";
   protected static final String UNAUTHORIZED = "Unauthorized";
   
@@ -281,7 +282,7 @@ public abstract class AbstractApi {
   /**
    * Returns whether logged user has at least one of specified realm roles
    * 
-   * @param role role
+   * @param roles roles
    * @return whether logged user has specified realm role or not
    */
   protected boolean hasRealmRole(String... roles) {

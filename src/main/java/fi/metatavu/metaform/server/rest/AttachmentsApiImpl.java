@@ -8,7 +8,9 @@ import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
 import _fi.metatavu.metaform.server.rest.api.AttachmentsApi;
+import fi.metatavu.metaform.client.model.AuditLogEntryType;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
+import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
 import fi.metatavu.metaform.server.persistence.model.Reply;
@@ -33,6 +35,9 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
 
   @Inject
   private ReplyController replyController;
+
+  @Inject
+  private AuditLogEntryController auditLogEntryController;
   
   @Override
   public Response findAttachment(UUID attachmentId, String ownerKey) {
@@ -44,6 +49,8 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
     if (!isPermittedAttachment(attachment, ownerKey)) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
+
+    logAttachmentAccess(attachment, null, AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT);
 
     return createOk(attachmentTranslator.translateAttachment(attachment));
   }
@@ -58,6 +65,8 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
     if (!isPermittedAttachment(attachment, ownerKey)) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
+
+    logAttachmentAccess(attachment, null, AuditLogEntryType.VIEW_REPLY_ATTACHMENT);
 
     return streamResponse(attachment.getContent(), attachment.getContentType());
   }
@@ -80,5 +89,18 @@ public class AttachmentsApiImpl extends AbstractApi implements AttachmentsApi {
     }
 
     return replyController.isValidOwnerKey(reply, ownerKey);
+  }
+
+  /**
+   * Creates audit log entry for attachment and saves it
+   *
+   * @param attachment attachment
+   * @param action action
+   * @param auditLogEntryType auditLogEntryType
+   */
+  private void logAttachmentAccess(Attachment attachment, String action, AuditLogEntryType auditLogEntryType){
+    Reply replyByAttachment = attachmentController.findReplyByAttachment(attachment);
+    auditLogEntryController.generateAuditLog(replyByAttachment.getMetaform(), getLoggerUserId(),
+      replyByAttachment.getId(), attachment.getId(), action, auditLogEntryType);
   }
 }

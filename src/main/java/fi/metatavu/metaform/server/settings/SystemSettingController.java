@@ -16,7 +16,7 @@ public class SystemSettingController {
    * @return whether the system is running in test mode or not
    */
   public boolean inTestMode() {
-    return "TEST".equals(System.getProperty("runmode"));
+    return "TEST".equals(System.getenv("runmode"));
   }
   
 }

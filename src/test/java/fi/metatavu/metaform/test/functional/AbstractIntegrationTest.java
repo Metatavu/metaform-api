@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import io.restassured.response.ValidatableResponse;
+import fi.metatavu.metaform.client.api.*;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -38,15 +39,8 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import feign.Feign.Builder;
 import fi.metatavu.feign.UmaErrorDecoder;
 import fi.metatavu.metaform.client.ApiClient;
-import fi.metatavu.metaform.client.api.AttachmentsApi;
-import fi.metatavu.metaform.client.api.EmailNotificationsApi;
-import fi.metatavu.metaform.client.api.ExportThemeFilesApi;
-import fi.metatavu.metaform.client.api.ExportThemesApi;
 import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.api.RepliesApi;
 import fi.metatavu.metaform.client.model.Reply;
-import fi.metatavu.metaform.client.api.DraftsApi;
 
 
 /**
@@ -64,6 +58,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
+  protected static final UUID REALM1_USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5");
 
   @After
   public void properlyCleaned() {
@@ -155,6 +150,17 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
   protected RepliesApi getRepliesApi(String accessToken) {
     ApiClient apiClient = getApiClient(accessToken);
     return apiClient.buildClient(RepliesApi.class);
+  }
+
+  /**
+   * Returns AuditLogEntriesApi authenticated by the given access token
+   *
+   * @param accessToken token
+   * @return replies API authenticated by the given access token
+   */
+  protected AuditLogEntriesApi getAuditLogEntriesApi(String accessToken) {
+    ApiClient apiClient = getApiClient(accessToken);
+    return apiClient.buildClient(AuditLogEntriesApi.class);
   }
 
   /**
