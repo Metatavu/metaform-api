@@ -19,62 +19,62 @@ import fi.metatavu.metaform.test.functional.settings.TestSettings;
  */
 public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthentication<ApiClient> {
 
-    private TestBuilder testBuilder;
-    private MetaformTestBuilderResource metaforms;
-    private ReplyTestBuilderResource replies;
+  private TestBuilder testBuilder;
+  private MetaformTestBuilderResource metaforms;
+  private ReplyTestBuilderResource replies;
 
-    /**
-     * Constructor
-     *
-     * @param testBuilder testBuilder
-     * @param accessTokenProvider access token builder
-     */
-    public TestBuilderAuthentication(TestBuilder testBuilder, AccessTokenProvider accessTokenProvider) throws IOException {
-        super(testBuilder, accessTokenProvider);
-        this.testBuilder = testBuilder;
+  /**
+   * Constructor
+   *
+   * @param testBuilder         testBuilder
+   * @param accessTokenProvider access token builder
+   */
+  public TestBuilderAuthentication(TestBuilder testBuilder, AccessTokenProvider accessTokenProvider) throws IOException {
+    super(testBuilder, accessTokenProvider);
+    this.testBuilder = testBuilder;
+  }
+
+  /**
+   * Returns metaform test builder resource
+   *
+   * @return metaform test builder resource
+   * @throws IOException thrown on communication error
+   */
+  public MetaformTestBuilderResource metaforms() throws IOException {
+    if (metaforms == null) {
+      metaforms = new MetaformTestBuilderResource(testBuilder, createClient());
     }
 
-    /**
-     * Returns metaform test builder resource
-     *
-     * @return metaform test builder resource
-     * @throws IOException thrown on communication error
-     */
-    public MetaformTestBuilderResource metaforms() throws IOException {
-        if (metaforms == null) {
-            metaforms = new MetaformTestBuilderResource(testBuilder, createClient());
-        }
+    return metaforms;
+  }
 
-        return metaforms;
+  /**
+   * Returns replies test builder resource
+   *
+   * @return replies test builder resource
+   * @throws IOException thrown on communication error
+   */
+  public ReplyTestBuilderResource replies() throws IOException {
+    if (replies == null) {
+      replies = new ReplyTestBuilderResource(testBuilder, createClient());
     }
 
-    /**
-     * Returns replies test builder resource
-     *
-     * @return replies test builder resource
-     * @throws IOException thrown on communication error
-     */
-    public ReplyTestBuilderResource replies() throws IOException {
-        if (replies == null) {
-            replies = new ReplyTestBuilderResource(testBuilder, createClient());
-        }
+    return replies;
+  }
 
-        return replies;
+  @Override
+  protected ApiClient createClient(String accessToken) {
+    String authorization = accessToken != null ? String.format("Bearer %s", accessToken) : null;
+    ApiClient apiClient = authorization != null ? new ApiClient("bearer", authorization) : new ApiClient();
+
+    String basePath = TestSettings.getApiBasePath();
+    if (accessToken != null) {
+      Builder feignBuilder = apiClient.getFeignBuilder();
+      feignBuilder.errorDecoder(new UmaErrorDecoder(feignBuilder, authorization, apiClient::setApiKey));
     }
 
-    @Override
-    protected ApiClient createClient(String accessToken) {
-        String authorization = accessToken != null ? String.format("Bearer %s", accessToken) : null;
-        ApiClient apiClient = authorization != null ? new ApiClient("bearer", authorization) : new ApiClient();
-
-        String basePath = TestSettings.getApiBasePath();
-        if (accessToken != null) {
-            Builder feignBuilder = apiClient.getFeignBuilder();
-            feignBuilder.errorDecoder(new UmaErrorDecoder(feignBuilder, authorization, apiClient::setApiKey));
-        }
-
-        apiClient.setBasePath(basePath);
-        return apiClient;
-    }
+    apiClient.setBasePath(basePath);
+    return apiClient;
+  }
 
 }
