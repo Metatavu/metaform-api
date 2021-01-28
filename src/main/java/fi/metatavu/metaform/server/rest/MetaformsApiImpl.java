@@ -178,7 +178,7 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
     boolean anonymous = !isRealmUser();
     if (!metaform.getAllowAnonymous() && anonymous) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
@@ -371,15 +371,15 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    if (!isRealmUser()) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE);
-    }
-    
     fi.metatavu.metaform.server.persistence.model.Reply reply = replyController.findReplyById(replyId);
     if (reply == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!reply.getMetaform().getId().equals(metaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
     if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_EDIT)) {
       return createForbidden(NOT_ALLOWED_TO_UPDATE_REPLY_MESSAGE);
     }
