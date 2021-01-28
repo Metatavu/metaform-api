@@ -282,7 +282,7 @@ public abstract class AbstractApi {
   /**
    * Returns whether logged user has at least one of specified realm roles
    * 
-   * @param role role
+   * @param roles roles
    * @return whether logged user has specified realm role or not
    */
   protected boolean hasRealmRole(String... roles) {

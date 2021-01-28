@@ -442,9 +442,10 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    replyController.deleteReply(reply);
     auditLogEntryController.generateAuditLog(metaform, getLoggerUserId(), reply.getId(), null, null, AuditLogEntryType.DELETE_REPLY);
-    return null;
+    replyController.deleteReply(reply);
+
+    return createNoContent();
   }
 
   @Override
@@ -647,24 +648,29 @@ public class MetaformsApiImpl extends AbstractApi implements MetaformsApi {
     return createOk(metaformController.listMetaforms().stream().map(entity -> metaformTranslator.translateMetaform(entity)).collect(Collectors.toList()));
   }
 
-  public Response findMetaform(UUID metaformId) {
-    // TODO: Permission check
-    
+  @Override
+  public Response findMetaform(UUID metaformId, UUID replyId, String ownerKey) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
       return createForbidden(UNAUTHORIZED);
     }
-    
+
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
-    boolean anonymous = !isRealmUser();
-    if (!metaform.getAllowAnonymous() && anonymous) {
-      return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+
+    if (!metaform.getAllowAnonymous() && !isRealmUser()) {
+      fi.metatavu.metaform.server.persistence.model.Reply reply = replyId != null ? replyController.findReplyById(replyId) : null;
+      if (reply == null || !metaform.getId().equals(reply.getMetaform().getId()) || ownerKey == null) {
+        return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+      }
+
+      if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_VIEW)) {
+        return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
+      }
     }
-    
+
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 

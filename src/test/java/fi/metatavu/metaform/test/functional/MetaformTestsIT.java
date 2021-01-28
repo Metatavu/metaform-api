@@ -16,7 +16,7 @@ import fi.metatavu.metaform.client.api.MetaformsApi;
 public class MetaformTestsIT extends AbstractIntegrationTest {
   
   @Test
-  public void testCreateMetaform() throws IOException, URISyntaxException {
+  public void testCreateMetaform() throws IOException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
     try {
       Metaform metaform = dataBuilder.createMetaform("simple");
@@ -65,7 +65,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
     try {
       MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
       Metaform metaform = dataBuilder.createMetaform("simple");
-      Metaform foundMetaform = adminMetaformsApi.findMetaform(metaform.getId());
+      Metaform foundMetaform = adminMetaformsApi.findMetaform(metaform.getId(), null, null);
       assertEquals(metaform.toString(), foundMetaform.toString());
     } finally {
       dataBuilder.clean();
@@ -91,9 +91,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
 
       List<Metaform> list = adminMetaformsApi.listMetaforms();
       
-      list.sort((o1, o2) -> {
-        return o1.getTitle().compareTo(o2.getTitle());
-      });
+      list.sort((o1, o2) -> o1.getTitle().compareTo(o2.getTitle()));
 
       assertEquals(metaform1.toString(), list.get(0).toString());
       assertEquals(metaform2.toString(), list.get(1).toString());

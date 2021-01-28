@@ -109,6 +109,7 @@
     <awaitility.version>3.1.2</awaitility.version>
     <pdfbox.version>2.0.8</pdfbox.version>    
     <mariadb-module.version>2.3.0</mariadb-module.version>
+    <jaxrs-functional-test-builder.version>1.0.4</jaxrs-functional-test-builder.version>
   </properties>
 
   <dependencyManagement>
@@ -521,12 +522,19 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
       <version>${awaitility.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>fi.metatavu.jaxrs.testbuilder</groupId>
+      <artifactId>jaxrs-functional-test-builder</artifactId>
+      <scope>test</scope>
+      <version>${jaxrs-functional-test-builder.version}</version>
     </dependency>
 
     <dependency>
@@ -726,11 +734,11 @@
                     <ports>
                       <port>1234:8080</port>
                     </ports>
-                    <links> 
+                    <links>
                       <link>test-mysql:test-mysql</link>
                       <link>test-keycloak:test-keycloak</link>
                       <link>test-wiremock:test-wiremock</link>
-                    </links>                    
+                    </links>
                     <env>
                       <METAFORM_API_CLUSTER_PASSWORD>clusterpass</METAFORM_API_CLUSTER_PASSWORD>
                       <METAFORM_API_HOST>localhost</METAFORM_API_HOST>
