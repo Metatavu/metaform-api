@@ -20,6 +20,16 @@ import com.itextpdf.text.Image;
 
 public class Base64ImageReplacedElementFactory implements ReplacedElementFactory {
 
+  /**
+   * Creates a replacement image
+   *
+   * @param c layout context
+   * @param box block box
+   * @param uac user agent callback
+   * @param cssWidth css width
+   * @param cssHeight css height
+   * @return replaced image
+   */
   public ReplacedElement createReplacedElement(LayoutContext c, BlockBox box, UserAgentCallback uac, int cssWidth, int cssHeight) {
     Element element = box.getElement();
     if (element == null) {
