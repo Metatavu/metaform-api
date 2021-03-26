@@ -3,9 +3,8 @@ package fi.metatavu.metaform.server.metaforms;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.api.spec.model.MetaformFieldType;
 import org.slf4j.Logger;
-
-import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 
 /**
  * Mapper for mapping field types into store data types
@@ -35,7 +34,7 @@ public class FieldTypeMapper {
     switch (fieldType) {
       case AUTOCOMPLETE:
         return StoreDataType.STRING;
-      case AUTOCOMPLETE_MULTIPLE:
+      case AUTOCOMPLETEMULTIPLE:
         return StoreDataType.STRING;
       case BOOLEAN:
         return StoreDataType.BOOLEAN;
@@ -43,7 +42,7 @@ public class FieldTypeMapper {
         return StoreDataType.LIST;
       case DATE:
         return StoreDataType.STRING;
-      case DATE_TIME:
+      case DATETIME:
         return StoreDataType.STRING;
       case EMAIL:
         return StoreDataType.STRING;
@@ -63,7 +62,7 @@ public class FieldTypeMapper {
         return StoreDataType.STRING;
       case SELECT:
         return StoreDataType.STRING;
-      case SMALL_TEXT:
+      case SMALLTEXT:
         return StoreDataType.NONE;
       case SUBMIT:
         return StoreDataType.NONE;

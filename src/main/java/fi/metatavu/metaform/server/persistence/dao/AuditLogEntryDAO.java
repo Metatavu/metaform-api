@@ -1,6 +1,6 @@
 package fi.metatavu.metaform.server.persistence.dao;
 
-import fi.metatavu.metaform.client.model.AuditLogEntryType;
+import fi.metatavu.metaform.api.spec.model.AuditLogEntryType;
 import fi.metatavu.metaform.server.persistence.model.*;
 import org.slf4j.Logger;
 

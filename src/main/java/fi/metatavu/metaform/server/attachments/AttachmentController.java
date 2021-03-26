@@ -5,6 +5,8 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.api.spec.model.AuditLogEntryType;
+import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
 import fi.metatavu.metaform.server.persistence.dao.AttachmentDAO;
 import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldItemDAO;
 import fi.metatavu.metaform.server.persistence.model.Attachment;
@@ -24,6 +26,9 @@ public class AttachmentController {
 
   @Inject
   private AttachmentReplyFieldItemDAO attachmentReplyFieldItemDAO;
+
+  @Inject
+  private AuditLogEntryController auditLogEntryController;
 
   /**
    * Creates new attachment
@@ -84,6 +89,19 @@ public class AttachmentController {
    */
   public void deleteAttachment(Attachment attachment) {
     attachmentDAO.delete(attachment);
+  }
+
+  /**
+   * Creates audit log entry for attachment and saves it
+   *
+   * @param attachment attachment
+   * @param action action
+   * @param auditLogEntryType auditLogEntryType
+   */
+  public void logAttachmentAccess(Attachment attachment, String action, AuditLogEntryType auditLogEntryType, UUID userId){
+    Reply replyByAttachment = findReplyByAttachment(attachment);
+    auditLogEntryController.generateAuditLog(replyByAttachment.getMetaform(), userId,
+      replyByAttachment.getId(), attachment.getId(), action, auditLogEntryType);
   }
 
 }

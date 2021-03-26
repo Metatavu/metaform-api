@@ -1,0 +1,128 @@
+buildscript {
+    ext.jaxrs_functional_test_builder_version = "1.0.4"
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "1.4.20"
+    id "org.jetbrains.kotlin.plugin.allopen" version "1.4.20"
+    id "org.jetbrains.kotlin.kapt" version "1.4.30"
+    id "org.openapi.generator" version "5.1.0"
+    id 'io.quarkus'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-hibernate-orm'
+    implementation 'io.quarkus:quarkus-kotlin'
+    implementation 'io.quarkus:quarkus-resteasy'
+    implementation 'io.quarkus:quarkus-liquibase'
+    implementation 'io.quarkus:quarkus-jdbc-mysql'
+    implementation 'io.quarkus:quarkus-keycloak-admin-client'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'io.quarkus:quarkus-oidc'
+    implementation 'io.quarkus:quarkus-keycloak-admin-client'
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
+
+    implementation 'org.apache.commons:commons-lang3'
+    implementation "org.liquibase:liquibase-cdi:4.3.1"
+    implementation 'org.apache.opennlp:opennlp-tools:1.9.1'
+    implementation "nz.ac.waikato.cms.weka:weka-stable:3.8.3"
+    implementation 'org.eclipse.microprofile.jwt:microprofile-jwt-auth-api:1.2'
+    implementation 'commons-logging:commons-logging:1.1.1'
+
+    implementation "org.apache.poi:poi:4.1.2"
+    implementation "org.apache.poi:poi-ooxml:4.1.2"
+    implementation "fi.metatavu.polyglot:polyglot-xhr:1.0.0"
+    implementation "org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.15"
+    implementation "net.sargue:mailgun:1.9.2"
+    implementation "org.freemarker:freemarker:2.3.28"
+    implementation "com.github.slugify:slugify:2.2"
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8'
+    implementation 'io.quarkus:quarkus-undertow'
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+    implementation 'io.quarkus:quarkus-cache'
+
+    testCompile("com.github.tomakehurst:wiremock:2.24.0") {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    testImplementation "org.mariadb.jdbc:mariadb-java-client:2.7.2"
+    testImplementation "io.rest-assured:rest-assured"
+    testImplementation "com.squareup.moshi:moshi-kotlin:1.9.2"
+    testImplementation "com.squareup.moshi:moshi-adapters:1.9.2"
+    testImplementation 'com.squareup.okhttp3:okhttp'
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'org.testcontainers:mysql:1.15.1'
+    testImplementation 'org.testcontainers:junit-jupiter:1.15.1'
+    testImplementation "fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrs_functional_test_builder_version"
+    testImplementation "com.github.dasniko:testcontainers-keycloak:1.5.0"
+    testImplementation("com.squareup.moshi:moshi-kotlin:1.12.0")
+
+    kapt "org.hibernate:hibernate-jpamodelgen:5.4.27.SP1"
+}
+
+group 'fi.metatavu.metaform-api'
+version '2.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+sourceSets.main.java.srcDirs += ['build/generated/api-spec/src/gen/java']
+sourceSets.test.java.srcDirs += ['build/generated/api-client/src/main/kotlin']
+
+allOpen {
+    annotation("javax.ws.rs.Path")
+    annotation("javax.enterprise.context.ApplicationScoped")
+    annotation("io.quarkus.test.junit.QuarkusTest")
+}
+
+task generateApiSpec(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "jaxrs-spec"
+    inputSpec = "$rootDir/metaform-api-spec/swagger.yaml".toString()
+    outputDir = "$buildDir/generated/api-spec".toString()
+
+    configOptions = [
+            dateLibrary: "java8",
+            interfaceOnly: "true",
+            returnResponse: "true",
+            useSwaggerAnnotations: "false"
+    ]
+
+    apiPackage = "fi.metatavu.metaform.api.spec"
+    invokerPackage = "fi.metatavu.metaform.api.spec.invoker"
+    modelPackage = "fi.metatavu.metaform.api.spec.model"
+}
+
+task generateApiClient(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "kotlin"
+    library = "jvm-okhttp3"
+    inputSpec = "$rootDir/metaform-api-spec/swagger.yaml".toString()
+    outputDir = "$buildDir/generated/api-client".toString()
+
+    packageName = "fi.metatavu.metaform.api.client"
+    configOptions = [
+            dateLibrary: "string",
+            collectionType: "array"
+    ]
+}
+
+compileKotlin {
+    dependsOn generateApiSpec
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
+    kotlinOptions.javaParameters = true
+}
+
+compileTestKotlin {
+    dependsOn generateApiClient
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11
+}
+
+kapt {
+    correctErrorTypes = true
+}

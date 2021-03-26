@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.api.spec.model.*;
+import fi.metatavu.metaform.server.rest.ReplyMode;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,13 +64,6 @@ import fi.metatavu.metaform.server.persistence.model.StringReplyField;
 import fi.metatavu.metaform.server.persistence.model.TableReplyField;
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRow;
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRowCell;
-import fi.metatavu.metaform.server.rest.model.MetaformField;
-import fi.metatavu.metaform.server.rest.model.MetaformFieldOption;
-import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
-import fi.metatavu.metaform.server.rest.model.MetaformScripts;
-import fi.metatavu.metaform.server.rest.model.MetaformSection;
-import fi.metatavu.metaform.server.rest.model.MetaformTableColumn;
-import fi.metatavu.metaform.server.rest.model.MetaformTableColumnType;
 import fi.metatavu.metaform.server.script.FormRuntimeContext;
 import fi.metatavu.metaform.server.script.ScriptController;
 import fi.metatavu.metaform.server.xlsx.CellSource;
@@ -88,7 +83,10 @@ public class ReplyController {
     MetaformTableColumnType.TEXT,
     MetaformTableColumnType.NUMBER
   };
-  
+
+  private static final String REPLY_RESOURCE_URI_TEMPLATE = "/v1/metaforms/%s/replies/%s";
+  private static final String REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s";
+
   @Inject
   private Logger logger;
  
@@ -332,7 +330,7 @@ public class ReplyController {
    * 
    * @param reply reply
    * @param name name 
-   * @param values values
+   * @param value values
    * @return updated field
    */
   @SuppressWarnings("unchecked")
@@ -430,7 +428,7 @@ public class ReplyController {
    * @return Pdf bytes
    * @throws PdfRenderException throw when rendering fails
    */
-  public byte[] getReplyPdf(String exportThemeName, fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, fi.metatavu.metaform.server.rest.model.Reply replyEntity, Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap, Locale locale) throws PdfRenderException {
+  public byte[] getReplyPdf(String exportThemeName, fi.metatavu.metaform.api.spec.model.Metaform metaformEntity, fi.metatavu.metaform.api.spec.model.Reply replyEntity, Map<String, fi.metatavu.metaform.api.spec.model.Attachment> attachmentMap, Locale locale) throws PdfRenderException {
     ReplyExportDataModel dataModel = new ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.getCreatedAt()), getDate(replyEntity.getModifiedAt()));
     String html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale);
     
@@ -453,7 +451,7 @@ public class ReplyController {
    * @return replies as XLSX binary
    * @throws XlsxException thrown when export fails
    */
-  public byte[] getRepliesAsXlsx(Metaform metaform, fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, List<fi.metatavu.metaform.server.rest.model.Reply> replyEntities) throws XlsxException {
+  public byte[] getRepliesAsXlsx(Metaform metaform, fi.metatavu.metaform.api.spec.model.Metaform metaformEntity, List<fi.metatavu.metaform.api.spec.model.Reply> replyEntities) throws XlsxException {
     String title = metaformEntity.getTitle();
     if (StringUtils.isBlank(title)) {
       title = metaform.getSlug();
@@ -490,7 +488,7 @@ public class ReplyController {
           if (value != null) {
             switch (field.getType()) {
               case DATE:
-              case DATE_TIME:
+              case DATETIME:
                 xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, OffsetDateTime.parse(value.toString()), cellSource);
               break;
               case SELECT:
@@ -722,7 +720,7 @@ public class ReplyController {
    * @param field field
    * @param reply reply
    * @param name name 
-   * @param values values
+   * @param value values
    * @return updated field
    */
   private ReplyField setTableReplyField(MetaformField field, Reply reply, String name, Object value) {
@@ -1059,6 +1057,77 @@ public class ReplyController {
     byte[] content = file.getData();
     String contentType = file.getMeta().getContentType();
     return attachmentController.create(id, name, content, contentType, userId);
+  }
+
+  /**
+   * Returns resource name for a reply
+   *
+   * @param reply reply
+   * @return resource name
+   */
+  public String getReplyResourceName(fi.metatavu.metaform.server.persistence.model.Reply reply) {
+    if (reply == null) {
+      return null;
+    }
+
+    return String.format(REPLY_RESOURCE_NAME_TEMPLATE, reply.getId());
+  }
+
+  /**
+   * Returns resource URI for reply
+   *
+   * @param reply reply
+   * @return resource URI
+   */
+  public String getReplyResourceUri(fi.metatavu.metaform.server.persistence.model.Reply reply) {
+    if (reply == null) {
+      return null;
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = reply.getMetaform();
+    return getReplyResourceUri(metaform.getId(), reply.getId());
+  }
+
+  /**
+   * Returns resource URI for reply
+   *
+   * @param metaformId Metaform id
+   * @param replyId reply id
+   * @return resource URI
+   */
+  private String getReplyResourceUri(UUID metaformId, UUID replyId) {
+    return String.format(REPLY_RESOURCE_URI_TEMPLATE, metaformId, replyId);
+  }
+
+  /**
+   * Resolves reply object when creating new reply
+   *
+   * @param replyMode reply mode
+   * @param metaform metaform
+   * @param anonymous is user anonymous
+   * @param userId user id
+   * @return reply object
+   */
+  public fi.metatavu.metaform.server.persistence.model.Reply createReplyResolveReply(ReplyMode replyMode, fi.metatavu.metaform.server.persistence.model.Metaform metaform, boolean anonymous, UUID userId, PrivateKey privateKey) {
+    fi.metatavu.metaform.server.persistence.model.Reply reply;
+
+    if (anonymous || replyMode == ReplyMode.CUMULATIVE) {
+      reply = createReply(userId, metaform, privateKey);
+    } else {
+      reply = findActiveReplyByMetaformAndUserId(metaform, userId);
+      if (reply == null) {
+        reply = createReply(userId, metaform, privateKey);
+      } else {
+        if (replyMode == ReplyMode.REVISION) {
+          // If there is already an existing reply but we are not updating it
+          // We need to change the existing reply into a revision and create new reply
+          convertToRevision(reply);
+          reply = createReply(userId, metaform, privateKey);
+        }
+      }
+    }
+
+    return reply;
   }
 
 }

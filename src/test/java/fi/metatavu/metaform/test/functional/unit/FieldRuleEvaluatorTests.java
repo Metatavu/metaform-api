@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.test.unit;
+package fi.metatavu.metaform.test.functional.unit;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -10,11 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fi.metatavu.metaform.api.spec.model.FieldRule;
+import fi.metatavu.metaform.api.spec.model.Reply;
 import org.junit.Test;
 
 import fi.metatavu.metaform.server.metaforms.FieldRuleEvaluator;
-import fi.metatavu.metaform.server.rest.model.FieldRule;
-import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Unit tests for field rule evaluator
@@ -127,6 +127,6 @@ public class FieldRuleEvaluatorTests {
     rule.setOr(ors);
     return rule;
   }
-  
+
   
 }

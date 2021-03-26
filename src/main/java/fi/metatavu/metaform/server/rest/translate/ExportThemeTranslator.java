@@ -1,9 +1,10 @@
 package fi.metatavu.metaform.server.rest.translate;
 
+import fi.metatavu.metaform.server.persistence.model.ExportTheme;
+import fi.metatavu.metaform.server.persistence.model.ExportThemeFile;
+
 import javax.enterprise.context.ApplicationScoped;
 
-import fi.metatavu.metaform.server.rest.model.ExportTheme;
-import fi.metatavu.metaform.server.rest.model.ExportThemeFile;
 
 /**
  * Translator for export themes
@@ -19,14 +20,14 @@ public class ExportThemeTranslator {
    * @param exportTheme JPA ExportTheme object
    * @return REST ExportTheme
    */
-  public ExportTheme translateExportTheme(fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme) {
+  public fi.metatavu.metaform.api.spec.model.ExportTheme translateExportTheme(fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme) {
     if (exportTheme == null) {
       return null;
     }
     
     fi.metatavu.metaform.server.persistence.model.ExportTheme parent = exportTheme.getParent();
     
-    ExportTheme result = new ExportTheme();
+    fi.metatavu.metaform.api.spec.model.ExportTheme result = new fi.metatavu.metaform.api.spec.model.ExportTheme();
     result.setId(exportTheme.getId());
     result.setLocales(exportTheme.getLocales());
     result.setName(exportTheme.getName());
@@ -41,14 +42,14 @@ public class ExportThemeTranslator {
    * @param exportThemeFile JPA ExportThemeFile object
    * @return REST ExportThemeFile
    */
-  public ExportThemeFile translateExportThemeFile(fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile) {
+  public fi.metatavu.metaform.api.spec.model.ExportThemeFile translateExportThemeFile(fi.metatavu.metaform.server.persistence.model.ExportThemeFile exportThemeFile) {
     if (exportThemeFile == null) {
       return null;
     }
     
     fi.metatavu.metaform.server.persistence.model.ExportTheme theme = exportThemeFile.getTheme();
     
-    ExportThemeFile result = new ExportThemeFile();
+    fi.metatavu.metaform.api.spec.model.ExportThemeFile result = new fi.metatavu.metaform.api.spec.model.ExportThemeFile();
     result.setId(exportThemeFile.getId());
     result.setContent(exportThemeFile.getContent());
     result.setPath(exportThemeFile.getPath());

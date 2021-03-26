@@ -7,17 +7,22 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.Test;
-
-import fi.metatavu.metaform.client.model.EmailNotification;
-import fi.metatavu.metaform.client.model.FieldRule;
-import fi.metatavu.metaform.client.api.EmailNotificationsApi;
-import fi.metatavu.metaform.client.model.Metaform;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
+/**
+ * Quarkus tests for intents API
+ */
+@QuarkusTest
+@QuarkusTestResource.List(value = {
+  @QuarkusTestResource(MysqlResource.class),
+  @QuarkusTestResource(KeycloakResource.class)
+})
 @SuppressWarnings ("squid:S1192")
-public class EmailNotificationTestsIT extends AbstractIntegrationTest {
-
+public class EmailNotificationTestsIT {
+/*
   @Test
   public void singleEmailNotificationTest() throws IOException, URISyntaxException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
@@ -200,19 +205,19 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
     }
   }
   
-  /**
+
    * Creates a field rule
    * 
    * @param field field name
    * @param equals equals value
    * @param notEquals not equals value
    * @return created rule
-   */
+
   private FieldRule createFieldRule(String field, String equals, String notEquals) {
     return createFieldRule(field, equals, notEquals, null, null);
   }
   
-  /**
+
    * Creates a field rule
    * 
    * @param field field name
@@ -221,7 +226,7 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
    * @param ands list of ands or null if none defined
    * @param ors list of ors or null if none defined
    * @return created rule
-   */
+
   private FieldRule createFieldRule(String field, String equals, String notEquals, List<FieldRule> ands, List<FieldRule> ors) {
     FieldRule rule = new FieldRule();
     rule.setField(field);
@@ -231,5 +236,5 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
     rule.setOr(ors);
     return rule;
   }
-  
+  */
 }

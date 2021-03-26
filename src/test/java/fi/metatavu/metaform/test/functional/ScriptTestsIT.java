@@ -8,33 +8,18 @@ import static com.github.tomakehurst.wiremock.client.WireMock.removeStub;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.api.RepliesApi;
-import fi.metatavu.metaform.client.model.ExportTheme;
-import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.client.model.Reply;
-import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
-public class ScriptTestsIT extends AbstractIntegrationTest {
+public class ScriptTestsIT {
 
   /**
   @Test
@@ -150,13 +135,13 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
       removeStub(externalStub);
     }
   }
- */
+
 
   /**
    * Wait until theme file caches are flushed
-   */
+
   private void waitThemeFlush() {
     await().atMost(1, TimeUnit.MINUTES).until(() -> true);
   }
-  
+  */
 }

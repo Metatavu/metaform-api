@@ -1,6 +1,6 @@
 package fi.metatavu.metaform.server.persistence.model;
 
-import fi.metatavu.metaform.client.model.AuditLogEntryType;
+import fi.metatavu.metaform.api.spec.model.AuditLogEntryType;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 

@@ -2,16 +2,17 @@ package fi.metatavu.metaform.server.files;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.infinispan.Cache;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,17 +23,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Antti Leppä
  */
 @ApplicationScoped
-@Singleton
 public class FileController {
   
   @Inject
   private Logger logger;
-  
-  @Resource(lookup = "java:jboss/infinispan/cache/metaform/file-data")
-  private Cache<String, byte[]> dataCache;
 
-  @Resource(lookup = "java:jboss/infinispan/cache/metaform/file-meta")
-  private Cache<String, String> metaCache;
+  //todo add correct quarkus caching
+  private Map<String, byte[]> dataCache = new HashMap<>();
+
+  private Map<String, String> metaCache = new HashMap<>();
   
   /**
    * Stores file and returns reference id

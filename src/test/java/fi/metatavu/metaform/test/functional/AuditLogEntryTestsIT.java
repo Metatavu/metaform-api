@@ -1,184 +1,148 @@
 package fi.metatavu.metaform.test.functional;
 
-import feign.FeignException;
-import fi.metatavu.metaform.client.api.*;
-import fi.metatavu.metaform.client.model.*;
+import fi.metatavu.metaform.api.client.models.AuditLogEntry;
+import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
-import org.junit.Test;
+import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.*;
-import static org.junit.Assert.*;
+
 
 /**
  * Tests for AuditLogEntriesApi
  *
  * @author Katja Danilova
  */
+@QuarkusTest
+@QuarkusTestResource.List(value = {
+  @QuarkusTestResource(MysqlResource.class),
+  @QuarkusTestResource(KeycloakResource.class)
+})
 public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 
   @Test
-  public void basicActionsOnReplyTest() throws IOException{
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(accessToken);
-    MetaformsApi adminMetaformsApi = getMetaformsApi(getAdminToken(REALM_1));
+  public void basicActionsOnReplyTest() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "Test text value");
+      Reply createdReply = builder.test1().replies().createReplyWithData(replyData);
 
-    Map<String, Object> replyData = new HashMap<>();
-    replyData.put("text", "Test text value");
-    Reply reply = createReplyWithData(replyData);
-    try {
-      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-      repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-      repliesApi.listReplies(metaform.getId(), null, null,null, null, null, true, null, null, null);
-      repliesApi.updateReply(metaform.getId(), createdReply.getId(), createdReply, reply.getOwnerKey());
-      repliesApi.deleteReply(metaform.getId(), createdReply.getId(), reply.getOwnerKey());
+      Reply reply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), createdReply);
+      builder.test1().replies().findReply(metaform.getId(), reply.getId(), (String) null);
+      builder.test1().replies().listReplies(metaform.getId(), null, null, null, null, null, true, null, null, null);
+      builder.test1().replies().updateReply(metaform.getId(), reply.getId(), reply, reply.getOwnerKey());
+      builder.test1().replies().delete(metaform.getId(), reply, reply.getOwnerKey());
 
-      List<AuditLogEntry> auditLogEntries = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, createdReply.getId(), null, null);
+      AuditLogEntry[] auditLogEntries = builder.test1().auditLogs().listAuditLogEntries(metaform.getId(), null, reply.getId(), null, null);
 
-      assertEquals(5, auditLogEntries.size());
-      assertEquals(String.format("user %s created reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(0).getMessage() );
-      assertEquals(String.format("user %s viewed reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(1).getMessage());
-      assertEquals(String.format("user %s listed reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(2).getMessage());
-      assertEquals(String.format("user %s modified reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(3).getMessage());
-      assertEquals(String.format("user %s deleted reply %s",REALM1_USER_1_ID, createdReply.getId()), auditLogEntries.get(4).getMessage());
-
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      Assertions.assertEquals(5, auditLogEntries.length);
+      Assertions.assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, reply.getId()), auditLogEntries[0].getMessage());
+      Assertions.assertEquals(String.format("user %s viewed reply %s", REALM1_USER_1_ID, reply.getId()), auditLogEntries[1].getMessage());
+      Assertions.assertEquals(String.format("user %s listed reply %s", REALM1_USER_1_ID, reply.getId()), auditLogEntries[2].getMessage());
+      Assertions.assertEquals(String.format("user %s modified reply %s", REALM1_USER_1_ID, reply.getId()), auditLogEntries[3].getMessage());
+      Assertions.assertEquals(String.format("user %s deleted reply %s", REALM1_USER_1_ID, reply.getId()), auditLogEntries[4].getMessage());
     }
   }
 
   @Test
   public void queryByUserTest() throws Exception {
-    String user1token = getAccessToken(REALM_1, "test1.realm1", "test");
-    String user2token = getAccessToken(REALM_1, "test2.realm1", "test");
-    RepliesApi repliesApiUser1 = getRepliesApi(user1token);
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-    RepliesApi repliesApiUser2 = getRepliesApi(user2token);
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "Test text value");
+      Reply reply = builder.test1().replies().createReplyWithData(replyData);
 
-    AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(user1token);
-    MetaformsApi adminMetaformsApi = getMetaformsApi(getAdminToken(REALM_1));
+      Reply createdReply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply createdReply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
 
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
-    Map<String, Object> replyData = new HashMap<>();
-    replyData.put("text", "Test text value");
-    Reply reply = createReplyWithData(replyData);
+      AuditLogEntry[] auditLogEntriesForUser1 = builder.test1().auditLogs().listAuditLogEntries(metaform.getId(), REALM1_USER_1_ID, null, null, null);
+      AuditLogEntry[] auditLogEntriesForUser2 = builder.test1().auditLogs().listAuditLogEntries(metaform.getId(), REALM1_USER_2_ID, null, null, null);
 
-    try {
-      // test 1 creates reply
-      Reply createdReply1 = repliesApiUser1.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-      // test 2 creates reply
-      Reply createdReply2 = repliesApiUser2.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-
-      List<AuditLogEntry> auditLogEntriesForUser1 = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), REALM1_USER_1_ID, null, null, null);
-      List<AuditLogEntry>	auditLogEntriesForUser2 = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), REALM1_USER_2_ID, null, null, null);
-
-      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()), auditLogEntriesForUser1.get(0).getMessage());
-      assertEquals(String.format("user %s created reply %s", REALM1_USER_2_ID, createdReply2.getId()), auditLogEntriesForUser2.get(0).getMessage());
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      Assertions.assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()),
+        auditLogEntriesForUser1[0].getMessage());
+      Assertions.assertEquals(String.format("user %s created reply %s", REALM1_USER_2_ID, createdReply2.getId()),
+        auditLogEntriesForUser2[0].getMessage());
     }
   }
 
   @Test
   public void queryByMetaformTest() throws Exception {
-    String user1token = getAccessToken(REALM_1, "test1.realm1", "test");
-    RepliesApi repliesApi = getRepliesApi(user1token);
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-    AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(user1token);
-    MetaformsApi adminMetaformsApi = getMetaformsApi(getAdminToken(REALM_1));
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "Test text value");
+      Reply reply = builder.test1().replies().createReplyWithData(replyData);
 
-    Metaform metaform1 = adminMetaformsApi.createMetaform(readMetaform("simple"));
-    Metaform metaform2 = adminMetaformsApi.createMetaform(readMetaform("simple"));
+      Reply createdReply1 = builder.test1().replies().create(metaform1.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply createdReply2 = builder.test1().replies().create(metaform2.getId(), null, ReplyMode.REVISION.toString(), reply);
 
-    Map<String, Object> replyData = new HashMap<>();
-    replyData.put("text", "Test text value");
-    Reply reply = createReplyWithData(replyData);
+      AuditLogEntry[] metaform1AuditLogs = builder.test1().auditLogs().listAuditLogEntries(metaform1.getId(), null, null, null, null);
+      AuditLogEntry[] metaform2AuditLogs = builder.test1().auditLogs().listAuditLogEntries(metaform2.getId(), null, null, null, null);
 
-    try {
-      Reply createdReply1 = repliesApi.createReply(metaform1.getId(), reply, null, ReplyMode.REVISION.toString());
-      Reply createdReply2 = repliesApi.createReply(metaform2.getId(), reply, null, ReplyMode.REVISION.toString());
-
-      List<AuditLogEntry> metaform1AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform1.getId(), null, null, null, null);
-      List<AuditLogEntry> metaform2AuditLogs = auditLogEntriesApi.listAuditLogEntries(metaform2.getId(), null, null, null, null);
-
-      assertEquals(1, metaform1AuditLogs.size());
-      assertEquals(1, metaform2AuditLogs.size());
-      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()), metaform1AuditLogs.get(0).getMessage());
-      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply2.getId()), metaform2AuditLogs.get(0).getMessage());
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform1.getId());
-      adminMetaformsApi.deleteMetaform(metaform2.getId());
+      Assertions.assertEquals(1, metaform1AuditLogs.length);
+      Assertions.assertEquals(1, metaform2AuditLogs.length);
+      Assertions.assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()), metaform1AuditLogs[0].getMessage());
+      Assertions.assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply2.getId()), metaform2AuditLogs[0].getMessage());
     }
   }
 
   /**
    * test verifies that sorting by reply id words
+   *
    * @throws IOException
    */
   @Test
-  public void queryByReplyIdTest() throws IOException {
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(accessToken);
-    MetaformsApi adminMetaformsApi = getMetaformsApi(getAdminToken(REALM_1));
+  public void queryByReplyIdTest() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "Test text value");
+      Reply reply1 = builder.test1().replies().createReplyWithData(replyData);
+      Reply reply2 = builder.test1().replies().createReplyWithData(replyData);
 
-    Map<String, Object> replyData = new HashMap<>();
-    replyData.put("text", "Test text value");
-    Reply reply = createReplyWithData(replyData);
-    Reply reply2 = createReplyWithData(replyData);
-    try {
-      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-      repliesApi.createReply(metaform.getId(), reply2, null, ReplyMode.REVISION.toString());
+      Reply createdReply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply1);
+      Reply createdReply2 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply2);
 
-      List<AuditLogEntry> auditLogEntries = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, null, null, null);
-      assertEquals(2, auditLogEntries.size());
+      AuditLogEntry[] auditLogEntries = builder.test1().auditLogs().listAuditLogEntries(metaform.getId(), null, null, null, null);
+      Assertions.assertEquals(2, auditLogEntries.length);
 
-      List<AuditLogEntry> entryByReply = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, createdReply.getId(), null, null);
-      assertEquals(1, entryByReply.size());
-      assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply.getId()), entryByReply.get(0).getMessage());
-
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      AuditLogEntry[] entryByReply = builder.test1().auditLogs().listAuditLogEntries(metaform.getId(), null, createdReply1.getId(), null, null);
+      Assertions.assertEquals(1, entryByReply.length);
+      Assertions.assertEquals(String.format("user %s created reply %s", REALM1_USER_1_ID, createdReply1.getId()), entryByReply[0].getMessage());
     }
   }
 
   @Test
-  public void accessRightsTest() throws IOException {
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    String accessToken1 = getAccessToken(REALM_1, "test2.realm1", "test");
-    String adminToken = getAdminToken(REALM_1);
+  public void accessRightsTest() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    AuditLogEntriesApi auditLogEntriesApi = getAuditLogEntriesApi(accessToken);
-    AuditLogEntriesApi auditLogEntriesApi1 = getAuditLogEntriesApi(accessToken1);
-
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple"));
-    List<AuditLogEntry> auditLogEntries = null;
-    try {
-      //reply to metaform
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "Test text value");
-      Reply reply = createReplyWithData(replyData);
-      repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
+      Reply reply1 = builder.test1().replies().createReplyWithData(replyData);
+      builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply1);
 
-      auditLogEntries = auditLogEntriesApi.listAuditLogEntries(metaform.getId(), null, null, null, null);
-      assertNotNull(auditLogEntries);
-      try {
-        auditLogEntriesApi1.listAuditLogEntries(metaform.getId(), null, null, null, null);
-        fail(String.format("Only users with metaform-view-all-audit-logs can access this view"));
-      } catch (FeignException e) {
-        assertEquals(403, e.status());
-      }
-    }
-    finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      AuditLogEntry[] auditLogEntries = builder.test1().auditLogs().listAuditLogEntries(metaform.getId(), null, null, null, null);
+      Assertions.assertNotNull(auditLogEntries);
+
+      builder.test2().auditLogs().assertListFailStatus(403, metaform.getId(), null, null, null, null);
     }
   }
 }

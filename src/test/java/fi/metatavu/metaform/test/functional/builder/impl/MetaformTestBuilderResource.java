@@ -2,14 +2,30 @@ package fi.metatavu.metaform.test.functional.builder.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.UUID;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
-import fi.metatavu.metaform.client.ApiClient;
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.model.Metaform;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import com.squareup.moshi.*;
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory;
+import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
+import fi.metatavu.metaform.api.client.apis.MetaformsApi;
+import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
+import fi.metatavu.metaform.api.client.infrastructure.ClientException;
+import fi.metatavu.metaform.api.client.models.Draft;
+import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.api.spec.model.ExportTheme;
+import fi.metatavu.metaform.test.TestSettings;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 
 import static org.junit.Assert.*;
@@ -21,14 +37,16 @@ import static org.junit.Assert.*;
  */
 public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform, MetaformsApi> {
 
+  private AccessTokenProvider accessTokenProvider;
   /**
    * Constructor
    *
    * @param testBuilder test builder
    * @param apiClient   initialized API client
    */
-  public MetaformTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
+  public MetaformTestBuilderResource(AbstractTestBuilder<ApiClient> testBuilder, AccessTokenProvider accessTokenProvider, ApiClient apiClient) {
     super(testBuilder, apiClient);
+    this.accessTokenProvider = accessTokenProvider;
   }
 
   /**
@@ -41,15 +59,6 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     return addClosable(getApi().createMetaform(payload));
   }
 
-  /**
-   * Creates new metaform using predefined test form
-   *
-   * @param form form's file name
-   * @return created metaform
-   */
-  public Metaform createFromJsonFile(String form) throws IOException {
-    return create(readMetaform(form));
-  }
 
   /**
    * Finds a metaform
@@ -78,8 +87,12 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    *
    * @param body body payload
    */
-  public Metaform updateMetaform(Metaform body) {
-    return getApi().updateMetaform(body.getId(), body);
+  public Metaform updateMetaform(UUID id ,Metaform body) {
+    return getApi().updateMetaform(id, body);
+  }
+
+  public Metaform[] list () {
+    return getApi().listMetaforms();
   }
 
   /**
@@ -105,7 +118,7 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @param expected expected count
    */
   public void assertCount(int expected) {
-    assertEquals(expected, getApi().listMetaforms().size());
+    assertEquals(expected, getApi().listMetaforms().length);
   }
 
   /**
@@ -120,8 +133,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().findMetaform(metaformId, replyId, ownerKey);
       fail(String.format("Expected find to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -145,8 +158,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().createMetaform(payload);
       fail(String.format("Expected create to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -160,8 +173,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().updateMetaform(metaform.getId(), metaform);
       fail(String.format("Expected update to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -175,8 +188,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().deleteMetaform(metaform.getId());
       fail(String.format("Expected delete to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -189,8 +202,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().listMetaforms();
       fail(String.format("Expected list to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -217,14 +230,51 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @param form file name
    * @return Metaform object
    * @throws IOException throws IOException when JSON reading fails
-   */
-  private Metaform readMetaform(String form) throws IOException {
-    ObjectMapper objectMapper = getObjectMapper();
+  */
+  public Metaform readMetaform(String form) throws IOException {
     String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
     ClassLoader classLoader = getClass().getClassLoader();
-    try (InputStream formStream = classLoader.getResourceAsStream(path)) {
-      return objectMapper.readValue(formStream, Metaform.class);
-    }
+    InputStream formStream = classLoader.getResourceAsStream(path);
+    Moshi moshi = new Moshi.Builder()
+      .add(new Object() {
+        @ToJson
+        String toJson(UUID uuid) {
+          return uuid.toString();
+        }
+        @FromJson
+        UUID fromJson(String s) {
+          return UUID.fromString(s);
+        }
+      })
+      .addLast(new KotlinJsonAdapterFactory()).build();
+    JsonAdapter<Metaform> jsonAdapter = moshi.adapter(Metaform.class);
+    return jsonAdapter.fromJson(IOUtils.toString(formStream, StandardCharsets.UTF_8.name()));
+
   }
+
+  /**
+   * Returns object mapper with default modules and settings
+   *
+   * @return object mapper
+   */
+  protected ObjectMapper getObjectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
+  //  objectMapper.registerModule(new KotlinModule());
+    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+    return objectMapper;
+  }
+
+  @Override
+  protected MetaformsApi getApi() {
+    try {
+      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return new MetaformsApi(TestSettings.basePath);
+  }
+
 
 }

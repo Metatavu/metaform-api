@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.keycloak.authorization.client.Configuration;
 
 /**
@@ -14,12 +15,12 @@ import org.keycloak.authorization.client.Configuration;
  */
 public class KeycloakConfigProvider {
   
-  private static final String REALM = System.getenv("KEYCLOAK_REALM");
-  private static final String CLIENT_ID = System.getenv("KEYCLOAK_RESOURCE");
-  private static final String CLIENT_SECRET = System.getenv("KEYCLOAK_SECRET");
-  private static final String ADMIN_USER = System.getenv("KEYCLOAK_ADMIN_USER");
-  private static final String ADMIN_PASS = System.getenv("KEYCLOAK_ADMIN_PASS");
-  private static final String URL = System.getenv("KEYCLOAK_URL");
+  private static final String REALM = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.realm", String.class);
+  private static final String CLIENT_ID = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.admin_client_id", String.class);
+  private static final String CLIENT_SECRET = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.secret", String.class);
+  private static final String ADMIN_USER = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.user", String.class);
+  private static final String ADMIN_PASS = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.password", String.class);
+  private static final String URL =  ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String.class);
   
   /**
    * Returns all configured realms

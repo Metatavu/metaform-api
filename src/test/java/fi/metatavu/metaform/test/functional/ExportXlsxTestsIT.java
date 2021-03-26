@@ -1,27 +1,15 @@
 package fi.metatavu.metaform.test.functional;
 
-import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.junit.Test;
-
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.api.RepliesApi;
-import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
-public class ExportXlsxTestsIT extends AbstractIntegrationTest {
+public class ExportXlsxTestsIT {
  /**
   @Test
   public void testExportXlsxTable() throws Exception {
@@ -96,7 +84,7 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
    * @param metaform metaform
    * @return XLSX report as POI Workbook
    * @throws IOException thrown when reading fails
-   */
+
   private Workbook getXlsxReport(Metaform metaform) throws IOException {
     return WorkbookFactory.create(given()
       .baseUri(getBasePath())
@@ -104,5 +92,5 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
       .get("/v1/metaforms/{metaformId}/export?format=XLSX", metaform.getId().toString())
       .asInputStream());
   }
-
+*/
 }

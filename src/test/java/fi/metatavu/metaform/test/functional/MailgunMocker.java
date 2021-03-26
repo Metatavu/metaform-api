@@ -28,7 +28,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
  * 
  * @author Antti Leppä
  * @author Heikki Kurhinen
- */
+*/
 public class MailgunMocker {
   
   private String authHeader;
@@ -42,7 +42,7 @@ public class MailgunMocker {
    * @param basePath base path
    * @param domain Mailgun domain
    * @param apiKey Mailgun API key
-   */
+
   public MailgunMocker(String basePath, String domain, String apiKey) {
     this.basePath = basePath;
     this.domain = domain;
@@ -51,7 +51,7 @@ public class MailgunMocker {
   
   /**
    * Starts mocking
-   */
+
   public void startMock() {
     okStub = stubFor(post(urlEqualTo(getApiUrl()))
       .withHeader("Authorization", equalTo(String.format("Basic %s", authHeader)))
@@ -61,7 +61,7 @@ public class MailgunMocker {
   
   /**
    * Ends mocking
-   */
+
   public void stopMock() {
     if (okStub != null) {
       removeStub(okStub);
@@ -78,7 +78,7 @@ public class MailgunMocker {
    * @param to to email
    * @param subject subject
    * @param content content
-   */
+
   public void verifyHtmlMessageSent(String fromName, String fromEmail, String to, String subject, String content) {
     verifyMessageSent(createParameterList(fromName, fromEmail, to, subject, content));
   }
@@ -92,7 +92,7 @@ public class MailgunMocker {
    * @param to to email
    * @param subject subject
    * @param content content
-   */
+
   public void verifyHtmlMessageSent(int count, String fromName, String fromEmail, String to, String subject, String content) {
     verifyMessageSent(count, createParameterList(fromName, fromEmail, to, subject, content));
   }
@@ -110,7 +110,7 @@ public class MailgunMocker {
    * Verifies that email with parameters has been sent
    * 
    * @param parametersList parameters
-   */
+
   private void verifyMessageSent(List<NameValuePair> parametersList) {
     List<NameValuePair> parameters = new ArrayList<>(parametersList);
     String form = URLEncodedUtils.format(parameters, "UTF-8");
@@ -122,7 +122,7 @@ public class MailgunMocker {
    * 
    * @param count
    * @param parametersList parameters
-   */
+
   private void verifyMessageSent(int count, List<NameValuePair> parametersList) {
     List<NameValuePair> parameters = new ArrayList<>(parametersList);
     String form = URLEncodedUtils.format(parameters, "UTF-8");
@@ -133,9 +133,9 @@ public class MailgunMocker {
    * Returns API URL
    * 
    * @return API URL
-   */
+
   private String getApiUrl() {
     return String.format("%s/%s/messages", basePath, domain);
   }
-
+*/
 }

@@ -5,11 +5,11 @@ import java.io.IOException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.server.persistence.model.Metaform;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fi.metatavu.metaform.server.rest.model.Metaform;
 
 /**
  * Translatro for Metaforms
@@ -28,17 +28,17 @@ public class MetaformTranslator {
    * @param entity JPA Metaform
    * @return REST Metaform
    */
-  public Metaform translateMetaform(fi.metatavu.metaform.server.persistence.model.Metaform entity) {
+  public fi.metatavu.metaform.api.spec.model.Metaform translateMetaform(fi.metatavu.metaform.server.persistence.model.Metaform entity) {
     if (entity == null) {
       return null;
     }
-    
-    Metaform result = null;
+
+    fi.metatavu.metaform.api.spec.model.Metaform result = null;
     
     ObjectMapper objectMapper = new ObjectMapper();
     
     try {
-      result = objectMapper.readValue(entity.getData(), Metaform.class);
+      result = objectMapper.readValue(entity.getData(), fi.metatavu.metaform.api.spec.model.Metaform.class);
     } catch (IOException e) {
       logger.error(String.format("Failed to translate metaform %s", entity.getId().toString()), e);
       return null;

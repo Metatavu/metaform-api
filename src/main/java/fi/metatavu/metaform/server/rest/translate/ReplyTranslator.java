@@ -9,12 +9,12 @@ import java.util.Objects;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.api.spec.model.Metaform;
+import fi.metatavu.metaform.api.spec.model.MetaformSection;
+import fi.metatavu.metaform.api.spec.model.Reply;
 import fi.metatavu.metaform.server.crypto.CryptoController;
 import fi.metatavu.metaform.server.metaforms.FieldController;
 import fi.metatavu.metaform.server.persistence.model.ReplyField;
-import fi.metatavu.metaform.server.rest.model.Metaform;
-import fi.metatavu.metaform.server.rest.model.MetaformSection;
-import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Translator for replies

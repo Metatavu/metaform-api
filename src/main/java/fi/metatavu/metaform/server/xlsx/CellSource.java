@@ -1,6 +1,8 @@
 package fi.metatavu.metaform.server.xlsx;
 
-import fi.metatavu.metaform.server.rest.model.MetaformField;
+import fi.metatavu.metaform.api.spec.model.MetaformField;
+
+;
 
 /**
  * Class for containing source details for a XLSX cell

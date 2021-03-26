@@ -1,6 +1,6 @@
 package fi.metatavu.metaform.server.logentry;
 
-import fi.metatavu.metaform.client.model.AuditLogEntryType;
+import fi.metatavu.metaform.api.spec.model.AuditLogEntryType;
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO;
 import fi.metatavu.metaform.server.persistence.model.AuditLogEntry;
 import fi.metatavu.metaform.server.persistence.model.Metaform;

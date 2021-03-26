@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import fi.metatavu.metaform.api.spec.model.FieldRule;
+import fi.metatavu.metaform.api.spec.model.Reply;
 import org.apache.commons.lang3.StringUtils;
 
-import fi.metatavu.metaform.server.rest.model.FieldRule;
-import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Field rule evaluator

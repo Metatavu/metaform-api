@@ -1,11 +1,11 @@
 package fi.metatavu.metaform.server.exporttheme;
 
+import fi.metatavu.metaform.api.spec.model.Attachment;
+import fi.metatavu.metaform.api.spec.model.Metaform;
+import fi.metatavu.metaform.api.spec.model.Reply;
+
 import java.util.Date;
 import java.util.Map;
-
-import fi.metatavu.metaform.server.rest.model.Attachment;
-import fi.metatavu.metaform.server.rest.model.Metaform;
-import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Export data model

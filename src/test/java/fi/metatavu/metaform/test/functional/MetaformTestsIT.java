@@ -1,126 +1,127 @@
 package fi.metatavu.metaform.test.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
-import org.junit.Test;
+import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
 
-import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.client.api.MetaformsApi;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@QuarkusTest
+@QuarkusTestResource.List(value = {
+  @QuarkusTestResource(MysqlResource.class),
+  @QuarkusTestResource(KeycloakResource.class)
+})
 @SuppressWarnings ("squid:S1192")
-public class MetaformTestsIT extends AbstractIntegrationTest {
+public class MetaformTestsIT extends AbstractIntegrationTest{
   
   @Test
-  public void testCreateMetaform() throws IOException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-    try {
-      Metaform metaform = dataBuilder.createMetaform("simple");
+  public void testCreateMetaform() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
       assertNotNull(metaform);
       assertNotNull(metaform.getId());
       assertEquals("Simple", metaform.getTitle());
-      assertEquals(1, metaform.getSections().size());
-      assertEquals("Simple form", metaform.getSections().get(0).getTitle());
-      assertEquals(1, metaform.getSections().get(0).getFields().size());
-      assertEquals("text", metaform.getSections().get(0).getFields().get(0).getName());
-      assertEquals("text", metaform.getSections().get(0).getFields().get(0).getType().toString());
-      assertEquals("Text field", metaform.getSections().get(0).getFields().get(0).getTitle());
+      assertEquals(1, metaform.getSections().length);
+      assertEquals("Simple form", metaform.getSections()[0].getTitle());
+      assertEquals(1, metaform.getSections()[0].getFields().length);
+      assertEquals("text", metaform.getSections()[0].getFields()[0].getName());
+      assertEquals("text", metaform.getSections()[0].getFields()[0].getType().toString());
+      assertEquals("Text field", metaform.getSections()[0].getFields()[0].getTitle());
       assertEquals(true, metaform.getAllowDrafts());
-    } finally {
-      dataBuilder.clean();
     }
   }
 
   @Test
-  public void testCreateMetaformScript() throws IOException, URISyntaxException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-    try {
-      Metaform metaform = dataBuilder.createMetaform("simple-script");
+  public void testCreateMetaformScript() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-script");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
       assertNotNull(metaform);
       assertNotNull(metaform.getId());
       assertNotNull(metaform.getScripts());
       assertNotNull(metaform.getScripts().getAfterCreateReply());
-      assertEquals(2, metaform.getScripts().getAfterCreateReply().size());
-      assertEquals("create-test", metaform.getScripts().getAfterCreateReply().get(0).getName());
-      assertEquals("js", metaform.getScripts().getAfterCreateReply().get(0).getLanguage());
-      assertEquals("form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));", metaform.getScripts().getAfterCreateReply().get(0).getContent());
+      assertEquals(2, metaform.getScripts().getAfterCreateReply().length);
+      assertEquals("create-test", metaform.getScripts().getAfterCreateReply()[0].getName());
+      assertEquals("js", metaform.getScripts().getAfterCreateReply()[0].getLanguage());
+      assertEquals("form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));", metaform.getScripts().getAfterCreateReply()[0].getContent());
       assertNotNull(metaform.getScripts().getAfterUpdateReply());
-      assertEquals("update-test", metaform.getScripts().getAfterUpdateReply().get(0).getName());
-      assertEquals("js", metaform.getScripts().getAfterUpdateReply().get(0).getLanguage());
-      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply().get(0).getContent());
-    } finally {
-      dataBuilder.clean();
+      assertEquals("update-test", metaform.getScripts().getAfterUpdateReply()[0].getName());
+      assertEquals("js", metaform.getScripts().getAfterUpdateReply()[0].getLanguage());
+      assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply()[0].getContent());
     }
   }
   
   @Test
-  public void testFindMetaform() throws IOException, URISyntaxException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-    try {
-      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
-      Metaform metaform = dataBuilder.createMetaform("simple");
-      Metaform foundMetaform = adminMetaformsApi.findMetaform(metaform.getId(), null, null);
+  public void testFindMetaform() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Metaform foundMetaform = builder.metaformAdmin().metaforms().findMetaform(metaform.getId(), null, null);
       assertEquals(metaform.toString(), foundMetaform.toString());
-    } finally {
-      dataBuilder.clean();
     }
   }
 
   @Test
-  public void testListMetaform() throws IOException, URISyntaxException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-    try {
-      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
-      
-      assertEquals(0, adminMetaformsApi.listMetaforms().size());
-      
-      Metaform metaform1 = dataBuilder.createMetaform("simple");
-      Metaform metaform2 = dataBuilder.createMetaform("simple");
-      
-      metaform1.setTitle("first");
-      metaform2.setTitle("second");
-      
-      adminMetaformsApi.updateMetaform(metaform1.getId(), metaform1);
-      adminMetaformsApi.updateMetaform(metaform2.getId(), metaform2);
+  public void testListMetaform() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      assertEquals(0, builder.metaformAdmin().metaforms().list().length);
 
-      List<Metaform> list = adminMetaformsApi.listMetaforms();
-      
-      list.sort((o1, o2) -> o1.getTitle().compareTo(o2.getTitle()));
+      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple");
 
-      assertEquals(metaform1.toString(), list.get(0).toString());
-      assertEquals(metaform2.toString(), list.get(1).toString());
-    } finally {
-      dataBuilder.clean();
+
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
+
+      Metaform metaform1Modified = new Metaform(metaform1.getId(), metaform1.getReplyStrategy(), metaform1.getExportThemeId(), metaform1.getAllowAnonymous(), metaform1.getAllowDrafts(),
+        metaform1.getAllowReplyOwnerKeys(), metaform1.getAllowInvitations(), metaform1.getAutosave(), "first", metaform1.getSections(), metaform1.getFilters(),
+        metaform1.getScripts());
+      Metaform metaform2Modified = new Metaform(metaform2.getId(), metaform2.getReplyStrategy(), metaform2.getExportThemeId(), metaform2.getAllowAnonymous(), metaform2.getAllowDrafts(),
+        metaform2.getAllowReplyOwnerKeys(), metaform2.getAllowInvitations(), metaform2.getAutosave(), "second", metaform2.getSections(), metaform2.getFilters(),
+        metaform2.getScripts());
+
+      builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), metaform1Modified);
+      builder.metaformAdmin().metaforms().updateMetaform(metaform2.getId(), metaform2Modified);
+
+      List<Metaform> list = Arrays.asList(builder.metaformAdmin().metaforms().list().clone());
+
+      list.sort(Comparator.comparing(Metaform::getTitle));
+
+      assertEquals(metaform1Modified.toString(), list.get(0).toString());
+      assertEquals(metaform2Modified.toString(), list.get(1).toString());
     }
   }
   
   @Test
-  public void testUpdateMetaform() throws IOException, URISyntaxException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-    try {
-      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();      
-      Metaform metaform = dataBuilder.createMetaform("simple");
+  public void testUpdateMetaform() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+
+      Metaform updatePayload = builder.metaformAdmin().metaforms().readMetaform("tbnc");
+      Metaform updatedMetaform = builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), updatePayload);
       
-      Metaform updatePayload = readMetaform("tbnc");
-      Metaform updatedMetaform = adminMetaformsApi.updateMetaform(metaform.getId(), updatePayload);
-      
-      assertEquals(metaform.getId(), updatedMetaform.getId());
-      assertEquals(1, updatedMetaform.getSections().size());
-      assertEquals("Text, boolean, number, checklist form", updatedMetaform.getSections().get(0).getTitle());
-      assertEquals(4, updatedMetaform.getSections().get(0).getFields().size());
-      assertEquals("text", updatedMetaform.getSections().get(0).getFields().get(0).getName());
-      assertEquals("boolean", updatedMetaform.getSections().get(0).getFields().get(1).getName());
-      assertEquals("number", updatedMetaform.getSections().get(0).getFields().get(2).getName());
-      assertEquals("checklist", updatedMetaform.getSections().get(0).getFields().get(3).getName());
-    } finally {
-      dataBuilder.clean();
+      assertEquals(metaform1.getId(), updatedMetaform.getId());
+      assertEquals(1, updatedMetaform.getSections().length);
+      assertEquals("Text, boolean, number, checklist form", updatedMetaform.getSections()[0].getTitle());
+      assertEquals(4, updatedMetaform.getSections()[0].getFields().length);
+      assertEquals("text", updatedMetaform.getSections()[0].getFields()[0].getName());
+      assertEquals("boolean", updatedMetaform.getSections()[0].getFields()[1].getName());
+      assertEquals("number", updatedMetaform.getSections()[0].getFields()[2].getName());
+      assertEquals("checklist", updatedMetaform.getSections()[0].getFields()[3].getName());
     }
   }
-
 }

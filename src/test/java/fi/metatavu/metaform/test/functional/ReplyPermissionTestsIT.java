@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -15,22 +14,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import fi.metatavu.metaform.client.model.ExportTheme;
-import org.junit.Test;
-
-import feign.FeignException;
-import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.api.RepliesApi;
-import fi.metatavu.metaform.client.model.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 
 @SuppressWarnings ("squid:S1192")
-public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
+public class ReplyPermissionTestsIT {
 
   /**
    * Test that asserts that user may find his / her own reply
-   */
+
   @Test
   public void findOwnReply() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -55,7 +46,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   
   /**
    * Test that asserts that anonymous users may not find their "own" replies
-   */
+
   @Test
   public void findOwnReplyAnonymous() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -80,7 +71,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   
   /**
    * Test that asserts that other users may not find their replies
-   */
+
   @Test
   public void findOthersReplyUser() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -107,7 +98,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
   /**
    * Test that asserts that metaform-admin may find replies created by others
-   */
+
   @Test
   public void findOthersReplyAdmin() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -132,7 +123,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
   /**
    * Test that asserts that user may list only his / her own replies
-   */
+
   @Test
   public void listOwnReplies() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -170,7 +161,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   
   /**
    * Test that asserts that user in permission context group may see replies targeted to that group
-   */
+
   @Test
   public void listPermissionContextReplies() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -221,7 +212,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
   /**
    * Test that asserts that user in permission context group may see replies targeted to that group
-   */
+
   @Test
   public void exportPermissionContextReplyPdf() throws IOException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
@@ -270,7 +261,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   
   /**
    * Test that asserts that admin may list all replies
-   */
+
   @Test
   public void listRepliesAdmin() throws IOException {
     String adminToken = getAdminToken(REALM_1);
@@ -308,7 +299,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   /**
    * Test that asserts that user in permission context receives an email when notification is posted and
    * another user receives when reply is updated
-   */
+
   @Test
   public void notifyPermissionContextReply() throws IOException {
     TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test3.realm1", "test");
@@ -338,7 +329,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * 
    * @param value value
    * @return permission select reply with given value
-   */
+
   private Reply createPermisionSelectReply(String value) {
     Map<String, Object> replyData = createPermissionSelectReplyData(value);
     return createReplyWithData(replyData);
@@ -348,8 +339,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * Creates permission select reply data with given value
    * 
    * @param value value
-   * @return permission select reply data with given value
-   */
+
   private Map<String, Object> createPermissionSelectReplyData(String value) {
     Map<String, Object> replyData = new HashMap<>();
     replyData.put("permission-select", value);
@@ -363,7 +353,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
    * @param realmId realm
    * @param metaformId metaform
    * @param replyId replay
-   */
+
   private void assertForbiddenToFindReply(String token, String realmId, UUID metaformId, UUID replyId) {
     RepliesApi repliesApi = getRepliesApi(token);
     try {
@@ -373,5 +363,5 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       assertEquals(403, e.status());
     }
   }
-  
+  */
 }
