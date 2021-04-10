@@ -46,6 +46,11 @@ dependencies {
     implementation 'io.quarkus:quarkus-undertow'
     implementation 'javax.servlet:javax.servlet-api:4.0.1'
     implementation 'io.quarkus:quarkus-cache'
+    implementation "org.apache.poi:poi:4.1.2"
+    implementation "org.apache.poi:poi-ooxml:4.1.2"
+    testImplementation 'org.awaitility:awaitility:3.1.2'
+    testImplementation 'org.apache.pdfbox:pdfbox:2.0.8'
+    testImplementation 'org.apache.pdfbox:pdfbox-tools:2.0.8'
 
     testCompile("com.github.tomakehurst:wiremock:2.24.0") {
         exclude group: 'org.slf4j', module: 'slf4j-api'
@@ -108,7 +113,10 @@ task generateApiClient(type: org.openapitools.generator.gradle.plugin.tasks.Gene
     packageName = "fi.metatavu.metaform.api.client"
     configOptions = [
             dateLibrary: "string",
-            collectionType: "array"
+            collectionType: "array",
+            enumPropertyNaming : "UPPERCASE"
+           // serializationLibrary : "gson"
+
     ]
 }
 

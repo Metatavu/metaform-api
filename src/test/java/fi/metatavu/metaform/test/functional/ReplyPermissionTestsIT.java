@@ -15,9 +15,16 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import fi.metatavu.metaform.server.rest.ReplyMode;
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
 
-@SuppressWarnings ("squid:S1192")
-public class ReplyPermissionTestsIT {
+
+@QuarkusTest
+@QuarkusTestResource.List(value = {
+  @QuarkusTestResource(MysqlResource.class),
+  @QuarkusTestResource(KeycloakResource.class)
+})
+public class ReplyPermissionTestsIT extends AbstractIntegrationTest{
 
   /**
    * Test that asserts that user may find his / her own reply

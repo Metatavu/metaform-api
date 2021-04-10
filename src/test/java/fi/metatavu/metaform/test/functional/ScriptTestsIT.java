@@ -8,140 +8,153 @@ import static com.github.tomakehurst.wiremock.client.WireMock.removeStub;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import fi.metatavu.metaform.api.client.models.ExportTheme;
+import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.api.client.models.Reply;
+import fi.metatavu.metaform.server.rest.ReplyMode;
+import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.junit.jupiter.api.Test;
 
 
-@SuppressWarnings ("squid:S1192")
-public class ScriptTestsIT {
+@QuarkusTest
+@QuarkusTestResource.List(value = {
+  @QuarkusTestResource(MysqlResource.class),
+  @QuarkusTestResource(KeycloakResource.class)
+})
+public class ScriptTestsIT extends AbstractIntegrationTest{
+
+
+  @Test
+  public void testCreateReplyScript() throws Exception {
+    waitThemeFlush();
+    WireMock.resetAllRequests();
+    
+    UrlPattern externalMockURL = urlEqualTo("/externalmock");
+    StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
+    
+    try (TestBuilder testBuilder = new TestBuilder()){
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-script");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "Test text value");
+      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
+      testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+
+      verify(1, postRequestedFor(externalMockURL).withRequestBody(containing("Text value: Test text value")));
+
+    } finally {
+      removeStub(externalStub);
+    }
+  }
+
+  @Test
+  public void testPdfScript() throws Exception {
+    waitThemeFlush();
+    WireMock.resetAllRequests();
+    
+    UrlPattern externalMockURL = urlEqualTo("/externalmock");
+    
+    StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
+
+    try (TestBuilder testBuilder = new TestBuilder()){
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-pdf-script");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(),  "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+
+      Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
+        metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
+      testBuilder.metaformAdmin().metaforms().updateMetaform(newMetaform.getId(), newMetaform);
+
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "PDF text value");
+      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
+      testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+
+      List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
+      assertEquals(1, serveEvents.size());
+
+      assertPdfContains("PDF text value", serveEvents.get(0).getRequest().getBody());
+    } finally {
+      removeStub(externalStub);
+    }
+  }
+
+  @Test
+  public void testPdfBase64Script() throws Exception {
+    waitThemeFlush();
+    WireMock.resetAllRequests();
+    
+    UrlPattern externalMockURL = urlEqualTo("/externalmock");
+    
+    StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
+
+    try (TestBuilder testBuilder = new TestBuilder()){
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-pdf-base64-script");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
+        metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
+      testBuilder.metaformAdmin().metaforms().updateMetaform(newMetaform.getId(), newMetaform);
+
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "PDF text value");
+      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
+      testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+
+      List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
+      assertEquals(1, serveEvents.size());
+
+      assertPdfContains("PDF text value", Base64.getDecoder().decode(serveEvents.get(0).getRequest().getBody()));
+    } finally {
+      removeStub(externalStub);
+    }
+  }
 
   /**
-  @Test
-  public void testCreateReplyScript() throws IOException, URISyntaxException {
-    waitThemeFlush();
-    WireMock.resetAllRequests();
-    
-    UrlPattern externalMockURL = urlEqualTo("/externalmock");
-    
-    StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
-    
-    try {
-      String adminToken = getAdminToken(REALM_1);
-      
-      RepliesApi repliesApi = getRepliesApi(adminToken);
-      
-      TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-      try {
-        Metaform metaform = dataBuilder.createMetaform("simple-script");
-      
-        Map<String, Object> replyData = new HashMap<>();
-        replyData.put("text", "Test text value");
-        Reply reply = createReplyWithData(replyData);
-        repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-        
-        verify(1, postRequestedFor(externalMockURL).withRequestBody(containing("Text value: Test text value")));
-      } finally {
-        dataBuilder.clean();
-      }
-    } finally {
-      removeStub(externalStub);
-    }
+   * Asserts that given PDF data contains expected string
+   *
+   * @param expected expected string
+   * @param data PDF data
+   * @throws IOException thrown on PDF read failure
+   */
+  protected void assertPdfContains(String expected, byte[] data) throws IOException {
+    PDDocument document = PDDocument.load(new ByteArrayInputStream(data));
+    String pdfText = new PDFTextStripper().getText(document);
+    document.close();
+
+    assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected));
   }
-
-  @Test
-  public void testPdfScript() throws IOException, URISyntaxException {
-    waitThemeFlush();
-    WireMock.resetAllRequests();
-    
-    UrlPattern externalMockURL = urlEqualTo("/externalmock");
-    
-    StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
-    
-    try {
-      String adminToken = getAdminToken(REALM_1);
-
-      RepliesApi repliesApi = getRepliesApi(adminToken);
-      MetaformsApi metaformsApi = getMetaformsApi(adminToken);
-      
-      TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-      
-      try {
-        Metaform metaform = dataBuilder.createMetaform("simple-pdf-script");
-        ExportTheme theme = dataBuilder.createSimpleExportTheme();
-        dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
-        metaform.setExportThemeId(theme.getId());
-        metaformsApi.updateMetaform(metaform.getId(), metaform);
-        
-        Map<String, Object> replyData = new HashMap<>();
-        replyData.put("text", "PDF text value");
-        Reply reply = createReplyWithData(replyData);
-        repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-        
-        List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
-        assertEquals(1, serveEvents.size());
-        
-        assertPdfContains("PDF text value", serveEvents.get(0).getRequest().getBody());
-      } finally {
-        dataBuilder.clean();
-      }
-    } finally {
-      removeStub(externalStub);
-    }
-  }
-
-  @Test
-  public void testPdfBase64Script() throws IOException, URISyntaxException {
-    waitThemeFlush();
-    WireMock.resetAllRequests();
-    
-    UrlPattern externalMockURL = urlEqualTo("/externalmock");
-    
-    StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
-    
-    try {
-      String adminToken = getAdminToken(REALM_1);
-
-      RepliesApi repliesApi = getRepliesApi(adminToken);
-      MetaformsApi metaformsApi = getMetaformsApi(adminToken);
-      
-      TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-      
-      try {
-        Metaform metaform = dataBuilder.createMetaform("simple-pdf-base64-script");
-        ExportTheme theme = dataBuilder.createSimpleExportTheme();
-        dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
-        metaform.setExportThemeId(theme.getId());
-        metaformsApi.updateMetaform(metaform.getId(), metaform);
-        
-        Map<String, Object> replyData = new HashMap<>();
-        replyData.put("text", "PDF text value");
-        Reply reply = createReplyWithData(replyData);
-        repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-        
-        List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
-        assertEquals(1, serveEvents.size());
-        
-        assertPdfContains("PDF text value", Base64.getDecoder().decode(serveEvents.get(0).getRequest().getBody()));
-      } finally {
-        dataBuilder.clean();
-      }
-    } finally {
-      removeStub(externalStub);
-    }
-  }
-
 
   /**
    * Wait until theme file caches are flushed
-
+   */
   private void waitThemeFlush() {
     await().atMost(1, TimeUnit.MINUTES).until(() -> true);
   }
-  */
 }

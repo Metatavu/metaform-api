@@ -488,7 +488,7 @@ public class ReplyController {
           if (value != null) {
             switch (field.getType()) {
               case DATE:
-              case DATETIME:
+              case DATE_TIME:
                 xlsxBuilder.setCellValue(sheetId, rowIndex, columnIndex, OffsetDateTime.parse(value.toString()), cellSource);
               break;
               case SELECT:

@@ -2,6 +2,8 @@ package fi.metatavu.metaform.test.functional.builder.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +16,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.squareup.moshi.*;
+import com.squareup.moshi.adapters.EnumJsonAdapter;
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory;
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
@@ -22,6 +25,7 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
 import fi.metatavu.metaform.api.client.models.Draft;
 import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.api.client.models.MetaformFieldType;
 import fi.metatavu.metaform.api.spec.model.ExportTheme;
 import fi.metatavu.metaform.test.TestSettings;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
@@ -230,28 +234,33 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @param form file name
    * @return Metaform object
    * @throws IOException throws IOException when JSON reading fails
-  */
+    */
   public Metaform readMetaform(String form) throws IOException {
-    String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
-    ClassLoader classLoader = getClass().getClassLoader();
-    InputStream formStream = classLoader.getResourceAsStream(path);
-    Moshi moshi = new Moshi.Builder()
-      .add(new Object() {
-        @ToJson
-        String toJson(UUID uuid) {
-          return uuid.toString();
-        }
-        @FromJson
-        UUID fromJson(String s) {
-          return UUID.fromString(s);
-        }
-      })
-      .addLast(new KotlinJsonAdapterFactory()).build();
-    JsonAdapter<Metaform> jsonAdapter = moshi.adapter(Metaform.class);
-    return jsonAdapter.fromJson(IOUtils.toString(formStream, StandardCharsets.UTF_8.name()));
+    return MetaformsReader.Companion.readMetaform(form);
 
   }
-
+  /**
+   * Reads a Metaform from JSON file
+   *
+   * @param form file name
+   * @return Metaform object
+   * @throws IOException throws IOException when JSON reading fails
+   */
+ /* public Metaform readMetaform(String form) throws IOException {
+    ObjectMapper objectMapper = getObjectMapper();
+    String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream formStream = classLoader.getResourceAsStream(path)) {
+      return objectMapper.readValue(formStream, Metaform.class);
+    }
+  }*/
+/*=   String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream formStream = classLoader.getResourceAsStream(path)) {
+      try (Reader targetReader = new InputStreamReader(formStream)) {
+        return new Gson().fromJson(targetReader, Metaform.class);
+      }
+    }*/
   /**
    * Returns object mapper with default modules and settings
    *
@@ -260,7 +269,7 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
   protected ObjectMapper getObjectMapper() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(new JavaTimeModule());
-  //  objectMapper.registerModule(new KotlinModule());
+    objectMapper.registerModule(new KotlinModule());
     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     return objectMapper;

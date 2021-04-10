@@ -10,13 +10,13 @@
         },
         {
           "name": "created",
-          "type": "dateTime",
+          "type": "date-time",
           "title": "Created metafield",
           "contexts": [ "META" ]
         },
         {
           "name": "modified",
-          "type": "dateTime",
+          "type": "date-time",
           "title": "modified metafield",
           "contexts": [ "META" ]
         },

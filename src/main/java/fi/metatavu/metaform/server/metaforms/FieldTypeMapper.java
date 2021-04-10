@@ -34,7 +34,7 @@ public class FieldTypeMapper {
     switch (fieldType) {
       case AUTOCOMPLETE:
         return StoreDataType.STRING;
-      case AUTOCOMPLETEMULTIPLE:
+      case AUTOCOMPLETE_MULTIPLE:
         return StoreDataType.STRING;
       case BOOLEAN:
         return StoreDataType.BOOLEAN;
@@ -42,7 +42,7 @@ public class FieldTypeMapper {
         return StoreDataType.LIST;
       case DATE:
         return StoreDataType.STRING;
-      case DATETIME:
+      case DATE_TIME:
         return StoreDataType.STRING;
       case EMAIL:
         return StoreDataType.STRING;
@@ -62,7 +62,7 @@ public class FieldTypeMapper {
         return StoreDataType.STRING;
       case SELECT:
         return StoreDataType.STRING;
-      case SMALLTEXT:
+      case SMALL_TEXT:
         return StoreDataType.NONE;
       case SUBMIT:
         return StoreDataType.NONE;

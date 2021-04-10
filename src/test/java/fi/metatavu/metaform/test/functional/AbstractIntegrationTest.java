@@ -1,6 +1,5 @@
 package fi.metatavu.metaform.test.functional;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -32,6 +31,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -42,6 +42,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.fail;
 
 public class AbstractIntegrationTest {
+
   private static Logger logger = LoggerFactory.getLogger(AbstractIntegrationTest.class.getName());
   public static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
   public static final UUID REALM1_USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5");
@@ -405,5 +406,24 @@ public class AbstractIntegrationTest {
     assertTrue(actual instanceof List);
     assertThat((List<?>) actual, containsInAnyOrder(expected.toArray()));
   }
+  /**
+   * Creates test table row data
+   *
+   * @param tableText text
+   * @param tableNumber number
+   * @return created test data row
+   */
+  protected Map<String, Object> createSimpleTableRow(String tableText, Double tableNumber) {
+    Map<String, Object> result = new HashMap<>();
 
+    if (tableText != null) {
+      result.put("tabletext", tableText);
+    }
+
+    if (tableNumber != null) {
+      result.put("tablenumber", tableNumber);
+    }
+
+    return result;
+  }
 }
