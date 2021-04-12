@@ -14,224 +14,148 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import org.junit.Test;
 
 import fi.metatavu.metaform.server.rest.ReplyMode;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-@SuppressWarnings ("squid:S1192")
-public class TableFieldTestsIT {
-  /*
+
+@QuarkusTest
+@QuarkusTestResource.List(value = {
+  @QuarkusTestResource(MysqlResource.class),
+  @QuarkusTestResource(KeycloakResource.class)
+})
+public class TableFieldTestsIT extends AbstractIntegrationTest {
+
   @Test
-  public void createTableReply() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
-    try {
+  public void createTableReply() throws Exception {
+
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
-      
-      Reply reply = createReplyWithData(replyData);
-      
-      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-      try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundReply);
-        assertNotNull(foundReply.getId());
-        assertTableDataEquals(replyData, foundReply.getData());
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+
+      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+
+      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Assertions.assertNotNull(foundReply);
+      Assertions.assertNotNull(foundReply.getId());
+      testBuilder.test1().replies().assertTableDataEquals(replyData, foundReply.getData());
+
     }
   }
 
   @Test
-  public void updateTableReply() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
-    try {
+  public void updateTableReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
       Map<String, Object> createReplyData = new HashMap<>();
       createReplyData.put("table", Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d)));
-      Reply createReply = createReplyWithData(createReplyData);
-      
-      Reply createdReply = repliesApi.createReply(metaform.getId(), createReply, null, ReplyMode.REVISION.toString());
-      try {
-        assertTableDataEquals(createReplyData, createReply.getData());
 
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundReply);
-        assertNotNull(foundReply.getId());        
-        
-        assertTableDataEquals(createReplyData, foundReply.getData());
+      Reply reply = testBuilder.test1().replies().createReplyWithData(createReplyData);
+      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
 
-        Map<String, Object> updateReplyData = new HashMap<>();
-        updateReplyData.put("table", Arrays.asList(createSimpleTableRow("Added new text", -210d), createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Updated Text 2", 45.5d)));
-        Reply updateReply = createReplyWithData(updateReplyData);
-        repliesApi.updateReply(metaform.getId(), createdReply.getId(), updateReply, (String) null);
-        
-        assertTableDataEquals(updateReplyData, updateReply.getData());
-        
-        Reply foundUpdatedReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundUpdatedReply);
-        assertNotNull(foundUpdatedReply.getId());        
-        assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
-        
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      testBuilder.test1().replies().assertTableDataEquals(createReplyData, createdReply.getData());
+
+      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
+      assertNotNull(foundReply);
+      assertNotNull(foundReply.getId());
+
+      testBuilder.test1().replies().assertTableDataEquals(createReplyData, foundReply.getData());
+
+      Map<String, Object> updateReplyData = new HashMap<>();
+      updateReplyData.put("table", Arrays.asList(createSimpleTableRow("Added new text", -210d), createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Updated Text 2", 45.5d)));
+      Reply updateReply = testBuilder.test1().replies().createReplyWithData(updateReplyData);
+      testBuilder.test1().replies().updateReply(metaform.getId(), createdReply.getId(), updateReply, (String) null);
+
+      testBuilder.test1().replies().assertTableDataEquals(updateReplyData, updateReply.getData());
+
+      Reply foundUpdatedReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
+      assertNotNull(foundUpdatedReply);
+      assertNotNull(foundUpdatedReply.getId());
+      testBuilder.test1().replies().assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
     }
   }
   
   @Test
-  public void nulledTableReply() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
-    try {
+  public void nulledTableReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow(null, null));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
-      
-      Reply reply = createReplyWithData(replyData);
-      
-      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-      try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundReply);
-        assertNotNull(foundReply.getId());
-        assertTableDataEquals(replyData, foundReply.getData());
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+
+      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
+
+      assertNotNull(foundReply);
+      assertNotNull(foundReply.getId());
+      testBuilder.test1().replies().assertTableDataEquals(replyData, foundReply.getData());
     }
   }
   
   @Test
-  public void nullTableReply() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
-    try {
+  public void nullTableReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", null);
-      
-      Reply reply = createReplyWithData(replyData);
-      
-      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-      try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundReply);
-        assertNotNull(foundReply.getId());
-        assertNull(foundReply.getData().get("table"));
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+
+      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+
+      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
+      assertNotNull(foundReply);
+      assertNotNull(foundReply.getId());
+      assertNull(foundReply.getData().get("table"));
     }
   }
   
   @Test
-  public void invalidTableReply() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
-    try {
+  public void invalidTableReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", "table data");
-      
-      try {
-        Reply reply = createReplyWithData(replyData);
-        repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
-        fail("Bad request should have been returned");
-      } catch (FeignException e) {
-        assertEquals(400, e.status());
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+
+      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
+      testBuilder.test1().replies().assertCreateFailStatus(400, metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
     }
   }
   
   @Test
-  public void deleteTableReply() throws IOException, URISyntaxException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-table"));
-    try {
+  public void deleteTableReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
-      
-      Reply reply = createReplyWithData(replyData);
-      
-      Reply createdReply = repliesApi.createReply(metaform.getId(), reply, null, ReplyMode.REVISION.toString());
 
-      Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
+      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
       assertNotNull(foundReply);
-      adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      try {
-        repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        fail(String.format("Reply %s should not be present", createdReply.getId().toString()));
-      } catch (FeignException e) {
-        assertEquals(404, e.status());
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      testBuilder.metaformAdmin().replies().delete(metaform.getId(), createdReply, (String) null);
+      testBuilder.test1().replies().assertFindFailStatus(404, metaform.getId(), createdReply.getId(), null);
     }
   }
-  
-  /**
-   * Asserts that table datas equal
-   * 
-   * @param expected expected table data
-   * @param actual actual table data
-
-  private void assertTableDataEquals(Map<String, Object> expected, Map<String, Object> actual) {
-    assertNotNull(actual.get("table"));
-    
-    @SuppressWarnings("unchecked") List<Map<String, Object>> expectedTableData = (List<Map<String, Object>>) expected.get("table");
-    @SuppressWarnings("unchecked") List<Map<String, Object>> actualTableData = (List<Map<String, Object>>) actual.get("table");
-    
-    assertEquals(expectedTableData.size(), actualTableData.size());
-    
-    for (Map<String, Object> expectedRow : expectedTableData) {
-      for (Entry<String, Object> expectedCell : expectedRow.entrySet()) {
-        assertEquals(expectedCell.getValue(), expectedRow.get(expectedCell.getKey()));        
-      }
-    }
-  }
-*/
 }

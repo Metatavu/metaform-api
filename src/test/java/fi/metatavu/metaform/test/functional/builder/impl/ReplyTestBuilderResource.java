@@ -311,8 +311,29 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
    * @return reply object with given data
    */
   public Reply createReplyWithData(Map<String, Object> replyData) {
-    Reply reply = new Reply(null, null, null, null, null, null, replyData);
-    return reply;
+    return new Reply(null, null, null, null, null, null, replyData);
+  }
+
+
+  /**
+   * Asserts that table datas equal
+   *
+   * @param expected expected table data
+   * @param actual actual table data
+   */
+  public void assertTableDataEquals(Map<String, Object> expected, Map<String, Object> actual) {
+    assertNotNull(actual.get("table"));
+
+    @SuppressWarnings("unchecked") List<Map<String, Object>> expectedTableData = (List<Map<String, Object>>) expected.get("table");
+    @SuppressWarnings("unchecked") List<Map<String, Object>> actualTableData = (List<Map<String, Object>>) actual.get("table");
+
+    assertEquals(expectedTableData.size(), actualTableData.size());
+
+    for (Map<String, Object> expectedRow : expectedTableData) {
+      for (Map.Entry<String, Object> expectedCell : expectedRow.entrySet()) {
+        assertEquals(expectedCell.getValue(), expectedRow.get(expectedCell.getKey()));
+      }
+    }
   }
 
   @Override
