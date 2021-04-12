@@ -1,17 +1,21 @@
 package fi.metatavu.metaform.test.functional.tests;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import fi.metatavu.metaform.api.client.models.ExportTheme;
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 import fi.metatavu.metaform.test.functional.AbstractIntegrationTest;
+import fi.metatavu.metaform.test.functional.MailgunMocker;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -27,6 +31,12 @@ import static org.junit.Assert.assertEquals;
 })
 @TestProfile(DefTestProfile.class)
 public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
+
+  @BeforeAll
+  public static void setMocker() {
+    int port = Integer.parseInt(ConfigProvider.getConfig().getValue("wiremock.port", String.class));
+    WireMock.configureFor("localhost", port);
+  }
 
   /**
    * Test that asserts that user may find his / her own reply
@@ -221,7 +231,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   /**
    * Test that asserts that user in permission context receives an email when notification is posted and
    * another user receives when reply is updated
-   *//*
+   */
   @Test
   public void notifyPermissionContextReply() throws Exception {
     MailgunMocker mailgunMocker = startMailgunMocker();
@@ -247,7 +257,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     finally {
       stopMailgunMocker(mailgunMocker);
     }
-  }*/
+  }
 
 
   /**

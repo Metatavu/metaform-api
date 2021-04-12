@@ -86,7 +86,6 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
       Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple");
 
-
       Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
       Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
 

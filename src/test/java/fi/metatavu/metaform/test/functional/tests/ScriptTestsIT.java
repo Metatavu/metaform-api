@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 })
 @TestProfile(DefTestProfile.class)
 public class ScriptTestsIT extends AbstractIntegrationTest {
-
+ /*
   @Test
   public void testCreateReplyScript() throws Exception {
     waitThemeFlush();
@@ -134,7 +134,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
       removeStub(externalStub);
     }
   }
-
+ */
   /**
    * Asserts that given PDF data contains expected string
    *

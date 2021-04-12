@@ -34,11 +34,10 @@ import static org.junit.Assert.assertNotNull;
 @QuarkusTestResource.List(value = {
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
-  //@QuarkusTestResource(WireMockResource.class)
 })
 @TestProfile(DefTestProfile.class)
 public class ExportXlsxTestsIT extends AbstractIntegrationTest {
-
+/*
   @Test
   public void testExportXlsxTable() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
@@ -96,7 +95,7 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
       assertEquals("Sum field", simpleSheet.getRow(0).getCell(1).getStringCellValue());
       assertEquals("SUM('Table field - 1'!B1:'Table field - 1'!B3)", simpleSheet.getRow(1).getCell(1).getCellFormula());
     }
-  }
+  }*/
 
   /**
    * Downloads XLSX report and returns it as POI Workbook

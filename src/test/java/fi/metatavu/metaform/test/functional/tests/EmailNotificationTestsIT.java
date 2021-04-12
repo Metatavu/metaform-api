@@ -37,7 +37,6 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @BeforeAll
   public static void setMocker() {
     int port =  Integer.parseInt(ConfigProvider.getConfig().getValue("wiremock.port", String.class));
-    System.out.println("wiremock for "+port);
     WireMock.configureFor("localhost", port);
   }
 

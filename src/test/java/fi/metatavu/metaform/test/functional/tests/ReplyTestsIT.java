@@ -41,17 +41,17 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
   @Test
   public void createReplyNotLoggedIn() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform metaform = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform createdMetaform = builder.metaformAdmin().metaforms().create(metaform);
+      Metaform metaformData = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(metaformData);
 
       //TODO WHY 401 IS EXPECTED?
       given()
         .baseUri(TestSettings.basePath)
         .header("Content-Type", "application/json")
-        .post("/v1/metaforms/{metaformId}/replies", createdMetaform.getId())
+        .post("/v1/metaforms/{metaformId}/replies", metaform.getId())
         .then()
         .assertThat()
-        .statusCode(403);
+        .statusCode(401);
     }
 
   }
