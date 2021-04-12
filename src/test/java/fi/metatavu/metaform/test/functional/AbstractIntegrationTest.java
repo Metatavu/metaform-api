@@ -9,6 +9,7 @@ import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.test.TestSettings;
 import io.restassured.response.ValidatableResponse;
+import liquibase.pro.packaged.S;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -411,6 +412,7 @@ public class AbstractIntegrationTest {
     String path = "mgapi";
     String apiKey = "fakekey";
     MailgunMocker mailgunMocker = new MailgunMocker(String.format("/%s", path), domain, apiKey);
+    System.out.println("----STARTING MAILGUN MOCKER");
     mailgunMocker.startMock();
     return mailgunMocker;
   }
@@ -424,7 +426,4 @@ public class AbstractIntegrationTest {
     mailgunMocker.stopMock();
   }
 
-  static {
-    WireMock.configureFor("localhost", 8888);
-  }
 }

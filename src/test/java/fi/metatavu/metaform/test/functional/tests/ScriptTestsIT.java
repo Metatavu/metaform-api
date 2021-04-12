@@ -14,6 +14,7 @@ import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -38,6 +39,7 @@ import static org.junit.Assert.assertTrue;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
+@TestProfile(DefTestProfile.class)
 public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test

@@ -8,6 +8,7 @@ import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@SuppressWarnings("squid:S1192")
+@TestProfile(DefTestProfile.class)
 public class MetaformTestsIT extends AbstractIntegrationTest {
 
   @Test

@@ -10,17 +10,14 @@ import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.test.TestSettings;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Test builder resource for EmailNotifications API
  */
 public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResource<EmailNotification, EmailNotificationsApi> {
 
-  private final Map<EmailNotification, UUID> emailNotificationMetaforms = new HashMap();
+  private final Map<UUID, UUID> emailNotificationMetaforms = new HashMap<UUID, UUID>();
   private final AccessTokenProvider accessTokenProvider;
   /**
    * Constructor
@@ -41,28 +38,26 @@ public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResourc
    * @param contentTemplate freemarker template for content
    * @param emails email addresses
    * @return email notification
-   * @throws IOException
    */
   public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails) {
-    return createEmailNotification(metaform, subjectTemplate, contentTemplate, emails, null);
+    return createEmailNotification(metaform.getId(), subjectTemplate, contentTemplate, emails, null);
   }
 
   /**
    * Creates new email notification for a Metaform
    *
-   * @param metaform metaform
+   * @param metaformId metaform id
    * @param subjectTemplate freemarker template for subject
    * @param contentTemplate freemarker template for content
    * @param emails email addresses
    * @param notifyIf notify if rule
    * @return email notification
-   * @throws IOException
    */
-  public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) {
+  public EmailNotification createEmailNotification(UUID metaformId, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) {
     EmailNotification notification = new EmailNotification(subjectTemplate, contentTemplate, emails.toArray(String[]::new), null, notifyIf);
-
-    emailNotificationMetaforms.put(notification, metaform.getId());
-    return addClosable(getApi().createEmailNotification(metaform.getId(), notification));
+    EmailNotification createdNotification = getApi().createEmailNotification(metaformId, notification);
+    emailNotificationMetaforms.put(createdNotification.getId(), metaformId);
+    return addClosable(createdNotification);
   }
 
   @Override
@@ -76,7 +71,29 @@ public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResourc
   }
 
   @Override
-  public void clean(EmailNotification emailNotification) throws Exception {
-    getApi().deleteEmailNotification(emailNotificationMetaforms.get(emailNotification), emailNotification.getId());
+  public void clean(EmailNotification emailNotification){
+    UUID metaformId = emailNotificationMetaforms.get(emailNotification.getId());
+    getApi().deleteEmailNotification(metaformId, emailNotification.getId());
+  }
+
+  /**
+   * Finds email notification
+   *
+   * @param metaformId metaform id
+   * @param emailNotId notification id
+   * @return found email notification
+   */
+  public EmailNotification findEmailNotification(UUID metaformId, UUID emailNotId) {
+    return getApi().findEmailNotification(metaformId, emailNotId);
+  }
+
+  /**
+   * Returns all email notifications for metaform
+   *
+   * @param metaformId metaform id
+   * @return found notifications
+   */
+  public List<EmailNotification> listEmailNotifications(UUID metaformId) {
+    return Arrays.asList(getApi().listEmailNotifications(metaformId));
   }
 }

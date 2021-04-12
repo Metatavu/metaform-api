@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fi.metatavu.metaform.api.spec.model.FieldRule;
 import fi.metatavu.metaform.api.spec.model.Reply;
 import org.slf4j.Logger;
@@ -194,6 +195,7 @@ public class EmailNotificationController {
     }
     
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
     try {
       return objectMapper.readValue(objectMapper.writeValueAsString(reply), new TypeReference<Map<String, Object>>() { });
     } catch (IOException e) {

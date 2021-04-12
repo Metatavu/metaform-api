@@ -9,6 +9,7 @@ import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertNotNull;
@@ -21,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
+@TestProfile(DefTestProfile.class)
 public class AnonymousFormTestsIT extends AbstractIntegrationTest {
 
   @Test

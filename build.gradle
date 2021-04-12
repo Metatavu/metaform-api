@@ -72,6 +72,7 @@ dependencies {
     testImplementation "fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrs_functional_test_builder_version"
     testImplementation "com.github.dasniko:testcontainers-keycloak:1.5.0"
     testImplementation("com.squareup.moshi:moshi-kotlin:1.12.0")
+    testImplementation "org.testcontainers:mockserver:1.15.2"
 
     kapt "org.hibernate:hibernate-jpamodelgen:5.4.27.SP1"
 }

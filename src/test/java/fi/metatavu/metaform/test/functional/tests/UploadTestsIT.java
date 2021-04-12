@@ -3,13 +3,16 @@ package fi.metatavu.metaform.test.functional.tests;
 import fi.metatavu.metaform.test.functional.AbstractIntegrationTest;
 import fi.metatavu.metaform.test.functional.FileUploadMeta;
 import fi.metatavu.metaform.test.functional.FileUploadResponse;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-@SuppressWarnings("squid:S1192")
+@QuarkusTest
+@TestProfile(DefTestProfile.class)
 public class UploadTestsIT extends AbstractIntegrationTest {
 
   @Test
