@@ -48,6 +48,12 @@ dependencies {
     implementation 'io.quarkus:quarkus-cache'
     implementation "org.apache.poi:poi:4.1.2"
     implementation "org.apache.poi:poi-ooxml:4.1.2"
+    implementation "org.graalvm.sdk:graal-sdk:1.0.0-rc9"
+    implementation "org.graalvm.js:js:1.0.0-rc9"
+    implementation "org.graalvm.js:js-scriptengine:1.0.0-rc9"
+    implementation "org.graalvm.tools:profiler:1.0.0-rc9"
+    implementation "org.graalvm.tools:chromeinspector:1.0.0-rc9"
+
     testImplementation 'org.awaitility:awaitility:3.1.2'
     testImplementation 'org.apache.pdfbox:pdfbox:2.0.8'
     testImplementation 'org.apache.pdfbox:pdfbox-tools:2.0.8'

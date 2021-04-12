@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -37,7 +38,7 @@ public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
       Reply createdReply = builder.test1().replies().createReplyWithData(replyData);
 
       Reply reply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), createdReply);
-      builder.test1().replies().findReply(metaform.getId(), reply.getId(), (String) null);
+      builder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
       builder.test1().replies().listReplies(metaform.getId(), null, null, null, null, null, true, null, null, null);
       builder.test1().replies().updateReply(metaform.getId(), reply.getId(), reply, reply.getOwnerKey());
       builder.test1().replies().delete(metaform.getId(), reply, reply.getOwnerKey());

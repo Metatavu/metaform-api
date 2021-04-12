@@ -1,16 +1,7 @@
 package fi.metatavu.metaform.test.functional;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
-
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import org.junit.Test;
-import fi.metatavu.metaform.server.rest.ReplyMode;
 
 /**
  * Quarkus tests for intents API
@@ -20,7 +11,7 @@ import fi.metatavu.metaform.server.rest.ReplyMode;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@SuppressWarnings ("squid:S1192")
+@SuppressWarnings("squid:S1192")
 public class EmailNotificationTestsIT {
 /*
   @Test

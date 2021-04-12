@@ -1,47 +1,28 @@
 package fi.metatavu.metaform.test.functional.builder.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
-import com.squareup.moshi.*;
-import com.squareup.moshi.adapters.EnumJsonAdapter;
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory;
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.metaform.api.client.apis.MetaformsApi;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
-import fi.metatavu.metaform.api.client.models.Draft;
 import fi.metatavu.metaform.api.client.models.Metaform;
-import fi.metatavu.metaform.api.client.models.MetaformFieldType;
-import fi.metatavu.metaform.api.spec.model.ExportTheme;
 import fi.metatavu.metaform.test.TestSettings;
-import fi.metatavu.metaform.test.functional.builder.TestBuilder;
-import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
+
+import java.io.IOException;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
 /**
- * Test builder resource for metaforms
+ * Test builder resource for metaforms API
  *
  * @author Antti Leppä
  */
 public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform, MetaformsApi> {
 
-  private AccessTokenProvider accessTokenProvider;
+  private final AccessTokenProvider accessTokenProvider;
+
   /**
    * Constructor
    *
@@ -77,25 +58,20 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
   }
 
   /**
-   * Finds a metaform
-   *
-   * @param metaformId metaform id
-   * @return found metaform
-   */
-  public Metaform findMetaform(UUID metaformId) {
-    return findMetaform(metaformId, null, null);
-  }
-
-  /**
    * Updates a metaform into the API
    *
    * @param body body payload
    */
-  public Metaform updateMetaform(UUID id ,Metaform body) {
+  public Metaform updateMetaform(UUID id, Metaform body) {
     return getApi().updateMetaform(id, body);
   }
 
-  public Metaform[] list () {
+  /**
+   * Lists all metaforms
+   *
+   * @return all metaforms
+   */
+  public Metaform[] list() {
     return getApi().listMetaforms();
   }
 
@@ -234,45 +210,10 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @param form file name
    * @return Metaform object
    * @throws IOException throws IOException when JSON reading fails
-    */
+   */
   public Metaform readMetaform(String form) throws IOException {
     return MetaformsReader.Companion.readMetaform(form);
 
-  }
-  /**
-   * Reads a Metaform from JSON file
-   *
-   * @param form file name
-   * @return Metaform object
-   * @throws IOException throws IOException when JSON reading fails
-   */
- /* public Metaform readMetaform(String form) throws IOException {
-    ObjectMapper objectMapper = getObjectMapper();
-    String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
-    ClassLoader classLoader = getClass().getClassLoader();
-    try (InputStream formStream = classLoader.getResourceAsStream(path)) {
-      return objectMapper.readValue(formStream, Metaform.class);
-    }
-  }*/
-/*=   String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
-    ClassLoader classLoader = getClass().getClassLoader();
-    try (InputStream formStream = classLoader.getResourceAsStream(path)) {
-      try (Reader targetReader = new InputStreamReader(formStream)) {
-        return new Gson().fromJson(targetReader, Metaform.class);
-      }
-    }*/
-  /**
-   * Returns object mapper with default modules and settings
-   *
-   * @return object mapper
-   */
-  protected ObjectMapper getObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.registerModule(new KotlinModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-    return objectMapper;
   }
 
   @Override
@@ -284,6 +225,4 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     }
     return new MetaformsApi(TestSettings.basePath);
   }
-
-
 }

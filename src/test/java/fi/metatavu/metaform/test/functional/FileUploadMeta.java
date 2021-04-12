@@ -2,7 +2,7 @@ package fi.metatavu.metaform.test.functional;
 
 /**
  * Model for uploaded file meta
- * 
+ *
  * @author Antti Leppä
  */
 public class FileUploadMeta {
@@ -21,7 +21,7 @@ public class FileUploadMeta {
   public String getContentType() {
     return contentType;
   }
-  
+
   public void setContentType(String contentType) {
     this.contentType = contentType;
   }

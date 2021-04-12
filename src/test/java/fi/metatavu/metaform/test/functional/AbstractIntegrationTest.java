@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.test.TestSettings;
@@ -26,7 +27,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -39,11 +43,10 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.*;
-import static org.junit.Assert.fail;
 
 public class AbstractIntegrationTest {
 
-  private static Logger logger = LoggerFactory.getLogger(AbstractIntegrationTest.class.getName());
+  private static final Logger logger = LoggerFactory.getLogger(AbstractIntegrationTest.class.getName());
   public static final UUID REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63");
   public static final UUID REALM1_USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5");
 
@@ -60,7 +63,7 @@ public class AbstractIntegrationTest {
   /**
    * Executes an update statement into test database
    *
-   * @param sql sql
+   * @param sql    sql
    * @param params params
    */
   protected void executeUpdate(String sql, Object... params) {
@@ -70,7 +73,7 @@ public class AbstractIntegrationTest {
   /**
    * Executes an insert statement into test database
    *
-   * @param sql sql
+   * @param sql    sql
    * @param params params
    */
   protected void executeInsert(String sql, Object... params) {
@@ -113,6 +116,7 @@ public class AbstractIntegrationTest {
 
     return null;
   }
+
   /**
    * Uploads resource into file store
    *
@@ -162,7 +166,7 @@ public class AbstractIntegrationTest {
   /**
    * Asserts that given file upload does not exist
    *
-   * @param fileRef fileRef
+   * @param fileRef        fileRef
    * @param expectedStatus expected status code
    * @throws IOException throw then request fails
    */
@@ -234,10 +238,10 @@ public class AbstractIntegrationTest {
   /**
    * Returns offset date time
    *
-   * @param year year
-   * @param month month
+   * @param year       year
+   * @param month      month
    * @param dayOfMonth day
-   * @param zone zone
+   * @param zone       zone
    * @return offset date time
    */
   protected OffsetDateTime getOffsetDateTime(int year, int month, int dayOfMonth, ZoneId zone) {
@@ -257,10 +261,10 @@ public class AbstractIntegrationTest {
   /**
    * Returns ISO formatted date string
    *
-   * @param year year
-   * @param month month
+   * @param year       year
+   * @param month      month
    * @param dayOfMonth day
-   * @param zone zone
+   * @param zone       zone
    * @return ISO formatted date string
    */
   protected String getIsoDateTime(int year, int month, int dayOfMonth, ZoneId zone) {
@@ -270,13 +274,13 @@ public class AbstractIntegrationTest {
   /**
    * Returns zoned date time
    *
-   * @param year year
-   * @param month month
+   * @param year       year
+   * @param month      month
    * @param dayOfMonth day
-   * @param hour hour
-   * @param minute minute
-   * @param second second
-   * @param zone zone
+   * @param hour       hour
+   * @param minute     minute
+   * @param second     second
+   * @param zone       zone
    * @return zoned date time
    */
   protected ZonedDateTime getZonedDateTime(int year, int month, int dayOfMonth, int hour, int minute, int second, ZoneId zone) {
@@ -287,7 +291,7 @@ public class AbstractIntegrationTest {
    * Applies params into sql statement
    *
    * @param statement statement
-   * @param params params
+   * @param params    params
    * @throws SQLException
    */
   private void applyStatementParams(PreparedStatement statement, Object... params)
@@ -319,10 +323,10 @@ public class AbstractIntegrationTest {
   /**
    * Assert PDF download status code
    *
-   * @param expected expected status code
+   * @param expected    expected status code
    * @param accessToken access token
-   * @param metaform metaform
-   * @param reply reply
+   * @param metaform    metaform
+   * @param reply       reply
    */
   protected void assertPdfDownloadStatus(int expected, String accessToken, Metaform metaform, Reply reply) {
     ValidatableResponse response = given()
@@ -337,39 +341,7 @@ public class AbstractIntegrationTest {
       response.header("Content-Type", "application/pdf");
     }
   }
-  /**
-   * Resolves an access token for realm, client, username and password
-   *
-   * @param realm realm
-   * @param clientId clientId
-   * @param username username
-   * @param password password
-   * @return an access token
-   * @throws IOException thrown on communication failure
 
-  protected String getAccessToken(String realm, String clientId, String username, String password) throws IOException {
-    String path = String.format("/realms/%s/protocol/openid-connect/token", realm);
-
-    String response = given()
-      .baseUri(ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String.class))
-      .formParam("client_id", clientId)
-      .formParam("grant_type", "password")
-      .formParam("username", username)
-      .formParam("password", password)
-      .formParam("client_secret", DEFAULT_UI_CLIENT_SECRET)
-      .post(path)
-      .getBody()
-      .asString();
-    System.out.println("token is "+response);
-
-    Map<String, Object> responseMap = readJsonMap(response);
-    String token = (String) responseMap.get("access_token");
-    System.out.println("token is "+token);
-
-    assertNotNull(token);
-
-    return token;
-  }*/
   /**
    * Reads JSON src into Map
    *
@@ -378,7 +350,8 @@ public class AbstractIntegrationTest {
    * @throws IOException throws IOException when there is error when reading the input
    */
   protected Map<String, Object> readJsonMap(String src) throws IOException {
-    return getObjectMapper().readValue(src, new TypeReference<Map<String, Object>>() {});
+    return getObjectMapper().readValue(src, new TypeReference<Map<String, Object>>() {
+    });
   }
 
   /**
@@ -400,16 +373,17 @@ public class AbstractIntegrationTest {
    * Asserts that given object is list and contains same items as the expected list (in any order)
    *
    * @param expected expected list
-   * @param actual actual object
+   * @param actual   actual object
    */
   protected void assertListsEqualInAnyOrder(List<?> expected, Object actual) {
     assertTrue(actual instanceof List);
     assertThat((List<?>) actual, containsInAnyOrder(expected.toArray()));
   }
+
   /**
    * Creates test table row data
    *
-   * @param tableText text
+   * @param tableText   text
    * @param tableNumber number
    * @return created test data row
    */
@@ -425,5 +399,32 @@ public class AbstractIntegrationTest {
     }
 
     return result;
+  }
+
+  /**
+   * Starts a mailgun mocker
+   *
+   * @return mailgun mocker
+   */
+  protected MailgunMocker startMailgunMocker() {
+    String domain = "domain.example.com";
+    String path = "mgapi";
+    String apiKey = "fakekey";
+    MailgunMocker mailgunMocker = new MailgunMocker(String.format("/%s", path), domain, apiKey);
+    mailgunMocker.startMock();
+    return mailgunMocker;
+  }
+
+  /**
+   * Stops a malgun mocker
+   *
+   * @param mailgunMocker mocker
+   */
+  protected void stopMailgunMocker(MailgunMocker mailgunMocker) {
+    mailgunMocker.stopMock();
+  }
+
+  static {
+    WireMock.configureFor("localhost", 8888);
   }
 }

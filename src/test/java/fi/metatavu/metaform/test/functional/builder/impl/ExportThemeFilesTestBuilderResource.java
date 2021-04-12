@@ -16,11 +16,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
- * Test resource for Export theme files API
+ * Test builder resource for Export theme files API
  */
 public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<ExportThemeFile, ExportThemeFilesApi> {
 
-  private AccessTokenProvider accessTokenProvider;
+  private final AccessTokenProvider accessTokenProvider;
 
   public ExportThemeFilesTestBuilderResource(
     AbstractTestBuilder<ApiClient> testBuilder,
@@ -67,14 +67,14 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
 
   @Override
   public void clean(ExportThemeFile exportThemeFile) throws Exception {
-    System.out.println("cleaning export theme files "+exportThemeFile.getId());
+    System.out.println("cleaning export theme files " + exportThemeFile.getId());
     getApi().deleteExportThemeFile(exportThemeFile.getThemeId(), exportThemeFile.getId());
   }
 
   /**
    * Finds export theme file
    *
-   * @param exportThemeId exportThemeId
+   * @param exportThemeId      exportThemeId
    * @param exportThemeFieldId exportThemeFieldId
    * @return found export theme file
    */
@@ -95,9 +95,9 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
   /**
    * Updates export theme file
    *
-   * @param exportThemeId exportThemeId
+   * @param exportThemeId     exportThemeId
    * @param exportThemeFileId exportThemeFileId
-   * @param createdThemeFile createdThemeFile
+   * @param createdThemeFile  createdThemeFile
    * @return updated export theme file
    */
   public ExportThemeFile updateExportThemeFile(UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile createdThemeFile) {
@@ -107,7 +107,7 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
   /**
    * Delete export theme file
    *
-   * @param themeId themeId
+   * @param themeId         themeId
    * @param exportThemeFile exportThemeFile
    */
   public void deleteExportThemeFile(UUID themeId, ExportThemeFile exportThemeFile) {
@@ -124,8 +124,8 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
   /**
    * Asserts search status
    *
-   * @param status expected status
-   * @param exportThemeId exportThemeId
+   * @param status            expected status
+   * @param exportThemeId     exportThemeId
    * @param exportThemeFileId exportThemeFileId
    */
   public void assertFindFailStatus(int status, UUID exportThemeId, UUID exportThemeFileId) {

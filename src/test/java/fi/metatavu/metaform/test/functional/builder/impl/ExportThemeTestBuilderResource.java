@@ -17,9 +17,12 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+/**
+ * Test builder resource for Export Themes API
+ */
 public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<ExportTheme, ExportThemesApi> {
 
-  private AccessTokenProvider accessTokenProvider;
+  private final AccessTokenProvider accessTokenProvider;
   /**
    * Constructor
    *
@@ -155,6 +158,11 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
     }
   }
 
+  /**
+   * Asserts list to fail with given status
+   *
+   * @param status expected status
+   */
   public void assertListFailStatus(int status) {
     try {
       getApi().listExportThemes();
@@ -164,6 +172,12 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
     }
   }
 
+  /**
+   * Asserts update to fail with given status
+   *
+   * @param status expected status
+   * @param exportThemeId export theme id
+   */
   public void assertUpdateFailStatus(int status, UUID exportThemeId, ExportTheme exportTheme) {
     try {
       getApi().updateExportTheme(exportThemeId, exportTheme);
@@ -173,6 +187,12 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
     }
   }
 
+  /**
+   * Asserts delete to fail with given status
+   *
+   * @param status expected status
+   * @param exportThemeId export theme id
+   */
   public void assertDeleteFailStatus(int status, UUID exportThemeId) {
     try {
       getApi().deleteExportTheme(exportThemeId);

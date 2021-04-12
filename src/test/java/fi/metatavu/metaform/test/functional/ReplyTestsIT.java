@@ -1,16 +1,5 @@
 package fi.metatavu.metaform.test.functional;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-
 import fi.metatavu.metaform.api.client.models.ExportTheme;
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.api.client.models.Reply;
@@ -23,20 +12,31 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings ("squid:S1192")
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+
+@SuppressWarnings("squid:S1192")
 @QuarkusTest
 @QuarkusTestResource.List(value = {
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-public class ReplyTestsIT extends AbstractIntegrationTest{
-  
+public class ReplyTestsIT extends AbstractIntegrationTest {
+
   private static final ZoneId TIMEZONE = ZoneId.of("Europe/Helsinki");
 
   @Test
   public void createReplyNotLoggedIn() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform metaform =  builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin().metaforms().readMetaform("simple");
       Metaform createdMetaform = builder.metaformAdmin().metaforms().create(metaform);
 
       //TODO WHY 401 IS EXPECTED?
@@ -54,14 +54,14 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
   @Test
   public void createReply() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform =  builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
       Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "Test text value");
       Reply reply = builder.test1().replies().createReplyWithData(replyData);
       Reply createdReply = builder.metaformAdmin().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
-      Reply foundReply = builder.metaformAdmin().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
+      Reply foundReply = builder.metaformAdmin().replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
       Assertions.assertNotNull(foundReply.getId());
       Assertions.assertNotNull(foundReply.getData());
@@ -71,41 +71,39 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
 
   @Test
   public void createReplyUpdateExisting() throws Exception {
-      TestBuilder builder = new TestBuilder();
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+    TestBuilder builder = new TestBuilder();
+    Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+    Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+    try {
+      Map<String, Object> replyData1 = new HashMap<>();
+      replyData1.put("text", "Test text value");
+      Reply reply1 = builder.metaformAdmin().replies().createReplyWithData(replyData1);
+
+      Map<String, Object> replyData2 = new HashMap<>();
+      replyData2.put("text", "Updated text value");
+
+      Reply reply2 = builder.metaformAdmin().replies().createReplyWithData(replyData2);
+
+      Reply createdReply1 = builder.metaformAdmin().replies().create(metaform.getId(), null, ReplyMode.UPDATE.toString(), reply1);
+
       try {
-        Map<String, Object> replyData1 = new HashMap<>();
-        replyData1.put("text", "Test text value");
-        Reply reply1 = builder.metaformAdmin().replies().createReplyWithData(replyData1);
+        Assertions.assertNotNull(createdReply1);
+        Assertions.assertNotNull(createdReply1.getId());
+        Assertions.assertNotNull(createdReply1.getData());
+        Assertions.assertEquals("Test text value", createdReply1.getData().get("text"));
 
-        Map<String, Object> replyData2 = new HashMap<>();
-        replyData2.put("text", "Updated text value");
+        Reply createdReply2 = builder.metaformAdmin().replies().create(metaform.getId(), null, ReplyMode.UPDATE.toString(), reply2);
 
-        Reply reply2 = builder.metaformAdmin().replies().createReplyWithData(replyData2);
-
-        Reply createdReply1 = builder.metaformAdmin().replies().create(metaform.getId(), null, ReplyMode.UPDATE.toString(), reply1);
-
-        try {
-          Assertions.assertNotNull(createdReply1);
-          Assertions.assertNotNull(createdReply1.getId());
-          Assertions.assertNotNull(createdReply1.getData());
-          Assertions.assertEquals("Test text value", createdReply1.getData().get("text"));
-
-          Reply createdReply2 = builder.metaformAdmin().replies().create(metaform.getId(), null, ReplyMode.UPDATE.toString(), reply2);
-
-          Assertions.assertNotNull(createdReply2);
-          Assertions.assertEquals(createdReply1.getId(), createdReply2.getId());
-          Assertions.assertNotNull(createdReply2.getData());
-          Assertions.assertEquals("Updated text value", createdReply2.getData().get("text"));
-        }
-        finally {
-          builder.metaformAdmin().replies().delete(metaform.getId(), createdReply1, null);
-        }
+        Assertions.assertNotNull(createdReply2);
+        Assertions.assertEquals(createdReply1.getId(), createdReply2.getId());
+        Assertions.assertNotNull(createdReply2.getData());
+        Assertions.assertEquals("Updated text value", createdReply2.getData().get("text"));
+      } finally {
+        builder.metaformAdmin().replies().delete(metaform.getId(), createdReply1, null);
       }
-      finally {
-        builder.metaformAdmin().metaforms().delete(metaform);
-      }
+    } finally {
+      builder.metaformAdmin().metaforms().delete(metaform);
+    }
   }
 
   @Test
@@ -179,7 +177,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       Reply secondReply = new Reply(reply.getId(), reply.getUserId(), reply.getRevision(), reply.getOwnerKey(), reply.getCreatedAt(),
         reply.getModifiedAt(), updateData);
 
-      testBuilder.test1().replies().updateReply(metaform.getId(), secondReply.getId(), secondReply, (String) null);
+      testBuilder.test1().replies().updateReply(metaform.getId(), secondReply.getId(), secondReply, null);
       Reply updatedReply = testBuilder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
 
       Assertions.assertEquals("Updated text value", updatedReply.getData().get("text"));
@@ -194,9 +192,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
 
       Assertions.assertNotNull(metaform);
 
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 1", Boolean.TRUE, 1.0d, new String[] { "option 1" });
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 2", Boolean.FALSE, 2.5d, new String[] { "option 2" });
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 3", null, 0d, new String[] { });
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 1", Boolean.TRUE, 1.0d, new String[]{"option 1"});
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 2", Boolean.FALSE, 2.5d, new String[]{"option 2"});
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 3", null, 0d, new String[]{});
 
       Reply[] replies1 = testBuilder.test1().replies().listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null,
         Boolean.TRUE, ArrayUtils.toArray("text:test 1"), null, null);
@@ -234,9 +232,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
 
       Assertions.assertNotNull(metaform);
 
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 1", Boolean.TRUE, 1.0d, new String[] { "option 1" });
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 2", Boolean.FALSE, 2.5d, new String[] { "option 2" });
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 3",null, 0d, new String[] { });
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 1", Boolean.TRUE, 1.0d, new String[]{"option 1"});
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 2", Boolean.FALSE, 2.5d, new String[]{"option 2"});
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 3", null, 0d, new String[]{});
 
       Reply[] replies1 = testBuilder.test1().replies().listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null,
         Boolean.TRUE, ArrayUtils.toArray("checklist:option 1"), null, null);
@@ -264,7 +262,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
 
     }
   }
-  
+
   @Test
   public void listRepliesByNumberFields() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
@@ -273,9 +271,9 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
 
       Assertions.assertNotNull(metaform);
 
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 1", Boolean.TRUE, 1.0d, new String[] { "option 1" });
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 2", Boolean.FALSE, 2.5d, new String[] { "option 2" });
-      testBuilder.test1().replies().createTBNCReply(metaform, "test 3",null, 0d, new String[] { });
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 1", Boolean.TRUE, 1.0d, new String[]{"option 1"});
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 2", Boolean.FALSE, 2.5d, new String[]{"option 2"});
+      testBuilder.test1().replies().createTBNCReply(metaform, "test 3", null, 0d, new String[]{});
 
       Reply[] replies1 = testBuilder.test1().replies().listReplies(metaform.getId(), REALM1_USER_1_ID, null, null, null, null,
         Boolean.TRUE, ArrayUtils.toArray("number:1"), null, null);
@@ -303,7 +301,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       Assertions.assertEquals("test 3", notReplies[1].getData().get("text"));
     }
   }
-  
+
   @Test
   public void listRepliesByBooleanFields() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
@@ -335,7 +333,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       Assertions.assertEquals("test 3", notReplies[1].getData().get("text"));
     }
   }
-  
+
   @Test
   public void listRepliesByMultiFields() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
@@ -373,7 +371,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
   /**
    * Updates reply to be created at specific time
    *
-   * @param reply reply
+   * @param reply   reply
    * @param created created
    */
   private void updateReplyCreated(Reply reply, OffsetDateTime created) {
@@ -384,13 +382,14 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
   /**
    * Updates reply to be modified at specific time
    *
-   * @param reply reply
+   * @param reply    reply
    * @param modified created
    */
   private void updateReplyModified(Reply reply, OffsetDateTime modified) {
     executeUpdate("UPDATE Reply SET modifiedAt = ? WHERE id = ?", modified, reply.getId());
     flushCache();
   }
+
   @Test
   public void listRepliesByCreatedBefore() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
@@ -432,7 +431,6 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
   }
 
 
-
   @Test
   public void listRepliesByModifiedBefore() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
@@ -464,7 +462,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       assertEquals("test 3", modifiedAfter26[1].getData().get("text"));
     }
   }
-  
+
   @Test
   public void testMetafields() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
@@ -478,7 +476,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       OffsetDateTime parsedCreated = OffsetDateTime.parse(replyCreated);
       OffsetDateTime parsedModified = OffsetDateTime.parse(replyModified);
 
-      Reply reply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), (String) null);
+      Reply reply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
 
       Assertions.assertEquals(parsedCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("created")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       Assertions.assertEquals(parsedModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("modified")).truncatedTo(ChronoUnit.MINUTES).toInstant());
@@ -549,8 +547,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       testBuilder.anonymousToken().replies().assertReplyOwnerKeyFindForbidden(metaform, reply1, reply2.getOwnerKey());
 
       testBuilder.anonymousToken().replies().delete(metaform.getId(), reply1, reply1.getOwnerKey());
-    }
-    finally {
+    } finally {
       testBuilder.metaformSuper().metaforms().delete(metaform);
     }
   }
@@ -573,7 +570,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest{
       assertPdfDownloadStatus(200, testBuilder.metaformAdmin().token(), metaform, reply);
     }
   }
-  
+
   @Test
   public void testExportReplyPdfFilesEmpty() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {

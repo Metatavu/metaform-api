@@ -1,33 +1,30 @@
 package fi.metatavu.metaform.test.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.*;
-
 import fi.metatavu.metaform.api.client.models.Reply;
+import fi.metatavu.metaform.server.rest.ReplyMode;
 import fi.metatavu.metaform.test.TestSettings;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-
-import fi.metatavu.metaform.server.rest.ReplyMode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings ("squid:S1192")
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+
+@SuppressWarnings("squid:S1192")
 @QuarkusTest
 @QuarkusTestResource.List(value = {
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-public class AttachmentTestsIT extends AbstractIntegrationTest{
+public class AttachmentTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void findAttachmentTest() throws Exception {
@@ -47,7 +44,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest{
       Assertions.assertNotNull(reply.getData());
       Assertions.assertEquals(Collections.singletonList(fileUpload.getFileRef().toString()), reply.getData().get("files"));
 
-      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), (String) null);
+      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
       Assertions.assertNotNull(foundReply);
       Assertions.assertNotNull(foundReply.getData());
       Assertions.assertEquals(Collections.singletonList(fileUpload.getFileRef().toString()), foundReply.getData().get("files"));
@@ -107,7 +104,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest{
       Reply reply = builder.test1().replies().create(metaform.getId(), ReplyMode.REVISION.toString(), replyWithData);
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
 
-      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), (String) null);
+      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
 
       builder.metaformAdmin().attachments().assertAttachmentExists(fileUpload1);
@@ -119,7 +116,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest{
       Reply newReplyWithData = builder.test1().replies().createReplyWithData(updateData);
       builder.test1().replies().updateReply(metaform.getId(), reply.getId(), newReplyWithData, null);
 
-      Reply updatedReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), (String) null);
+      Reply updatedReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
       assertEquals(Arrays.asList(fileRef2), updatedReply.getData().get("files"));
 
       builder.metaformAdmin().attachments().assertAttachmentNotFound(fileUpload1.getFileRef());
@@ -147,13 +144,13 @@ public class AttachmentTestsIT extends AbstractIntegrationTest{
       Reply reply = builder.test1().replies().create(metaform.getId(), ReplyMode.REVISION.toString(), replyWithData);
       assertListsEqualInAnyOrder(fileRefs, reply.getData().get("files"));
 
-      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), (String) null);
+      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
       assertListsEqualInAnyOrder(fileRefs, foundReply.getData().get("files"));
 
       builder.metaformAdmin().attachments().assertAttachmentExists(fileUpload1);
       builder.metaformAdmin().attachments().assertAttachmentExists(fileUpload2);
 
-      builder.metaformAdmin().replies().delete(metaform.getId(), reply, (String) null);
+      builder.metaformAdmin().replies().delete(metaform.getId(), reply, null);
 
       builder.metaformAdmin().attachments().assertAttachmentNotFound(fileUpload1.getFileRef());
       builder.metaformAdmin().attachments().assertAttachmentNotFound(fileUpload2.getFileRef());

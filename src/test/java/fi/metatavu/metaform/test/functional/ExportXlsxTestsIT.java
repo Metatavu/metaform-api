@@ -1,15 +1,5 @@
 package fi.metatavu.metaform.test.functional;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
@@ -21,6 +11,16 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @QuarkusTest
 @QuarkusTestResource.List(value = {
@@ -90,7 +90,7 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
 
   /**
    * Downloads XLSX report and returns it as POI Workbook
-   * 
+   *
    * @param metaform metaform
    * @return XLSX report as POI Workbook
    * @throws IOException thrown when reading fails

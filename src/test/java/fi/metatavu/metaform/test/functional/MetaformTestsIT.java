@@ -1,15 +1,15 @@
 package fi.metatavu.metaform.test.functional;
 
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@SuppressWarnings ("squid:S1192")
-public class MetaformTestsIT extends AbstractIntegrationTest{
-  
+@SuppressWarnings("squid:S1192")
+public class MetaformTestsIT extends AbstractIntegrationTest {
+
   @Test
   public void testCreateMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
@@ -62,7 +62,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest{
       assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.getScripts().getAfterUpdateReply()[0].getContent());
     }
   }
-  
+
   @Test
   public void testFindMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
@@ -104,7 +104,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest{
       assertEquals(metaform2Modified.toString(), list.get(1).toString());
     }
   }
-  
+
   @Test
   public void testUpdateMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
@@ -113,7 +113,7 @@ public class MetaformTestsIT extends AbstractIntegrationTest{
 
       Metaform updatePayload = builder.metaformAdmin().metaforms().readMetaform("tbnc");
       Metaform updatedMetaform = builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), updatePayload);
-      
+
       assertEquals(metaform1.getId(), updatedMetaform.getId());
       assertEquals(1, updatedMetaform.getSections().length);
       assertEquals("Text, boolean, number, checklist form", updatedMetaform.getSections()[0].getTitle());

@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
 public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
   private TestBuilderAuthentication metaformAdmin;
-  private TestBuilderAuthentication test1, test2;
+  private TestBuilderAuthentication test1, test2, test3;
   private TestBuilderAuthentication anonymousToken;
 
   private final String serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String.class);
@@ -52,9 +52,9 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
 
   /**
-   * Returns admin user instance of test builder authentication
+   * Returns super user instance of test builder authentication
    *
-   * @return admin user instance of test builder authentication
+   * @return super user instance of test builder authentication
    * @throws IOException thrown on communication errors
    */
   public TestBuilderAuthentication metaformSuper() throws IOException {
@@ -68,9 +68,9 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
 
   /**
-   * Returns admin user instance of test builder authentication
+   * Returns test1 user instance of test builder authentication
    *
-   * @return admin user instance of test builder authentication
+   * @return test1 user instance of test builder authentication
    * @throws IOException thrown on communication errors
    */
   public TestBuilderAuthentication test1() throws IOException {
@@ -83,9 +83,9 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
   }
 
   /**
-   * Returns admin user instance of test builder authentication
+   * Returns test2 user instance of test builder authentication
    *
-   * @return admin user instance of test builder authentication
+   * @return test2 user instance of test builder authentication
    * @throws IOException thrown on communication errors
    */
   public TestBuilderAuthentication test2() throws IOException {
@@ -95,6 +95,21 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
     return test2 = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
       DEFAULT_UI_CLIENT_ID, "test2.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
+  }
+
+  /**
+   * Returns test3 user instance of test builder authentication
+   *
+   * @return test3 user instance of test builder authentication
+   * @throws IOException thrown on communication errors
+   */
+  public TestBuilderAuthentication test3() throws IOException {
+    if (test3 != null) {
+      return test3;
+    }
+
+    return test3 = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
+      DEFAULT_UI_CLIENT_ID, "test3.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
   }
 
   /**
@@ -122,7 +137,8 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
       .asString();
 
     ObjectMapper objectMapper = new ObjectMapper();
-    Map<String, Object> responseMap = objectMapper.readValue(response, new TypeReference<>() {});
+    Map<String, Object> responseMap = objectMapper.readValue(response, new TypeReference<>() {
+    });
     String token = (String) responseMap.get("access_token");
     assertNotNull(token);
 

@@ -1,25 +1,5 @@
 package fi.metatavu.metaform.test.functional;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.removeStub;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
@@ -36,24 +16,36 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 
 @QuarkusTest
 @QuarkusTestResource.List(value = {
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-public class ScriptTestsIT extends AbstractIntegrationTest{
-
+public class ScriptTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void testCreateReplyScript() throws Exception {
     waitThemeFlush();
     WireMock.resetAllRequests();
-    
+
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
-    
-    try (TestBuilder testBuilder = new TestBuilder()){
+
+    try (TestBuilder testBuilder = new TestBuilder()) {
       Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-script");
       Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
 
@@ -72,18 +64,19 @@ public class ScriptTestsIT extends AbstractIntegrationTest{
   @Test
   public void testPdfScript() throws Exception {
     waitThemeFlush();
+    WireMock.configureFor(8081);
     WireMock.resetAllRequests();
-    
+
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
-    
+
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
-    try (TestBuilder testBuilder = new TestBuilder()){
+    try (TestBuilder testBuilder = new TestBuilder()) {
       Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-pdf-script");
       Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
 
       ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(),  "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
 
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
@@ -106,13 +99,14 @@ public class ScriptTestsIT extends AbstractIntegrationTest{
   @Test
   public void testPdfBase64Script() throws Exception {
     waitThemeFlush();
+    WireMock.configureFor(8081);
     WireMock.resetAllRequests();
-    
+
     UrlPattern externalMockURL = urlEqualTo("/externalmock");
-    
+
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
-    try (TestBuilder testBuilder = new TestBuilder()){
+    try (TestBuilder testBuilder = new TestBuilder()) {
       Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-pdf-base64-script");
       Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
 
@@ -140,7 +134,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest{
    * Asserts that given PDF data contains expected string
    *
    * @param expected expected string
-   * @param data PDF data
+   * @param data     PDF data
    * @throws IOException thrown on PDF read failure
    */
   protected void assertPdfContains(String expected, byte[] data) throws IOException {

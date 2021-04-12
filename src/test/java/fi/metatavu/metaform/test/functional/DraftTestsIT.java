@@ -1,13 +1,5 @@
 package fi.metatavu.metaform.test.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import fi.metatavu.metaform.api.client.models.Draft;
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
@@ -16,18 +8,22 @@ import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
 
-@SuppressWarnings ("squid:S1192")@QuarkusTest
+
+@SuppressWarnings("squid:S1192")
+@QuarkusTest
 @QuarkusTestResource.List(value = {
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-public class DraftTestsIT extends AbstractIntegrationTest{
+public class DraftTestsIT extends AbstractIntegrationTest {
 
   @Test
   public void createDraft() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform =  testBuilder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
       Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
 
       Map<String, Object> draftData = new HashMap<>();
@@ -50,7 +46,7 @@ public class DraftTestsIT extends AbstractIntegrationTest{
   @Test
   public void updateDraft() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform =  testBuilder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
       Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
 
       Map<String, Object> draftData = new HashMap<>();

@@ -3,26 +3,26 @@ package fi.metatavu.metaform.test.functional.builder.impl;
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.metaform.api.client.apis.AuditLogEntriesApi;
-import fi.metatavu.metaform.api.client.apis.RepliesApi;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
 import fi.metatavu.metaform.api.client.models.AuditLogEntry;
-import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.test.TestSettings;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+/**
+ * Test buildre resource for Audit Log Entries API
+ */
 public class AuditLogEntriesTestBuilderResource extends ApiTestBuilderResource<AuditLogEntry, AuditLogEntriesApi> {
 
-  private AccessTokenProvider accessTokenProvider;
-  private Map<UUID, UUID> auditLogEntriesMetaforms = new HashMap<>();
+  private final AccessTokenProvider accessTokenProvider;
+  private final Map<UUID, UUID> auditLogEntriesMetaforms = new HashMap<>();
 
   /**
    * Constructor
@@ -54,10 +54,30 @@ public class AuditLogEntriesTestBuilderResource extends ApiTestBuilderResource<A
     getApi().deleteAuditLogEntry(metaformId, auditLogEntry.getId());
   }
 
+  /**
+   * Lists audit log entries
+   *
+   * @param metaformId metaform id
+   * @param userId user id
+   * @param replyId reply id
+   * @param createdBefore created before
+   * @param createdAfter created after
+   * @return audit entries
+   */
   public AuditLogEntry[] listAuditLogEntries(UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
     return getApi().listAuditLogEntries(metaformId, userId, replyId, createdBefore, createdAfter);
   }
 
+  /**
+   * Asserts that find returns fail with given status
+   *
+   * @param status expected status
+   * @param metaformId metaform id
+   * @param userId user id
+   * @param replyId reply id
+   * @param createdBefore created before
+   * @param createdAfter created after
+   */
   public void assertListFailStatus(int status, UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
     try {
       getApi().listAuditLogEntries(metaformId, userId, replyId, createdBefore, createdAfter);

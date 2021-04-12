@@ -1,22 +1,19 @@
 package fi.metatavu.metaform.test.functional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import fi.metatavu.metaform.api.client.models.ExportTheme;
+import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
+import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
 
 
 @QuarkusTest
@@ -24,351 +21,239 @@ import io.quarkus.test.junit.QuarkusTest;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-public class ReplyPermissionTestsIT extends AbstractIntegrationTest{
+public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
   /**
    * Test that asserts that user may find his / her own reply
-
+   */
   @Test
-  public void findOwnReply() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
-    try {
-      Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
-      try {
-        Reply foundReply = repliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundReply);
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+  public void findOwnReply() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+
+      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Assertions.assertNotNull(foundReply);
     }
   }
-  
+
   /**
    * Test that asserts that anonymous users may not find their "own" replies
-
+   */
   @Test
-  public void findOwnReplyAnonymous() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    String anonymousToken = getAnonymousToken();
-    
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi anonRepliesApi = getRepliesApi(anonymousToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context-anon"));
-    try {
-      Reply createdReply = anonRepliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
-      try {
-        assertForbiddenToFindReply(anonymousToken, REALM_1, metaform.getId(), createdReply.getId());
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+  public void findOwnReplyAnonymous() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+
+      builder.anonymousToken().replies().assertFindFailStatus(403, metaform.getId(), createdReply.getId(), null);
     }
   }
-  
+
   /**
    * Test that asserts that other users may not find their replies
-
+   */
   @Test
-  public void findOthersReplyUser() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
-    String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
+  public void findOthersReplyUser() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
+      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
 
-    RepliesApi repliesApi = getRepliesApi(accessToken1);
-
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
-    try {
-      Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
-      try {
-        assertForbiddenToFindReply(accessToken2, REALM_1, metaform.getId(), createdReply.getId());
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      builder.test2().replies().assertFindFailStatus(403, metaform.getId(), createdReply.getId(), null);
     }
   }
 
   /**
    * Test that asserts that metaform-admin may find replies created by others
-
+   */
   @Test
-  public void findOthersReplyAdmin() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    String accessToken = getAccessToken(REALM_1, "test1.realm1", "test");
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi repliesApi = getRepliesApi(accessToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
-    try {
-      Reply createdReply = repliesApi.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
-      try {
-        Reply foundReply = adminRepliesApi.findReply(metaform.getId(), createdReply.getId(), (String) null);
-        assertNotNull(foundReply);
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), createdReply.getId(), (String) null);
-      }
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+  public void findOthersReplyAdmin() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+
+      Reply foundReply = builder.metaformAdmin().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Assertions.assertNotNull(foundReply);
     }
   }
 
   /**
    * Test that asserts that user may list only his / her own replies
-
+   */
   @Test
-  public void listOwnReplies() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    
-    String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
-    String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
-    String accessToken3 = getAccessToken(REALM_1, "test3.realm1", "test");
-    
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    RepliesApi repliesApi1 = getRepliesApi(accessToken1);
-    RepliesApi repliesApi2 = getRepliesApi(accessToken2);
-    RepliesApi repliesApi3 = getRepliesApi(accessToken3);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
-    try {
-      Reply reply1 = repliesApi1.createReply(metaform.getId(), createPermisionSelectReply("group-1"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = repliesApi2.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = repliesApi3.createReply(metaform.getId(), createPermisionSelectReply("group-3"), null, ReplyMode.REVISION.toString());
-      
-      try {
-        List<Reply> replies = repliesApi1.listReplies(metaform.getId(), Collections.emptyMap());
-        assertEquals(1, replies.size());
-        assertEquals(reply1.getId(), replies.get(0).getId());
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId(), (String) null);
-        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId(), (String) null);
-        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId(), (String) null);
-      }
-      
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
-    }
-  }
-  
-  /**
-   * Test that asserts that user in permission context group may see replies targeted to that group
+  public void listOwnReplies() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-  @Test
-  public void listPermissionContextReplies() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    
-    String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
-    String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
-    String accessToken3 = getAccessToken(REALM_1, "test3.realm1", "test");
-    
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    RepliesApi repliesApi1 = getRepliesApi(accessToken1);
-    RepliesApi repliesApi2 = getRepliesApi(accessToken2);
-    RepliesApi repliesApi3 = getRepliesApi(accessToken3);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
-    try {
-      Reply reply1 = repliesApi1.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = repliesApi2.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = repliesApi3.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      
-      try {
-        List<Reply> replies1 = repliesApi1.listReplies(metaform.getId(), Collections.emptyMap());
-        List<Reply> replies2 = repliesApi2.listReplies(metaform.getId(), Collections.emptyMap());
-        List<Reply> replies3 = repliesApi3.listReplies(metaform.getId(), Collections.emptyMap());
-        
-        assertEquals(1, replies1.size());
-        assertEquals(reply1.getId(), replies1.get(0).getId());
+      Reply reply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+      Reply reply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply3 = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-3")));
 
-        assertEquals(3, replies2.size());
-        
-        Set<UUID> reply2Ids = replies2.stream().map(Reply::getId).collect(Collectors.toSet());
-        assertTrue(reply2Ids.contains(reply1.getId()));
-        assertTrue(reply2Ids.contains(reply2.getId()));
-        assertTrue(reply2Ids.contains(reply3.getId()));
-
-        assertEquals(1, replies3.size());
-        assertEquals(reply3.getId(), replies3.get(0).getId());        
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId(), (String) null);
-        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId(), (String) null);
-        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId(), (String) null);
-      }
-      
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+      Reply[] replies = builder.test1().replies().listReplies(metaform.getId());
+      assertEquals(1, replies.length);
+      assertEquals(reply1.getId(), replies[0].getId());
     }
   }
 
   /**
    * Test that asserts that user in permission context group may see replies targeted to that group
-
+   */
   @Test
-  public void exportPermissionContextReplyPdf() throws IOException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test1.realm1", "test");
-    try {
-      MetaformsApi adminMetaformsApi = dataBuilder.getAdminMetaformsApi();
+  public void listPermissionContextReplies() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-      ExportTheme theme = dataBuilder.createSimpleExportTheme();
-      dataBuilder.createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
-      Metaform metaform = dataBuilder.createMetaform("simple-permission-context");
-      metaform.setExportThemeId(theme.getId());
-      adminMetaformsApi.updateMetaform(metaform.getId(), metaform);
+      Reply reply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply3 = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
-      String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
-      String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
-      String accessToken3 = getAccessToken(REALM_1, "test3.realm1", "test");
-      String anonymousToken = getAnonymousToken();
+      Reply[] replies1 = builder.test1().replies().listReplies(metaform.getId());
+      Reply[] replies2 = builder.test2().replies().listReplies(metaform.getId());
+      Reply[] replies3 = builder.test3().replies().listReplies(metaform.getId());
 
-      Reply reply1 = getRepliesApi(accessToken1).createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = getRepliesApi(accessToken2).createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = getRepliesApi(accessToken3).createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
+      Assertions.assertEquals(1, replies1.length);
+      Assertions.assertEquals(reply1.getId(), replies1[0].getId());
+
+      Assertions.assertEquals(3, replies2.length);
+
+      Set<UUID> reply2Ids = Arrays.stream(replies2).map(Reply::getId).collect(Collectors.toSet());
+      Assertions.assertTrue(reply2Ids.contains(reply1.getId()));
+      Assertions.assertTrue(reply2Ids.contains(reply2.getId()));
+      Assertions.assertTrue(reply2Ids.contains(reply3.getId()));
+
+      Assertions.assertEquals(1, replies3.length);
+      Assertions.assertEquals(reply3.getId(), replies3[0].getId());
+    }
+  }
+
+  /**
+   * Test that asserts that user in permission context group may see replies targeted to that group
+   */
+  @Test
+  public void exportPermissionContextReplyPdf() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      ExportTheme theme = builder.metaformSuper().exportThemes().createSimpleExportTheme("theme 1");
+      builder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
+
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Metaform updateData = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(),
+        metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(), metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
+
+      builder.metaformAdmin().metaforms().updateMetaform(metaform.getId(), updateData);
+
+      Reply reply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply3 = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
       // test1.realm1 may download only own reply
-      assertPdfDownloadStatus(200, accessToken1, metaform, reply1);
-      assertPdfDownloadStatus(403, accessToken1, metaform, reply2);
-      assertPdfDownloadStatus(403, accessToken1, metaform, reply3);
+      assertPdfDownloadStatus(200, builder.test1().token(), metaform, reply1);
+      assertPdfDownloadStatus(403, builder.test1().token(), metaform, reply2);
+      assertPdfDownloadStatus(403, builder.test1().token(), metaform, reply3);
 
       // test2.realm1 may download all the replies
-      assertPdfDownloadStatus(200, accessToken2, metaform, reply1);
-      assertPdfDownloadStatus(200, accessToken2, metaform, reply2);
-      assertPdfDownloadStatus(200, accessToken2, metaform, reply3);
+      assertPdfDownloadStatus(200, builder.test2().token(), metaform, reply1);
+      assertPdfDownloadStatus(200, builder.test2().token(), metaform, reply2);
+      assertPdfDownloadStatus(200, builder.test2().token(), metaform, reply3);
 
       // test3.realm1 may download only own reply
-      assertPdfDownloadStatus(403, accessToken3, metaform, reply1);
-      assertPdfDownloadStatus(403, accessToken3, metaform, reply2);
-      assertPdfDownloadStatus(200, accessToken3, metaform, reply3);
+      assertPdfDownloadStatus(403, builder.test3().token(), metaform, reply1);
+      assertPdfDownloadStatus(403, builder.test3().token(), metaform, reply2);
+      assertPdfDownloadStatus(200, builder.test3().token(), metaform, reply3);
 
       // anonymous may not download any replies
-      assertPdfDownloadStatus(403, anonymousToken, metaform, reply1);
-      assertPdfDownloadStatus(403, anonymousToken, metaform, reply2);
-      assertPdfDownloadStatus(403, anonymousToken, metaform, reply3);
-
-    } finally {
-      dataBuilder.clean();
+      assertPdfDownloadStatus(403, builder.anonymousToken().token(), metaform, reply1);
+      assertPdfDownloadStatus(403, builder.anonymousToken().token(), metaform, reply2);
+      assertPdfDownloadStatus(403, builder.anonymousToken().token(), metaform, reply3);
     }
   }
-  
+
   /**
    * Test that asserts that admin may list all replies
-
+   */
   @Test
-  public void listRepliesAdmin() throws IOException {
-    String adminToken = getAdminToken(REALM_1);
-    
-    String accessToken1 = getAccessToken(REALM_1, "test1.realm1", "test");
-    String accessToken2 = getAccessToken(REALM_1, "test2.realm1", "test");
-    String accessToken3 = getAccessToken(REALM_1, "test3.realm1", "test");
-    
-    MetaformsApi adminMetaformsApi = getMetaformsApi(adminToken);
-    RepliesApi adminRepliesApi = getRepliesApi(adminToken);
-    RepliesApi repliesApi1 = getRepliesApi(accessToken1);
-    RepliesApi repliesApi2 = getRepliesApi(accessToken2);
-    RepliesApi repliesApi3 = getRepliesApi(accessToken3);
-    
-    Metaform metaform = adminMetaformsApi.createMetaform(readMetaform("simple-permission-context"));
-    try {
-      Reply reply1 = repliesApi1.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply2 = repliesApi2.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      Reply reply3 = repliesApi3.createReply(metaform.getId(), createPermisionSelectReply("group-2"), null, ReplyMode.REVISION.toString());
-      
-      try {
-        List<Reply> replies = adminRepliesApi.listReplies(metaform.getId(), Collections.emptyMap());
-        assertEquals(3, replies.size());
-      } finally {
-        adminRepliesApi.deleteReply(metaform.getId(), reply1.getId(), (String) null);
-        adminRepliesApi.deleteReply(metaform.getId(), reply2.getId(), (String) null);
-        adminRepliesApi.deleteReply(metaform.getId(), reply3.getId(), (String) null);
-      }
-      
-    } finally {
-      adminMetaformsApi.deleteMetaform(metaform.getId());
+  public void listRepliesAdmin() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+
+      Reply[] replies = builder.metaformAdmin().replies().listReplies(metaform.getId());
+      Assertions.assertEquals(3, replies.length);
     }
   }
 
   /**
    * Test that asserts that user in permission context receives an email when notification is posted and
    * another user receives when reply is updated
-
+   *//*
   @Test
-  public void notifyPermissionContextReply() throws IOException {
-    TestDataBuilder dataBuilder = new TestDataBuilder(this, REALM_1, "test3.realm1", "test");
-    try {
-      MailgunMocker mailgunMocker = startMailgunMocker();
-      try {
-        Metaform metaform = dataBuilder.createMetaform("simple-permission-context");
-        
-        dataBuilder.createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
-        
-        Reply createdReply = dataBuilder.createReply(metaform, createPermissionSelectReplyData("group-2"), ReplyMode.REVISION);
-        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"), (String) null);
-        dataBuilder.getRepliesApi().updateReply(metaform.getId(), createdReply.getId(), createPermisionSelectReply("group-1"), (String) null);
-        
-        mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
-        mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
-      } finally {
-        stopMailgunMocker(mailgunMocker);
-      }
-    } finally {
-      dataBuilder.clean();
-    }
-  }
-  
-  /**
-   * Creates permission select reply with given value
-   * 
-   * @param value value
-   * @return permission select reply with given value
+  public void notifyPermissionContextReply() throws Exception {
+    MailgunMocker mailgunMocker = startMailgunMocker();
 
-  private Reply createPermisionSelectReply(String value) {
-    Map<String, Object> replyData = createPermissionSelectReplyData(value);
-    return createReplyWithData(replyData);
-  }
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      builder.test3().emailNotifications().createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
+      Reply createdReply = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test3().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+
+      builder.test3().replies().updateReply(metaform.getId(),
+        createdReply.getId(),
+        builder.test3().replies().createPermisionSelectReply("group-1"), (String) null);
+      builder.test3().replies().updateReply(metaform.getId(),
+        createdReply.getId(),
+        builder.test3().replies().createPermisionSelectReply("group-1"), (String) null);
+
+      mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
+      mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
+    }
+    finally {
+      stopMailgunMocker(mailgunMocker);
+    }
+  }*/
+
 
   /**
    * Creates permission select reply data with given value
-   * 
+   *
    * @param value value
-
+   */
   private Map<String, Object> createPermissionSelectReplyData(String value) {
     Map<String, Object> replyData = new HashMap<>();
     replyData.put("permission-select", value);
     return replyData;
   }
-  
-  /**
-   * Asserts that reply is forbidden to find
-   * 
-   * @param token token
-   * @param realmId realm
-   * @param metaformId metaform
-   * @param replyId replay
 
-  private void assertForbiddenToFindReply(String token, String realmId, UUID metaformId, UUID replyId) {
-    RepliesApi repliesApi = getRepliesApi(token);
-    try {
-      repliesApi.findReply(metaformId, replyId, (String) null);
-      fail(String.format("Reply %s should not be accessible", replyId.toString()));
-    } catch (FeignException e) {
-      assertEquals(403, e.status());
-    }
-  }
-  */
 }

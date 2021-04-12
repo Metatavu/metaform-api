@@ -10,13 +10,19 @@ import fi.metatavu.metaform.test.TestSettings;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
+/**
+ * Test builder resource for Drafts API
+ */
 public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, DraftsApi> {
 
-  private AccessTokenProvider accessTokenProvider;
+  private final AccessTokenProvider accessTokenProvider;
 
-  private Map<Metaform, Draft> metaformDraftMap = new HashMap<>();
+  private final Map<Metaform, Draft> metaformDraftMap = new HashMap<>();
 
   public DraftTestBuilderResource(
     AbstractTestBuilder<ApiClient> testBuilder,
@@ -48,6 +54,13 @@ public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, Draf
           Objects.requireNonNull(metaformDraftEntry.getValue().getId())));
   }
 
+  /**
+   * Creates draft
+   *
+   * @param metaform metaform
+   * @param draftData draft data map
+   * @return created draft
+   */
   public Draft createDraft(Metaform metaform, Map<String, Object> draftData) {
     Draft draft = new Draft(draftData, null, null, null);
     Draft createdDraft = getApi().createDraft(Objects.requireNonNull(metaform.getId()), draft);
@@ -55,10 +68,23 @@ public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, Draf
     return addClosable(createdDraft);
   }
 
-  public Draft updateDraft(UUID id, UUID id1, Draft updatePayload) {
-    return getApi().updateDraft(id, id1, updatePayload);
+  /**
+   * Updates draft
+   * @param metaformId metaform id
+   * @param draftId draft id
+   * @param draft new payload
+   * @return updated draft
+   */
+  public Draft updateDraft(UUID metaformId, UUID draftId, Draft draft) {
+    return getApi().updateDraft(metaformId, draftId, draft);
   }
 
+  /**
+   * Finds draft
+   * @param metaformId metaform id
+   * @param draftId draft id
+   * @return found draft
+   */
   public Draft findDraft(UUID metaformId, UUID draftId) {
     return getApi().findDraft(metaformId, draftId);
   }

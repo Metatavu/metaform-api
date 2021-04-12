@@ -10,7 +10,9 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-
+/**
+ * Class for reading and deserializing metaforms from json files
+ */
 class MetaformsReader {
     private class UUIDAdapter {
         @FromJson
@@ -19,7 +21,7 @@ class MetaformsReader {
         }
         @ToJson
         fun toJson(uuid: UUID): String {
-            return uuid.toString();
+            return uuid.toString()
         }
     }
     companion object {
@@ -31,7 +33,7 @@ class MetaformsReader {
          * @throws IOException throws IOException when JSON reading fails
          */
         @Throws(IOException::class)
-        public fun readMetaform(form: String?): Metaform? {
+        fun readMetaform(form: String?): Metaform? {
             val path = String.format("fi/metatavu/metaform/testforms/%s.json", form)
             val classLoader = javaClass.classLoader
             val formStream = classLoader.getResourceAsStream(path)

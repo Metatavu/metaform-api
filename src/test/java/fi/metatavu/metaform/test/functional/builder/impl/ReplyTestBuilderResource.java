@@ -5,16 +5,17 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.metaform.api.client.apis.RepliesApi;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
-import fi.metatavu.metaform.api.client.models.ExportTheme;
 import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
 import fi.metatavu.metaform.test.TestSettings;
-import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import org.json.JSONException;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -25,8 +26,8 @@ import static org.junit.Assert.*;
  */
 public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, RepliesApi> {
 
-  private AccessTokenProvider accessTokenProvider;
-  private Map<UUID, UUID> replyMetaformIds = new HashMap<>();
+  private final AccessTokenProvider accessTokenProvider;
+  private final Map<UUID, UUID> replyMetaformIds = new HashMap<>();
 
   /**
    * Constructor
@@ -70,28 +71,42 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
   }
 
   /**
-   * Creates new reply for the simple form
+   * Lists all replies by filters
    *
-   * @param metaform metaform
-   * @param value    value
-   * @return reply
+   * @param metaformId       metaform id
+   * @param userId           user id
+   * @param createdBefore    createdBefore
+   * @param createdAfter     createdAfter
+   * @param modifiedBefore   modifiedBefore
+   * @param modifiedAfter    modifiedAfter
+   * @param includeRevisions includeRevisions
+   * @param fields           fields
+   * @param firstResult      firstResult
+   * @param maxResults       maxResults
+   * @return array of found replies
    */
-  public Reply createSimpleReplyRevision(Metaform metaform, String value) {
-    return createSimpleReply(metaform, value, ReplyMode.REVISION);
-  }
-
   public Reply[] listReplies(UUID metaformId, UUID userId, String createdBefore, String createdAfter, String modifiedBefore, String modifiedAfter,
                              Boolean includeRevisions, String[] fields, Integer firstResult, Integer maxResults) {
     return getApi().listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults);
   }
 
   /**
+   * Lists all replies by metaform
+   *
+   * @param metaformId metaform id
+   * @return all found replies
+   */
+  public Reply[] listReplies(UUID metaformId) {
+    return getApi().listReplies(metaformId, null, null, null, null, null, null, null, null, null);
+  }
+
+  /**
    * Creates new reply for TBNC form
    *
-   * @param metaform metaform
-   * @param text text value
-   * @param bool boolean value
-   * @param number number value
+   * @param metaform  metaform
+   * @param text      text value
+   * @param bool      boolean value
+   * @param number    number value
    * @param checklist checklist value
    * @return reply
    * @throws IOException
@@ -125,7 +140,7 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
    * Asserts reply can not be found with given owner key
    *
    * @param metaform metaform
-   * @param reply reply
+   * @param reply    reply
    * @param ownerKey owner key
    */
   public void assertReplyOwnerKeyFindForbidden(Metaform metaform, Reply reply, String ownerKey) {
@@ -314,12 +329,11 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
     return new Reply(null, null, null, null, null, null, replyData);
   }
 
-
   /**
    * Asserts that table datas equal
    *
    * @param expected expected table data
-   * @param actual actual table data
+   * @param actual   actual table data
    */
   public void assertTableDataEquals(Map<String, Object> expected, Map<String, Object> actual) {
     assertNotNull(actual.get("table"));
@@ -334,6 +348,29 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
         assertEquals(expectedCell.getValue(), expectedRow.get(expectedCell.getKey()));
       }
     }
+  }
+
+  /**
+   * Creates permission select reply with given value
+   *
+   * @param value value
+   * @return permission select reply with given value
+   */
+  public Reply createPermisionSelectReply(String value) {
+    Map<String, Object> replyData = createPermissionSelectReplyData(value);
+    return createReplyWithData(replyData);
+  }
+
+  /**
+   * Creates permission select reply data with given value
+   *
+   * @param value value
+   * @return permission select reply data with given value
+   */
+  public Map<String, Object> createPermissionSelectReplyData(String value) {
+    Map<String, Object> replyData = new HashMap<>();
+    replyData.put("permission-select", value);
+    return replyData;
   }
 
   @Override

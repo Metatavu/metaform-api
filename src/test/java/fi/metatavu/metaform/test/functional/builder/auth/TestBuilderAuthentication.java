@@ -6,6 +6,7 @@ import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthentication;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
+import fi.metatavu.metaform.api.client.models.EmailNotification;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.test.functional.builder.impl.*;
 
@@ -18,8 +19,8 @@ import static fi.metatavu.metaform.test.TestSettings.basePath;
  */
 public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthentication<ApiClient> {
 
-  private AbstractTestBuilder<ApiClient> testBuilder;
-  private AccessTokenProvider accessTokenProvider;
+  private final AbstractTestBuilder<ApiClient> testBuilder;
+  private final AccessTokenProvider accessTokenProvider;
 
   private MetaformTestBuilderResource metaforms;
   private ReplyTestBuilderResource replies;
@@ -28,6 +29,7 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
   private DraftTestBuilderResource drafts;
   private AttachmentTestBuilderResource attachments;
   private AuditLogEntriesTestBuilderResource auditLogs;
+  private EmailNotificationsTestBuilderResource emailNotifications;
 
   public TestBuilderAuthentication(AbstractTestBuilder<ApiClient> testBuilder, AccessTokenProvider accessTokenProvider) throws IOException {
     super(testBuilder, accessTokenProvider);
@@ -114,6 +116,15 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
 
     return auditLogs;
   }
+
+  public EmailNotificationsTestBuilderResource emailNotifications() throws IOException {
+    if (emailNotifications == null) {
+      emailNotifications = new EmailNotificationsTestBuilderResource(testBuilder, accessTokenProvider, createClient());
+    }
+
+    return emailNotifications;
+  }
+
   @Override
   protected ApiClient createClient(String s) {
     ApiClient client = new ApiClient(basePath);

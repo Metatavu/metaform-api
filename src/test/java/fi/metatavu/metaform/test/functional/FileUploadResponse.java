@@ -4,7 +4,7 @@ import java.util.UUID;
 
 /**
  * Model for file upload response
- * 
+ *
  * @author Antti Leppä
  */
 public class FileUploadResponse {

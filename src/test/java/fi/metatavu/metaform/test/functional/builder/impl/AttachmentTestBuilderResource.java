@@ -3,26 +3,25 @@ package fi.metatavu.metaform.test.functional.builder.impl;
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.metaform.api.client.apis.AttachmentsApi;
-import fi.metatavu.metaform.api.client.apis.DraftsApi;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
 import fi.metatavu.metaform.api.client.models.Attachment;
-import fi.metatavu.metaform.api.client.models.Draft;
-import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.test.TestSettings;
 import fi.metatavu.metaform.test.functional.FileUploadResponse;
 import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+/**
+ * Test builder resource for Attachments API
+ */
 public class AttachmentTestBuilderResource extends ApiTestBuilderResource<Attachment, AttachmentsApi> {
 
-  private AccessTokenProvider accessTokenProvider;
+  private final AccessTokenProvider accessTokenProvider;
 
   public AttachmentTestBuilderResource(
     AbstractTestBuilder<ApiClient> testBuilder,
@@ -43,16 +42,26 @@ public class AttachmentTestBuilderResource extends ApiTestBuilderResource<Attach
   }
 
   @Override
-  public void clean(Attachment attachment) throws Exception {
+  public void clean(Attachment attachment) {
 
   }
 
+  /**
+   * Asserts that attachment exists
+   *
+   * @param fileUpload1 response
+   */
   public void assertAttachmentExists(FileUploadResponse fileUpload1) {
     Attachment attachment1 = getApi().findAttachment(fileUpload1.getFileRef(), "");
     Assertions.assertNotNull(attachment1);
     Assertions.assertEquals(fileUpload1.getFileRef(), attachment1.getId());
   }
 
+  /**
+   * Addert that attachement search returns 404
+   *
+   * @param fileRef file
+   */
   public void assertAttachmentNotFound(UUID fileRef) {
     try {
       getApi().findAttachment(fileRef, "");

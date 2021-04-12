@@ -6,11 +6,12 @@ import java.io.IOException;
 
 public class FilledAccessTokenProvider implements AccessTokenProvider {
 
-  private String token;
+  private final String token;
 
   public FilledAccessTokenProvider(String token) {
     this.token = token;
   }
+
   @Override
   public String getAccessToken() {
     return token;
