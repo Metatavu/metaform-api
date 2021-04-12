@@ -1,8 +1,11 @@
-package fi.metatavu.metaform.test.functional;
+package fi.metatavu.metaform.test.functional.tests;
 
 
 import fi.metatavu.metaform.api.client.models.ExportTheme;
+import fi.metatavu.metaform.test.functional.AbstractIntegrationTest;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
+import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Assertions;

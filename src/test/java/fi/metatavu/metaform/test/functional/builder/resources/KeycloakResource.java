@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.test.functional;
+package fi.metatavu.metaform.test.functional.builder.resources;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;

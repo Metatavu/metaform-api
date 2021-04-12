@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.test.functional;
+package fi.metatavu.metaform.test.functional.builder.resources;
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import org.testcontainers.containers.JdbcDatabaseContainer;

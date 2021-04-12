@@ -1,5 +1,8 @@
-package fi.metatavu.metaform.test.functional;
+package fi.metatavu.metaform.test.functional.tests;
 
+import fi.metatavu.metaform.test.functional.AbstractIntegrationTest;
+import fi.metatavu.metaform.test.functional.FileUploadMeta;
+import fi.metatavu.metaform.test.functional.FileUploadResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
