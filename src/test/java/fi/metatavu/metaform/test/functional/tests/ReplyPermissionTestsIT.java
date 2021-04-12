@@ -240,7 +240,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
       Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
-      builder.test3().emailNotifications().createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
+      builder.metaformAdmin().emailNotifications().createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
       Reply createdReply = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
         builder.test3().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
