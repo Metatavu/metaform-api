@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -25,6 +26,7 @@ import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
 import io.vertx.core.http.HttpServerRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
@@ -60,6 +62,9 @@ public abstract class AbstractApi {
   @Inject
   private Logger logger;
 
+  @Context
+  private HttpRequest request;
+
   @Inject
   public JsonWebToken jsonWebToken;
 
@@ -72,9 +77,11 @@ public abstract class AbstractApi {
    * @return request locale
    */
   protected Locale getLocale() {
-   // String language = request.getHeader("Accept-language");
-    //return Locale.forLanguageTag(language); todo fix locale
-    return Locale.CANADA;
+    HttpHeaders httpHeaders = request.getHttpHeaders();
+    List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
+    if (acceptableLanguages.isEmpty())
+      return Locale.getDefault();
+    else return acceptableLanguages.get(0);
   }
   
   /**
