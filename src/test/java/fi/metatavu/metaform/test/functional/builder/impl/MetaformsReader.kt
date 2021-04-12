@@ -35,8 +35,7 @@ class MetaformsReader {
         @Throws(IOException::class)
         fun readMetaform(form: String?): Metaform? {
             val path = String.format("fi/metatavu/metaform/testforms/%s.json", form)
-            val classLoader = javaClass.classLoader
-            val formStream = classLoader.getResourceAsStream(path)
+            val formStream = this::class.java.classLoader.getResourceAsStream(path)
             val moshi: Moshi = Moshi.Builder()
                 .add(UUIDAdapter())
                 .add(MetaformFieldType::class.java,

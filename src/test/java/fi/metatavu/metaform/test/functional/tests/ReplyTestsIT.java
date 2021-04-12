@@ -44,7 +44,6 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       Metaform metaformData = builder.metaformAdmin().metaforms().readMetaform("simple");
       Metaform metaform = builder.metaformAdmin().metaforms().create(metaformData);
 
-      //TODO WHY 401 IS EXPECTED?
       given()
         .baseUri(TestSettings.basePath)
         .header("Content-Type", "application/json")
