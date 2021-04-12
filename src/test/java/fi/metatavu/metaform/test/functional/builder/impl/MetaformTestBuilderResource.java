@@ -216,6 +216,16 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
 
   }
 
+  /**
+   * Creates new metaform using predefined test form
+   *
+   * @param form form's file name
+   * @return created metaform
+   */
+  public Metaform createFromJsonFile(String form) throws IOException {
+    return create(readMetaform(form));
+  }
+
   @Override
   protected MetaformsApi getApi() {
     try {

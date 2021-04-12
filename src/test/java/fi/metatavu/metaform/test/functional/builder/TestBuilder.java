@@ -28,6 +28,7 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
   private TestBuilderAuthentication metaformAdmin;
   private TestBuilderAuthentication test1, test2, test3;
   private TestBuilderAuthentication anonymousToken;
+  private TestBuilderAuthentication anon;
 
   private final String serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String.class);
   private static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
@@ -112,6 +113,21 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
       DEFAULT_UI_CLIENT_ID, "test3.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
   }
 
+
+  /**
+   * Returns test3 user instance of test builder authentication
+   *
+   * @return test3 user instance of test builder authentication
+   * @throws IOException thrown on communication errors
+   */
+  public TestBuilderAuthentication anon() throws IOException {
+    if (anon != null) {
+      return anon;
+    }
+
+    return anon = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
+      DEFAULT_UI_CLIENT_ID, "anonymous", "anonymous", DEFAULT_UI_CLIENT_SECRET));
+  }
   /**
    * Returns anonymous token auth
    *
