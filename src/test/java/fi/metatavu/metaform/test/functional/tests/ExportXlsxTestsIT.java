@@ -1,34 +1,19 @@
 package fi.metatavu.metaform.test.functional.tests;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
 import fi.metatavu.metaform.api.client.models.Metaform;
-import fi.metatavu.metaform.api.client.models.Reply;
-import fi.metatavu.metaform.server.rest.ReplyMode;
 import fi.metatavu.metaform.test.TestSettings;
 import fi.metatavu.metaform.test.functional.AbstractIntegrationTest;
-import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
-import fi.metatavu.metaform.test.functional.builder.resources.WireMockResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @QuarkusTest
 @QuarkusTestResource.List(value = {

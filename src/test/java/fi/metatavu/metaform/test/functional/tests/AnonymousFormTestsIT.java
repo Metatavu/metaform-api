@@ -10,6 +10,7 @@ import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertNotNull;
@@ -57,7 +58,7 @@ public class AnonymousFormTestsIT extends AbstractIntegrationTest {
       testBuilder.anon().metaforms().assertFindFailStatus(403, metaform1.getId(), reply3.getId(), reply3.getOwnerKey());
       testBuilder.anon().metaforms().assertFindFailStatus(403, metaform1.getId(), null, reply1.getOwnerKey());
       testBuilder.anon().metaforms().assertFindFailStatus(403, metaform1.getId(), reply1.getId(), null);
-      assertNotNull(testBuilder.anon().metaforms().findMetaform(metaform1.getId(), reply1.getId(), reply1.getOwnerKey()));
+      Assertions.assertNotNull(testBuilder.anon().metaforms().findMetaform(metaform1.getId(), reply1.getId(), reply1.getOwnerKey()));
     }
   }
 

@@ -66,8 +66,8 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       testBuilder.test1().replies().assertTableDataEquals(createReplyData, createdReply.getData());
 
       Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
-      assertNotNull(foundReply);
-      assertNotNull(foundReply.getId());
+      Assertions.assertNotNull(foundReply);
+      Assertions.assertNotNull(foundReply.getId());
 
       testBuilder.test1().replies().assertTableDataEquals(createReplyData, foundReply.getData());
 
@@ -79,8 +79,8 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       testBuilder.test1().replies().assertTableDataEquals(updateReplyData, updateReply.getData());
 
       Reply foundUpdatedReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
-      assertNotNull(foundUpdatedReply);
-      assertNotNull(foundUpdatedReply.getId());
+      Assertions.assertNotNull(foundUpdatedReply);
+      Assertions.assertNotNull(foundUpdatedReply.getId());
       testBuilder.test1().replies().assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
     }
   }
@@ -99,8 +99,8 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
       Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
 
-      assertNotNull(foundReply);
-      assertNotNull(foundReply.getId());
+      Assertions.assertNotNull(foundReply);
+      Assertions.assertNotNull(foundReply.getId());
       testBuilder.test1().replies().assertTableDataEquals(replyData, foundReply.getData());
     }
   }
@@ -118,9 +118,9 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
 
       Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
-      assertNotNull(foundReply);
-      assertNotNull(foundReply.getId());
-      assertNull(foundReply.getData().get("table"));
+      Assertions.assertNotNull(foundReply);
+      Assertions.assertNotNull(foundReply.getId());
+      Assertions.assertNull(foundReply.getData().get("table"));
     }
   }
 
@@ -151,7 +151,7 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
       Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
       Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
       Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
-      assertNotNull(foundReply);
+      Assertions.assertNotNull(foundReply);
       testBuilder.metaformAdmin().replies().delete(metaform.getId(), createdReply, null);
       testBuilder.test1().replies().assertFindFailStatus(404, metaform.getId(), createdReply.getId(), null);
     }

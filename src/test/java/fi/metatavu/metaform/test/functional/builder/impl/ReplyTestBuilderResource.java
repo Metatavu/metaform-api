@@ -43,6 +43,22 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
     this.accessTokenProvider = accessTokenProvider;
   }
 
+  @Override
+  public void clean(Reply reply) {
+    UUID metaformId = replyMetaformIds.get(reply.getId());
+    getApi().deleteReply(metaformId, reply.getId(), null);
+  }
+
+  @Override
+  protected RepliesApi getApi() {
+    try {
+      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return new RepliesApi(TestSettings.basePath);
+  }
+
   /**
    * Creates new reply
    *
@@ -371,22 +387,5 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
     Map<String, Object> replyData = new HashMap<>();
     replyData.put("permission-select", value);
     return replyData;
-  }
-
-  @Override
-  public void clean(Reply reply) {
-    UUID metaformId = replyMetaformIds.get(reply.getId());
-    getApi().deleteReply(metaformId, reply.getId(), null);
-  }
-
-
-  @Override
-  protected RepliesApi getApi() {
-    try {
-      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return new RepliesApi(TestSettings.basePath);
   }
 }

@@ -1,15 +1,6 @@
 package fi.metatavu.metaform.test.functional.tests;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.matching.UrlPattern;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import fi.metatavu.metaform.api.client.models.ExportTheme;
-import fi.metatavu.metaform.api.client.models.Metaform;
-import fi.metatavu.metaform.api.client.models.Reply;
-import fi.metatavu.metaform.server.rest.ReplyMode;
 import fi.metatavu.metaform.test.functional.AbstractIntegrationTest;
-import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -18,19 +9,12 @@ import io.quarkus.test.junit.TestProfile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
@@ -135,6 +119,7 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
     }
   }
  */
+
   /**
    * Asserts that given PDF data contains expected string
    *

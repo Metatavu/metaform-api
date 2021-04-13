@@ -34,6 +34,20 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     this.accessTokenProvider = accessTokenProvider;
   }
 
+  @Override
+  protected MetaformsApi getApi() {
+    try {
+      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return new MetaformsApi(TestSettings.basePath);
+  }
+  @Override
+  public void clean(Metaform metaform) {
+    getApi().deleteMetaform(metaform.getId());
+  }
+
   /**
    * Creates new metaform
    *
@@ -199,11 +213,6 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     assertJsonsEqual(expected, actual);
   }
 
-  @Override
-  public void clean(Metaform metaform) {
-    getApi().deleteMetaform(metaform.getId());
-  }
-
   /**
    * Reads a Metaform from JSON file
    *
@@ -226,13 +235,4 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     return create(readMetaform(form));
   }
 
-  @Override
-  protected MetaformsApi getApi() {
-    try {
-      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return new MetaformsApi(TestSettings.basePath);
-  }
 }

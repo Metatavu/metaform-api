@@ -19,6 +19,7 @@ public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResourc
 
   private final Map<UUID, UUID> emailNotificationMetaforms = new HashMap<UUID, UUID>();
   private final AccessTokenProvider accessTokenProvider;
+
   /**
    * Constructor
    *
@@ -33,10 +34,10 @@ public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResourc
   /**
    * Creates new email notification for a Metaform
    *
-   * @param metaform metaform
+   * @param metaform        metaform
    * @param subjectTemplate freemarker template for subject
    * @param contentTemplate freemarker template for content
-   * @param emails email addresses
+   * @param emails          email addresses
    * @return email notification
    */
   public EmailNotification createEmailNotification(Metaform metaform, String subjectTemplate, String contentTemplate, List<String> emails) {
@@ -46,11 +47,11 @@ public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResourc
   /**
    * Creates new email notification for a Metaform
    *
-   * @param metaformId metaform id
+   * @param metaformId      metaform id
    * @param subjectTemplate freemarker template for subject
    * @param contentTemplate freemarker template for content
-   * @param emails email addresses
-   * @param notifyIf notify if rule
+   * @param emails          email addresses
+   * @param notifyIf        notify if rule
    * @return email notification
    */
   public EmailNotification createEmailNotification(UUID metaformId, String subjectTemplate, String contentTemplate, List<String> emails, FieldRule notifyIf) {
@@ -71,7 +72,7 @@ public class EmailNotificationsTestBuilderResource extends ApiTestBuilderResourc
   }
 
   @Override
-  public void clean(EmailNotification emailNotification){
+  public void clean(EmailNotification emailNotification) {
     UUID metaformId = emailNotificationMetaforms.get(emailNotification.getId());
     getApi().deleteEmailNotification(metaformId, emailNotification.getId());
   }

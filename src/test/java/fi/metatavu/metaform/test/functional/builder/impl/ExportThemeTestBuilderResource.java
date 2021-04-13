@@ -3,16 +3,16 @@ package fi.metatavu.metaform.test.functional.builder.impl;
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.metaform.api.client.apis.ExportThemesApi;
-import fi.metatavu.metaform.api.client.apis.RepliesApi;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
 import fi.metatavu.metaform.api.client.models.ExportTheme;
-import fi.metatavu.metaform.api.client.models.ExportThemeFile;
-import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.test.TestSettings;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -23,18 +23,28 @@ import static org.junit.Assert.fail;
 public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<ExportTheme, ExportThemesApi> {
 
   private final AccessTokenProvider accessTokenProvider;
-  /**
-   * Constructor
-   *
-   * @param testBuilder test builder
-   * @param apiClient   initialized API client
-   */
+
   public ExportThemeTestBuilderResource(
     AbstractTestBuilder<ApiClient> testBuilder,
     AccessTokenProvider accessTokenProvider,
     ApiClient apiClient) {
     super(testBuilder, apiClient);
     this.accessTokenProvider = accessTokenProvider;
+  }
+
+  @Override
+  protected ExportThemesApi getApi() {
+    try {
+      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return new ExportThemesApi(TestSettings.basePath);
+  }
+
+  @Override
+  public void clean(ExportTheme exportTheme) {
+    getApi().deleteExportTheme(exportTheme.getId());
   }
 
   /**
@@ -72,23 +82,9 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
     return addClosable(exportTheme);
   }
 
-  @Override
-  protected ExportThemesApi getApi() {
-    try {
-      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return new ExportThemesApi(TestSettings.basePath);
-  }
-
-  @Override
-  public void clean(ExportTheme exportTheme) {
-    getApi().deleteExportTheme(exportTheme.getId());
-  }
-
   /**
    * Finds export theme by id
+   *
    * @param exportThemeId exportThemeId
    * @return found export theme
    */
@@ -109,7 +105,7 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
    * Updates export theme
    *
    * @param exportThemeId exportThemeId
-   * @param exportTheme exportTheme
+   * @param exportTheme   exportTheme
    * @return updated export theme
    */
   public ExportTheme updateExportTheme(UUID exportThemeId, ExportTheme exportTheme) {
@@ -130,7 +126,7 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
   /**
    * Asserts expected status for search
    *
-   * @param status expected status
+   * @param status        expected status
    * @param exportThemeId exportThemeId
    */
   public void assertSearchFailStatus(int status, UUID exportThemeId) {
@@ -145,7 +141,7 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
   /**
    * Asserts expected status for creation
    *
-   * @param status expected status
+   * @param status      expected status
    * @param exportTheme exportTheme
    */
   public void assertCreateFailStatus(int status, ExportTheme exportTheme) {
@@ -174,7 +170,7 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
   /**
    * Asserts update to fail with given status
    *
-   * @param status expected status
+   * @param status        expected status
    * @param exportThemeId export theme id
    */
   public void assertUpdateFailStatus(int status, UUID exportThemeId, ExportTheme exportTheme) {
@@ -189,7 +185,7 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
   /**
    * Asserts delete to fail with given status
    *
-   * @param status expected status
+   * @param status        expected status
    * @param exportThemeId export theme id
    */
   public void assertDeleteFailStatus(int status, UUID exportThemeId) {

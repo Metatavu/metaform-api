@@ -4,6 +4,9 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 
 import java.io.IOException;
 
+/**
+ * Access token provider with prefilled token
+ */
 public class FilledAccessTokenProvider implements AccessTokenProvider {
 
   private final String token;

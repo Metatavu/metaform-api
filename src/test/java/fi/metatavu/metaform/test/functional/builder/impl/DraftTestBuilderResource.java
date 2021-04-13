@@ -57,7 +57,7 @@ public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, Draf
   /**
    * Creates draft
    *
-   * @param metaform metaform
+   * @param metaform  metaform
    * @param draftData draft data map
    * @return created draft
    */
@@ -70,9 +70,10 @@ public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, Draf
 
   /**
    * Updates draft
+   *
    * @param metaformId metaform id
-   * @param draftId draft id
-   * @param draft new payload
+   * @param draftId    draft id
+   * @param draft      new payload
    * @return updated draft
    */
   public Draft updateDraft(UUID metaformId, UUID draftId, Draft draft) {
@@ -81,8 +82,9 @@ public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, Draf
 
   /**
    * Finds draft
+   *
    * @param metaformId metaform id
-   * @param draftId draft id
+   * @param draftId    draft id
    * @return found draft
    */
   public Draft findDraft(UUID metaformId, UUID draftId) {

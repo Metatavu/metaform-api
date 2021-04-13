@@ -93,6 +93,12 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
     return exportfiles;
   }
 
+  /**
+   * Builds Drafts API test resource
+   *
+   * @return Drafts API test resource
+   * @throws IOException thrown on communication error
+   */
   public DraftTestBuilderResource drafts() throws IOException {
     if (drafts == null) {
       drafts = new DraftTestBuilderResource(testBuilder, accessTokenProvider, createClient());
@@ -101,6 +107,12 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
     return drafts;
   }
 
+  /**
+   * Builds Attachments API test resource
+   *
+   * @return Builds Attachments API test resource
+   * @throws IOException thrown on communication error
+   */
   public AttachmentTestBuilderResource attachments() throws IOException {
     if (attachments == null) {
       attachments = new AttachmentTestBuilderResource(testBuilder, accessTokenProvider, createClient());
@@ -109,6 +121,12 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
     return attachments;
   }
 
+  /**
+   * Builds Audit Logs API test resource
+   *
+   * @return Audit Logs API resource
+   * @throws IOException thrown on communication error
+   */
   public AuditLogEntriesTestBuilderResource auditLogs() throws IOException {
     if (auditLogs == null) {
       auditLogs = new AuditLogEntriesTestBuilderResource(testBuilder, accessTokenProvider, createClient());
@@ -117,6 +135,12 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
     return auditLogs;
   }
 
+  /**
+   * Builds EmailNotifications API test resource
+   *
+   * @return EmailNotifications API resource
+   * @throws IOException thrown on communication error
+   */
   public EmailNotificationsTestBuilderResource emailNotifications() throws IOException {
     if (emailNotifications == null) {
       emailNotifications = new EmailNotificationsTestBuilderResource(testBuilder, accessTokenProvider, createClient());

@@ -56,7 +56,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       Assertions.assertEquals(Collections.singletonList(fileUpload.getFileRef().toString()), foundReply.getData().get("files"));
 
       builder.metaformAdmin().attachments().assertAttachmentExists(fileUpload);
-      assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.test1().token(), fileUpload.getFileRef())));
+      Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.test1().token(), fileUpload.getFileRef())));
     }
   }
 
@@ -84,8 +84,8 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       builder.metaformAdmin().attachments().assertAttachmentExists(fileUpload2);
 
       String token = builder.test1().token();
-      assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(token, fileUpload1.getFileRef())));
-      assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(token, fileUpload2.getFileRef())));
+      Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(token, fileUpload1.getFileRef())));
+      Assertions.assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(token, fileUpload2.getFileRef())));
     }
   }
 
@@ -123,7 +123,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
       builder.test1().replies().updateReply(metaform.getId(), reply.getId(), newReplyWithData, null);
 
       Reply updatedReply = builder.test1().replies().findReply(metaform.getId(), reply.getId(), null);
-      assertEquals(Arrays.asList(fileRef2), updatedReply.getData().get("files"));
+      Assertions.assertEquals(Arrays.asList(fileRef2), updatedReply.getData().get("files"));
 
       builder.metaformAdmin().attachments().assertAttachmentNotFound(fileUpload1.getFileRef());
       builder.metaformAdmin().attachments().assertAttachmentExists(fileUpload2);

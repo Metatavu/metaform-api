@@ -253,8 +253,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
       mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
       mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
-    }
-    finally {
+    } finally {
       stopMailgunMocker(mailgunMocker);
     }
   }

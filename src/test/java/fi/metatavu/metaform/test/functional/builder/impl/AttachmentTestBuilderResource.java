@@ -58,9 +58,9 @@ public class AttachmentTestBuilderResource extends ApiTestBuilderResource<Attach
   }
 
   /**
-   * Addert that attachement search returns 404
+   * Assert that attachment search returns 404
    *
-   * @param fileRef file
+   * @param fileRef file ref
    */
   public void assertAttachmentNotFound(UUID fileRef) {
     try {

@@ -1,10 +1,7 @@
 package fi.metatavu.metaform.test.functional.builder.resources;
 
-import dasniko.testcontainers.keycloak.KeycloakContainer;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MockServerContainer;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.HashMap;
 import java.util.Map;

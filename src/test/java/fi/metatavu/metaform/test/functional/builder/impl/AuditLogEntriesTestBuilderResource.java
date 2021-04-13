@@ -17,19 +17,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
- * Test buildre resource for Audit Log Entries API
+ * Test builder resource for Audit Log Entries API
  */
 public class AuditLogEntriesTestBuilderResource extends ApiTestBuilderResource<AuditLogEntry, AuditLogEntriesApi> {
 
   private final AccessTokenProvider accessTokenProvider;
   private final Map<UUID, UUID> auditLogEntriesMetaforms = new HashMap<>();
 
-  /**
-   * Constructor
-   *
-   * @param testBuilder test builder
-   * @param apiClient   initialized API client
-   */
   public AuditLogEntriesTestBuilderResource(
     AbstractTestBuilder<ApiClient> testBuilder,
     AccessTokenProvider accessTokenProvider,
@@ -57,11 +51,11 @@ public class AuditLogEntriesTestBuilderResource extends ApiTestBuilderResource<A
   /**
    * Lists audit log entries
    *
-   * @param metaformId metaform id
-   * @param userId user id
-   * @param replyId reply id
+   * @param metaformId    metaform id
+   * @param userId        user id
+   * @param replyId       reply id
    * @param createdBefore created before
-   * @param createdAfter created after
+   * @param createdAfter  created after
    * @return audit entries
    */
   public AuditLogEntry[] listAuditLogEntries(UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
@@ -71,12 +65,12 @@ public class AuditLogEntriesTestBuilderResource extends ApiTestBuilderResource<A
   /**
    * Asserts that find returns fail with given status
    *
-   * @param status expected status
-   * @param metaformId metaform id
-   * @param userId user id
-   * @param replyId reply id
+   * @param status        expected status
+   * @param metaformId    metaform id
+   * @param userId        user id
+   * @param replyId       reply id
    * @param createdBefore created before
-   * @param createdAfter created after
+   * @param createdAfter  created after
    */
   public void assertListFailStatus(int status, UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
     try {

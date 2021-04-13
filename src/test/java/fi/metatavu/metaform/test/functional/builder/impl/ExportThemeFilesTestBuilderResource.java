@@ -6,11 +6,13 @@ import fi.metatavu.metaform.api.client.apis.ExportThemeFilesApi;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.api.client.infrastructure.ClientException;
 import fi.metatavu.metaform.api.client.models.ExportThemeFile;
-import fi.metatavu.metaform.api.client.models.Metaform;
 import fi.metatavu.metaform.test.TestSettings;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -40,13 +42,18 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
     return new ExportThemeFilesApi(TestSettings.basePath);
   }
 
+  @Override
+  public void clean(ExportThemeFile exportThemeFile) throws Exception {
+    getApi().deleteExportThemeFile(exportThemeFile.getThemeId(), exportThemeFile.getId());
+  }
+
   /**
-   * Creates export theme file from paylost
+   * Creates export theme file from payload
    *
-   * @param themeId
-   * @param path
-   * @param content
-   * @return
+   * @param themeId theme id
+   * @param path path
+   * @param content content
+   * @return generated export theme file
    */
   public ExportThemeFile createSimpleExportThemeFile(UUID themeId, String path, String content) {
     ExportThemeFile payload = new ExportThemeFile(path, themeId, content, null);
@@ -63,11 +70,6 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
   public ExportThemeFile createExportThemeFile(UUID themeId, ExportThemeFile payload) {
     ExportThemeFile exportThemeFile = getApi().createExportThemeFile(themeId, payload);
     return addClosable(exportThemeFile);
-  }
-
-  @Override
-  public void clean(ExportThemeFile exportThemeFile) throws Exception {
-    getApi().deleteExportThemeFile(exportThemeFile.getThemeId(), exportThemeFile.getId());
   }
 
   /**
