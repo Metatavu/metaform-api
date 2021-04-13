@@ -84,7 +84,6 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
 
   @Override
   public void clean(ExportTheme exportTheme) {
-    System.out.println("cleaning export theme "+exportTheme.getId());
     getApi().deleteExportTheme(exportTheme.getId());
   }
 

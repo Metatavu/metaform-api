@@ -1,7 +1,8 @@
 package fi.metatavu.metaform.server.files;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -9,10 +10,10 @@ import java.util.UUID;
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.UTF8;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,11 +29,43 @@ public class FileController {
   @Inject
   private Logger logger;
 
-  //todo add correct quarkus caching
+  private final String DATA_PREFIX = "/tmp/data-";
+  private final String META_PREFIX = "/tmp/meta-";
   private Map<String, byte[]> dataCache = new HashMap<>();
 
   private Map<String, String> metaCache = new HashMap<>();
-  
+  /**
+   * Persists data in file
+   * @param prefix
+   * @param fileRef
+   * @param data
+   * @throws IOException
+   */
+  private void persistFile(String path, byte[] data) throws IOException {
+    Path dataFile = Files.createFile(Path.of(path));
+
+    try (FileOutputStream outputStream = new FileOutputStream(dataFile.toFile())) {
+      outputStream.write(data);
+    }
+  }
+
+  /**
+   * Reads file into byte array
+   * @param path path to file
+   * @return file data
+   */
+  private byte[] readFileData(Path path) {
+    if (Files.exists(path)) {
+      try ( FileInputStream fileInputStream = new FileInputStream(path.toFile())) {
+        return IOUtils.toByteArray(fileInputStream);
+      }
+      catch (Exception e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   /**
    * Stores file and returns reference id
    * 
@@ -43,8 +76,8 @@ public class FileController {
     String fileRef = UUID.randomUUID().toString();
     
     try {
-      dataCache.put(fileRef, IOUtils.toByteArray(inputStream));
-      metaCache.put(fileRef, getObjectMapper().writeValueAsString(new FileMeta(contentType, fileName)));
+      persistFile(DATA_PREFIX+fileRef, IOUtils.toByteArray(inputStream));
+      persistFile(META_PREFIX+fileRef, getObjectMapper().writeValueAsString(new FileMeta(contentType, fileName)).getBytes());
       return fileRef;
     } catch (IOException e) {
       logger.error("Failed to store file", e);
@@ -63,14 +96,15 @@ public class FileController {
     if (StringUtils.isEmpty(fileRef)) {
       return null;
     }
-    
-    byte[] data = dataCache.get(fileRef);
-    String metaData = metaCache.get(fileRef);
+    Path dataPath = Path.of(DATA_PREFIX+ fileRef);
+    Path metaPath = Path.of(META_PREFIX+ fileRef);
 
-    if (!dataCache.containsKey(fileRef) || !metaCache.containsKey(fileRef)) {
+    if (Files.notExists(dataPath) || Files.notExists(metaPath)) {
       return null;
     }
-    
+
+    byte[] data = readFileData(dataPath);
+    String metaData = new String(readFileData(metaPath));
     return createFile(fileRef, data, metaData);
   }
   
@@ -101,10 +135,17 @@ public class FileController {
    * 
    * @param fileRef file reference id
    * @return meta data as JSON string
-   * @throws IOException
    */
   public String getRawFileMeta(String fileRef) {
-    return metaCache.get(fileRef);
+    try {
+      byte[] bytes = readFileData(Path.of(META_PREFIX + fileRef));
+      if (bytes != null) {
+        return IOUtils.toString(bytes, "UTF8");
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
   
   /**
@@ -117,15 +158,10 @@ public class FileController {
     if (StringUtils.isEmpty(fileRef)) {
       return null;
     }
-    
-    if (!dataCache.containsKey(fileRef) || !metaCache.containsKey(fileRef)) {
-      return null;
-    }
-    
-    byte[] data = dataCache.remove(fileRef);
-    String metaData = metaCache.remove(fileRef);
-    
-    return createFile(fileRef, data, metaData);
+
+    File fileData = getFileData(fileRef);
+    deleteFile(fileRef);
+    return fileData;
   }
   
   /**
@@ -134,8 +170,12 @@ public class FileController {
    * @param fileRef file ref
    */
   public void deleteFile(String fileRef) {
-    dataCache.remove(fileRef);
-    metaCache.remove(fileRef);
+    try {
+      Files.delete(Path.of(DATA_PREFIX+fileRef));
+      Files.delete(Path.of(META_PREFIX+fileRef));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private File createFile(String fileRef, byte[] data, String metaData) {

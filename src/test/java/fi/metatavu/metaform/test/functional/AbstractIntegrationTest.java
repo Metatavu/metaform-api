@@ -412,7 +412,6 @@ public class AbstractIntegrationTest {
     String path = "mgapi";
     String apiKey = "fakekey";
     MailgunMocker mailgunMocker = new MailgunMocker(String.format("/%s", path), domain, apiKey);
-    System.out.println("----STARTING MAILGUN MOCKER");
     mailgunMocker.startMock();
     return mailgunMocker;
   }
