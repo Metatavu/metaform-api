@@ -17,6 +17,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,10 +67,10 @@ public abstract class AbstractApi {
   private HttpRequest request;
 
   @Inject
-  public JsonWebToken jsonWebToken;
+  private JsonWebToken jsonWebToken;
 
-  @Inject
-  SecurityIdentity securityIdentity;
+  @Context
+  private SecurityContext securityContext;
 
   /**
    * Returns request locale
@@ -297,7 +298,7 @@ public abstract class AbstractApi {
    */
   protected boolean hasRealmRole(String... roles) {
     for (int i = 0; i < roles.length; i++) {
-      if (securityIdentity.hasRole(roles[i]))
+      if (securityContext.isUserInRole(roles[i]))
         return true;
     }
 
