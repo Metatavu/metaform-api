@@ -12,9 +12,9 @@ import java.util.Map;
 
 import fi.metatavu.metaform.api.spec.model.FieldRule;
 import fi.metatavu.metaform.api.spec.model.Reply;
-import org.junit.Test;
 
 import fi.metatavu.metaform.server.metaforms.FieldRuleEvaluator;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for field rule evaluator

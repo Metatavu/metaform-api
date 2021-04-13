@@ -25,7 +25,8 @@ import static org.junit.Assert.assertNotNull;
  */
 public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
-  private TestBuilderAuthentication metaformAdmin;
+  private TestBuilderAuthentication admin;
+  private TestBuilderAuthentication metaformSuper;
   private TestBuilderAuthentication test1, test2, test3;
   private TestBuilderAuthentication anonymousToken;
   private TestBuilderAuthentication anon;
@@ -43,11 +44,11 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
    * @throws IOException thrown on communication errors
    */
   public TestBuilderAuthentication metaformAdmin() throws IOException {
-    if (metaformAdmin != null) {
-      return metaformAdmin;
+    if (admin != null) {
+      return admin;
     }
 
-    return metaformAdmin = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
+    return admin = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
       DEFAULT_UI_CLIENT_ID, "metaform-admin", "test", DEFAULT_UI_CLIENT_SECRET));
   }
 
@@ -59,11 +60,11 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
    * @throws IOException thrown on communication errors
    */
   public TestBuilderAuthentication metaformSuper() throws IOException {
-    if (metaformAdmin != null) {
-      return metaformAdmin;
+    if (metaformSuper != null) {
+      return metaformSuper;
     }
 
-    return metaformAdmin = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
+    return metaformSuper = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
       DEFAULT_UI_CLIENT_ID, "metaform-super", "test", DEFAULT_UI_CLIENT_SECRET));
   }
 
@@ -115,9 +116,9 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
 
   /**
-   * Returns test3 user instance of test builder authentication
+   * Returns anonymous user instance of test builder authentication
    *
-   * @return test3 user instance of test builder authentication
+   * @return anonymous user instance of test builder authentication
    * @throws IOException thrown on communication errors
    */
   public TestBuilderAuthentication anon() throws IOException {
@@ -128,6 +129,7 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
     return anon = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
       DEFAULT_UI_CLIENT_ID, "anonymous", "anonymous", DEFAULT_UI_CLIENT_SECRET));
   }
+
   /**
    * Returns anonymous token auth
    *

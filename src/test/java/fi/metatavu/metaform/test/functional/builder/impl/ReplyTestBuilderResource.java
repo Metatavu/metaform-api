@@ -29,12 +29,6 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
   private final AccessTokenProvider accessTokenProvider;
   private final Map<UUID, UUID> replyMetaformIds = new HashMap<>();
 
-  /**
-   * Constructor
-   *
-   * @param testBuilder test builder
-   * @param apiClient   initialized API client
-   */
   public ReplyTestBuilderResource(
     AbstractTestBuilder<ApiClient> testBuilder,
     AccessTokenProvider accessTokenProvider,
@@ -125,7 +119,6 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
    * @param number    number value
    * @param checklist checklist value
    * @return reply
-   * @throws IOException
    */
   public Reply createTBNCReply(Metaform metaform, String text, Boolean bool, double number, String[] checklist) {
     Map<String, Object> replyData = new HashMap<>();

@@ -43,7 +43,7 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
   }
 
   @Override
-  public void clean(ExportThemeFile exportThemeFile) throws Exception {
+  public void clean(ExportThemeFile exportThemeFile) {
     getApi().deleteExportThemeFile(exportThemeFile.getThemeId(), exportThemeFile.getId());
   }
 
@@ -138,6 +138,12 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
     }
   }
 
+  /**
+   * Asserts export theme file creation to fail with given status
+   *
+   * @param status expected status
+   * @param exportThemeFile new export theme file payload
+   */
   public void assertCreateFailStatus(int status, ExportThemeFile exportThemeFile) {
     try {
       getApi().createExportThemeFile(exportThemeFile.getThemeId(), exportThemeFile);
@@ -147,6 +153,13 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
     }
   }
 
+  /**
+   * Asserts finding export theme file to fail with given status
+   *
+   * @param status expected status
+   * @param exportThemeId export theme id
+   * @param exportThemeFileId export theme file id
+   */
   public void assertFindExportThemeFileFailStatus(int status, UUID exportThemeId, UUID exportThemeFileId) {
     try {
       getApi().findExportThemeFile(exportThemeId, exportThemeFileId);
@@ -156,6 +169,12 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
     }
   }
 
+  /**
+   * Asserts listing export theme files to fail with given status
+   *
+   * @param status expected status
+   * @param exportThemeId export theme id
+   */
   public void assertListFailStatus(int status, UUID exportThemeId) {
     try {
       getApi().listExportThemeFiles(exportThemeId);
@@ -165,15 +184,30 @@ public class ExportThemeFilesTestBuilderResource extends ApiTestBuilderResource<
     }
   }
 
-  public void assertUpdateFailStatus(int status, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile exportTheme) {
+  /**
+   * Asserts updating export theme file to fail
+   *
+   * @param status expected status
+   * @param exportThemeId export theme id
+   * @param exportThemeFileId export theme file id
+   * @param exportThemeFile new export theme file
+   */
+  public void assertUpdateFailStatus(int status, UUID exportThemeId, UUID exportThemeFileId, ExportThemeFile exportThemeFile) {
     try {
-      getApi().updateExportThemeFile(exportThemeId, exportThemeFileId, exportTheme);
+      getApi().updateExportThemeFile(exportThemeId, exportThemeFileId, exportThemeFile);
       fail(String.format("Expected find to fail with status %d", status));
     } catch (ClientException e) {
       assertEquals(status, e.getStatusCode());
     }
   }
 
+  /**
+   * Asserts deleting export theme file to fail
+   *
+   * @param status expected status
+   * @param exportThemeId export theme id
+   * @param exportThemeFileId export theme file id
+   */
   public void assertDeleteFailStatus(int status, UUID exportThemeId, UUID exportThemeFileId) {
     try {
       getApi().deleteExportThemeFile(exportThemeId, exportThemeFileId);

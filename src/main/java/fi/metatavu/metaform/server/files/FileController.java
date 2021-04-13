@@ -34,11 +34,12 @@ public class FileController {
   private Map<String, byte[]> dataCache = new HashMap<>();
 
   private Map<String, String> metaCache = new HashMap<>();
+
   /**
-   * Persists data in file
-   * @param prefix
-   * @param fileRef
-   * @param data
+   * Persists file
+   *
+   * @param path path
+   * @param data data
    * @throws IOException
    */
   private void persistFile(String path, byte[] data) throws IOException {
@@ -51,6 +52,7 @@ public class FileController {
 
   /**
    * Reads file into byte array
+   *
    * @param path path to file
    * @return file data
    */
@@ -113,7 +115,6 @@ public class FileController {
    * 
    * @param fileRef file reference id
    * @return meta data
-   * @throws IOException
    */
   public FileMeta getFileMeta(String fileRef) {
     String metaData = getRawFileMeta(fileRef);
@@ -178,6 +179,14 @@ public class FileController {
     }
   }
 
+  /**
+   * Creates file from data and metadata
+   *
+   * @param fileRef file ref
+   * @param data byte array data
+   * @param metaData metadata
+   * @return new file
+   */
   private File createFile(String fileRef, byte[] data, String metaData) {
     if (data != null && metaData != null) {
       try {

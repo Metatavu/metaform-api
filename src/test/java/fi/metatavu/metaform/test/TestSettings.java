@@ -1,7 +1,5 @@
 package fi.metatavu.metaform.test;
 
-import java.util.UUID;
-
 /**
  * Utility class for retrieving functional test settings
  *

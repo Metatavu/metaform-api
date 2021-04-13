@@ -62,20 +62,17 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
    *
    * @param name name
    * @return export theme
-   * @throws IOException thrown when request fails
    */
   public ExportTheme createSimpleExportTheme(String name) {
     ExportTheme payload = new ExportTheme(name, null, null, null);
     return createExportTheme(payload);
   }
 
-
   /**
    * Creates export theme
    *
    * @param payload payload
    * @return export theme
-   * @throws IOException thrown when request fails
    */
   public ExportTheme createExportTheme(ExportTheme payload) {
     ExportTheme exportTheme = getApi().createExportTheme(payload);
@@ -112,6 +109,11 @@ public class ExportThemeTestBuilderResource extends ApiTestBuilderResource<Expor
     return getApi().updateExportTheme(exportThemeId, exportTheme);
   }
 
+  /**
+   * Deletes export theme
+   *
+   * @param exportTheme export theme to delete
+   */
   public void deleteExportTheme(ExportTheme exportTheme) {
     getApi().deleteExportTheme(Objects.requireNonNull(exportTheme.getId()));
     removeCloseable(closable -> {
