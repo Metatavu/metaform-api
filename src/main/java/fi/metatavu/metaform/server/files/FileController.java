@@ -206,10 +206,20 @@ public class FileController {
     return null;
   }
 
+  /**
+   * Gets the data dir path
+   *
+   * @return data dir path
+   */
   private Path getDataDir() {
     return Path.of(filesDir, "data");
   }
 
+  /**
+   * Gets meta dir path
+   *
+   * @return meta dir path
+   */
   private Path getMetaDir() {
     return Path.of(filesDir, "meta");
   }
