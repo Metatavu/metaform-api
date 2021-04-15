@@ -10,7 +10,7 @@ import fi.metatavu.metaform.test.functional.MailgunMocker;
 import fi.metatavu.metaform.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.test.functional.builder.resources.KeycloakResource;
 import fi.metatavu.metaform.test.functional.builder.resources.MysqlResource;
-import fi.metatavu.metaform.test.functional.builder.resources.WireMockResource;
+import fi.metatavu.metaform.test.functional.builder.resources.MailgunResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -29,9 +29,9 @@ import java.util.List;
 @QuarkusTestResource.List(value = {
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class),
-  @QuarkusTestResource(WireMockResource.class)
+  @QuarkusTestResource(MailgunResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class EmailNotificationTestsIT extends AbstractIntegrationTest {
 
   @BeforeAll

@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
 
   @BeforeAll

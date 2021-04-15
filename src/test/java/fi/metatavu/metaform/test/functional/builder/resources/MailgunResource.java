@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Resource for wiremock container
  */
-public class WireMockResource implements QuarkusTestResourceLifecycleManager {
+public class MailgunResource implements QuarkusTestResourceLifecycleManager {
   public static GenericContainer<?> container =
     new GenericContainer<>("rodolpheche/wiremock")
       .withExposedPorts(8080);

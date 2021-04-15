@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class MetaformTestsIT extends AbstractIntegrationTest {
 
   @Test

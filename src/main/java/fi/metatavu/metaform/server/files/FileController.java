@@ -7,13 +7,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ooxml.util.PackageHelper;
 import org.bouncycastle.util.encoders.UTF8;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,44 +32,9 @@ public class FileController {
   @Inject
   private Logger logger;
 
-  private final String DATA_PREFIX = "/tmp/data-";
-  private final String META_PREFIX = "/tmp/meta-";
-  private Map<String, byte[]> dataCache = new HashMap<>();
-
-  private Map<String, String> metaCache = new HashMap<>();
-
-  /**
-   * Persists file
-   *
-   * @param path path
-   * @param data data
-   * @throws IOException
-   */
-  private void persistFile(String path, byte[] data) throws IOException {
-    Path dataFile = Files.createFile(Path.of(path));
-
-    try (FileOutputStream outputStream = new FileOutputStream(dataFile.toFile())) {
-      outputStream.write(data);
-    }
-  }
-
-  /**
-   * Reads file into byte array
-   *
-   * @param path path to file
-   * @return file data
-   */
-  private byte[] readFileData(Path path) {
-    if (Files.exists(path)) {
-      try ( FileInputStream fileInputStream = new FileInputStream(path.toFile())) {
-        return IOUtils.toByteArray(fileInputStream);
-      }
-      catch (Exception e) {
-        return null;
-      }
-    }
-    return null;
-  }
+  @Inject
+  @ConfigProperty(name = "temp_file_storage_path")
+  private String filesDir;
 
   /**
    * Stores file and returns reference id
@@ -76,10 +44,10 @@ public class FileController {
    */
   public String storeFile(String contentType, String fileName, InputStream inputStream) {
     String fileRef = UUID.randomUUID().toString();
-    
+
     try {
-      persistFile(DATA_PREFIX+fileRef, IOUtils.toByteArray(inputStream));
-      persistFile(META_PREFIX+fileRef, getObjectMapper().writeValueAsString(new FileMeta(contentType, fileName)).getBytes());
+      persistFile(Path.of(getDataDir().toString(), fileRef), IOUtils.toByteArray(inputStream));
+      persistFile(Path.of(getMetaDir().toString(), fileRef), getObjectMapper().writeValueAsString(new FileMeta(contentType, fileName)).getBytes());
       return fileRef;
     } catch (IOException e) {
       logger.error("Failed to store file", e);
@@ -98,8 +66,8 @@ public class FileController {
     if (StringUtils.isEmpty(fileRef)) {
       return null;
     }
-    Path dataPath = Path.of(DATA_PREFIX+ fileRef);
-    Path metaPath = Path.of(META_PREFIX+ fileRef);
+    Path dataPath = Path.of(getDataDir().toString(), fileRef);
+    Path metaPath = Path.of(getMetaDir().toString(), fileRef);
 
     if (Files.notExists(dataPath) || Files.notExists(metaPath)) {
       return null;
@@ -139,12 +107,12 @@ public class FileController {
    */
   public String getRawFileMeta(String fileRef) {
     try {
-      byte[] bytes = readFileData(Path.of(META_PREFIX + fileRef));
+      byte[] bytes = readFileData(Path.of(getMetaDir().toString(), fileRef));
       if (bytes != null) {
         return IOUtils.toString(bytes, "UTF8");
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error(e.getMessage());
     }
     return null;
   }
@@ -172,10 +140,10 @@ public class FileController {
    */
   public void deleteFile(String fileRef) {
     try {
-      Files.delete(Path.of(DATA_PREFIX+fileRef));
-      Files.delete(Path.of(META_PREFIX+fileRef));
+      Files.delete(Path.of(getDataDir().toString(), fileRef));
+      Files.delete(Path.of(getMetaDir().toString(), fileRef));
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error(e.getMessage());
     }
   }
 
@@ -204,4 +172,45 @@ public class FileController {
     return new ObjectMapper();
   }
 
+
+  /**
+   * Persists file
+   *
+   * @param path path
+   * @param data data
+   * @throws IOException
+   */
+  private void persistFile(Path path, byte[] data) throws IOException {
+    Path dataFile = Files.createFile(path);
+
+    try (FileOutputStream outputStream = new FileOutputStream(dataFile.toFile())) {
+      outputStream.write(data);
+    }
+  }
+
+  /**
+   * Reads file into byte array
+   *
+   * @param path path to file
+   * @return file data
+   */
+  private byte[] readFileData(Path path) {
+    if (Files.exists(path)) {
+      try (FileInputStream fileInputStream = new FileInputStream(path.toFile())) {
+        return IOUtils.toByteArray(fileInputStream);
+      }
+      catch (Exception e) {
+        logger.error(e.getMessage());
+      }
+    }
+    return null;
+  }
+
+  private Path getDataDir() {
+    return Path.of(filesDir, "data");
+  }
+
+  private Path getMetaDir() {
+    return Path.of(filesDir, "meta");
+  }
 }

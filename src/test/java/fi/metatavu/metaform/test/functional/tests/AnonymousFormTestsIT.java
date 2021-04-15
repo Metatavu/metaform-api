@@ -23,7 +23,7 @@ import static org.junit.Assert.assertNotNull;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class AnonymousFormTestsIT extends AbstractIntegrationTest {
 
   @Test

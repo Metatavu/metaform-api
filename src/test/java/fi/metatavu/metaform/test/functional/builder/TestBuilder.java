@@ -10,6 +10,8 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.test.functional.builder.auth.TestBuilderAuthentication;
 import org.apache.commons.codec.binary.Base64;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Antti Leppä
  */
 public class TestBuilder extends AbstractTestBuilder<ApiClient> {
+  private Logger logger = LoggerFactory.getLogger(TestBuilder.class);
 
   private TestBuilderAuthentication admin;
   private TestBuilderAuthentication metaformSuper;
@@ -52,7 +55,6 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
       DEFAULT_UI_CLIENT_ID, "metaform-admin", "test", DEFAULT_UI_CLIENT_SECRET));
   }
 
-
   /**
    * Returns super user instance of test builder authentication
    *
@@ -67,7 +69,6 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
     return metaformSuper = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
       DEFAULT_UI_CLIENT_ID, "metaform-super", "test", DEFAULT_UI_CLIENT_SECRET));
   }
-
 
   /**
    * Returns test1 user instance of test builder authentication
@@ -113,7 +114,6 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
     return test3 = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
       DEFAULT_UI_CLIENT_ID, "test3.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
   }
-
 
   /**
    * Returns anonymous user instance of test builder authentication
@@ -168,7 +168,7 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
     try {
       return new TestBuilderAuthentication(this, accessTokenProvider);
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error(e.getMessage());
     }
     return null;
   }

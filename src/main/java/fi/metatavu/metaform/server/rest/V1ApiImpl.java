@@ -463,8 +463,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    // TODO: Permission check
-
     metaformController.deleteMetaform(metaform);
 
     return createNoContent();
@@ -700,7 +698,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
-      throw new NotFoundException(NOT_FOUND_MESSAGE);
+      return createNotFound(NOT_FOUND_MESSAGE);
     }
 
     List<fi.metatavu.metaform.server.persistence.model.AuditLogEntry> auditLogEntries = auditLogEntryController.listAuditLogEntries(metaform, replyId, userId, createdBeforeTime, createdAfterTime);
@@ -755,7 +753,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
   @Override
   public Response listMetaforms() {
-    // TODO: Permission check
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
     }
@@ -1005,8 +1002,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
     updateMetaformPermissionGroups(metaform.getSlug(), payload);
 
-    // TODO: Permission check
-
     return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous)));
   }
 
@@ -1086,8 +1081,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return null;
   }
 
-
-
   /**
    * Validates incoming Metaform
    *
@@ -1113,7 +1106,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return null;
   }
 
-
   /**
    * Updates permission groups to match metaform
    *
@@ -1132,7 +1124,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
     KeycloakAdminUtils.updatePermissionGroups(adminClient, keycloakConfiguration.getRealm(), keycloakClient, groupNames);
   }
-
 
   /**
    * Resolves reply user from payload. If user has appropriate permissions user can
@@ -1178,7 +1169,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return isPermittedResourceId(reply.getResourceId(), authorizationScope);
   }
 
-
   /**
    * Filters out replies without permission
    *
@@ -1202,7 +1192,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       .filter(reply -> permittedResourceIds.contains(reply.getResourceId()))
       .collect(Collectors.toList());
   }
-
 
   /**
    * Returns whether given resource id is permitted within given scope

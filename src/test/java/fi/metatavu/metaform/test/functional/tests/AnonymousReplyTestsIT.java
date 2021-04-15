@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class AnonymousReplyTestsIT extends AbstractIntegrationTest {
 
   @Test

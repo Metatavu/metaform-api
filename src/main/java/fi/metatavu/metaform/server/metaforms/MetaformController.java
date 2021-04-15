@@ -59,10 +59,13 @@ public class MetaformController {
 
   @Inject
   private AttachmentController attachmentController;
+
   @Inject
   private FieldController fieldController;
+
   @Inject
   private FormRuntimeContext formRuntimeContext;
+
   @Inject
   private EmailNotificationController emailNotificationController;
 
@@ -193,7 +196,6 @@ public class MetaformController {
     }
   }
 
-
   /**
    * Creates reply security context group name
    *
@@ -205,8 +207,6 @@ public class MetaformController {
   public String getReplySecurityContextGroup(String formSlug, String fieldName, String fieldValue) {
     return String.format(REPLY_GROUP_NAME_TEMPLATE, formSlug, fieldName, fieldValue);
   }
-
-
 
   /**
    * Handles reply post persist tasks. Tasks include adding to user groups permissions and notifying users about the reply
@@ -348,8 +348,4 @@ public class MetaformController {
 
     return resourceId;
   }
-
-
-
-
 }

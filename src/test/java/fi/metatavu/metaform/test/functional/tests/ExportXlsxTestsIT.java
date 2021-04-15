@@ -20,7 +20,7 @@ import static io.restassured.RestAssured.given;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class ExportXlsxTestsIT extends AbstractIntegrationTest {
 /*
   @Test

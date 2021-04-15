@@ -20,7 +20,7 @@ import java.util.UUID;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class ExportThemeTestsIT extends AbstractIntegrationTest {
 
   @Test

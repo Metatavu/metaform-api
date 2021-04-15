@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNull;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class TableFieldTestsIT extends AbstractIntegrationTest {
 
   @Test

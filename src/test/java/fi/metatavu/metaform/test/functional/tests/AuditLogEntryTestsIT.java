@@ -29,7 +29,7 @@ import java.util.Map;
   @QuarkusTestResource(MysqlResource.class),
   @QuarkusTestResource(KeycloakResource.class)
 })
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class AuditLogEntryTestsIT extends AbstractIntegrationTest {
 
   @Test

@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 @QuarkusTest
-@TestProfile(DefTestProfile.class)
+@TestProfile(GeneralTestProfile.class)
 public class UploadTestsIT extends AbstractIntegrationTest {
 
   @Test
