@@ -81,6 +81,7 @@ steps:
       - '-c'
       - |
         if [ -n "${_TEST}" ]; then
+          mkdir -p /tmp/data
           ./gradlew test
         fi
 options:
