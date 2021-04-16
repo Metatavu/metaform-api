@@ -20,7 +20,7 @@ steps:
     args:
       - '-c'
       - |
-        if [ -n "${_TEST}" ]; then
+        if [ -n "${_DEPLOYMENT}" ]; then
           if [ -n "${_NATIVE}" ]; then
             apt update && apt install -y wget &&
             wget -c https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-${_GRAAL_VM_VERSION}/graalvm-ce-java11-linux-amd64-${_GRAAL_VM_VERSION}.tar.gz -O - | tar -xz &&
@@ -31,7 +31,7 @@ steps:
             gu install native-image &&
             ./gradlew build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -x test
           else
-            docker build -f src/main/docker/Dockerfile.jvm -t ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) .
+            docker build -f src/main/docker/Dockerfile.fast-jar -t ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) .
           fi
         fi
   - name: 'gcr.io/cloud-builders/docker'
@@ -73,6 +73,15 @@ steps:
           ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws &&
           aws eks update-kubeconfig --name ${_CLUSTER} --region=${_AWS_DEFAULT_REGION} &&
           kubectl -n ${_NAMESPACE} set image deployment/${_DEPLOYMENT} ${_DEPLOYMENT}=${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8)
+        fi
+  - name: 'openjdk:11.0.10-jdk'
+    entrypoint: 'bash'
+    timeout: 1200s
+    args:
+      - '-c'
+      - |
+        if [ -n "${_TEST}" ]; then
+          ./gradlew test
         fi
 options:
   machineType: 'N1_HIGHCPU_8'
