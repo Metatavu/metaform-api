@@ -15,7 +15,7 @@ public class GeneralTestProfile implements QuarkusTestProfile {
   public Map<String, String> getConfigOverrides() {
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("runmode", "TEST");
-    properties.put("temp_file_storage_path", "/tmp");
+    properties.put("metaform.uploads.folder", "/tmp");
     properties.put("quarkus.liquibase.contexts", "test");
     return properties;
   }

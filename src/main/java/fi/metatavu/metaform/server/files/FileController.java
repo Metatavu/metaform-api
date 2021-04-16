@@ -33,7 +33,7 @@ public class FileController {
   private Logger logger;
 
   @Inject
-  @ConfigProperty(name = "temp_file_storage_path")
+  @ConfigProperty(name = "metaform.uploads.folder")
   private String filesDir;
 
   /**
