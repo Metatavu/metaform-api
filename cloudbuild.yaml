@@ -82,6 +82,7 @@ steps:
       - |
         if [ -n "${_TEST}" ]; then
           mkdir -p /tmp/data
+          mkdir -p /tmp/meta
           ./gradlew test
         fi
 options:
