@@ -6,13 +6,13 @@ steps:
     - |
       git submodule init
       git submodule update
-  - name: maven:3.6.1-jdk-8-alpine
+  - name: 'openjdk:11.0.10-jdk'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         if [ -n "${_DEPLOYMENT}" ]; then
-          mvn --no-transfer-progress clean package
+          ./gradlew clean build -x test
         fi
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
@@ -21,7 +21,18 @@ steps:
       - '-c'
       - |
         if [ -n "${_TEST}" ]; then
-          docker run -t --rm --network host -v /var/run/docker.sock:/var/run/docker.sock -v /workspace:/workspace -w /workspace maven:3.6.3-openjdk-8 bash -c "echo 127.0.0.1 test-keycloak >> /etc/hosts && mvn --no-transfer-progress clean verify -Pitests"
+          if [ -n "${_NATIVE}" ]; then
+            apt update && apt install -y wget &&
+            wget -c https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-${_GRAAL_VM_VERSION}/graalvm-ce-java11-linux-amd64-${_GRAAL_VM_VERSION}.tar.gz -O - | tar -xz &&
+            mv graalvm-ce-java11-${_GRAAL_VM_VERSION} /tmp/graalvm &&
+            export PATH=/tmp/graalvm/bin:$$PATH &&
+            export JAVA_HOME=/tmp/graalvm &&
+            java -version &&
+            gu install native-image &&
+            ./gradlew build -Dquarkus.package.type=native -Dquarkus.native.container-build=true -x test
+          else
+            docker build -f src/main/docker/Dockerfile.jvm -t ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) .
+          fi
         fi
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
