@@ -19,6 +19,7 @@ public class MailgunResource implements QuarkusTestResourceLifecycleManager {
     container.start();
 
     HashMap config = new HashMap<String, String>();
+    config.put("wiremock.host", container.getHost());
     config.put("wiremock.port", container.getMappedPort(8080).toString());
     config.put("mailgun.api_url", "http://"+container.getHost()+':'+container.getMappedPort(8080).toString()+"/mgapi");
     config.put("mailgun.domain", "domain.example.com");
