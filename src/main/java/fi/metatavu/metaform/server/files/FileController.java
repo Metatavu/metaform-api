@@ -212,7 +212,11 @@ public class FileController {
    * @return data dir path
    */
   private Path getDataDir() {
-    return Path.of(filesDir, "data");
+    java.io.File data = Path.of(filesDir, "data").toFile();
+    if (!data.exists()) {
+      data.mkdir();
+    }
+    return Path.of(data.getAbsolutePath());
   }
 
   /**
@@ -221,6 +225,10 @@ public class FileController {
    * @return meta dir path
    */
   private Path getMetaDir() {
-    return Path.of(filesDir, "meta");
+    java.io.File meta = Path.of(filesDir, "meta").toFile();
+    if (!meta.exists()) {
+      meta.mkdir();
+    }
+    return Path.of(meta.getAbsolutePath());
   }
 }
