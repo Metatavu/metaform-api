@@ -1,0 +1,44 @@
+{
+  "sections": [
+    {
+      "title": "Simple form with value source fields",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "customTextValue",
+          "type": "text",
+          "title": "reply value fields",
+          "valueSource": "replyValue"
+        },
+        {
+          "name": "customNamedCreate",
+          "type": "date-time",
+          "title": "Created field",
+          "valueSource": "replyCreatedAt"
+        },
+        {
+          "name": "customNamedModify",
+          "type": "date-time",
+          "title": "modified field",
+          "valueSource": "replyModifiedAt"
+        },
+        {
+          "name": "customLastEditor",
+          "type": "text",
+          "title": "lastEditor field",
+          "valueSource": "replyLastModifierId"
+        },
+        {
+          "name": "customCreator",
+          "type": "text",
+          "title": "creator field",
+          "valueSource": "replyCreatorId"
+        }
+      ]
+    }
+  ]
+}
