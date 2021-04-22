@@ -1,11 +1,11 @@
 package fi.metatavu.metaform.server.script;
 
+import fi.metatavu.metaform.api.spec.model.Reply;
+
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
-import fi.metatavu.metaform.server.rest.model.Reply;
 
 /**
  * Script bindings entrypoint 

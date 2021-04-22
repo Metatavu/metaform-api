@@ -3,9 +3,8 @@ package fi.metatavu.metaform.server.metaforms;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.api.spec.model.MetaformFieldType;
 import org.slf4j.Logger;
-
-import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
 
 /**
  * Mapper for mapping field types into store data types

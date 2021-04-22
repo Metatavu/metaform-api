@@ -1,6 +1,9 @@
 package fi.metatavu.metaform.server.rest.translate;
 
 import java.io.IOException;
+
+import fi.metatavu.metaform.api.spec.model.EmailNotification;
+import fi.metatavu.metaform.api.spec.model.FieldRule;
 import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -11,9 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
-import fi.metatavu.metaform.server.rest.model.EmailNotification;
-import fi.metatavu.metaform.server.rest.model.FieldRule;
-
 /**
  * Translator for email notifications
  * 

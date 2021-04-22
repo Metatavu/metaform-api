@@ -1,25 +1,27 @@
 package fi.metatavu.metaform.test.functional.builder.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.UUID;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
-import fi.metatavu.metaform.client.ApiClient;
-import fi.metatavu.metaform.client.api.MetaformsApi;
-import fi.metatavu.metaform.client.model.Metaform;
-import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
+import fi.metatavu.metaform.api.client.apis.MetaformsApi;
+import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
+import fi.metatavu.metaform.api.client.infrastructure.ClientException;
+import fi.metatavu.metaform.api.client.models.Metaform;
+import fi.metatavu.metaform.test.TestSettings;
 import org.json.JSONException;
+
+import java.io.IOException;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
 /**
- * Test builder resource for metaforms
+ * Test builder resource for metaforms API
  *
  * @author Antti Leppä
  */
 public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform, MetaformsApi> {
+
+  private final AccessTokenProvider accessTokenProvider;
 
   /**
    * Constructor
@@ -27,8 +29,23 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @param testBuilder test builder
    * @param apiClient   initialized API client
    */
-  public MetaformTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
+  public MetaformTestBuilderResource(AbstractTestBuilder<ApiClient> testBuilder, AccessTokenProvider accessTokenProvider, ApiClient apiClient) {
     super(testBuilder, apiClient);
+    this.accessTokenProvider = accessTokenProvider;
+  }
+
+  @Override
+  protected MetaformsApi getApi() {
+    try {
+      ApiClient.Companion.setAccessToken(accessTokenProvider.getAccessToken());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return new MetaformsApi(TestSettings.basePath);
+  }
+  @Override
+  public void clean(Metaform metaform) {
+    getApi().deleteMetaform(metaform.getId());
   }
 
   /**
@@ -41,15 +58,6 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     return addClosable(getApi().createMetaform(payload));
   }
 
-  /**
-   * Creates new metaform using predefined test form
-   *
-   * @param form form's file name
-   * @return created metaform
-   */
-  public Metaform createFromJsonFile(String form) throws IOException {
-    return create(readMetaform(form));
-  }
 
   /**
    * Finds a metaform
@@ -64,22 +72,21 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
   }
 
   /**
-   * Finds a metaform
-   *
-   * @param metaformId metaform id
-   * @return found metaform
-   */
-  public Metaform findMetaform(UUID metaformId) {
-    return findMetaform(metaformId, null, null);
-  }
-
-  /**
    * Updates a metaform into the API
    *
    * @param body body payload
    */
-  public Metaform updateMetaform(Metaform body) {
-    return getApi().updateMetaform(body.getId(), body);
+  public Metaform updateMetaform(UUID id, Metaform body) {
+    return getApi().updateMetaform(id, body);
+  }
+
+  /**
+   * Lists all metaforms
+   *
+   * @return all metaforms
+   */
+  public Metaform[] list() {
+    return getApi().listMetaforms();
   }
 
   /**
@@ -105,7 +112,7 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @param expected expected count
    */
   public void assertCount(int expected) {
-    assertEquals(expected, getApi().listMetaforms().size());
+    assertEquals(expected, getApi().listMetaforms().length);
   }
 
   /**
@@ -120,8 +127,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().findMetaform(metaformId, replyId, ownerKey);
       fail(String.format("Expected find to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -145,8 +152,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().createMetaform(payload);
       fail(String.format("Expected create to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -160,8 +167,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().updateMetaform(metaform.getId(), metaform);
       fail(String.format("Expected update to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -175,8 +182,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().deleteMetaform(metaform.getId());
       fail(String.format("Expected delete to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -189,8 +196,8 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     try {
       getApi().listMetaforms();
       fail(String.format("Expected list to fail with status %d", expectedStatus));
-    } catch (FeignException e) {
-      assertEquals(expectedStatus, e.status());
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
     }
   }
 
@@ -206,11 +213,6 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
     assertJsonsEqual(expected, actual);
   }
 
-  @Override
-  public void clean(Metaform metaform) {
-    getApi().deleteMetaform(metaform.getId());
-  }
-
   /**
    * Reads a Metaform from JSON file
    *
@@ -218,13 +220,19 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * @return Metaform object
    * @throws IOException throws IOException when JSON reading fails
    */
-  private Metaform readMetaform(String form) throws IOException {
-    ObjectMapper objectMapper = getObjectMapper();
-    String path = String.format("fi/metatavu/metaform/testforms/%s.json", form);
-    ClassLoader classLoader = getClass().getClassLoader();
-    try (InputStream formStream = classLoader.getResourceAsStream(path)) {
-      return objectMapper.readValue(formStream, Metaform.class);
-    }
+  public Metaform readMetaform(String form) throws IOException {
+    return MetaformsReader.Companion.readMetaform(form);
+
+  }
+
+  /**
+   * Creates new metaform using predefined test form
+   *
+   * @param form form's file name
+   * @return created metaform
+   */
+  public Metaform createFromJsonFile(String form) throws IOException {
+    return create(readMetaform(form));
   }
 
 }

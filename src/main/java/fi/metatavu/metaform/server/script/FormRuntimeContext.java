@@ -8,8 +8,9 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.RequestScoped;
 
-import fi.metatavu.metaform.server.rest.model.Metaform;
-import fi.metatavu.metaform.server.rest.model.Reply;
+import fi.metatavu.metaform.api.spec.model.Attachment;
+import fi.metatavu.metaform.api.spec.model.Metaform;
+import fi.metatavu.metaform.api.spec.model.Reply;
 import fi.metatavu.metaform.server.xlsx.XlsxBuilder;
 
 /**
@@ -25,7 +26,7 @@ public class FormRuntimeContext {
   private Reply reply;
   private XlsxBuilder xlsxBuilder;
   private Map<String, Object> variableValues;
-  private Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap;
+  private Map<String, Attachment> attachmentMap;
   private String exportThemeName;
   private Locale locale;
 
@@ -134,7 +135,7 @@ public class FormRuntimeContext {
    * 
    * @return attachment map
    */
-  public Map<String, fi.metatavu.metaform.server.rest.model.Attachment> getAttachmentMap() {
+  public Map<String, Attachment> getAttachmentMap() {
     return attachmentMap;
   }
   
@@ -143,7 +144,7 @@ public class FormRuntimeContext {
    * 
    * @param attachmentMap attachment map
    */
-  public void setAttachmentMap(Map<String, fi.metatavu.metaform.server.rest.model.Attachment> attachmentMap) {
+  public void setAttachmentMap(Map<String, Attachment> attachmentMap) {
     this.attachmentMap = attachmentMap;
   }
   
@@ -153,7 +154,7 @@ public class FormRuntimeContext {
    * @param id attachment id
    * @return attachment
    */
-  public fi.metatavu.metaform.server.rest.model.Attachment getAttachment(String id) {
+  public Attachment getAttachment(String id) {
     return attachmentMap.get(id);
   }
 

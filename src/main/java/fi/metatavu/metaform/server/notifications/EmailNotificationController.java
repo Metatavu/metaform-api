@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import fi.metatavu.metaform.api.spec.model.FieldRule;
+import fi.metatavu.metaform.api.spec.model.Reply;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,8 +30,6 @@ import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotificationEmail;
-import fi.metatavu.metaform.server.rest.model.FieldRule;
-import fi.metatavu.metaform.server.rest.model.Reply;
 import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 
 /**
@@ -134,7 +135,7 @@ public class EmailNotificationController {
    * @param replyEntity reply entity
    * @return whether email notification should be send according to notify if rule
    */
-  public boolean evaluateEmailNotificationNotifyIf(fi.metatavu.metaform.server.rest.model.EmailNotification emailNotificationEntity, Reply replyEntity) {
+  public boolean evaluateEmailNotificationNotifyIf(fi.metatavu.metaform.api.spec.model.EmailNotification emailNotificationEntity, Reply replyEntity) {
     FieldRule notifyIf = emailNotificationEntity.getNotifyIf();
     if (notifyIf != null) {
       return new FieldRuleEvaluator().evaluate(notifyIf, replyEntity);
@@ -194,6 +195,7 @@ public class EmailNotificationController {
     }
     
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(new JavaTimeModule());
     try {
       return objectMapper.readValue(objectMapper.writeValueAsString(reply), new TypeReference<Map<String, Object>>() { });
     } catch (IOException e) {

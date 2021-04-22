@@ -1,57 +1,37 @@
 package fi.metatavu.metaform.test.functional.builder.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import fi.metatavu.metaform.client.ApiClient;
-import fi.metatavu.metaform.test.functional.builder.TestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.AbstractApiTestBuilderResource;
+import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
+import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 
 /**
  * Abstract base class for API test resource builders
  *
- * @param <T> Resource
- * @param <A> API
+ * @param <T> resource
+ * @param <A> ApiClient for the resource
  */
-public abstract class ApiTestBuilderResource<T, A extends ApiClient.Api> extends fi.metatavu.jaxrs.test.functional.builder.AbstractApiTestBuilderResource<T, A, ApiClient> {
+abstract class ApiTestBuilderResource<T, A> extends AbstractApiTestBuilderResource<T, A, ApiClient> {
 
-  private ApiClient apiClient;
+  private final ApiClient apiClient;
 
   /**
-   * Constructor
+   * Returns API client
    *
-   * @param testBuilder test builder instance
-   * @param apiClient   API client instance
+   * @return API client
    */
-  public ApiTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
-    super(testBuilder);
-    this.apiClient = apiClient;
-  }
-
   @Override
   protected ApiClient getApiClient() {
     return apiClient;
   }
 
   /**
-   * Builds API client
+   * Constructor
    *
-   * @return API client
+   * @param testBuilder testBuilder
    */
-  protected A getApi() {
-    return apiClient.buildClient(getApiClass());
-  }
-
-  /**
-   * Returns object mapper with default modules and settings
-   *
-   * @return object mapper
-   */
-  protected ObjectMapper getObjectMapper() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-    return objectMapper;
+  public ApiTestBuilderResource(AbstractTestBuilder<ApiClient> testBuilder, ApiClient apiClient) {
+    super(testBuilder);
+    this.apiClient = apiClient;
   }
 
 }

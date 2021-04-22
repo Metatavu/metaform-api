@@ -1,17 +1,22 @@
 package fi.metatavu.metaform.server.files;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.Singleton;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.infinispan.Cache;
+import org.apache.poi.ooxml.util.PackageHelper;
+import org.bouncycastle.util.encoders.UTF8;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,18 +27,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Antti Leppä
  */
 @ApplicationScoped
-@Singleton
 public class FileController {
   
   @Inject
   private Logger logger;
-  
-  @Resource(lookup = "java:jboss/infinispan/cache/metaform/file-data")
-  private Cache<String, byte[]> dataCache;
 
-  @Resource(lookup = "java:jboss/infinispan/cache/metaform/file-meta")
-  private Cache<String, String> metaCache;
-  
+  @Inject
+  @ConfigProperty(name = "metaform.uploads.folder")
+  private String filesDir;
+
   /**
    * Stores file and returns reference id
    * 
@@ -42,10 +44,10 @@ public class FileController {
    */
   public String storeFile(String contentType, String fileName, InputStream inputStream) {
     String fileRef = UUID.randomUUID().toString();
-    
+
     try {
-      dataCache.put(fileRef, IOUtils.toByteArray(inputStream));
-      metaCache.put(fileRef, getObjectMapper().writeValueAsString(new FileMeta(contentType, fileName)));
+      persistFile(Path.of(getDataDir().toString(), fileRef), IOUtils.toByteArray(inputStream));
+      persistFile(Path.of(getMetaDir().toString(), fileRef), getObjectMapper().writeValueAsString(new FileMeta(contentType, fileName)).getBytes());
       return fileRef;
     } catch (IOException e) {
       logger.error("Failed to store file", e);
@@ -64,14 +66,15 @@ public class FileController {
     if (StringUtils.isEmpty(fileRef)) {
       return null;
     }
-    
-    byte[] data = dataCache.get(fileRef);
-    String metaData = metaCache.get(fileRef);
+    Path dataPath = Path.of(getDataDir().toString(), fileRef);
+    Path metaPath = Path.of(getMetaDir().toString(), fileRef);
 
-    if (!dataCache.containsKey(fileRef) || !metaCache.containsKey(fileRef)) {
+    if (Files.notExists(dataPath) || Files.notExists(metaPath)) {
       return null;
     }
-    
+
+    byte[] data = readFileData(dataPath);
+    String metaData = new String(readFileData(metaPath));
     return createFile(fileRef, data, metaData);
   }
   
@@ -80,7 +83,6 @@ public class FileController {
    * 
    * @param fileRef file reference id
    * @return meta data
-   * @throws IOException
    */
   public FileMeta getFileMeta(String fileRef) {
     String metaData = getRawFileMeta(fileRef);
@@ -102,10 +104,17 @@ public class FileController {
    * 
    * @param fileRef file reference id
    * @return meta data as JSON string
-   * @throws IOException
    */
   public String getRawFileMeta(String fileRef) {
-    return metaCache.get(fileRef);
+    try {
+      byte[] bytes = readFileData(Path.of(getMetaDir().toString(), fileRef));
+      if (bytes != null) {
+        return IOUtils.toString(bytes, "UTF8");
+      }
+    } catch (IOException e) {
+      logger.error(e.getMessage());
+    }
+    return null;
   }
   
   /**
@@ -118,15 +127,10 @@ public class FileController {
     if (StringUtils.isEmpty(fileRef)) {
       return null;
     }
-    
-    if (!dataCache.containsKey(fileRef) || !metaCache.containsKey(fileRef)) {
-      return null;
-    }
-    
-    byte[] data = dataCache.remove(fileRef);
-    String metaData = metaCache.remove(fileRef);
-    
-    return createFile(fileRef, data, metaData);
+
+    File fileData = getFileData(fileRef);
+    deleteFile(fileRef);
+    return fileData;
   }
   
   /**
@@ -135,10 +139,22 @@ public class FileController {
    * @param fileRef file ref
    */
   public void deleteFile(String fileRef) {
-    dataCache.remove(fileRef);
-    metaCache.remove(fileRef);
+    try {
+      Files.delete(Path.of(getDataDir().toString(), fileRef));
+      Files.delete(Path.of(getMetaDir().toString(), fileRef));
+    } catch (IOException e) {
+      logger.error(e.getMessage());
+    }
   }
 
+  /**
+   * Creates file from data and metadata
+   *
+   * @param fileRef file ref
+   * @param data byte array data
+   * @param metaData metadata
+   * @return new file
+   */
   private File createFile(String fileRef, byte[] data, String metaData) {
     if (data != null && metaData != null) {
       try {
@@ -156,4 +172,63 @@ public class FileController {
     return new ObjectMapper();
   }
 
+
+  /**
+   * Persists file
+   *
+   * @param path path
+   * @param data data
+   * @throws IOException
+   */
+  private void persistFile(Path path, byte[] data) throws IOException {
+    Path dataFile = Files.createFile(path);
+
+    try (FileOutputStream outputStream = new FileOutputStream(dataFile.toFile())) {
+      outputStream.write(data);
+    }
+  }
+
+  /**
+   * Reads file into byte array
+   *
+   * @param path path to file
+   * @return file data
+   */
+  private byte[] readFileData(Path path) {
+    if (Files.exists(path)) {
+      try (FileInputStream fileInputStream = new FileInputStream(path.toFile())) {
+        return IOUtils.toByteArray(fileInputStream);
+      }
+      catch (Exception e) {
+        logger.error(e.getMessage());
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Gets the data dir path
+   *
+   * @return data dir path
+   */
+  private Path getDataDir() {
+    java.io.File data = Path.of(filesDir, "data").toFile();
+    if (!data.exists()) {
+      data.mkdir();
+    }
+    return Path.of(data.getAbsolutePath());
+  }
+
+  /**
+   * Gets meta dir path
+   *
+   * @return meta dir path
+   */
+  private Path getMetaDir() {
+    java.io.File meta = Path.of(filesDir, "meta").toFile();
+    if (!meta.exists()) {
+      meta.mkdir();
+    }
+    return Path.of(meta.getAbsolutePath());
+  }
 }

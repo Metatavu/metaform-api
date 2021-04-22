@@ -4,6 +4,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.email.EmailProvider;
@@ -25,35 +27,29 @@ public class MailgunEmailProviderImpl implements EmailProvider {
   
   @Inject
   private Logger logger;
+
+  @Inject
+  @ConfigProperty(name = "mailgun.domain")
+  private String domain;
+
+  @Inject
+  @ConfigProperty(name = "mailgun.api_key")
+  private String apiKey;
+
+  @Inject
+  @ConfigProperty(name = "mailgun.sender_name")
+  private String senderName;
+
+  @Inject
+  @ConfigProperty(name = "mailgun.sender_email")
+  private String senderEmail;
+
+  @Inject
+  @ConfigProperty(name = "mailgun.api_url")
+  private String apiUrl;
   
   @PostConstruct
   public void init() {
-    String domain = System.getenv(MailgunConsts.DOMAIN_SETTING_KEY);
-    if (StringUtils.isEmpty(domain)) {
-      logger.error("Domain setting is missing");
-      return;
-    }
-
-    String apiKey = System.getenv(MailgunConsts.API_KEY_SETTING_KEY);
-    if (StringUtils.isEmpty(apiKey)) {
-      logger.error("API key setting is missing");
-      return;
-    }
-
-    String senderName = System.getenv(MailgunConsts.SENDER_NAME_SETTING_KEY);
-    if (StringUtils.isEmpty(senderName)) {
-      logger.error("Sender name setting is missing");
-      return;
-    }
-
-    String senderEmail = System.getenv(MailgunConsts.SENDER_EMAIL_SETTING_KEY);
-    if (StringUtils.isEmpty(senderEmail)) {
-      logger.error("Sender emaili setting is missing");
-      return;
-    }
-    
-    String apiUrl = System.getenv(MailgunConsts.API_URL_SETTING_KEY);
-
     configuration = new Configuration()
       .domain(domain)
       .apiKey(apiKey)

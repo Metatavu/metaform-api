@@ -13,6 +13,10 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.metaform.api.spec.model.Metaform;
+import fi.metatavu.metaform.api.spec.model.MetaformField;
+import fi.metatavu.metaform.api.spec.model.MetaformFieldType;
+import fi.metatavu.metaform.api.spec.model.MetaformSection;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -35,11 +39,6 @@ import fi.metatavu.metaform.server.persistence.model.TableReplyFieldNumberRowCel
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRow;
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRowCell;
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldStringRowCell;
-import fi.metatavu.metaform.server.rest.model.Metaform;
-import fi.metatavu.metaform.server.rest.model.MetaformField;
-import fi.metatavu.metaform.server.rest.model.MetaformFieldType;
-import fi.metatavu.metaform.server.rest.model.MetaformSection;
-
 /**
  * Field controller
  * 
@@ -106,7 +105,7 @@ public class FieldController {
    * @param name field name
    * @return field type for a field name
    */
-  public MetaformFieldType getFieldType(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
+  public MetaformFieldType getFieldType(Metaform metaformEntity, String name) {
     MetaformField field = getField(metaformEntity, name);
     if (field == null) {
       return null;
@@ -180,7 +179,7 @@ public class FieldController {
    * @param name name
    * @return whether form field is a meta field
    */
-  private boolean isMetafield(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
+  private boolean isMetafield(Metaform metaformEntity, String name) {
     MetaformField field = getField(metaformEntity, name);
     return field != null && field.getContexts() != null && field.getContexts().contains("META");
   }
@@ -192,7 +191,7 @@ public class FieldController {
    * @param name name
    * @return field
    */
-  public MetaformField getField(fi.metatavu.metaform.server.rest.model.Metaform metaformEntity, String name) {
+  public MetaformField getField(Metaform metaformEntity, String name) {
     List<MetaformSection> sections = metaformEntity.getSections();
     
     for (MetaformSection section : sections) {

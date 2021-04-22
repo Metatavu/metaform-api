@@ -1,16 +1,12 @@
 package fi.metatavu.metaform.server.rest.translate;
 
+import fi.metatavu.metaform.api.spec.model.Draft;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-
-import fi.metatavu.metaform.server.rest.model.Draft;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;

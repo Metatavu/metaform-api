@@ -6,15 +6,28 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.time.OffsetDateTime;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletContext;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.SecurityContext;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fi.metatavu.metaform.api.spec.model.*;
+import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
+import io.vertx.core.http.HttpServerRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
@@ -26,17 +39,13 @@ import org.keycloak.representations.AccessToken.Access;
 import org.slf4j.Logger;
 
 import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
-import fi.metatavu.metaform.server.rest.model.BadRequest;
-import fi.metatavu.metaform.server.rest.model.Forbidden;
-import fi.metatavu.metaform.server.rest.model.InternalServerError;
-import fi.metatavu.metaform.server.rest.model.NotFound;
-import fi.metatavu.metaform.server.rest.model.NotImplemented;
 
 /**
  * Abstract base class for all API services
  * 
  * @author Antti Leppä
  */
+@RequestScoped
 public abstract class AbstractApi {
 
   protected static final String USER_ROLE = "user";
@@ -54,22 +63,26 @@ public abstract class AbstractApi {
   @Inject
   private Logger logger;
 
-  /**
-   * Return current HttpServletRequest
-   * 
-   * @return current http servlet request
-   */
-  protected HttpServletRequest getHttpServletRequest() {
-    return ResteasyProviderFactory.getContextData(HttpServletRequest.class);
-  }
-  
+  @Context
+  private HttpRequest request;
+
+  @Inject
+  private JsonWebToken jsonWebToken;
+
+  @Context
+  private SecurityContext securityContext;
+
   /**
    * Returns request locale
    * 
    * @return request locale
    */
   protected Locale getLocale() {
-    return getHttpServletRequest().getLocale();
+    HttpHeaders httpHeaders = request.getHttpHeaders();
+    List<Locale> acceptableLanguages = httpHeaders.getAcceptableLanguages();
+    if (acceptableLanguages.isEmpty())
+      return Locale.getDefault();
+    else return acceptableLanguages.get(0);
   }
   
   /**
@@ -78,13 +91,11 @@ public abstract class AbstractApi {
    * @return logged user id
    */
   protected UUID getLoggerUserId() {
-    HttpServletRequest httpServletRequest = getHttpServletRequest();
-    String remoteUser = httpServletRequest.getRemoteUser();
-    if (remoteUser == null) {
+    if (jsonWebToken.getSubject() == null) {
       return null;
     }
-    
-    return UUID.fromString(remoteUser);
+
+    return UUID.fromString(jsonWebToken.getSubject());
   }
   
   /**
@@ -286,51 +297,21 @@ public abstract class AbstractApi {
    * @return whether logged user has specified realm role or not
    */
   protected boolean hasRealmRole(String... roles) {
-    AccessToken token = getAccessToken();
-    if (token == null) {
-      return false;
-    }
-    
-    Access realmAccess = token.getRealmAccess();
-    if (realmAccess == null) {
-      return false;
-    }
-    
     for (int i = 0; i < roles.length; i++) {
-      if (realmAccess.isUserInRole(roles[i])) {
+      if (securityContext.isUserInRole(roles[i]))
         return true;
-      }
     }
-    
+
     return false;
   }
-  
-  /**
-   * Returns access token
-   * 
-   * @return access token
-   */
-  protected AccessToken getAccessToken() {
-    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
-    if (keycloakSecurityContext == null) {
-      return null;
-    }
-    
-    return keycloakSecurityContext.getToken();
-  }
-  
+
   /**
    * Returns access token as string
    * 
    * @return access token as string
    */
   protected String getTokenString() {
-    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
-    if (keycloakSecurityContext == null) {
-      return null;
-    }
-    
-    return keycloakSecurityContext.getTokenString();
+    return jsonWebToken.getRawToken();
   }
 
   /**
@@ -361,34 +342,4 @@ public abstract class AbstractApi {
     return null;
   }
 
-  /**
-   * Return Keycloak authorization client context or null if not available 
-   * 
-   * @return Keycloak authorization client
-   */
-  protected ClientAuthorizationContext getAuthorizationContext() {
-    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
-    if (keycloakSecurityContext == null) {
-      return null;
-    }
-
-    return (ClientAuthorizationContext) keycloakSecurityContext.getAuthorizationContext();
-  }
-
-  /**
-   * Returns Keycloak security context from request or null if not available
-   * 
-   * @return Keycloak security context
-   */
-  protected KeycloakSecurityContext getKeycloakSecurityContext() {
-    HttpServletRequest request = getHttpServletRequest();
-    Principal userPrincipal = request.getUserPrincipal();
-    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
-    if (kcPrincipal == null) {
-      return null;
-    }
-    
-    return kcPrincipal.getKeycloakSecurityContext();
-  }
-  
 }

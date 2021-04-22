@@ -1,13 +1,16 @@
 package fi.metatavu.metaform.server.files;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -16,16 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
+ *
  * Servlet that handles file upload requests
  * 
  * @author Antti Leppä
- */
+*/
 @RequestScoped
 @MultipartConfig
 @WebServlet (urlPatterns = "/fileUpload")
@@ -102,23 +101,23 @@ public class FileUploadServlet extends HttpServlet {
     resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
   }
 
-  /**
+/*
    * Sets CORS headers for the response
    * 
    * @param resp reponse
-   */
+*/
   private void setCorsHeaders(HttpServletResponse resp) {
     resp.setHeader("Access-Control-Allow-Origin", "*");
     resp.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     resp.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
   }
 
-  /**
+/*
    * Outputs file metadata as JSON
    * 
    * @param resp response object
    * @param fileRef file ref
-   */
+*/
   private void getFileMeta(HttpServletResponse resp, String fileRef) {
     String fileMeta = fileController.getRawFileMeta(fileRef);
     if (fileMeta == null) {
@@ -140,12 +139,12 @@ public class FileUploadServlet extends HttpServlet {
     }    
   }
 
-  /**
+ /*
    * Outputs file data
    * 
    * @param resp response object
    * @param fileRef file ref
-   */
+*/
   private void getFileData(HttpServletResponse resp, String fileRef) {
     File fileData = fileController.getFileData(fileRef);
     if (fileData == null) {

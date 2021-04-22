@@ -1,12 +1,13 @@
 package fi.metatavu.metaform.server.script;
 
+import fi.metatavu.metaform.api.spec.model.MetaformScript;
+
 import java.util.HashMap;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import fi.metatavu.metaform.server.rest.model.MetaformScript;
 
 /**
  * Controller for Metaform scripts

@@ -1,5 +1,7 @@
 package fi.metatavu.metaform.server.settings;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import javax.enterprise.context.ApplicationScoped;
 
 /**
@@ -16,7 +18,7 @@ public class SystemSettingController {
    * @return whether the system is running in test mode or not
    */
   public boolean inTestMode() {
-    return "TEST".equals(System.getenv("runmode"));
+    return "TEST".equals(ConfigProvider.getConfig().getValue("runmode", String.class));
   }
   
 }
