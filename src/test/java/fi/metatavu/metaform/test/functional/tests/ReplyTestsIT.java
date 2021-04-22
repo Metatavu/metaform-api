@@ -16,6 +16,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -485,6 +486,68 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
       Assertions.assertEquals(parsedCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("created")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       Assertions.assertEquals(parsedModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("modified")).truncatedTo(ChronoUnit.MINUTES).toInstant());
       Assertions.assertEquals(REALM1_USER_1_ID.toString(), reply.getData().get("lastEditor"));
+    }
+  }
+
+  /*
+   * Tests creating metaform with auto filled fields defined by value source properties
+   */
+  @Test
+  public void testMetafieldsFieldValueSource() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-meta-value-sources");
+      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+
+      Map<String, Object> replyData = new HashMap<>();
+      replyData.put("text", "test 1");
+      replyData.put("customTextValue", "custom test value 1");
+
+      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), ReplyMode.REVISION.toString(), replyWithData);
+
+      Assertions.assertNotNull(createdReply.getCreatedAt());
+      Assertions.assertNotNull(createdReply.getModifiedAt());
+
+      OffsetDateTime parsedCreated = OffsetDateTime.parse(createdReply.getCreatedAt());
+      OffsetDateTime parsedModified = OffsetDateTime.parse(createdReply.getModifiedAt());
+
+      Reply reply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+
+      Assertions.assertNotNull(reply.getData());
+
+      Assertions.assertEquals(parsedCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("customNamedCreate")).truncatedTo(ChronoUnit.MINUTES).toInstant());
+      Assertions.assertEquals(parsedModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime((String) reply.getData().get("customNamedModify")).truncatedTo(ChronoUnit.MINUTES).toInstant());
+      Assertions.assertEquals(REALM1_USER_1_ID.toString(), reply.getData().get("customLastEditor"));
+      Assertions.assertEquals(REALM1_USER_1_ID.toString(), reply.getData().get("customCreator"));
+      Assertions.assertEquals("custom test value 1", reply.getData().get("customTextValue"));
+    }
+  }
+
+  /*
+  Compares the metaform replies created using metafields and value sources
+   */
+  @Test
+  public void testMetafieldsFieldValueSourceCompare() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform parsedSimple = testBuilder.metaformAdmin().metaforms().readMetaform("simple-meta");
+      Metaform simpleMeta = testBuilder.metaformAdmin().metaforms().create(parsedSimple);
+
+      Metaform parsedValueSrc = testBuilder.metaformAdmin().metaforms().readMetaform("simple-meta-value-sources");
+      Metaform valueSrcMeta = testBuilder.metaformAdmin().metaforms().create(parsedValueSrc);
+
+      Reply simpleReply = testBuilder.test1().replies().createSimpleReply(simpleMeta, "test 1", ReplyMode.CUMULATIVE);
+      Reply valueSrcReply = testBuilder.test1().replies().createSimpleReply(valueSrcMeta, "test 1", ReplyMode.CUMULATIVE);
+
+      Instant parsedCreated1 = parseOffsetDateTime((String) simpleReply.getData().get("created")).truncatedTo(ChronoUnit.MINUTES).toInstant();
+      Instant parsedCreated2 = parseOffsetDateTime((String) valueSrcReply.getData().get("customNamedCreate")).truncatedTo(ChronoUnit.MINUTES).toInstant();
+
+      Assertions.assertEquals(parsedCreated1, parsedCreated2);
+
+      Instant parsedModified1 = parseOffsetDateTime((String) simpleReply.getData().get("modified")).truncatedTo(ChronoUnit.MINUTES).toInstant();
+      Instant parsedModified2 = parseOffsetDateTime((String) valueSrcReply.getData().get("customNamedModify")).truncatedTo(ChronoUnit.MINUTES).toInstant();
+
+      Assertions.assertEquals(parsedModified1, parsedModified2);
+      Assertions.assertEquals(simpleReply.getData().get("lastEditor"), valueSrcReply.getData().get("customLastEditor"));
     }
   }
 

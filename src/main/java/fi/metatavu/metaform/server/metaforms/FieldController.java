@@ -13,10 +13,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import fi.metatavu.metaform.api.spec.model.Metaform;
-import fi.metatavu.metaform.api.spec.model.MetaformField;
-import fi.metatavu.metaform.api.spec.model.MetaformFieldType;
-import fi.metatavu.metaform.api.spec.model.MetaformSection;
+import fi.metatavu.metaform.api.spec.model.*;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -127,12 +124,17 @@ public class FieldController {
     if (isMetafield(metaformEntity, fieldName)) {
       return resolveMetaField(fieldName, reply);
     }
-    
+    else if (isValueSourceField(metaformEntity, fieldName)) {
+      MetaformField metaformField = getField(metaformEntity, fieldName);
+      MetaformFieldValueSource valueSource = metaformField.getValueSource();
+      return resolveValueSourceField(valueSource, reply);
+    }
+
     ReplyField field = replyFieldMap.get(fieldName);
     if (field == null) {
       return null;
     }
-    
+
     if (field instanceof NumberReplyField) {
       return ((NumberReplyField) field).getValue();
     } else if (field instanceof BooleanReplyField) {
@@ -151,6 +153,40 @@ public class FieldController {
     }
     
     return null;
+  }
+
+  /**
+   * Returns the value based on the value source
+   *
+   * @param valueSource value source
+   * @param reply reply
+   * @return generated value
+   */
+  private Object resolveValueSourceField(MetaformFieldValueSource valueSource, Reply reply) {
+    switch (valueSource) {
+      case REPLYLASTMODIFIERID:
+        return reply.getUserId();
+      case REPLYCREATORID:
+        return reply.getUserId();
+      case REPLYCREATEDAT:
+        return formatDateTime(reply.getCreatedAt());
+      case REPLYMODIFIEDAT:
+        return formatDateTime(reply.getModifiedAt());
+    }
+
+    return null;
+  }
+
+  /**
+   * Checks if the value should be auto filled based on its value Source type. Does not apply to MetaformFieldValueSource.REPLYVALUE
+   *
+   * @param metaformEntity metaform
+   * @param name field name
+   * @return if the value should be generated
+   */
+  private boolean isValueSourceField(Metaform metaformEntity, String name) {
+    MetaformField field = getField(metaformEntity, name);
+    return field != null && field.getValueSource() != null && field.getValueSource() != MetaformFieldValueSource.REPLYVALUE;
   }
 
   /**
