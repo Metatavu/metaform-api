@@ -1,4 +1,4 @@
-FROM jboss/wildfly:17.0.1.Final
+FROM jboss/wildfly:18.0.1.Final
 
 ARG WILDFLY_VERSION=17.0.1.Final
 ARG MARIADB_MODULE_VERSION=2.3.0
