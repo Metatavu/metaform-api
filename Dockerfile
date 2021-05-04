@@ -1,7 +1,6 @@
-FROM jboss/wildfly:17.0.1.Final
+FROM jboss/wildfly:18.0.1.Final
 
 ARG WILDFLY_VERSION=17.0.1.Final
-ARG MARIADB_MODULE_VERSION=2.3.0
 ARG KEYCLOAK_MODULE_VERSION=4.5.0.Final
 ARG MYSQL_MODULE_VERSION=8.0.17
 
@@ -17,13 +16,11 @@ ADD --chown=jboss ./docker/infinispan.cli /opt/docker/infinispan.cli
 ADD --chown=jboss ./docker/keycloak.cli /opt/docker/keycloak.cli
 RUN chmod a+x /opt/docker/entrypoint.sh
 
-RUN curl -o /tmp/mariadb-module.zip -L https://static.metatavu.io/wildfly/wildfly-${WILDFLY_VERSION}-mariadb-module-${MARIADB_MODULE_VERSION}.zip
 RUN curl -o /tmp/mysql-module.zip -L https://static.metatavu.io/wildfly/wildfly-${WILDFLY_VERSION}-mysql-module-${MYSQL_MODULE_VERSION}.zip
 RUN curl -o /tmp/keycloak-module.zip -L https://downloads.jboss.org/keycloak/${KEYCLOAK_MODULE_VERSION}/adapters/keycloak-oidc/keycloak-wildfly-adapter-dist-${KEYCLOAK_MODULE_VERSION}.zip
 
 RUN unzip -o /tmp/keycloak-module.zip -d /opt/jboss/wildfly/
 RUN unzip -o /tmp/mysql-module.zip -d /opt/jboss/wildfly/
-RUN unzip -o /tmp/mariadb-module.zip -d /opt/jboss/wildfly/
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/host.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/jdbc.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/kubernets-jgroups.cli
