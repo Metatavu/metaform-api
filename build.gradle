@@ -27,6 +27,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-oidc'
     implementation 'io.quarkus:quarkus-keycloak-admin-client'
     implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkiverse.freemarker:quarkus-freemarker'
 
     implementation 'org.apache.commons:commons-lang3'
     implementation "org.liquibase:liquibase-cdi:4.3.1"
@@ -40,7 +41,6 @@ dependencies {
     implementation "fi.metatavu.polyglot:polyglot-xhr:1.0.0"
     implementation "org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.15"
     implementation "net.sargue:mailgun:1.9.2"
-    implementation "org.freemarker:freemarker:2.3.28"
     implementation "com.github.slugify:slugify:2.2"
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8'
     implementation 'io.quarkus:quarkus-undertow'
