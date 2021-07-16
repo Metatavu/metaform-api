@@ -1,5 +1,15 @@
 [
   {
+    "name" : "org.bouncycastle.jcajce.provider.asymmetric.rsa.KeyFactorySpi",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "org.bouncycastle.jcajce.provider.asymmetric.RSA$Mappings",
+    "allPublicConstructors" : true,
+    "allPublicMethods" : true
+  },
+  {
     "name" : "org.bouncycastle.asn1.DEROutputStream",
     "allDeclaredConstructors" : true,
     "allPublicConstructors" : true,
