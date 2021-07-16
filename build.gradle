@@ -28,6 +28,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-keycloak-admin-client'
     implementation 'io.quarkus:quarkus-resteasy-jackson'
     implementation 'io.quarkiverse.freemarker:quarkus-freemarker'
+    implementation 'io.quarkus:quarkus-security'
 
     implementation 'org.apache.commons:commons-lang3'
     implementation "org.liquibase:liquibase-cdi:4.3.1"
