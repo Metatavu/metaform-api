@@ -53,6 +53,7 @@ dependencies {
     implementation "org.graalvm.js:js-scriptengine:1.0.0-rc9"
     implementation "org.graalvm.tools:profiler:1.0.0-rc9"
     implementation "org.graalvm.tools:chromeinspector:1.0.0-rc9"
+    implementation 'org.bouncycastle:bcprov-jdk15on'
 
     testImplementation 'org.awaitility:awaitility:3.1.2'
     testImplementation 'org.apache.pdfbox:pdfbox:2.0.8'
