@@ -1063,6 +1063,11 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
+  @Override
+  public Response ping() {
+    return createOk("pong");
+  }
+
   /**
    * Serializes Metaform into JSON
    *
