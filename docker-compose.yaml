@@ -1,84 +1,56 @@
 version: "3"
-services:
-  mysql-metaform-api:
-    image: mysql:5.7
+services:  
+  mysql:
+    image: mysql:5.6
+    command: [--lower_case_table_names=1,--max-allowed-packet=67108864]
     volumes:
       - db_data:/var/lib/mysql
     ports:
       - 3306:3306
-    command: --lower_case_table_names=1
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: metaform-api
-      MYSQL_USER: metaform
-      MYSQL_PASSWORD: metaform
-  metaform-api-1:
-    build: .
+  api:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
     ports:
-      - 1234:8080
+      - 8081:8080
     depends_on:
-      - mysql-metaform-api
+      - mysql
     environment:
-      METAFORM_API_CLUSTER_PASSWORD: clusterpass
-      METAFORM_API_HOST: metaform-api-1
-      METAFORM_API_DB_HOST: mysql-metaform-api
-      METAFORM_API_DB_PORT: 3306
-      METAFORM_API_DB_NAME: metaform-api
-      METAFORM_API_DB_OPTS: ?useSSL=false&allowPublicKeyRetrieval=true
-      METAFORM_API_DB_USERNAME: root
-      METAFORM_API_DB_PASSWORD: root
-      METAFORM_TX_IDENTIFIER: tx
-      KEYCLOAK_REALM: test-1
-      KEYCLOAK_RESOURCE: metaform-api
-      KEYCLOAK_URL: http://test-keycloak:8080/auth
-      KEYCLOAK_SECRET: 6a7a6013-b79b-478a-9f1a-356b8e2717c4
-      KEYCLOAK_ADMIN_USER: api-admin
-      KEYCLOAK_ADMIN_PASS: test
-      KUBERNETES_NAMESPACE: test
-      KUBERNETES_LABELS: test
-  metaform-api-2:
-    build: .
-    ports:
-      - 5678:8080
-    depends_on:
-      - mysql-metaform-api
-    environment:
-      METAFORM_API_CLUSTER_PASSWORD: clusterpass
-      METAFORM_API_HOST: metaform-api-2
-      METAFORM_API_DB_HOST: mysql-metaform-api
-      METAFORM_API_DB_PORT: 3306
-      METAFORM_API_DB_NAME: metaform-api
-      METAFORM_API_DB_OPTS: ?useSSL=false&allowPublicKeyRetrieval=true
-      METAFORM_API_DB_USERNAME: root
-      METAFORM_API_DB_PASSWORD: root
-      METAFORM_TX_IDENTIFIER: tx
-      KEYCLOAK_REALM: test-1
-      KEYCLOAK_RESOURCE: metaform-api
-      KEYCLOAK_URL: http://test-keycloak:8080/auth
-      KEYCLOAK_SECRET: 6a7a6013-b79b-478a-9f1a-356b8e2717c4
-      KEYCLOAK_ADMIN_USER: api-admin
-      KEYCLOAK_ADMIN_PASS: test
-      KUBERNETES_NAMESPACE: test
-      KUBERNETES_LABELS: test
-  test-keycloak:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://mysql:3306/api?useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
+      QUARKUS_DATASOURCE_PASSWORD: root
+      QUARKUS_DATASOURCE_USERNAME: root
+      METAFORM_UPLOADS_FOLDER: /tmp
+      METAFORMS_KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER}
+      METAFORMS_KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      METAFORMS_KEYCLOAK_ADMIN_REALM: ${KEYCLOAK_ADMIN_REALM}
+      METAFORMS_KEYCLOAK_ADMIN_ADMIN_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      METAFORMS_KEYCLOAK_ADMIN_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      METAFORMS_KEYCLOAK_ADMIN_HOST: http://keycloak:8080/auth
+      QUARKUS_OIDC_AUTH_SERVER_URL: ${QUARKUS_OIDC_AUTH_SERVER_URL}
+      QUARKUS_OIDC_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      QUARKUS_OIDC_CREDENTIALS_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      QUARKUS_OIDC_CONNECTION_DELAY: 60s
+      MAILGUN_DOMAIN: mg.example.com
+      MAILGUN_API_KEY: na
+      MAILGUN_SENDER_EMAIL: noreply@mg.example.com
+      MAILGUN_SENDER_NAME: example
+      MAILGUN_API_URL: https://api.example.com/v3
+  keycloak:
     image: jboss/keycloak:4.5.0.Final
+    hostname: keycloak
+    container_name: keycloak
+    ports:
+      - 8080:8080
     volumes:
       - ./dev/:/opt/keycloak/
     environment:
-      DB_VENDOR: MYSQL
-      DB_ADDR: mysql-metaform-api
-      DB_DATABASE: metaform-api
-      DB_USER: metaform
-      DB_PASSWORD: metaform
-      KEYCLOAK_USER: testi
-      KEYCLOAK_PASSWORD: testi
-      KEUCLOAK_IMPORT: /opt/keycloak/kc.json
+      DB_VENDOR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: root
+      DB_ADDR: mysql
+      DB_PASSWORD: root
       JDBC_PARAMS: useSSL=false&allowPublicKeyRetrieval=true
-      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the MySQL JDBC driver documentation in order to use it.
-      #JDBC_PARAMS: "connectTimeout=30000"
-    ports:
-      - 8080:8080
-    depends_on:
-      - mysql-metaform-api
 volumes:
   db_data: {}
