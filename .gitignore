@@ -14,3 +14,4 @@
 metaform-api.iml
 /build
 /.gradle
+/.env.*

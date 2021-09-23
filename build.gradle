@@ -25,7 +25,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-keycloak-admin-client'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation 'io.quarkus:quarkus-oidc'
-    implementation 'io.quarkus:quarkus-keycloak-admin-client'
     implementation 'io.quarkus:quarkus-resteasy-jackson'
 
     implementation 'org.apache.commons:commons-lang3'

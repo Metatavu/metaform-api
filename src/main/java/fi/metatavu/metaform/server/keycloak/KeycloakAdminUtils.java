@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.InternalServerErrorException;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
@@ -29,7 +30,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.ClientBuilderWrapper;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.GroupPoliciesResource;
@@ -93,6 +96,8 @@ public class KeycloakAdminUtils {
     String adminUser = (String) credentials.get("realm-admin-user");
     String adminPass = (String) credentials.get("realm-admin-pass");
     String token = getAccessToken(configuration.getAuthServerUrl(), configuration.getRealm(), configuration.getResource(), clientSecret, adminUser, adminPass);
+    ClientBuilder clientBuilder = ClientBuilderWrapper.create(null, false);
+    clientBuilder.register(new NotNullResteasyJackson2Provider(), 100);
 
     logger.info("Using {} as admin user", adminUser);
 
@@ -108,6 +113,7 @@ public class KeycloakAdminUtils {
       .clientSecret(clientSecret)
       .username(adminUser)
       .password(adminPass)
+      .resteasyClient((ResteasyClient) clientBuilder.build())
       .authorization(String.format("Bearer %s", token))
       .build();
   }
@@ -182,9 +188,9 @@ public class KeycloakAdminUtils {
    * Creates new scope permission for resource
    * 
    * @param keycloak keycloak admin client
-   * @param clientId client id
+   * @param client client
    * @param resourceId resource id
-   * @param scope authorization scope
+   * @param scopes authorization scopes
    * @param name name
    * @param policyIds policies
    * @param decisionStrategy 
@@ -235,8 +241,8 @@ public class KeycloakAdminUtils {
    * 
    * @param keycloak admin client
    * @param realmName realm name
-   * @param clientId client id
-   * @param groupMap groups names
+   * @param client client
+   * @param groupNames groups names
    */
   public static void updatePermissionGroups(Keycloak keycloak, String realmName, ClientRepresentation client, List<String> groupNames) {
     RealmResource realm = keycloak.realm(realmName);
@@ -270,7 +276,7 @@ public class KeycloakAdminUtils {
    * Returns list of permitted users for a resource with given scopes 
    * 
    * @param keycloak keycloak client instance
-   * @param clientId client id
+   * @param client client
    * @param resourceId resource id
    * @param resourceName resource name
    * @param scopes scopes
