@@ -93,7 +93,13 @@ public class KeycloakAdminUtils {
     String adminUser = (String) credentials.get("realm-admin-user");
     String adminPass = (String) credentials.get("realm-admin-pass");
     String token = getAccessToken(configuration.getAuthServerUrl(), configuration.getRealm(), configuration.getResource(), clientSecret, adminUser, adminPass);
-    
+
+    logger.info("Using {} as admin user", adminUser);
+
+    if (StringUtils.isBlank(token)) {
+      logger.error("Could not retrieve admin client access token");
+    }
+
     return KeycloakBuilder.builder()
       .serverUrl(configuration.getAuthServerUrl())
       .realm(configuration.getRealm())
