@@ -123,13 +123,15 @@ public class MetaformController {
    * 
    * @param metaform Metaform
    * @param data form JSON
-   * @param allowAnonymous allow anonymous 
+   * @param allowAnonymous allow anonymous
+   * @param slug slug
    * @return Updated Metaform
    */
-  public Metaform updateMetaform(Metaform metaform, ExportTheme exportTheme, String data, Boolean allowAnonymous) {
+  public Metaform updateMetaform(Metaform metaform, ExportTheme exportTheme, String data, Boolean allowAnonymous, String slug) {
     metaformDAO.updateData(metaform, data);
     metaformDAO.updateAllowAnonymous(metaform, allowAnonymous);
     metaformDAO.updateExportTheme(metaform, exportTheme);
+    metaformDAO.updateSlug(metaform, slug);
     return metaform;
   }
 
@@ -165,6 +167,25 @@ public class MetaformController {
       
       count++;
     } while (true);
+  }
+
+  /**
+   * Vlidate a slug for Metaform
+   *
+   * @param slug slug
+   * @return boolean result for validation
+   */
+  public boolean validateSlug(String slug) {
+    if (slug.isEmpty()) {
+      return false;
+    }
+    Slugify slugify = new Slugify();
+    String slugfied = slugify.slugify(slug);
+    if (slugfied != slug || metaformDAO.findBySlug(slug) != null) {
+      return false;
+    }
+
+    return true;
   }
 
   /**

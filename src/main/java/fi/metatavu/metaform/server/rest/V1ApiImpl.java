@@ -974,7 +974,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
     String data = serializeMetaform(payload);
     if (data == null) {
-      return createBadRequest("Invalid Metaform JSON");
+
     }
 
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
@@ -992,6 +992,13 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return validationResponse;
     }
 
+    String slug = payload.getSlug();
+    if (slug == null) {
+      slug = metaform.getSlug();
+    } else if (metaformController.validateSlug(slug)) {
+      return createBadRequest("Invalid Metaform slug");
+    }
+
     fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;
     if (payload.getExportThemeId() != null) {
       exportTheme = exportThemeController.findExportTheme(payload.getExportThemeId());
@@ -1000,9 +1007,9 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       }
     }
 
-    updateMetaformPermissionGroups(metaform.getSlug(), payload);
+    updateMetaformPermissionGroups(slug, payload);
 
-    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous, slug)));
   }
 
   @Override
