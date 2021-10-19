@@ -26,6 +26,7 @@ import fi.metatavu.metaform.server.persistence.dao.ReplyDAO;
 import fi.metatavu.metaform.server.persistence.model.ExportTheme;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.Reply;
+import org.jetbrains.annotations.Nullable;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
@@ -93,9 +94,9 @@ public class MetaformController {
    * @param data form JSON
    * @return Metaform
    */
-  public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, String data) {
+  public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, @Nullable String slug, String data) {
     UUID id = UUID.randomUUID();
-    String slug = createSlug(title);
+    slug = slug == null  ? createSlug(title) : slug;
     return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);    
   }
 
@@ -115,7 +116,7 @@ public class MetaformController {
    * @return list of Metaforms
    */
   public List<Metaform> listMetaforms() {
-     return metaformDAO.listAll();
+    return metaformDAO.listAll();
   }
   
   /**
@@ -176,12 +177,7 @@ public class MetaformController {
    * @return boolean result for validation
    */
   public boolean validateSlug(String slug) {
-    if (slug.isEmpty()) {
-      return false;
-    }
-    Slugify slugify = new Slugify();
-    String slugfied = slugify.slugify(slug);
-    if (slugfied != slug || metaformDAO.findBySlug(slug) != null) {
+    if (!slug.matches("^[a-z0-9]+(?:[-, _][a-z0-9]+)*$") || metaformDAO.findBySlug(slug) != null) {
       return false;
     }
 

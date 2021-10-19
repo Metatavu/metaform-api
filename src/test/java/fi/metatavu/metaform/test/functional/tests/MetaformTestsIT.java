@@ -29,13 +29,14 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testCreateMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
 
       Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
 
       assertNotNull(metaform);
       assertNotNull(metaform.getId());
       assertEquals("Simple", metaform.getTitle());
+      assertEquals("simple-slug-0", metaform.getSlug());
       assertEquals(1, metaform.getSections().length);
       assertEquals("Simple form", metaform.getSections()[0].getTitle());
       assertEquals(1, metaform.getSections()[0].getFields().length);
@@ -90,10 +91,10 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
 
       Metaform metaform1Modified = new Metaform(metaform1.getId(), metaform1.getReplyStrategy(), metaform1.getExportThemeId(), metaform1.getAllowAnonymous(), metaform1.getAllowDrafts(),
-        metaform1.getAllowReplyOwnerKeys(), metaform1.getAllowInvitations(), metaform1.getAutosave(), "first", metaform1.getSections(), metaform1.getFilters(),
+        metaform1.getAllowReplyOwnerKeys(), metaform1.getAllowInvitations(), metaform1.getAutosave(), "first", "first-safe-0", metaform1.getSections(), metaform1.getFilters(),
         metaform1.getScripts());
       Metaform metaform2Modified = new Metaform(metaform2.getId(), metaform2.getReplyStrategy(), metaform2.getExportThemeId(), metaform2.getAllowAnonymous(), metaform2.getAllowDrafts(),
-        metaform2.getAllowReplyOwnerKeys(), metaform2.getAllowInvitations(), metaform2.getAutosave(), "second", metaform2.getSections(), metaform2.getFilters(),
+        metaform2.getAllowReplyOwnerKeys(), metaform2.getAllowInvitations(), metaform2.getAutosave(), "second", "second-safe-0", metaform2.getSections(), metaform2.getFilters(),
         metaform2.getScripts());
 
       builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), metaform1Modified);

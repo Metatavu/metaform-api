@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.slugify.Slugify;
 import fi.metatavu.metaform.api.spec.V1Api;
 import fi.metatavu.metaform.api.spec.model.*;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
@@ -258,7 +259,14 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       }
     }
 
-    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), data);
+    String slug = payload.getSlug();
+    if (slug == null || slug.isEmpty()) {
+      slug = null;
+    } else if (!metaformController.validateSlug(slug)) {
+      return Response.status(409).entity("Invalid Metaform slug").build();
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), slug, data);
     updateMetaformPermissionGroups(metaform.getSlug(), payload);
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
@@ -974,7 +982,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
     String data = serializeMetaform(payload);
     if (data == null) {
-
+      return createBadRequest("Invalid Metaform JSON");
     }
 
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
@@ -992,11 +1000,12 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return validationResponse;
     }
 
+    Slugify slugify = new Slugify();
     String slug = payload.getSlug();
     if (slug == null) {
       slug = metaform.getSlug();
-    } else if (metaformController.validateSlug(slug)) {
-      return createBadRequest("Invalid Metaform slug");
+    } else if (!metaformController.validateSlug(slug)) {
+      return Response.status(409).entity("Invalid Metaform slug").build();
     }
 
     fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;
