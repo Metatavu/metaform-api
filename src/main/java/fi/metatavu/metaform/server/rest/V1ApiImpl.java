@@ -1000,9 +1000,8 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return validationResponse;
     }
 
-    Slugify slugify = new Slugify();
     String slug = payload.getSlug();
-    if (slug == null) {
+    if (slug == null || slug.isEmpty()) {
       slug = metaform.getSlug();
     } else if (!metaformController.validateSlug(slug)) {
       return Response.status(409).entity("Invalid Metaform slug").build();
