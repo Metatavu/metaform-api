@@ -95,7 +95,7 @@ public class MetaformController {
    */
   public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, String slug, String data) {
     UUID id = UUID.randomUUID();
-    slug = slug == null  ? createSlug(title) : slug;
+    slug = slug == null ? createSlug(title) : slug;
     return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);    
   }
 
@@ -170,7 +170,7 @@ public class MetaformController {
   }
 
   /**
-   * Vlidate a slug for Metaform
+   * Validate a slug for Metaform
    *
    * @param slug slug
    * @return boolean result for validation
