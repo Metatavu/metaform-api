@@ -171,7 +171,7 @@ public class MetaformController {
   }
 
   /**
-   * Vlidate a slug for Metaform
+   * Validate a slug for Metaform
    *
    * @param slug slug
    * @return boolean result for validation
