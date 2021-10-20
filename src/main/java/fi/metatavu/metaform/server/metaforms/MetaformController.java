@@ -96,7 +96,7 @@ public class MetaformController {
    */
   public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, @Nullable String slug, String data) {
     UUID id = UUID.randomUUID();
-    slug = slug == null  ? createSlug(title) : slug;
+    slug = slug == null ? createSlug(title) : slug;
     return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);    
   }
 
