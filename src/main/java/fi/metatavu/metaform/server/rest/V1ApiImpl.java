@@ -73,6 +73,8 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
   private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
+  private static final String INVALID_METAFORM_SLUG = "Invalid Metaform slug";
+  private static final String DUPLICATED_METAFORM_SLUG = "Duplicated Metaform slug";
 
   @Inject
   private Logger logger;
@@ -260,10 +262,12 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     }
 
     String slug = payload.getSlug();
-    if (slug == null || slug.isEmpty()) {
-      slug = null;
-    } else if (!metaformController.validateSlug(slug)) {
-      return Response.status(409).entity("Invalid Metaform slug").build();
+    if (slug != null) {
+      if (!metaformController.validateSlug(slug)) {
+        return Response.status(409).entity(INVALID_METAFORM_SLUG).build();
+      } else if (!metaformController.isSlugUnique(null, slug)) {
+        return Response.status(409).entity(DUPLICATED_METAFORM_SLUG).build();
+      }
     }
 
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), slug, data);
@@ -1001,10 +1005,12 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     }
 
     String slug = payload.getSlug();
-    if (slug == null || slug.isEmpty()) {
+    if (slug == null) {
       slug = metaform.getSlug();
     } else if (!metaformController.validateSlug(slug)) {
-      return Response.status(409).entity("Invalid Metaform slug").build();
+      return Response.status(409).entity(INVALID_METAFORM_SLUG).build();
+    } else if (!metaformController.isSlugUnique(metaformId, slug)) {
+      return Response.status(409).entity(DUPLICATED_METAFORM_SLUG).build();
     }
 
     fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;

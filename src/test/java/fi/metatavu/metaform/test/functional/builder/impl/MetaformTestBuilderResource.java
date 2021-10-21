@@ -161,11 +161,12 @@ public class MetaformTestBuilderResource extends ApiTestBuilderResource<Metaform
    * Asserts update status fails with given status code
    *
    * @param expectedStatus expected status code
+   * @param metaformId     metaformId
    * @param metaform       metaform
    */
-  public void assertUpdateFailStatus(int expectedStatus, Metaform metaform) {
+  public void assertUpdateFailStatus(int expectedStatus, UUID metaformId, Metaform metaform) {
     try {
-      getApi().updateMetaform(metaform.getId(), metaform);
+      getApi().updateMetaform(metaformId, metaform);
       fail(String.format("Expected update to fail with status %d", expectedStatus));
     } catch (ClientException e) {
       assertEquals(expectedStatus, e.getStatusCode());

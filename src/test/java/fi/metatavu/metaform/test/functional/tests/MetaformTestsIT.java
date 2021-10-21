@@ -15,8 +15,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 @QuarkusTestResource.List(value = {
@@ -29,21 +28,56 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testCreateMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
 
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      assertNotNull(metaform1);
+      assertNotNull(metaform1.getId());
+      assertNotNull(metaform1.getSlug());
+      assertEquals("Simple", metaform1.getTitle());
+      assertEquals(1, metaform1.getSections().length);
+      assertEquals("Simple form", metaform1.getSections()[0].getTitle());
+      assertEquals(1, metaform1.getSections()[0].getFields().length);
+      assertEquals("text", metaform1.getSections()[0].getFields()[0].getName());
+      assertEquals("text", metaform1.getSections()[0].getFields()[0].getType().toString());
+      assertEquals("Text field", metaform1.getSections()[0].getFields()[0].getTitle());
+      assertEquals(true, metaform1.getAllowDrafts());
 
-      assertNotNull(metaform);
-      assertNotNull(metaform.getId());
-      assertEquals("Simple", metaform.getTitle());
-      assertEquals("simple-slug-0", metaform.getSlug());
-      assertEquals(1, metaform.getSections().length);
-      assertEquals("Simple form", metaform.getSections()[0].getTitle());
-      assertEquals(1, metaform.getSections()[0].getFields().length);
-      assertEquals("text", metaform.getSections()[0].getFields()[0].getName());
-      assertEquals("text", metaform.getSections()[0].getFields()[0].getType().toString());
-      assertEquals("Text field", metaform.getSections()[0].getFields()[0].getTitle());
-      assertEquals(true, metaform.getAllowDrafts());
+      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
+
+      assertNotNull(metaform2);
+      assertNotNull(metaform2.getId());
+      assertEquals("Simple", metaform2.getTitle());
+      assertEquals("simple-slug-0", metaform2.getSlug());
+      assertEquals(1, metaform2.getSections().length);
+      assertEquals("Simple form", metaform2.getSections()[0].getTitle());
+      assertEquals(1, metaform2.getSections()[0].getFields().length);
+      assertEquals("text", metaform2.getSections()[0].getFields()[0].getName());
+      assertEquals("text", metaform2.getSections()[0].getFields()[0].getType().toString());
+      assertEquals("Text field", metaform2.getSections()[0].getFields()[0].getTitle());
+      assertEquals(true, metaform2.getAllowDrafts());
+    }
+  }
+
+  @Test
+  public void testCreateInvalidSlugMetaform() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-slug-invalid");
+
+      builder.metaformAdmin().metaforms().assertCreateFailStatus(409, parsedMetaform);
+    }
+  }
+
+  @Test
+  public void testCreateDuplicatedSlugMetaform() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+
+      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+
+      builder.metaformAdmin().metaforms().assertCreateFailStatus(409, parsedMetaform2);
     }
   }
 
@@ -126,6 +160,34 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       assertEquals("boolean", updatedMetaform.getSections()[0].getFields()[1].getName());
       assertEquals("number", updatedMetaform.getSections()[0].getFields()[2].getName());
       assertEquals("checklist", updatedMetaform.getSections()[0].getFields()[3].getName());
+    }
+  }
+
+  @Test
+  public void testUpdateMetaformNullSlug() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+
+      Metaform updatePayload = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform updatedMetaform = builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), updatePayload);
+
+      assertEquals(metaform1.getSlug(), updatedMetaform.getSlug());
+    }
+  }
+
+  @Test
+  public void testUpdateMetaformDuplicatedSlug() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+
+      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple-slug2");
+      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
+
+      Metaform updatePayload = builder.test1().metaforms().readMetaform("simple-slug2");
+
+      builder.metaformAdmin().metaforms().assertUpdateFailStatus(409, metaform1.getId(), updatePayload);
     }
   }
 }

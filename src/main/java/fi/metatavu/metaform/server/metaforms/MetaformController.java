@@ -96,7 +96,7 @@ public class MetaformController {
   public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, String slug, String data) {
     UUID id = UUID.randomUUID();
     slug = slug == null ? createSlug(title) : slug;
-    return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);    
+    return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);
   }
 
   /**
@@ -176,11 +176,18 @@ public class MetaformController {
    * @return boolean result for validation
    */
   public boolean validateSlug(String slug) {
-    if (!slug.matches("^[a-z0-9]+(?:[-, _][a-z0-9]+)*$") || metaformDAO.findBySlug(slug) != null) {
-      return false;
-    }
+    return slug.matches("^[a-z0-9]+(?:[-, _][a-z0-9]+)*$");
+  }
 
-    return true;
+  /**
+   * Unique check for metaform slug
+   *
+   * @param slug slug
+   * @return boolean result for unique check
+   */
+  public boolean isSlugUnique(UUID metaformId, String slug) {
+    Metaform foundMetaform = metaformDAO.findBySlug(slug);
+    return foundMetaform == null || foundMetaform.getId() == metaformId;
   }
 
   /**
