@@ -46,7 +46,8 @@ public class MetaformTranslator {
     
     if (result != null) {
       result.setId(entity.getId());
-      
+      result.setSlug(entity.getSlug());
+
       if (entity.getExportTheme() != null) {
         result.setExportThemeId(entity.getExportTheme().getId());
       }
