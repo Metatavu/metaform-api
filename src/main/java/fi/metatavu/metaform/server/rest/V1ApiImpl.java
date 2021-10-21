@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.slugify.Slugify;
 import fi.metatavu.metaform.api.spec.V1Api;
 import fi.metatavu.metaform.api.spec.model.*;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
