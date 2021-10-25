@@ -45,7 +45,7 @@ public class DraftTestBuilderResource extends ApiTestBuilderResource<Draft, Draf
   @Override
   public void clean(Draft draft) throws IOException {
     TestBuilder testBuilder = new TestBuilder();
-    final DraftsApi draftsAdminApi = testBuilder.metaformAdmin().drafts().getApi();
+    final DraftsApi draftsAdminApi = testBuilder.metaformAdmin.drafts().getApi();
 
     metaformDraftMap.entrySet().stream()
       .filter(entry -> entry.getValue().equals(draft))

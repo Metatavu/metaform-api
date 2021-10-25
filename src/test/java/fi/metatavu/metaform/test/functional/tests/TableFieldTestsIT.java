@@ -33,20 +33,20 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
   @Test
   public void createTableReply() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
 
-      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
-      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply reply = testBuilder.test1.replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
 
-      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply foundReply = testBuilder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
       Assertions.assertNotNull(foundReply.getId());
-      testBuilder.test1().replies().assertTableDataEquals(replyData, foundReply.getData());
+      testBuilder.test1.replies().assertTableDataEquals(replyData, foundReply.getData());
 
     }
   }
@@ -54,70 +54,70 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
   @Test
   public void updateTableReply() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       Map<String, Object> createReplyData = new HashMap<>();
       createReplyData.put("table", Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d)));
 
-      Reply reply = testBuilder.test1().replies().createReplyWithData(createReplyData);
-      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply reply = testBuilder.test1.replies().createReplyWithData(createReplyData);
+      Reply createdReply = testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
 
-      testBuilder.test1().replies().assertTableDataEquals(createReplyData, createdReply.getData());
+      testBuilder.test1.replies().assertTableDataEquals(createReplyData, createdReply.getData());
 
-      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply foundReply = testBuilder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
       Assertions.assertNotNull(foundReply.getId());
 
-      testBuilder.test1().replies().assertTableDataEquals(createReplyData, foundReply.getData());
+      testBuilder.test1.replies().assertTableDataEquals(createReplyData, foundReply.getData());
 
       Map<String, Object> updateReplyData = new HashMap<>();
       updateReplyData.put("table", Arrays.asList(createSimpleTableRow("Added new text", -210d), createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Updated Text 2", 45.5d)));
-      Reply updateReply = testBuilder.test1().replies().createReplyWithData(updateReplyData);
-      testBuilder.test1().replies().updateReply(metaform.getId(), createdReply.getId(), updateReply, null);
+      Reply updateReply = testBuilder.test1.replies().createReplyWithData(updateReplyData);
+      testBuilder.test1.replies().updateReply(metaform.getId(), createdReply.getId(), updateReply, null);
 
-      testBuilder.test1().replies().assertTableDataEquals(updateReplyData, updateReply.getData());
+      testBuilder.test1.replies().assertTableDataEquals(updateReplyData, updateReply.getData());
 
-      Reply foundUpdatedReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply foundUpdatedReply = testBuilder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundUpdatedReply);
       Assertions.assertNotNull(foundUpdatedReply.getId());
-      testBuilder.test1().replies().assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
+      testBuilder.test1.replies().assertTableDataEquals(updateReplyData, foundUpdatedReply.getData());
     }
   }
 
   @Test
   public void nulledTableReply() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow(null, null));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
 
-      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
-      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
-      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply reply = testBuilder.test1.replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply foundReply = testBuilder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
 
       Assertions.assertNotNull(foundReply);
       Assertions.assertNotNull(foundReply.getId());
-      testBuilder.test1().replies().assertTableDataEquals(replyData, foundReply.getData());
+      testBuilder.test1.replies().assertTableDataEquals(replyData, foundReply.getData());
     }
   }
 
   @Test
   public void nullTableReply() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", null);
 
-      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
-      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply reply = testBuilder.test1.replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
 
-      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply foundReply = testBuilder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
       Assertions.assertNotNull(foundReply.getId());
       Assertions.assertNull(foundReply.getData().get("table"));
@@ -127,33 +127,33 @@ public class TableFieldTestsIT extends AbstractIntegrationTest {
   @Test
   public void invalidTableReply() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", "table data");
 
-      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
-      testBuilder.test1().replies().assertCreateFailStatus(400, metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply reply = testBuilder.test1.replies().createReplyWithData(replyData);
+      testBuilder.test1.replies().assertCreateFailStatus(400, metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
     }
   }
 
   @Test
   public void deleteTableReply() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
 
-      Reply reply = testBuilder.test1().replies().createReplyWithData(replyData);
-      Reply createdReply = testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
-      Reply foundReply = testBuilder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply reply = testBuilder.test1.replies().createReplyWithData(replyData);
+      Reply createdReply = testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), reply);
+      Reply foundReply = testBuilder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
-      testBuilder.metaformAdmin().replies().delete(metaform.getId(), createdReply, null);
-      testBuilder.test1().replies().assertFindFailStatus(404, metaform.getId(), createdReply.getId(), null);
+      testBuilder.metaformAdmin.replies().delete(metaform.getId(), createdReply, null);
+      testBuilder.test1.replies().assertFindFailStatus(404, metaform.getId(), createdReply.getId(), null);
     }
   }
 }

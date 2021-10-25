@@ -45,13 +45,13 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void findOwnReply() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+      Reply createdReply = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
 
-      Reply foundReply = builder.test1().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply foundReply = builder.test1.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
     }
   }
@@ -62,11 +62,11 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void findOwnReplyAnonymous() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+      Reply createdReply = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
 
       builder.anonymousToken().replies().assertFindFailStatus(403, metaform.getId(), createdReply.getId(), null);
     }
@@ -78,13 +78,13 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void findOthersReplyUser() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+      Reply createdReply = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
 
-      builder.test2().replies().assertFindFailStatus(403, metaform.getId(), createdReply.getId(), null);
+      builder.test2.replies().assertFindFailStatus(403, metaform.getId(), createdReply.getId(), null);
     }
   }
 
@@ -94,13 +94,13 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void findOthersReplyAdmin() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Reply createdReply = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+      Reply createdReply = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
 
-      Reply foundReply = builder.metaformAdmin().replies().findReply(metaform.getId(), createdReply.getId(), null);
+      Reply foundReply = builder.metaformAdmin.replies().findReply(metaform.getId(), createdReply.getId(), null);
       Assertions.assertNotNull(foundReply);
     }
   }
@@ -111,17 +111,17 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void listOwnReplies() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Reply reply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
-      Reply reply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      Reply reply3 = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-3")));
+      Reply reply1 = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-1")));
+      Reply reply2 = builder.test2.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply3 = builder.test3.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-3")));
 
-      Reply[] replies = builder.test1().replies().listReplies(metaform.getId());
+      Reply[] replies = builder.test1.replies().listReplies(metaform.getId());
       assertEquals(1, replies.length);
       assertEquals(reply1.getId(), replies[0].getId());
     }
@@ -133,19 +133,19 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void listPermissionContextReplies() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Reply reply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      Reply reply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      Reply reply3 = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply1 = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply2 = builder.test2.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply3 = builder.test3.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
-      Reply[] replies1 = builder.test1().replies().listReplies(metaform.getId());
-      Reply[] replies2 = builder.test2().replies().listReplies(metaform.getId());
-      Reply[] replies3 = builder.test3().replies().listReplies(metaform.getId());
+      Reply[] replies1 = builder.test1.replies().listReplies(metaform.getId());
+      Reply[] replies2 = builder.test2.replies().listReplies(metaform.getId());
+      Reply[] replies3 = builder.test3.replies().listReplies(metaform.getId());
 
       Assertions.assertEquals(1, replies1.length);
       Assertions.assertEquals(reply1.getId(), replies1[0].getId());
@@ -168,38 +168,38 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void exportPermissionContextReplyPdf() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      ExportTheme theme = builder.metaformSuper().exportThemes().createSimpleExportTheme("theme 1");
-      builder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
+      ExportTheme theme = builder.metaformSuper.exportThemes().createSimpleExportTheme("theme 1");
+      builder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>");
 
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
       Metaform updateData = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(),
         metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(), metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
 
-      builder.metaformAdmin().metaforms().updateMetaform(metaform.getId(), updateData);
+      builder.metaformAdmin.metaforms().updateMetaform(metaform.getId(), updateData);
 
-      Reply reply1 = builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      Reply reply2 = builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      Reply reply3 = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply1 = builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply2 = builder.test2.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      Reply reply3 = builder.test3.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
       // test1.realm1 may download only own reply
-      assertPdfDownloadStatus(200, builder.test1().token(), metaform, reply1);
-      assertPdfDownloadStatus(403, builder.test1().token(), metaform, reply2);
-      assertPdfDownloadStatus(403, builder.test1().token(), metaform, reply3);
+      assertPdfDownloadStatus(200, builder.test1.token(), metaform, reply1);
+      assertPdfDownloadStatus(403, builder.test1.token(), metaform, reply2);
+      assertPdfDownloadStatus(403, builder.test1.token(), metaform, reply3);
 
       // test2.realm1 may download all the replies
-      assertPdfDownloadStatus(200, builder.test2().token(), metaform, reply1);
-      assertPdfDownloadStatus(200, builder.test2().token(), metaform, reply2);
-      assertPdfDownloadStatus(200, builder.test2().token(), metaform, reply3);
+      assertPdfDownloadStatus(200, builder.test2.token(), metaform, reply1);
+      assertPdfDownloadStatus(200, builder.test2.token(), metaform, reply2);
+      assertPdfDownloadStatus(200, builder.test2.token(), metaform, reply3);
 
       // test3.realm1 may download only own reply
-      assertPdfDownloadStatus(403, builder.test3().token(), metaform, reply1);
-      assertPdfDownloadStatus(403, builder.test3().token(), metaform, reply2);
-      assertPdfDownloadStatus(200, builder.test3().token(), metaform, reply3);
+      assertPdfDownloadStatus(403, builder.test3.token(), metaform, reply1);
+      assertPdfDownloadStatus(403, builder.test3.token(), metaform, reply2);
+      assertPdfDownloadStatus(200, builder.test3.token(), metaform, reply3);
 
       // anonymous may not download any replies
       assertPdfDownloadStatus(403, builder.anonymousToken().token(), metaform, reply1);
@@ -214,17 +214,17 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
   @Test
   public void listRepliesAdmin() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      builder.test2().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
-      builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test1().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      builder.test2.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      builder.test3.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test1.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
-      Reply[] replies = builder.metaformAdmin().replies().listReplies(metaform.getId());
+      Reply[] replies = builder.metaformAdmin.replies().listReplies(metaform.getId());
       Assertions.assertEquals(3, replies.length);
     }
   }
@@ -238,19 +238,19 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
     MailgunMocker mailgunMocker = startMailgunMocker();
 
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-permission-context");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-permission-context");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      builder.metaformAdmin().emailNotifications().createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
-      Reply createdReply = builder.test3().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
-        builder.test3().replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
+      builder.metaformAdmin.emailNotifications().createEmailNotification(metaform, "Permission context subject", "Permission context content", Collections.emptyList());
+      Reply createdReply = builder.test3.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(),
+        builder.test3.replies().createReplyWithData(createPermissionSelectReplyData("group-2")));
 
-      builder.test3().replies().updateReply(metaform.getId(),
+      builder.test3.replies().updateReply(metaform.getId(),
         createdReply.getId(),
-        builder.test3().replies().createPermisionSelectReply("group-1"), (String) null);
-      builder.test3().replies().updateReply(metaform.getId(),
+        builder.test3.replies().createPermisionSelectReply("group-1"), (String) null);
+      builder.test3.replies().updateReply(metaform.getId(),
         createdReply.getId(),
-        builder.test3().replies().createPermisionSelectReply("group-1"), (String) null);
+        builder.test3.replies().createPermisionSelectReply("group-1"), (String) null);
 
       mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content");
       mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content");
