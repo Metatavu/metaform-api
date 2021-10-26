@@ -175,7 +175,7 @@ public class ReplyPermissionTestsIT extends AbstractIntegrationTest {
       Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
       Metaform updateData = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(),
-        metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(), metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
+        metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(), metaform.getAutosave(), metaform.getTitle(), metaform.getSlug(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
 
       builder.metaformAdmin.metaforms().updateMetaform(metaform.getId(), updateData);
 

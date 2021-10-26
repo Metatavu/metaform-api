@@ -567,7 +567,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
 
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(),
         metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(), metaform.getAutosave(),
-        metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
+        metaform.getTitle(), metaform.getSlug(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
 
       testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
       Reply reply = testBuilder.test1.replies().createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);
@@ -586,7 +586,7 @@ public class ReplyTestsIT extends AbstractIntegrationTest {
 
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(),
         metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(), metaform.getAutosave(),
-        metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
+        metaform.getTitle(), metaform.getSlug(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
 
       testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
       Reply reply = testBuilder.test1.replies().createSimpleReply(metaform, "test 1", ReplyMode.UPDATE);

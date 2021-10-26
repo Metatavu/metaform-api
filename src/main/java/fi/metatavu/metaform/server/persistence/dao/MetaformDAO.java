@@ -96,5 +96,16 @@ public class MetaformDAO extends AbstractDAO<Metaform> {
     return persist(metaform);
   }
 
+  /**
+   * Updates slug value
+   *
+   * @param metaform Metaform
+   * @param slug slug
+   * @return Updated Metaform
+   */
+  public Metaform updateSlug(Metaform metaform, String slug) {
+    metaform.setSlug(slug);
+    return persist(metaform);
+  }
 
 }
