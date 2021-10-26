@@ -35,6 +35,8 @@ public class MysqlResource implements QuarkusTestResourceLifecycleManager {
     config.put("quarkus.datasource.username", USERNAME);
     config.put("quarkus.datasource.password", PASSWORD);
     config.put("quarkus.datasource.jdbc.url", db.getJdbcUrl());
+    config.put("jdbc.driver", db.getDriverClassName());
+
     return config;
   }
 

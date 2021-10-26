@@ -27,13 +27,13 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void createExportThemeTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
 
-      ExportTheme parentTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme parentTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
 
       ExportTheme childPayload = new ExportTheme("child theme", null, parentTheme.getId(), "locales");
-      ExportTheme childTheme = testBuilder.metaformSuper().exportThemes().createExportTheme(childPayload);
+      ExportTheme childTheme = testBuilder.metaformSuper.exportThemes().createExportTheme(childPayload);
       Assertions.assertNotNull(childTheme);
 
-      ExportTheme foundChildTheme = testBuilder.metaformSuper().exportThemes().findExportTheme(childTheme.getId());
+      ExportTheme foundChildTheme = testBuilder.metaformSuper.exportThemes().findExportTheme(childTheme.getId());
 
       Assertions.assertNotNull(foundChildTheme);
       Assertions.assertEquals(childTheme.toString(), foundChildTheme.toString());
@@ -46,12 +46,12 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void findExportThemeTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
 
       Assertions.assertNotNull(exportTheme);
       Assertions.assertNotNull(exportTheme.getName());
 
-      ExportTheme foundExportTheme = testBuilder.metaformSuper().exportThemes().findExportTheme(exportTheme.getId());
+      ExportTheme foundExportTheme = testBuilder.metaformSuper.exportThemes().findExportTheme(exportTheme.getId());
 
       Assertions.assertNotNull(foundExportTheme);
       Assertions.assertEquals(exportTheme.getName(), foundExportTheme.getName());
@@ -61,10 +61,10 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void listExportThemeTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme exportTheme1 = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme("theme 1");
-      ExportTheme exportTheme2 = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme("theme 2");
+      ExportTheme exportTheme1 = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme("theme 1");
+      ExportTheme exportTheme2 = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme("theme 2");
 
-      List<ExportTheme> exportThemes = testBuilder.metaformSuper().exportThemes().listExportThemes();
+      List<ExportTheme> exportThemes = testBuilder.metaformSuper.exportThemes().listExportThemes();
 
       Assertions.assertEquals(2, exportThemes.size());
       Assertions.assertEquals(exportTheme1.toString(), exportThemes.get(0).toString());
@@ -75,8 +75,8 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void updateExportThemeTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme parentTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme("not updated");
+      ExportTheme parentTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme("not updated");
 
       Assertions.assertNotNull(exportTheme);
       Assertions.assertEquals("not updated", exportTheme.getName());
@@ -84,7 +84,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       Assertions.assertNull(exportTheme.getParentId());
 
       ExportTheme newExportTheme = new ExportTheme("updated", null, parentTheme.getId(), "locales");
-      ExportTheme updatedTheme = testBuilder.metaformSuper().exportThemes().updateExportTheme(exportTheme.getId(), newExportTheme);
+      ExportTheme updatedTheme = testBuilder.metaformSuper.exportThemes().updateExportTheme(exportTheme.getId(), newExportTheme);
 
       Assertions.assertNotNull(updatedTheme);
       Assertions.assertEquals("updated", updatedTheme.getName());
@@ -97,23 +97,23 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void deleteExportThemeTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
       ExportTheme payload = new ExportTheme("to be deleted", null, null, null);
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createExportTheme(payload);
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createExportTheme(payload);
 
-      Assertions.assertEquals(1, testBuilder.metaformSuper().exportThemes().listExportThemes().size());
-      Assertions.assertEquals(testBuilder.metaformSuper().exportThemes().findExportTheme(exportTheme.getId()).toString(), exportTheme.toString());
+      Assertions.assertEquals(1, testBuilder.metaformSuper.exportThemes().listExportThemes().size());
+      Assertions.assertEquals(testBuilder.metaformSuper.exportThemes().findExportTheme(exportTheme.getId()).toString(), exportTheme.toString());
 
-      testBuilder.metaformSuper().exportThemes().deleteExportTheme(exportTheme);
+      testBuilder.metaformSuper.exportThemes().deleteExportTheme(exportTheme);
 
-      Assertions.assertEquals(0, testBuilder.metaformSuper().exportThemes().listExportThemes().size());
-      testBuilder.metaformSuper().exportThemes().assertSearchFailStatus(404, exportTheme.getId());
+      Assertions.assertEquals(0, testBuilder.metaformSuper.exportThemes().listExportThemes().size());
+      testBuilder.metaformSuper.exportThemes().assertSearchFailStatus(404, exportTheme.getId());
     }
   }
 
   @Test
   public void createExportThemeFileTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      fi.metatavu.metaform.api.client.models.ExportThemeFile exportThemeFile = testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file", "file content");
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      fi.metatavu.metaform.api.client.models.ExportThemeFile exportThemeFile = testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file", "file content");
 
       Assertions.assertNotNull(exportThemeFile);
       Assertions.assertEquals("path/to/file", exportThemeFile.getPath());
@@ -125,12 +125,12 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void findExportThemeFileTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      fi.metatavu.metaform.api.client.models.ExportThemeFile createThemeFile = testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file", "file content 1");
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      fi.metatavu.metaform.api.client.models.ExportThemeFile createThemeFile = testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file", "file content 1");
 
       Assertions.assertNotNull(createThemeFile);
 
-      fi.metatavu.metaform.api.client.models.ExportThemeFile foundFile = testBuilder.metaformSuper().exportfiles().findExportThemeFile(theme.getId(), createThemeFile.getId());
+      fi.metatavu.metaform.api.client.models.ExportThemeFile foundFile = testBuilder.metaformSuper.exportfiles().findExportThemeFile(theme.getId(), createThemeFile.getId());
 
       Assertions.assertEquals(createThemeFile.toString(), foundFile.toString());
     }
@@ -139,16 +139,16 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void listExportThemeFileTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
 
-      Assertions.assertEquals(0, testBuilder.metaformSuper().exportfiles().listExportThemeFiles(theme.getId()).size());
+      Assertions.assertEquals(0, testBuilder.metaformSuper.exportfiles().listExportThemeFiles(theme.getId()).size());
 
       fi.metatavu.metaform.api.client.models.ExportThemeFile exportThemeFile1 =
-        testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file1", "file content 1");
+        testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file1", "file content 1");
       fi.metatavu.metaform.api.client.models.ExportThemeFile exportThemeFile2
-        = testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file2", "file content 2");
+        = testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "path/to/file2", "file content 2");
 
-      List<fi.metatavu.metaform.api.client.models.ExportThemeFile> themeFiles = testBuilder.metaformSuper().exportfiles().listExportThemeFiles(theme.getId());
+      List<fi.metatavu.metaform.api.client.models.ExportThemeFile> themeFiles = testBuilder.metaformSuper.exportfiles().listExportThemeFiles(theme.getId());
 
       Assertions.assertEquals(2, themeFiles.size());
       Assertions.assertEquals(exportThemeFile1.toString(), themeFiles.get(0).toString());
@@ -159,10 +159,10 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void updateExportThemeFileTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
 
       fi.metatavu.metaform.api.client.models.ExportThemeFile createdThemeFile =
-        testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "not/updated", "not updated");
+        testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "not/updated", "not updated");
 
       Assertions.assertEquals("not/updated", createdThemeFile.getPath());
       Assertions.assertEquals("not updated", createdThemeFile.getContent());
@@ -171,7 +171,7 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
       fi.metatavu.metaform.api.client.models.ExportThemeFile newThemeFile = new fi.metatavu.metaform.api.client.models.ExportThemeFile(
         "is/updated", createdThemeFile.getThemeId(), "is updated", createdThemeFile.getId());
 
-      fi.metatavu.metaform.api.client.models.ExportThemeFile updatedThemeFile = testBuilder.metaformSuper().exportfiles().updateExportThemeFile(theme.getId(), createdThemeFile.getId(), newThemeFile);
+      fi.metatavu.metaform.api.client.models.ExportThemeFile updatedThemeFile = testBuilder.metaformSuper.exportfiles().updateExportThemeFile(theme.getId(), createdThemeFile.getId(), newThemeFile);
 
       Assertions.assertEquals("is/updated", updatedThemeFile.getPath());
       Assertions.assertEquals("is updated", updatedThemeFile.getContent());
@@ -182,22 +182,22 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   @Test
   public void deleteExportThemeFileTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
 
       //  try {
       fi.metatavu.metaform.api.client.models.ExportThemeFile payload = new fi.metatavu.metaform.api.client.models.ExportThemeFile(
         "to/be/deleted", theme.getId(), "to be deleted", null);
 
-      fi.metatavu.metaform.api.client.models.ExportThemeFile exportThemeFile = testBuilder.metaformSuper().exportfiles().createExportThemeFile(theme.getId(), payload);
+      fi.metatavu.metaform.api.client.models.ExportThemeFile exportThemeFile = testBuilder.metaformSuper.exportfiles().createExportThemeFile(theme.getId(), payload);
 
-      Assertions.assertEquals(1, testBuilder.metaformSuper().exportfiles().listExportThemeFiles(theme.getId()).size());
-      Assertions.assertEquals(testBuilder.metaformSuper().exportfiles().
+      Assertions.assertEquals(1, testBuilder.metaformSuper.exportfiles().listExportThemeFiles(theme.getId()).size());
+      Assertions.assertEquals(testBuilder.metaformSuper.exportfiles().
         findExportThemeFile(theme.getId(), exportThemeFile.getId()).toString(), exportThemeFile.toString());
 
-      testBuilder.metaformSuper().exportfiles().deleteExportThemeFile(theme.getId(), exportThemeFile);
-      Assertions.assertEquals(0, testBuilder.metaformSuper().exportfiles().listExportThemeFiles(theme.getId()).size());
+      testBuilder.metaformSuper.exportfiles().deleteExportThemeFile(theme.getId(), exportThemeFile);
+      Assertions.assertEquals(0, testBuilder.metaformSuper.exportfiles().listExportThemeFiles(theme.getId()).size());
 
-      testBuilder.metaformSuper().exportfiles().assertFindFailStatus(404, theme.getId(), exportThemeFile.getId());
+      testBuilder.metaformSuper.exportfiles().assertFindFailStatus(404, theme.getId(), exportThemeFile.getId());
     }
   }
 
@@ -205,21 +205,21 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void createExportThemePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
       ExportTheme exportTheme = new ExportTheme("name", null, null, null);
-      testBuilder.test1().exportThemes().assertCreateFailStatus(403, exportTheme);
+      testBuilder.test1.exportThemes().assertCreateFailStatus(403, exportTheme);
     }
   }
 
   @Test
   public void findExportThemePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      testBuilder.test1().exportThemes().assertSearchFailStatus(403, UUID.randomUUID());
+      testBuilder.test1.exportThemes().assertSearchFailStatus(403, UUID.randomUUID());
     }
   }
 
   @Test
   public void listExportThemePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      testBuilder.test1().exportThemes().assertListFailStatus(403);
+      testBuilder.test1.exportThemes().assertListFailStatus(403);
     }
   }
 
@@ -227,56 +227,56 @@ public class ExportThemeTestsIT extends AbstractIntegrationTest {
   public void updateExportThemePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
       ExportTheme exportTheme = new ExportTheme("name", null, null, null);
-      testBuilder.test1().exportThemes().assertUpdateFailStatus(403, UUID.randomUUID(), exportTheme);
+      testBuilder.test1.exportThemes().assertUpdateFailStatus(403, UUID.randomUUID(), exportTheme);
     }
   }
 
   @Test
   public void deleteExportThemePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      testBuilder.test1().exportThemes().assertDeleteFailStatus(403, UUID.randomUUID());
+      testBuilder.test1.exportThemes().assertDeleteFailStatus(403, UUID.randomUUID());
     }
   }
 
   @Test
   public void createExportThemeFilePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
       fi.metatavu.metaform.api.client.models.ExportThemeFile payload = new fi.metatavu.metaform.api.client.models.ExportThemeFile("path", exportTheme.getId(), "content", null);
 
-      testBuilder.test1().exportfiles().assertCreateFailStatus(403, payload);
+      testBuilder.test1.exportfiles().assertCreateFailStatus(403, payload);
     }
   }
 
   @Test
   public void findExportThemeFilePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      testBuilder.test1().exportfiles().assertFindExportThemeFileFailStatus(403, exportTheme.getId(), UUID.randomUUID());
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      testBuilder.test1.exportfiles().assertFindExportThemeFileFailStatus(403, exportTheme.getId(), UUID.randomUUID());
     }
   }
 
   @Test
   public void listExportThemeFilePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      testBuilder.test1().exportfiles().assertListFailStatus(403, exportTheme.getId());
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      testBuilder.test1.exportfiles().assertListFailStatus(403, exportTheme.getId());
     }
   }
 
   @Test
   public void updateExportThemeFilePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      ExportTheme exportTheme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
+      ExportTheme exportTheme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
       fi.metatavu.metaform.api.client.models.ExportThemeFile payload = new fi.metatavu.metaform.api.client.models.ExportThemeFile("path", exportTheme.getId(), "content", null);
-      testBuilder.test1().exportfiles().assertUpdateFailStatus(403, exportTheme.getId(), UUID.randomUUID(), payload);
+      testBuilder.test1.exportfiles().assertUpdateFailStatus(403, exportTheme.getId(), UUID.randomUUID(), payload);
     }
   }
 
   @Test
   public void deleteExportThemeFilePermissionDeniedTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      testBuilder.test1().exportfiles().assertDeleteFailStatus(403, UUID.randomUUID(), UUID.randomUUID());
+      testBuilder.test1.exportfiles().assertDeleteFailStatus(403, UUID.randomUUID(), UUID.randomUUID());
     }
   }
 

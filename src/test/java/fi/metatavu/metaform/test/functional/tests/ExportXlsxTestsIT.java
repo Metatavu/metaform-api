@@ -26,17 +26,17 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
   @Test
   public void testExportXlsxTable() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-table");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-table");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
 
-      Reply replyWithData = builder.test1().replies().createReplyWithData(replyData);
-      builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+      Reply replyWithData = builder.test1.replies().createReplyWithData(replyData);
+      builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
 
-      Workbook workbook = getXlsxReport(metaform, builder.metaformAdmin().token());
+      Workbook workbook = getXlsxReport(metaform, builder.metaformAdmin.token());
       Sheet simpleSheet = workbook.getSheet("Simple");
 
       assertNotNull(simpleSheet);
@@ -62,17 +62,17 @@ public class ExportXlsxTestsIT extends AbstractIntegrationTest {
   @Test
   public void testExportXlsxTableScripted() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("scripted-xlsx-table");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("scripted-xlsx-table");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
       List<Map<String, Object>> tableData = Arrays.asList(createSimpleTableRow("Text 1", 10d), createSimpleTableRow("Text 2", 20d));
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("table", tableData);
 
-      Reply replyWithData = builder.test1().replies().createReplyWithData(replyData);
-      builder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+      Reply replyWithData = builder.test1.replies().createReplyWithData(replyData);
+      builder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
 
-      Workbook workbook = getXlsxReport(metaform, builder.metaformAdmin().token());
+      Workbook workbook = getXlsxReport(metaform, builder.metaformAdmin.token());
 
 
       Sheet simpleSheet = workbook.getSheet("Simple");

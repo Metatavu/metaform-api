@@ -45,12 +45,12 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void singleEmailNotificationTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform, "Simple subject", "Simple content", Arrays.asList("user@example.com"));
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform, "Simple subject", "Simple content", Arrays.asList("user@example.com"));
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content");
       } finally {
         stopMailgunMocker(mailgunMocker);
@@ -61,16 +61,16 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void notifyIfEqualsTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val1@example.com"), createFieldRule("text", "val 1", null));
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val2@example.com"), createFieldRule("text", "val 2", null));
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val1@example.com"), createFieldRule("text", "val 1", null));
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val2@example.com"), createFieldRule("text", "val 2", null));
 
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
 
         mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content");
         mailgunMocker.verifyHtmlMessageSent(0, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content");
@@ -84,16 +84,16 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void notifyIfNotEqualsTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val1@example.com"), createFieldRule("text", null, "val 1"));
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val2@example.com"), createFieldRule("text", null, "val 2"));
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val1@example.com"), createFieldRule("text", null, "val 1"));
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform.getId(), "subject", "content", Arrays.asList("val2@example.com"), createFieldRule("text", null, "val 2"));
 
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 3", ReplyMode.CUMULATIVE);
 
         mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content");
         mailgunMocker.verifyHtmlMessageSent(2, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content");
@@ -107,13 +107,13 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void multipleEmailNotificationTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform, "Simple subject", "Simple content", Arrays.asList("user-1@example.com", "user-2@example.com"));
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform, "Simple subject", "Simple content", Arrays.asList("user-1@example.com", "user-2@example.com"));
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
 
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user-1@example.com", "Simple subject", "Simple content");
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user-2@example.com", "Simple subject", "Simple content");
@@ -126,13 +126,13 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void replacedEmailNotificationTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform, "Replaced ${data.text} subject", "Replaced ${data.text} content", Arrays.asList("user@example.com"));
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform, "Replaced ${data.text} subject", "Replaced ${data.text} content", Arrays.asList("user@example.com"));
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
 
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Replaced val 1 subject", "Replaced val 1 content");
       } finally {
@@ -144,14 +144,14 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void multipleRepliesEmailNotificationTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform, "Simple subject", "Simple content ${data.text}", Arrays.asList("user@example.com"));
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
-        testBuilder.test1().replies().createSimpleReply(metaform, "val 2", ReplyMode.CUMULATIVE);
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform, "Simple subject", "Simple content ${data.text}", Arrays.asList("user@example.com"));
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 1", ReplyMode.CUMULATIVE);
+        testBuilder.test1.replies().createSimpleReply(metaform, "val 2", ReplyMode.CUMULATIVE);
 
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content val 1");
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content val 2");
@@ -164,14 +164,14 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void unicodeEmailNotificationTest() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform createdMetaform = testBuilder.metaformAdmin().metaforms().create(metaform);
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform createdMetaform = testBuilder.metaformAdmin.metaforms().create(metaform);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        testBuilder.metaformAdmin().emailNotifications().createEmailNotification(createdMetaform, "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"));
-        testBuilder.test1().replies().createSimpleReply(createdMetaform, "ääkköset", ReplyMode.CUMULATIVE);
-        testBuilder.test1().replies().createSimpleReply(createdMetaform, "Правда.Ру", ReplyMode.CUMULATIVE);
+        testBuilder.metaformAdmin.emailNotifications().createEmailNotification(createdMetaform, "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"));
+        testBuilder.test1.replies().createSimpleReply(createdMetaform, "ääkköset", ReplyMode.CUMULATIVE);
+        testBuilder.test1.replies().createSimpleReply(createdMetaform, "Правда.Ру", ReplyMode.CUMULATIVE);
 
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject ääkköset", "Simple content ääkköset");
         mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject Правда.Ру", "Simple content Правда.Ру");
@@ -184,13 +184,13 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void testCreateEmailNotification() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaformData = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(metaformData);
+      Metaform metaformData = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(metaformData);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        EmailNotification createdEmailNotification = testBuilder.metaformAdmin().emailNotifications().createEmailNotification(metaform.getId(), "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"), createFieldRule("field", "eq", "neq"));
-        EmailNotification foundEmailNotification = testBuilder.metaformAdmin().emailNotifications().findEmailNotification(metaform.getId(), createdEmailNotification.getId());
+        EmailNotification createdEmailNotification = testBuilder.metaformAdmin.emailNotifications().createEmailNotification(metaform.getId(), "Simple subject ${data.text}", "Simple content ${data.text}", Arrays.asList("user@example.com"), createFieldRule("field", "eq", "neq"));
+        EmailNotification foundEmailNotification = testBuilder.metaformAdmin.emailNotifications().findEmailNotification(metaform.getId(), createdEmailNotification.getId());
 
         Assertions.assertEquals(createdEmailNotification.toString(), foundEmailNotification.toString());
       } finally {
@@ -202,15 +202,15 @@ public class EmailNotificationTestsIT extends AbstractIntegrationTest {
   @Test
   public void testListEmailNotifications() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform createdMetaform = testBuilder.metaformAdmin().metaforms().create(metaform);
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform createdMetaform = testBuilder.metaformAdmin.metaforms().create(metaform);
       MailgunMocker mailgunMocker = startMailgunMocker();
 
       try {
-        EmailNotification notification1 = testBuilder.metaformAdmin().emailNotifications().createEmailNotification(createdMetaform, "Subject 1", "Content 2", Arrays.asList("user@example.com"));
-        EmailNotification notification2 = testBuilder.metaformAdmin().emailNotifications().createEmailNotification(createdMetaform, "Subject 2", "Content 2", Arrays.asList("user@example.com"));
+        EmailNotification notification1 = testBuilder.metaformAdmin.emailNotifications().createEmailNotification(createdMetaform, "Subject 1", "Content 2", Arrays.asList("user@example.com"));
+        EmailNotification notification2 = testBuilder.metaformAdmin.emailNotifications().createEmailNotification(createdMetaform, "Subject 2", "Content 2", Arrays.asList("user@example.com"));
 
-        List<EmailNotification> list = testBuilder.metaformAdmin().emailNotifications().listEmailNotifications(createdMetaform.getId());
+        List<EmailNotification> list = testBuilder.metaformAdmin.emailNotifications().listEmailNotifications(createdMetaform.getId());
 
         Assertions.assertEquals(2, list.size());
 
