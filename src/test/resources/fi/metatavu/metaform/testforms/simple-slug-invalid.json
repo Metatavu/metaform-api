@@ -1,0 +1,17 @@
+{
+  "title": "Simple",
+  "slug": "INVALID-slug-0",
+  "allowDrafts": true,
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        }
+      ]
+    }
+  ]
+}

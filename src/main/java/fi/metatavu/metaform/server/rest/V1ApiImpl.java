@@ -72,6 +72,8 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
   private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
+  private static final String INVALID_METAFORM_SLUG = "Invalid Metaform slug";
+  private static final String DUPLICATED_METAFORM_SLUG = "Duplicated Metaform slug";
 
   @Inject
   private Logger logger;
@@ -258,7 +260,16 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       }
     }
 
-    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), data);
+    String slug = payload.getSlug();
+    if (slug != null) {
+      if (!metaformController.validateSlug(slug)) {
+        return Response.status(409).entity(INVALID_METAFORM_SLUG).build();
+      } else if (!metaformController.isSlugUnique(null, slug)) {
+        return Response.status(409).entity(DUPLICATED_METAFORM_SLUG).build();
+      }
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), slug, data);
     updateMetaformPermissionGroups(metaform.getSlug(), payload);
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
@@ -992,6 +1003,15 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return validationResponse;
     }
 
+    String slug = payload.getSlug();
+    if (slug == null) {
+      slug = metaform.getSlug();
+    } else if (!metaformController.validateSlug(slug)) {
+      return Response.status(409).entity(INVALID_METAFORM_SLUG).build();
+    } else if (!metaformController.isSlugUnique(metaformId, slug)) {
+      return Response.status(409).entity(DUPLICATED_METAFORM_SLUG).build();
+    }
+
     fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;
     if (payload.getExportThemeId() != null) {
       exportTheme = exportThemeController.findExportTheme(payload.getExportThemeId());
@@ -1000,9 +1020,9 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       }
     }
 
-    updateMetaformPermissionGroups(metaform.getSlug(), payload);
+    updateMetaformPermissionGroups(slug, payload);
 
-    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous, slug)));
   }
 
   @Override

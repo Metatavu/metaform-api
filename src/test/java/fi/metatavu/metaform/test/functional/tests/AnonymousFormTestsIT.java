@@ -66,7 +66,7 @@ public class AnonymousFormTestsIT extends AbstractIntegrationTest {
   public void testAnonymousUpdateForm() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
       Metaform metaform = testBuilder.metaformAdmin().metaforms().createFromJsonFile("simple");
-      testBuilder.anon().metaforms().assertUpdateFailStatus(403, metaform);
+      testBuilder.anon().metaforms().assertUpdateFailStatus(403, metaform.getId(), metaform);
     }
   }
 

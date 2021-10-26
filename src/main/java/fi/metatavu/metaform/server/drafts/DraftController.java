@@ -68,7 +68,7 @@ public class DraftController {
   /**
    * Deletes an draft
    * 
-   * @param theme theme to be deleted
+   * @param draft draft to be deleted
    */
   public void deleteDraft(Draft draft) {
     draftDAO.delete(draft);
