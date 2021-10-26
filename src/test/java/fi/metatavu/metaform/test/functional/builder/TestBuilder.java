@@ -26,109 +26,22 @@ import static org.junit.Assert.assertNotNull;
  * @author Antti Leppä
  */
 public class TestBuilder extends AbstractTestBuilder<ApiClient> {
+
   private Logger logger = LoggerFactory.getLogger(TestBuilder.class);
-
-  private TestBuilderAuthentication admin;
-  private TestBuilderAuthentication metaformSuper;
-  private TestBuilderAuthentication test1, test2, test3;
   private TestBuilderAuthentication anonymousToken;
-  private TestBuilderAuthentication anon;
-
   private final String serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String.class);
   private static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";
   protected static final String DEFAULT_UI_CLIENT_ID = "ui";
   protected static final String REALM_1 = "test-1";
 
-
-  /**
-   * Returns admin user instance of test builder authentication
-   *
-   * @return admin user instance of test builder authentication
-   * @throws IOException thrown on communication errors
-   */
-  public TestBuilderAuthentication metaformAdmin() throws IOException {
-    if (admin != null) {
-      return admin;
-    }
-
-    return admin = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
-      DEFAULT_UI_CLIENT_ID, "metaform-admin", "test", DEFAULT_UI_CLIENT_SECRET));
-  }
-
-  /**
-   * Returns super user instance of test builder authentication
-   *
-   * @return super user instance of test builder authentication
-   * @throws IOException thrown on communication errors
-   */
-  public TestBuilderAuthentication metaformSuper() throws IOException {
-    if (metaformSuper != null) {
-      return metaformSuper;
-    }
-
-    return metaformSuper = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
-      DEFAULT_UI_CLIENT_ID, "metaform-super", "test", DEFAULT_UI_CLIENT_SECRET));
-  }
-
-  /**
-   * Returns test1 user instance of test builder authentication
-   *
-   * @return test1 user instance of test builder authentication
-   * @throws IOException thrown on communication errors
-   */
-  public TestBuilderAuthentication test1() throws IOException {
-    if (test1 != null) {
-      return test1;
-    }
-
-    return test1 = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
-      DEFAULT_UI_CLIENT_ID, "test1.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
-  }
-
-  /**
-   * Returns test2 user instance of test builder authentication
-   *
-   * @return test2 user instance of test builder authentication
-   * @throws IOException thrown on communication errors
-   */
-  public TestBuilderAuthentication test2() throws IOException {
-    if (test2 != null) {
-      return test2;
-    }
-
-    return test2 = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
-      DEFAULT_UI_CLIENT_ID, "test2.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
-  }
-
-  /**
-   * Returns test3 user instance of test builder authentication
-   *
-   * @return test3 user instance of test builder authentication
-   * @throws IOException thrown on communication errors
-   */
-  public TestBuilderAuthentication test3() throws IOException {
-    if (test3 != null) {
-      return test3;
-    }
-
-    return test3 = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
-      DEFAULT_UI_CLIENT_ID, "test3.realm1", "test", DEFAULT_UI_CLIENT_SECRET));
-  }
-
-  /**
-   * Returns anonymous user instance of test builder authentication
-   *
-   * @return anonymous user instance of test builder authentication
-   * @throws IOException thrown on communication errors
-   */
-  public TestBuilderAuthentication anon() throws IOException {
-    if (anon != null) {
-      return anon;
-    }
-
-    return anon = new TestBuilderAuthentication(this, new KeycloakAccessTokenProvider(serverUrl, REALM_1,
-      DEFAULT_UI_CLIENT_ID, "anonymous", "anonymous", DEFAULT_UI_CLIENT_SECRET));
-  }
+  public TestBuilderAuthentication metaformAdmin = createTestBuilderAuthentication("metaform-admin", "test");
+  public TestBuilderAuthentication metaformSuper = createTestBuilderAuthentication("metaform-super", "test");
+  public TestBuilderAuthentication test1 = createTestBuilderAuthentication("test1.realm1", "test");
+  public TestBuilderAuthentication test2 = createTestBuilderAuthentication("test2.realm1", "test");
+  public TestBuilderAuthentication test3 = createTestBuilderAuthentication("test3.realm1", "test");
+  public TestBuilderAuthentication answerer1 = createTestBuilderAuthentication("answerer-1", "test");
+  public TestBuilderAuthentication answerer2 = createTestBuilderAuthentication("answerer-2", "test");
+  public TestBuilderAuthentication anon = createTestBuilderAuthentication("anonymous", "anonymous");
 
   /**
    * Returns anonymous token auth
@@ -172,4 +85,21 @@ public class TestBuilder extends AbstractTestBuilder<ApiClient> {
     }
     return null;
   }
+
+  /**
+   * Creates test builder authentication
+   *
+   * @param username username
+   * @param password password
+   * @return created test builder authentication
+   */
+  private TestBuilderAuthentication createTestBuilderAuthentication(String username, String password) {
+    try {
+      KeycloakAccessTokenProvider accessTokenProvider = new KeycloakAccessTokenProvider(serverUrl, REALM_1, DEFAULT_UI_CLIENT_ID, username, password, DEFAULT_UI_CLIENT_SECRET);
+      return new TestBuilderAuthentication(this, accessTokenProvider);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }

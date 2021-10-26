@@ -93,10 +93,10 @@ public class MetaformController {
    * @param data form JSON
    * @return Metaform
    */
-  public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, String data) {
+  public Metaform createMetaform(ExportTheme exportTheme, Boolean allowAnonymous, String title, String slug, String data) {
     UUID id = UUID.randomUUID();
-    String slug = createSlug(title);
-    return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);    
+    slug = slug == null ? createSlug(title) : slug;
+    return metaformDAO.create(id, slug, exportTheme, allowAnonymous, data);
   }
 
   /**
@@ -115,7 +115,7 @@ public class MetaformController {
    * @return list of Metaforms
    */
   public List<Metaform> listMetaforms() {
-     return metaformDAO.listAll();
+    return metaformDAO.listAll();
   }
   
   /**
@@ -123,13 +123,15 @@ public class MetaformController {
    * 
    * @param metaform Metaform
    * @param data form JSON
-   * @param allowAnonymous allow anonymous 
+   * @param allowAnonymous allow anonymous
+   * @param slug slug
    * @return Updated Metaform
    */
-  public Metaform updateMetaform(Metaform metaform, ExportTheme exportTheme, String data, Boolean allowAnonymous) {
+  public Metaform updateMetaform(Metaform metaform, ExportTheme exportTheme, String data, Boolean allowAnonymous, String slug) {
     metaformDAO.updateData(metaform, data);
     metaformDAO.updateAllowAnonymous(metaform, allowAnonymous);
     metaformDAO.updateExportTheme(metaform, exportTheme);
+    metaformDAO.updateSlug(metaform, slug);
     return metaform;
   }
 
@@ -165,6 +167,27 @@ public class MetaformController {
       
       count++;
     } while (true);
+  }
+
+  /**
+   * Validate a slug for Metaform
+   *
+   * @param slug slug
+   * @return boolean result for validation
+   */
+  public boolean validateSlug(String slug) {
+    return slug.matches("^[a-z0-9]+(?:[-, _][a-z0-9]+)*$");
+  }
+
+  /**
+   * Unique check for metaform slug
+   *
+   * @param slug slug
+   * @return boolean result for unique check
+   */
+  public boolean isSlugUnique(UUID metaformId, String slug) {
+    Metaform foundMetaform = metaformDAO.findBySlug(slug);
+    return foundMetaform == null || foundMetaform.getId() == metaformId;
   }
 
   /**

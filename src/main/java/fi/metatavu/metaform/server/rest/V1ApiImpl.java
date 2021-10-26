@@ -17,7 +17,6 @@ import fi.metatavu.metaform.server.metaforms.MetaformController;
 import fi.metatavu.metaform.server.metaforms.ReplyController;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.pdf.PdfRenderException;
-import fi.metatavu.metaform.server.persistence.model.Draft;
 import fi.metatavu.metaform.server.rest.translate.*;
 import fi.metatavu.metaform.server.script.FormRuntimeContext;
 import fi.metatavu.metaform.server.script.ScriptController;
@@ -27,7 +26,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
 import org.keycloak.authorization.client.util.HttpResponseException;
@@ -42,7 +40,6 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -58,12 +55,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   private static final String THEME_DOES_NOT_EXIST = "Theme %s does not exist";
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES = "You are not allowed to update themes";
 
-  private static final String USER_POLICY_NAME = "user";
-  private static final String OWNER_POLICY_NAME = "owner";
-  private static final String METAFORM_ADMIN_POLICY_NAME = "metaform-admin";
-  private static final String REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s";
-  private static final String REPLY_GROUP_NAME_TEMPLATE = "%s:%s:%s";
-
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS = "You are not allowed to update Metaforms";
   private static final String ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE = "Anonymous users are not allowed to list Metaforms";
   private static final String ANONYMOUS_USERS_FIND_METAFORM_MESSAGE = "Anonymous users are not allowed to find Metaforms";
@@ -72,6 +63,8 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   private static final String ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform";
   private static final String DRAFTS_NOT_ALLOWED = "Draft are not allowed on this Metaform";
   private static final String YOU_ARE_NOT_ALLOWE_TO_DELETE_LOGS = "You are not allowed to delete logs";
+  private static final String INVALID_METAFORM_SLUG = "Invalid Metaform slug";
+  private static final String DUPLICATED_METAFORM_SLUG = "Duplicated Metaform slug";
 
   @Inject
   private Logger logger;
@@ -133,7 +126,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   @Inject
   private SystemSettingController systemSettingController;
 
-
   @Override
   public Response createDraft(UUID metaformId, @Valid fi.metatavu.metaform.api.spec.model.Draft payload) {
     UUID loggedUserId = getLoggerUserId();
@@ -151,8 +143,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createForbidden(DRAFTS_NOT_ALLOWED);
     }
 
-    boolean anonymous = !isRealmUser();
-    if (!metaform.getAllowAnonymous() && anonymous) {
+    if (!metaform.getAllowAnonymous() && isAnonymous()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
 
@@ -258,7 +249,16 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       }
     }
 
-    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), data);
+    String slug = payload.getSlug();
+    if (slug != null) {
+      if (!metaformController.validateSlug(slug)) {
+        return Response.status(409).entity(INVALID_METAFORM_SLUG).build();
+      } else if (!metaformController.isSlugUnique(null, slug)) {
+        return Response.status(409).entity(DUPLICATED_METAFORM_SLUG).build();
+      }
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), slug, data);
     updateMetaformPermissionGroups(metaform.getSlug(), payload);
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
@@ -275,7 +275,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    boolean anonymous = !isRealmUser();
+    boolean anonymous = isAnonymous();
     if (!metaform.getAllowAnonymous() && anonymous) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
@@ -648,7 +648,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    if (!metaform.getAllowAnonymous() && !isRealmUser()) {
+    if (!metaform.getAllowAnonymous() && isAnonymous()) {
       fi.metatavu.metaform.server.persistence.model.Reply reply = replyId != null ? replyController.findReplyById(replyId) : null;
       if (reply == null || !metaform.getId().equals(reply.getMetaform().getId()) || ownerKey == null) {
         return createForbidden(ANONYMOUS_USERS_FIND_METAFORM_MESSAGE);
@@ -809,8 +809,6 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
   @Override
   public Response replyExport(UUID metaformId, UUID replyId, @NotNull String format) {
-    // TODO: Permission check
-
     Locale locale = getLocale();
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
@@ -870,8 +868,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createForbidden(DRAFTS_NOT_ALLOWED);
     }
 
-    boolean anonymous = !isRealmUser();
-    if (!metaform.getAllowAnonymous() && anonymous) {
+    if (!metaform.getAllowAnonymous() && isAnonymous()) {
       return createForbidden(ANONYMOUS_USERS_MESSAGE);
     }
 
@@ -992,6 +989,15 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return validationResponse;
     }
 
+    String slug = payload.getSlug();
+    if (slug == null) {
+      slug = metaform.getSlug();
+    } else if (!metaformController.validateSlug(slug)) {
+      return Response.status(409).entity(INVALID_METAFORM_SLUG).build();
+    } else if (!metaformController.isSlugUnique(metaformId, slug)) {
+      return Response.status(409).entity(DUPLICATED_METAFORM_SLUG).build();
+    }
+
     fi.metatavu.metaform.server.persistence.model.ExportTheme exportTheme = null;
     if (payload.getExportThemeId() != null) {
       exportTheme = exportThemeController.findExportTheme(payload.getExportThemeId());
@@ -1000,9 +1006,9 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       }
     }
 
-    updateMetaformPermissionGroups(metaform.getSlug(), payload);
+    updateMetaformPermissionGroups(slug, payload);
 
-    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous)));
+    return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous, slug)));
   }
 
   @Override

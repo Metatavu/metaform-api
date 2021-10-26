@@ -49,6 +49,7 @@ import fi.metatavu.metaform.server.keycloak.KeycloakConfigProvider;
 public abstract class AbstractApi {
 
   protected static final String USER_ROLE = "user";
+  protected static final String ANSWERER_ROLE = "answerer";
   protected static final String ADMIN_ROLE = "metaform-admin";
   protected static final String SUPER_ROLE = "metaform-super";
   protected static final String VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies";
@@ -264,8 +265,17 @@ public abstract class AbstractApi {
   }
 
   /**
+   * Returns whether logged user is anonymous
+   *
+   * @return whether logged user is anonymous
+   */
+  protected boolean isAnonymous() {
+    return !hasRealmRole(ANSWERER_ROLE, USER_ROLE, ADMIN_ROLE, SUPER_ROLE);
+  }
+
+  /**
    * Returns whether logged user is realm user
-   * 
+   *
    * @return whether logged user is realm user
    */
   protected boolean isRealmUser() {

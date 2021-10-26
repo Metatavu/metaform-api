@@ -35,13 +35,13 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-script");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-script");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "Test text value");
-      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
-      testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+      Reply replyWithData = testBuilder.test1.replies().createReplyWithData(replyData);
+      testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
 
       verify(1, postRequestedFor(externalMockURL).withRequestBody(containing("Text value: Test text value")));
 
@@ -61,20 +61,20 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-pdf-script");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-pdf-script");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
 
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
-      testBuilder.metaformAdmin().metaforms().updateMetaform(newMetaform.getId(), newMetaform);
+      testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "PDF text value");
-      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
-      testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+      Reply replyWithData = testBuilder.test1.replies().createReplyWithData(replyData);
+      testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
 
       List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
       assertEquals(1, serveEvents.size());
@@ -96,19 +96,19 @@ public class ScriptTestsIT extends AbstractIntegrationTest {
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin().metaforms().readMetaform("simple-pdf-base64-script");
-      Metaform metaform = testBuilder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-pdf-base64-script");
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      ExportTheme theme = testBuilder.metaformSuper().exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper().exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
+      testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
-      testBuilder.metaformAdmin().metaforms().updateMetaform(newMetaform.getId(), newMetaform);
+      testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "PDF text value");
-      Reply replyWithData = testBuilder.test1().replies().createReplyWithData(replyData);
-      testBuilder.test1().replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
+      Reply replyWithData = testBuilder.test1.replies().createReplyWithData(replyData);
+      testBuilder.test1.replies().create(metaform.getId(), null, ReplyMode.REVISION.toString(), replyWithData);
 
       List<ServeEvent> serveEvents = WireMock.getAllServeEvents();
       assertEquals(1, serveEvents.size());

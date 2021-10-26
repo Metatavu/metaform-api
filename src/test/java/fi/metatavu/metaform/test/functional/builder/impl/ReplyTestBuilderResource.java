@@ -224,6 +224,24 @@ public class ReplyTestBuilderResource extends ApiTestBuilderResource<Reply, Repl
   }
 
   /**
+   * Asserts create simple reply status fails with given status code
+   *
+   * @param expectedStatus expected status code
+   * @param metaform metaform id
+   * @param value value
+   * @param replyMode replyMode
+   */
+  public void assertCreateSimpleReplyFail(int expectedStatus, Metaform metaform, String value, ReplyMode replyMode) {
+    try {
+      createSimpleReply(metaform, value, replyMode);
+      fail(String.format("Expected find to fail with status %d", expectedStatus));
+    } catch (ClientException e) {
+      assertEquals(expectedStatus, e.getStatusCode());
+    }
+  }
+
+
+  /**
    * Asserts find status fails with given status code
    *
    * @param expectedStatus expected status code

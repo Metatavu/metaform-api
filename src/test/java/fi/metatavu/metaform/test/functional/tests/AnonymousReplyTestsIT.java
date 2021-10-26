@@ -12,6 +12,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * Tests for testing anonymous user reply functionality
  */
@@ -26,20 +28,38 @@ public class AnonymousReplyTestsIT extends AbstractIntegrationTest {
   @Test
   public void testAnonymousUpdateReplyOwnerKey() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform metaform1 = testBuilder.metaformAdmin().metaforms().createFromJsonFile("simple-owner-keys");
-      Metaform metaform2 = testBuilder.metaformAdmin().metaforms().createFromJsonFile("simple-owner-keys");
+      Metaform metaform1 = testBuilder.metaformAdmin.metaforms().createFromJsonFile("simple-owner-keys");
+      Metaform metaform2 = testBuilder.metaformAdmin.metaforms().createFromJsonFile("simple-owner-keys");
 
-      Reply reply1 = testBuilder.metaformAdmin().replies().createSimpleReply(metaform1, "TEST", ReplyMode.REVISION);
-      Reply reply2 = testBuilder.metaformAdmin().replies().createSimpleReply(metaform1, "TEST", ReplyMode.REVISION);
+      Reply reply1 = testBuilder.metaformAdmin.replies().createSimpleReply(metaform1, "TEST", ReplyMode.REVISION);
+      Reply reply2 = testBuilder.metaformAdmin.replies().createSimpleReply(metaform1, "TEST", ReplyMode.REVISION);
 
-      testBuilder.anon().replies().updateReply(metaform1.getId(), reply1.getId(), reply1, reply1.getOwnerKey());
+      testBuilder.anon.replies().updateReply(metaform1.getId(), reply1.getId(), reply1, reply1.getOwnerKey());
 
-      testBuilder.anon().replies().assertUpdateFailStatus(404, metaform2.getId(), reply1, reply1.getOwnerKey());
-      testBuilder.anon().replies().assertUpdateFailStatus(404, metaform2.getId(), reply1, null);
-      testBuilder.anon().replies().assertUpdateFailStatus(403, metaform1.getId(), reply2, reply1.getOwnerKey());
-      testBuilder.anon().replies().assertUpdateFailStatus(403, metaform1.getId(), reply1, reply2.getOwnerKey());
-      testBuilder.anon().replies().assertUpdateFailStatus(403, metaform1.getId(), reply1, null);
+      testBuilder.anon.replies().assertUpdateFailStatus(404, metaform2.getId(), reply1, reply1.getOwnerKey());
+      testBuilder.anon.replies().assertUpdateFailStatus(404, metaform2.getId(), reply1, null);
+      testBuilder.anon.replies().assertUpdateFailStatus(403, metaform1.getId(), reply2, reply1.getOwnerKey());
+      testBuilder.anon.replies().assertUpdateFailStatus(403, metaform1.getId(), reply1, reply2.getOwnerKey());
+      testBuilder.anon.replies().assertUpdateFailStatus(403, metaform1.getId(), reply1, null);
     }
-
   }
+
+  @Test
+  public void testAllowAnonymousReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().createFromJsonFile("simple-allow-anonymous");
+      Reply reply = testBuilder.anon.replies().createSimpleReply(metaform, "TEST", ReplyMode.REVISION);
+      assertNotNull(reply);
+      testBuilder.metaformAdmin.replies().delete(metaform.getId(), reply, null);
+    }
+  }
+
+  @Test
+  public void testDisallowAnonymousReply() throws Exception {
+    try (TestBuilder testBuilder = new TestBuilder()) {
+      Metaform metaform = testBuilder.metaformAdmin.metaforms().createFromJsonFile("simple");
+      testBuilder.anon.replies().assertCreateSimpleReplyFail(403, metaform, "TEST", ReplyMode.REVISION);
+    }
+  }
+
 }
