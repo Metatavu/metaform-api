@@ -28,8 +28,8 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testCreateMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+      Metaform parsedMetaform1 = builder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform1 = builder.metaformAdmin.metaforms().create(parsedMetaform1);
 
       assertNotNull(metaform1);
       assertNotNull(metaform1.getId());
@@ -43,8 +43,8 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
       assertEquals("Text field", metaform1.getSections()[0].getFields()[0].getTitle());
       assertEquals(true, metaform1.getAllowDrafts());
 
-      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
-      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
+      Metaform parsedMetaform2 = builder.metaformAdmin.metaforms().readMetaform("simple-slug");
+      Metaform metaform2 = builder.metaformAdmin.metaforms().create(parsedMetaform2);
 
       assertNotNull(metaform2);
       assertNotNull(metaform2.getId());
@@ -63,29 +63,29 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testCreateInvalidSlugMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-slug-invalid");
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-slug-invalid");
 
-      builder.metaformAdmin().metaforms().assertCreateFailStatus(409, parsedMetaform);
+      builder.metaformAdmin.metaforms().assertCreateFailStatus(409, parsedMetaform);
     }
   }
 
   @Test
   public void testCreateDuplicatedSlugMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
-      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+      Metaform parsedMetaform1 = builder.metaformAdmin.metaforms().readMetaform("simple-slug");
+      Metaform metaform1 = builder.metaformAdmin.metaforms().create(parsedMetaform1);
 
-      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
+      Metaform parsedMetaform2 = builder.metaformAdmin.metaforms().readMetaform("simple-slug");
 
-      builder.metaformAdmin().metaforms().assertCreateFailStatus(409, parsedMetaform2);
+      builder.metaformAdmin.metaforms().assertCreateFailStatus(409, parsedMetaform2);
     }
   }
 
   @Test
   public void testCreateMetaformScript() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple-script");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple-script");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
       assertNotNull(metaform);
       assertNotNull(metaform.getId());
@@ -105,10 +105,10 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testFindMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform = builder.metaformAdmin().metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = builder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform = builder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      Metaform foundMetaform = builder.metaformAdmin().metaforms().findMetaform(metaform.getId(), null, null);
+      Metaform foundMetaform = builder.metaformAdmin.metaforms().findMetaform(metaform.getId(), null, null);
       assertEquals(metaform.toString(), foundMetaform.toString());
     }
   }
@@ -116,13 +116,13 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testListMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      assertEquals(0, builder.metaformAdmin().metaforms().list().length);
+      assertEquals(0, builder.metaformAdmin.metaforms().list().length);
 
-      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple");
+      Metaform parsedMetaform1 = builder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform parsedMetaform2 = builder.metaformAdmin.metaforms().readMetaform("simple");
 
-      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
-      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
+      Metaform metaform1 = builder.metaformAdmin.metaforms().create(parsedMetaform1);
+      Metaform metaform2 = builder.metaformAdmin.metaforms().create(parsedMetaform2);
 
       Metaform metaform1Modified = new Metaform(metaform1.getId(), metaform1.getReplyStrategy(), metaform1.getExportThemeId(), metaform1.getAllowAnonymous(), metaform1.getAllowDrafts(),
         metaform1.getAllowReplyOwnerKeys(), metaform1.getAllowInvitations(), metaform1.getAutosave(), "first", "first-slug-0", metaform1.getSections(), metaform1.getFilters(),
@@ -131,10 +131,10 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
         metaform2.getAllowReplyOwnerKeys(), metaform2.getAllowInvitations(), metaform2.getAutosave(), "second", "second-slug-0", metaform2.getSections(), metaform2.getFilters(),
         metaform2.getScripts());
 
-      builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), metaform1Modified);
-      builder.metaformAdmin().metaforms().updateMetaform(metaform2.getId(), metaform2Modified);
+      builder.metaformAdmin.metaforms().updateMetaform(metaform1.getId(), metaform1Modified);
+      builder.metaformAdmin.metaforms().updateMetaform(metaform2.getId(), metaform2Modified);
 
-      List<Metaform> list = Arrays.asList(builder.metaformAdmin().metaforms().list().clone());
+      List<Metaform> list = Arrays.asList(builder.metaformAdmin.metaforms().list().clone());
 
       list.sort(Comparator.comparing(Metaform::getTitle));
 
@@ -146,11 +146,11 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testUpdateMetaform() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+      Metaform parsedMetaform1 = builder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform metaform1 = builder.metaformAdmin.metaforms().create(parsedMetaform1);
 
-      Metaform updatePayload = builder.metaformAdmin().metaforms().readMetaform("tbnc");
-      Metaform updatedMetaform = builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), updatePayload);
+      Metaform updatePayload = builder.metaformAdmin.metaforms().readMetaform("tbnc");
+      Metaform updatedMetaform = builder.metaformAdmin.metaforms().updateMetaform(metaform1.getId(), updatePayload);
 
       assertEquals(metaform1.getId(), updatedMetaform.getId());
       assertEquals(1, updatedMetaform.getSections().length);
@@ -166,11 +166,11 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testUpdateMetaformNullSlug() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
-      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+      Metaform parsedMetaform1 = builder.metaformAdmin.metaforms().readMetaform("simple-slug");
+      Metaform metaform1 = builder.metaformAdmin.metaforms().create(parsedMetaform1);
 
-      Metaform updatePayload = builder.metaformAdmin().metaforms().readMetaform("simple");
-      Metaform updatedMetaform = builder.metaformAdmin().metaforms().updateMetaform(metaform1.getId(), updatePayload);
+      Metaform updatePayload = builder.metaformAdmin.metaforms().readMetaform("simple");
+      Metaform updatedMetaform = builder.metaformAdmin.metaforms().updateMetaform(metaform1.getId(), updatePayload);
 
       assertEquals(metaform1.getSlug(), updatedMetaform.getSlug());
     }
@@ -179,15 +179,15 @@ public class MetaformTestsIT extends AbstractIntegrationTest {
   @Test
   public void testUpdateMetaformDuplicatedSlug() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      Metaform parsedMetaform1 = builder.metaformAdmin().metaforms().readMetaform("simple-slug");
-      Metaform metaform1 = builder.metaformAdmin().metaforms().create(parsedMetaform1);
+      Metaform parsedMetaform1 = builder.metaformAdmin.metaforms().readMetaform("simple-slug");
+      Metaform metaform1 = builder.metaformAdmin.metaforms().create(parsedMetaform1);
 
-      Metaform parsedMetaform2 = builder.metaformAdmin().metaforms().readMetaform("simple-slug2");
-      Metaform metaform2 = builder.metaformAdmin().metaforms().create(parsedMetaform2);
+      Metaform parsedMetaform2 = builder.metaformAdmin.metaforms().readMetaform("simple-slug2");
+      Metaform metaform2 = builder.metaformAdmin.metaforms().create(parsedMetaform2);
 
-      Metaform updatePayload = builder.test1().metaforms().readMetaform("simple-slug2");
+      Metaform updatePayload = builder.test1.metaforms().readMetaform("simple-slug2");
 
-      builder.metaformAdmin().metaforms().assertUpdateFailStatus(409, metaform1.getId(), updatePayload);
+      builder.metaformAdmin.metaforms().assertUpdateFailStatus(409, metaform1.getId(), updatePayload);
     }
   }
 }

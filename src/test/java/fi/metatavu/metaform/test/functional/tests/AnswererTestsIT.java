@@ -46,7 +46,7 @@ public class AnswererTestsIT extends AbstractIntegrationTest {
   public void testAnswererUpdateForm() throws Exception {
     try (TestBuilder testBuilder = new TestBuilder()) {
       Metaform metaform = testBuilder.metaformAdmin.metaforms().createFromJsonFile("simple");
-      testBuilder.answerer1.metaforms().assertUpdateFailStatus(403, metaform);
+      testBuilder.answerer1.metaforms().assertUpdateFailStatus(403, metaform.getId(), metaform);
     }
   }
 
