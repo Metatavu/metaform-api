@@ -72,6 +72,7 @@ public class AttachmentReplyFieldItemDAO extends AbstractDAO<AttachmentReplyFiel
     Root<AttachmentReplyFieldItem> root = criteria.from(AttachmentReplyFieldItem.class);
     criteria.select(root);
     criteria.where(criteriaBuilder.equal(root.get(AttachmentReplyFieldItem_.attachment), attachment));
+    criteria.groupBy(root.get(AttachmentReplyFieldItem_.attachment));
     
     return entityManager.createQuery(criteria).getSingleResult();
   }
