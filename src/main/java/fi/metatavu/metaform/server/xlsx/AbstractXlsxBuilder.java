@@ -433,7 +433,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    * @throws IOException thrown when writing fails
    */
   public void write(OutputStream stream) throws IOException {
-    workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
     workbook.write(stream);
   }
 
