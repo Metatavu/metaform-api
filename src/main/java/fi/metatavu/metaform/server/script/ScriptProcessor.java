@@ -51,10 +51,9 @@ public class ScriptProcessor {
       
       Value bindings = scriptingContext.getBindings(script.getLanguage());
 
-      System.out.println("getXlsxServices: " + formScriptBinding.getXlsxServices());
-
       bindings.putMember("XMLHttpRequest", XMLHttpRequest.class);
       bindings.putMember("form", formScriptBinding);
+      bindings.putMember("formXlsxServices", formScriptBinding.getXlsxServices());
       bindings.putMember("args", scriptArgs);
       
       Source source = Source.newBuilder(script.getLanguage(), script.getContent(), script.getName()).build();
