@@ -10,11 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.poi.common.usermodel.HyperlinkType;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +29,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
   private Map<String, Cell> cells;
   private Map<String, CellSource> cellSources;
   private CellStyle dateTimeCellStyle;
+  private FormulaEvaluator formulaEvaluator;
   
   /**
    * Constructor
@@ -48,6 +45,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
 
     CreationHelper createHelper = workbook.getCreationHelper();
 
+    this.formulaEvaluator = createHelper.createFormulaEvaluator();
     this.dateTimeCellStyle = workbook.createCellStyle();
     this.dateTimeCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("DD.MM.YYYY HH:MM"));
     
@@ -419,6 +417,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
     Cell cell = findOrCreateCell(sheetId, rowNumber, columnNumber);
     if (cell != null) {
       cell.setCellFormula(formula);
+      this.formulaEvaluator.evaluateFormulaCell(cell);
     }
     
     setCellSource(sheetId, rowNumber, columnNumber, cellSource);
