@@ -29,7 +29,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
   private Map<String, Cell> cells;
   private Map<String, CellSource> cellSources;
   private CellStyle dateTimeCellStyle;
-  private FormulaEvaluator formulaEvaluator;
   
   /**
    * Constructor
@@ -45,7 +44,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
 
     CreationHelper createHelper = workbook.getCreationHelper();
 
-    this.formulaEvaluator = createHelper.createFormulaEvaluator();
     this.dateTimeCellStyle = workbook.createCellStyle();
     this.dateTimeCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("DD.MM.YYYY HH:MM"));
     
@@ -417,11 +415,6 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
     Cell cell = findOrCreateCell(sheetId, rowNumber, columnNumber);
     if (cell != null) {
       cell.setCellFormula(formula);
-      try {
-        this.formulaEvaluator.evaluateFormulaCell(cell);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
     }
     
     setCellSource(sheetId, rowNumber, columnNumber, cellSource);

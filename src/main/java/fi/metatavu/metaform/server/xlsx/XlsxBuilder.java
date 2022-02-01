@@ -14,7 +14,7 @@ public class XlsxBuilder extends AbstractXlsxBuilder<SXSSFWorkbook, SXSSFSheet> 
    * Constructor
    */
   public XlsxBuilder() {
-    super(new SXSSFWorkbook());
+    super(new SXSSFWorkbook(10000));
   }
 
 }
