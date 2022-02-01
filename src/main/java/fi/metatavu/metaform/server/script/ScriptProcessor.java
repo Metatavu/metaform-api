@@ -10,6 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class ScriptProcessor {
    * @return processed output
    */
   public String processScript(RunnableScript script, Map<String, String> params) {
-    try (Context scriptingContext = Context.create(script.getLanguage())) {
+    try (Context scriptingContext = createContext(script)) {
       Map<String, String> scriptArgs = new HashMap<>();
       
       params.keySet().stream().forEach(param -> {
@@ -51,12 +52,13 @@ public class ScriptProcessor {
       
       Value bindings = scriptingContext.getBindings(script.getLanguage());
 
-      bindings.putMember("polyglot.js.allowAllAccess", true);
       bindings.putMember("XMLHttpRequest", XMLHttpRequest.class);
       bindings.putMember("form", formScriptBinding);
       bindings.putMember("args", scriptArgs);
       
-      Source source = Source.newBuilder(script.getLanguage(), script.getContent(), script.getName()).build();
+      Source source = Source
+        .newBuilder(script.getLanguage(), script.getContent(), script.getName())
+        .build();
   
       Value returnValue = scriptingContext.eval(source);
       
@@ -69,6 +71,18 @@ public class ScriptProcessor {
     }
     
     return "";
+  }
+
+  private Context createContext(RunnableScript script) {
+    return Context.newBuilder(script.getLanguage())
+      .allowHostAccess(HostAccess.ALL)
+      .allowAllAccess(true)
+      .allowCreateThread(true)
+      .allowHostClassLoading(true)
+      .allowIO(true)
+      .allowNativeAccess(true)
+      .allowCreateProcess(true)
+      .build();
   }
   
   
