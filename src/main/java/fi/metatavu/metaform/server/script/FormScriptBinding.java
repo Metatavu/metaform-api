@@ -5,6 +5,7 @@ import fi.metatavu.metaform.api.spec.model.Reply;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 /**
@@ -12,7 +13,7 @@ import javax.inject.Inject;
  *
  * @author Antti Leppä
  */
-@ApplicationScoped
+@RequestScoped
 public class FormScriptBinding {
   
   @Inject
