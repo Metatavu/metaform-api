@@ -417,7 +417,11 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
     Cell cell = findOrCreateCell(sheetId, rowNumber, columnNumber);
     if (cell != null) {
       cell.setCellFormula(formula);
-      this.formulaEvaluator.evaluateFormulaCell(cell);
+      try {
+        this.formulaEvaluator.evaluateFormulaCell(cell);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     
     setCellSource(sheetId, rowNumber, columnNumber, cellSource);
