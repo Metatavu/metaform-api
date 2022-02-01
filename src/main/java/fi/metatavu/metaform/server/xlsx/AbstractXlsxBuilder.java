@@ -76,7 +76,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
   /**
    * Returns sheet by sheetId
    * 
-   * @param sheetId sheet id
+   * @param sheetName sheet name
    * @return sheet or null if not found
    */
   public S getSheetByName(String sheetName) {
@@ -433,6 +433,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    * @throws IOException thrown when writing fails
    */
   public void write(OutputStream stream) throws IOException {
+    workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
     workbook.write(stream);
   }
 
