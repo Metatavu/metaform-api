@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import java.util.*;
 
 /**
- * Metaform controller
+ * Metaform version controller
  * 
  * @author Tianxing Wu
  */
