@@ -517,6 +517,10 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
+    if (!foundMetaformVersion.getMetaform().getId().equals(foundMetaform.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
     metaformVersionController.delete(foundMetaformVersion);
 
     return createNoContent();
@@ -729,6 +733,10 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
     fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(versionId);
     if (foundMetaformVersion == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    if (!foundMetaformVersion.getMetaform().getId().equals(foundMetaform.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 

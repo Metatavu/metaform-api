@@ -12,6 +12,7 @@ import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.util.*
 
 @QuarkusTest
 @QuarkusTestResource.List(value = [QuarkusTestResource(MysqlResource::class), QuarkusTestResource(KeycloakResource::class)])
@@ -70,6 +71,7 @@ class VersionTestsIT : AbstractIntegrationTest() {
                     )
             )
             testBuilder.metaformAdmin.metaformVersions().assertCount(metaform.id, 2)
+            testBuilder.metaformAdmin.metaformVersions().assertListFailStatus(404, UUID.randomUUID())
             testBuilder.test1.metaformVersions().assertListFailStatus(403, metaform.id)
         }
     }
@@ -89,6 +91,7 @@ class VersionTestsIT : AbstractIntegrationTest() {
 
             val createdVersion = testBuilder.metaformAdmin.metaformVersions().create(metaform.id!!, version)
             testBuilder.test1.metaformVersions().assertFindFailStatus(403, metaform.id, createdVersion.id!!)
+            testBuilder.metaformAdmin.metaformVersions().assertFindFailStatus(404, UUID.randomUUID(), createdVersion.id)
             val foundVersion = testBuilder.metaformAdmin.metaformVersions().findVersion(metaform.id, createdVersion.id)
             testBuilder.metaformAdmin.metaformVersions().assertCount(metaform.id, 1)
 
@@ -119,6 +122,7 @@ class VersionTestsIT : AbstractIntegrationTest() {
             Assertions.assertEquals(MetaformVersionType.ARCHIVED, foundVersion.type)
             Assertions.assertEquals(versionData, foundVersion.data)
             testBuilder.test1.metaformVersions().assertDeleteFailStatus(403, metaform.id, foundVersion.id!!)
+            testBuilder.metaformAdmin.metaformVersions().assertDeleteFailStatus(404, UUID.randomUUID(), foundVersion.id)
             testBuilder.metaformAdmin.metaformVersions().delete(metaform.id, foundVersion)
 
             testBuilder.metaformAdmin.metaformVersions().assertCount(metaform.id, 0)
