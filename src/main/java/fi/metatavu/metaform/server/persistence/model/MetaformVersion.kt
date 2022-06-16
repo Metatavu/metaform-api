@@ -17,7 +17,7 @@ import javax.persistence.*
 @Table
 class MetaformVersion : Metadata() {
   @Id
-  var id: UUID? = null
+  lateinit var id: UUID
 
   @ManyToOne
   var metaform: Metaform? = null

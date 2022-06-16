@@ -507,11 +507,13 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createForbidden("You are not allowed to delete Metaforms");
     }
 
-    fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(metaformVersionId);
-    if (foundMetaformVersion == null) {
+    fi.metatavu.metaform.server.persistence.model.Metaform foundMetaform = metaformController.findMetaformById(metaformId);
+    if (foundMetaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    if (foundMetaformVersion.getMetaform().getId() != metaformId) {
+
+    fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(metaformVersionId);
+    if (foundMetaformVersion == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
@@ -720,11 +722,13 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createForbidden("You are not allowed to delete Metaforms");
     }
 
-    fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(versionId);
-    if (foundMetaformVersion == null) {
+    fi.metatavu.metaform.server.persistence.model.Metaform foundMetaform = metaformController.findMetaformById(metaformId);
+    if (foundMetaform == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    if (foundMetaformVersion.getMetaform().getId() != metaformId) {
+
+    fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(versionId);
+    if (foundMetaformVersion == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
