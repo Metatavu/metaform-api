@@ -33,7 +33,6 @@ public class MetaformVersionTranslator {
       return null;
     }
 
-//     TODO check data translation
     fi.metatavu.metaform.api.spec.model.MetaformVersion result = new fi.metatavu.metaform.api.spec.model.MetaformVersion();
     result.setCreatedAt(entity.getCreatedAt());
     result.setCreatorId(entity.creatorId);
