@@ -61,7 +61,7 @@ public class MetaformVersionTestBuilderResource extends ApiTestBuilderResource<M
     }
 
     /**
-     * Finds a metaform
+     * Finds a metaform version
      *
      * @param metaformId metaform id
      * @param versionId version id

@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import java.util.*;
 
 /**
- * Metaform controller
+ * Metaform version controller
  * 
  * @author Tianxing Wu
  */
@@ -64,9 +64,9 @@ public class MetaformVersionController {
   }
   
   /**
-   * Lists Metaforms
+   * Lists Metaform versions
    * 
-   * @return list of Metaforms
+   * @return list of Metaform versions
    */
   public List<MetaformVersion> list() {
     return metaformVersionDAO.listAll();
@@ -74,9 +74,9 @@ public class MetaformVersionController {
 
 
   /**
-   * Lists Metaforms
+   * Deletes Metaform version
    *
-   * @return list of Metaforms
+   * @param metaformVersion Metaform version
    */
   public void delete(MetaformVersion metaformVersion) {
     metaformVersionDAO.delete(metaformVersion);
