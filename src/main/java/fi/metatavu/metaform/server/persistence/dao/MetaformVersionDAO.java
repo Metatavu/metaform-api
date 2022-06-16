@@ -30,7 +30,7 @@ public class MetaformVersionDAO extends AbstractDAO<MetaformVersion> {
    * @param creatorId creator id
    * @param lastModifierId last modifier id
    *
-   * @return created Metaform
+   * @return created Metaform version
    */
   public MetaformVersion create(
     UUID id,
