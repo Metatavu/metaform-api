@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.rest.translate;
 
+
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -27,9 +28,9 @@ public class MetaformVersionTranslator {
 //     TODO check data translation
     fi.metatavu.metaform.api.spec.model.MetaformVersion result = new fi.metatavu.metaform.api.spec.model.MetaformVersion();
     result.setCreatedAt(entity.getCreatedAt());
-    result.setCreatorId(entity.getCreatorId());
+    result.setCreatorId(entity.creatorId);
     result.setModifiedAt(entity.getModifiedAt());
-    result.setLastModifierId(entity.getLastModifierId());
+    result.setLastModifierId(entity.lastModifierId);
     result.setData(entity.getData());
     result.setType(entity.getType());
     return result;
