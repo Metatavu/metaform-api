@@ -1,0 +1,77 @@
+package fi.metatavu.metaform.server.persistence.model;
+
+import fi.metatavu.metaform.api.spec.model.MetaformVersionType;
+import java.util.UUID;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import javax.persistence.*;
+
+/**
+ * JPA entity representing single Metaform version
+ * 
+ * @author Tianxing Wu
+ */
+@Entity
+@Cacheable(true)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+@Table
+public class MetaformVersion extends Metadata {
+
+  @Id
+  private UUID id;
+
+  @ManyToOne
+  private Metaform metaform;
+
+  @Enumerated(EnumType.STRING)
+  private MetaformVersionType type;
+
+  @Lob
+  @Column(nullable = false)
+  private String data;
+
+  private UUID creatorId;
+
+  private UUID lastModifierId;
+
+  @Override
+  public UUID getCreatorId() { return creatorId; }
+
+  @Override
+  public UUID getLastModifierId() { return lastModifierId; }
+
+  public UUID getId() { return this.id; }
+
+  public MetaformVersionType getType() { return type; }
+
+  public Metaform getMetaform() { return metaform; }
+
+  public String getData() { return data; }
+
+  @Override
+  public void setCreatorId(UUID creatorId) {
+    this.creatorId = creatorId;
+  }
+
+  @Override
+  public void setLastModifierId(UUID lastModifierId) {
+    this.lastModifierId = lastModifierId;
+  }
+
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
+
+  public void setType(MetaformVersionType type) {
+    this.type = type;
+  }
+
+  public void setMetaform(Metaform metaform) {
+    this.metaform = metaform;
+  }
+  public void setData(String data) {
+    this.data = data;
+  }
+
+}

@@ -11,10 +11,7 @@ import fi.metatavu.metaform.server.exporttheme.ExportThemeController;
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope;
 import fi.metatavu.metaform.server.keycloak.KeycloakAdminUtils;
 import fi.metatavu.metaform.server.logentry.AuditLogEntryController;
-import fi.metatavu.metaform.server.metaforms.FieldController;
-import fi.metatavu.metaform.server.metaforms.FieldFilters;
-import fi.metatavu.metaform.server.metaforms.MetaformController;
-import fi.metatavu.metaform.server.metaforms.ReplyController;
+import fi.metatavu.metaform.server.metaforms.*;
 import fi.metatavu.metaform.server.notifications.EmailNotificationController;
 import fi.metatavu.metaform.server.pdf.PdfRenderException;
 import fi.metatavu.metaform.server.rest.translate.*;
@@ -79,6 +76,9 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   private MetaformController metaformController;
 
   @Inject
+  private MetaformVersionController metaformVersionController;
+
+  @Inject
   private ReplyController replyController;
 
   @Inject
@@ -95,6 +95,9 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
   @Inject
   private MetaformTranslator metaformTranslator;
+
+  @Inject
+  private MetaformVersionTranslator metaformVersionTranslator;
 
   @Inject
   private ReplyTranslator replyTranslator;
@@ -261,6 +264,36 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.createMetaform(exportTheme, allowAnonymous, payload.getTitle(), slug, data);
     updateMetaformPermissionGroups(metaform.getSlug(), payload);
     return createOk(metaformTranslator.translateMetaform(metaform));
+  }
+
+  @Override
+  public Response createMetaformVersion(UUID metaformId, @Valid MetaformVersion payload) {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform foundMetaform = metaformController.findMetaformById(metaformId);
+
+    if (foundMetaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    try {
+      String formDataString = objectMapper.writeValueAsString(payload.getData());
+
+      fi.metatavu.metaform.server.persistence.model.MetaformVersion metaformVersion =
+              metaformVersionController.create(
+                      foundMetaform,
+                      payload.getType(),
+                      formDataString,
+                      getLoggerUserId()
+            );
+      return createOk(metaformVersionTranslator.translateMetaformVersion(metaformVersion));
+    } catch (JsonProcessingException e) {
+      return createBadRequest("Invalid version data");
+    }
   }
 
   @Override
@@ -469,6 +502,25 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   }
 
   @Override
+  public Response deleteMetaformVersion(UUID metaformId, UUID metaformVersionId) {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to delete Metaforms");
+    }
+
+    fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(metaformVersionId);
+    if (foundMetaformVersion == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    if (foundMetaformVersion.getMetaform().getId() != metaformId) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    metaformVersionController.delete(foundMetaformVersion);
+
+    return createNoContent();
+  }
+
+  @Override
   public Response deleteReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -663,6 +715,23 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   }
 
   @Override
+  public Response findMetaformVersion(UUID metaformId, UUID versionId) {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden("You are not allowed to delete Metaforms");
+    }
+
+    fi.metatavu.metaform.server.persistence.model.MetaformVersion foundMetaformVersion = metaformVersionController.find(versionId);
+    if (foundMetaformVersion == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    if (foundMetaformVersion.getMetaform().getId() != metaformId) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(metaformVersionTranslator.translateMetaformVersion(foundMetaformVersion));
+  }
+
+  @Override
   public Response findReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -749,6 +818,22 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeController.listExportThemes().stream()
       .map(exportThemeTranslator::translateExportTheme)
       .collect(Collectors.toList()));
+  }
+
+  @Override
+  public Response listMetaformVersions(UUID metaformId) {
+    if (!isRealmMetaformAdmin()) {
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
+    }
+
+    fi.metatavu.metaform.server.persistence.model.Metaform foundMetaform = metaformController.findMetaformById(metaformId);
+    if (foundMetaform == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(metaformVersionController.listByMetaform(foundMetaform).stream()
+            .map(metaformVersionTranslator::translateMetaformVersion)
+            .collect(Collectors.toList()));
   }
 
   @Override
