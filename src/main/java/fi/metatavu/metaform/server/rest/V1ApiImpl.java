@@ -61,9 +61,10 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   private static final String YOU_ARE_NOT_ALLOWED_TO_DELETE_LOGS = "You are not allowed to delete logs";
   private static final String INVALID_METAFORM_SLUG = "Invalid Metaform slug";
   private static final String DUPLICATED_METAFORM_SLUG = "Duplicated Metaform slug";
-  private static final String YOU_ARE_NOT_ALLOWED_TO_CREATE_METAFORM_VERSIONS = "You are not allowed to create Metaforms";
+  private static final String YOU_ARE_NOT_ALLOWED_TO_CREATE_METAFORM_VERSIONS = "You are not allowed to create Metaform versions";
   private static final String YOU_ARE_NOT_ALLOWED_TO_DELETE_METAFORM_VERSIONS = "You are not allowed to delete Metaform versions";
-  private static final String YOU_ARE_NOT_ALLOWED_TO_LIST_METAFORM_VERSIONS = "You are not allowed to LIST Metaform versions";
+  private static final String YOU_ARE_NOT_ALLOWED_TO_LIST_METAFORM_VERSIONS = "You are not allowed to list Metaform versions";
+  private static final String YOU_ARE_NOT_ALLOWED_TO_FIND_METAFORM_VERSIONS = "You are not allowed to find Metaform versions";
 
 
   @Inject
@@ -281,15 +282,19 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
-    fi.metatavu.metaform.server.persistence.model.MetaformVersion metaformVersion =
-            metaformVersionController.create(
-                    foundMetaform,
-                    payload.getType(),
-                    payload.getData(),
-                    getLoggerUserId()
-          );
-    if (metaformVersion == null) return createBadRequest("Invalid version data");
-    return createOk(metaformVersionTranslator.translateMetaformVersion(metaformVersion));
+    try {
+      fi.metatavu.metaform.server.persistence.model.MetaformVersion metaformVersion =
+        metaformVersionController.create(
+          foundMetaform,
+          payload.getType(),
+          payload.getData(),
+          getLoggerUserId()
+        );
+
+      return createOk(metaformVersionTranslator.translateMetaformVersion(metaformVersion));
+    } catch (MalformedVersionJsonException e) {
+      return createBadRequest("Invalid version data");
+    }
   }
 
   @Override
@@ -719,7 +724,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   @Override
   public Response findMetaformVersion(UUID metaformId, UUID versionId) {
     if (!isRealmMetaformAdmin()) {
-      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_LIST_METAFORM_VERSIONS);
+      return createForbidden(YOU_ARE_NOT_ALLOWED_TO_FIND_METAFORM_VERSIONS);
     }
 
     fi.metatavu.metaform.server.persistence.model.Metaform foundMetaform = metaformController.findMetaformById(metaformId);

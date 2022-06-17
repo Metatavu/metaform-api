@@ -34,22 +34,22 @@ public class MetaformVersionController {
           MetaformVersionType type,
           Object data,
           UUID userId
-  ) {
+  ) throws MalformedVersionJsonException {
     ObjectMapper objectMapper = new ObjectMapper();
 
     try {
       String formDataString = objectMapper.writeValueAsString(data);
 
       return metaformVersionDAO.create(
-              UUID.randomUUID(),
-              metaform,
-              type,
-              formDataString,
-              userId,
-              userId
+          UUID.randomUUID(),
+          metaform,
+          type,
+          formDataString,
+          userId,
+          userId
       );
     } catch (JsonProcessingException e) {
-      return null;
+      throw new MalformedVersionJsonException("failed to serialize the json", e);
     }
   }
 
