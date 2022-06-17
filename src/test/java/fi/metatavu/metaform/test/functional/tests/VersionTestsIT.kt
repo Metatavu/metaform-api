@@ -20,6 +20,30 @@ import java.util.*
 class VersionTestsIT : AbstractIntegrationTest() {
     @Test
     @Throws(Exception::class)
+    fun permissionTest() {
+        TestBuilder().use { testBuilder ->
+            val parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple")
+            val metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform)
+            val versionData = testBuilder.metaformAdmin.metaformVersions().getExampleVersionData()
+            val version = MetaformVersion(
+                    type = MetaformVersionType.ARCHIVED,
+                    data = versionData
+            )
+
+            testBuilder.test1.metaformVersions().assertCreateFailStatus(403, metaform.id!!, version);
+            val createdVersion = testBuilder.metaformAdmin.metaformVersions().create(metaform.id, version)
+
+            testBuilder.test1.metaformVersions().assertListFailStatus(403, metaform.id)
+            testBuilder.test1.metaformVersions().assertFindFailStatus(403, metaform.id, createdVersion.id!!)
+            testBuilder.metaformAdmin.metaformVersions().assertCount(metaform.id,1);
+
+            testBuilder.test1.metaformVersions().assertDeleteFailStatus(403, metaform.id, createdVersion.id)
+            testBuilder.metaformAdmin.metaformVersions().delete(metaform.id, createdVersion)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun createVersion() {
         TestBuilder().use { testBuilder ->
             val parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple")

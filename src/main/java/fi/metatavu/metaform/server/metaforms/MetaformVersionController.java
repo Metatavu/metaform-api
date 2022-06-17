@@ -1,5 +1,7 @@
 package fi.metatavu.metaform.server.metaforms;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fi.metatavu.metaform.api.spec.model.MetaformVersionType;
 import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
@@ -30,17 +32,25 @@ public class MetaformVersionController {
   public MetaformVersion create(
           Metaform metaform,
           MetaformVersionType type,
-          String data,
+          Object data,
           UUID userId
   ) {
-    return metaformVersionDAO.create(
-        UUID.randomUUID(),
-        metaform,
-        type,
-        data,
-        userId,
-        userId
-    );
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    try {
+      String formDataString = objectMapper.writeValueAsString(data);
+
+      return metaformVersionDAO.create(
+              UUID.randomUUID(),
+              metaform,
+              type,
+              formDataString,
+              userId,
+              userId
+      );
+    } catch (JsonProcessingException e) {
+      return null;
+    }
   }
 
   /**
@@ -49,7 +59,7 @@ public class MetaformVersionController {
    * @param metaformVersionId Metaform version id
    * @return item if found
    */
-  public MetaformVersion find(UUID metaformVersionId) {
+  public MetaformVersion findMetaformVersionById(UUID metaformVersionId) {
     return metaformVersionDAO.findById(metaformVersionId);
   }
 
@@ -59,26 +69,16 @@ public class MetaformVersionController {
    * @param metaform Metaform
    * @return item if found
    */
-  public List<MetaformVersion> listByMetaform(Metaform metaform) {
+  public List<MetaformVersion> listMetaformVersionsByMetaform(Metaform metaform) {
     return metaformVersionDAO.listByMetaform(metaform);
   }
   
-  /**
-   * Lists Metaform versions
-   * 
-   * @return list of Metaform versions
-   */
-  public List<MetaformVersion> list() {
-    return metaformVersionDAO.listAll();
-  }
-
-
   /**
    * Deletes Metaform version
    *
    * @param metaformVersion Metaform version
    */
-  public void delete(MetaformVersion metaformVersion) {
+  public void deleteMetaformVersion(MetaformVersion metaformVersion) {
     metaformVersionDAO.delete(metaformVersion);
   }
 }

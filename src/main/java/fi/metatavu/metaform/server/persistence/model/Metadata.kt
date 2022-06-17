@@ -7,6 +7,11 @@ import javax.persistence.MappedSuperclass
 import javax.persistence.PrePersist
 import javax.persistence.PreUpdate
 
+/**
+ * JPA entity representing metadata
+ *
+ * @author Tianxing Wu
+ */
 @MappedSuperclass
 abstract class Metadata {
 
