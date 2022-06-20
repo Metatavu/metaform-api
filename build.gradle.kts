@@ -1,11 +1,11 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-    kotlin("jvm") version "1.5.21"
-    kotlin("plugin.allopen") version "1.5.21"
+    kotlin("jvm") version "1.7.0"
+    kotlin("plugin.allopen") version "1.7.0"
     id("io.quarkus")
-    id("org.openapi.generator") version "5.0.0"
-    id("org.jetbrains.kotlin.kapt") version "1.4.30"
+    id("org.openapi.generator") version "5.4.0"
+    id("org.jetbrains.kotlin.kapt") version "1.7.0"
 }
 
 repositories {
@@ -53,10 +53,11 @@ dependencies {
 
     testImplementation ("com.squareup.moshi:moshi-kotlin:$moshiVersion")
     testImplementation ("com.squareup.moshi:moshi-adapters:$moshiVersion")
-    testImplementation("com.squareup.okhttp3:okhttp:3.12.13")
-// check deps
-    kapt ("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
-    kapt ("org.hibernate:hibernate-jpamodelgen:5.5.6.Final")
+    testImplementation("com.squareup.okhttp3:okhttp:4.10.0")
+
+    kapt("org.hibernate:hibernate-jpamodelgen:6.1.0.Final")
+
+//    kapt ("org.hibernate:hibernate-jpamodelgen:6.1.0.Final")
 }
 
 group = "fi.metatavu.metaform-api"
@@ -118,4 +119,10 @@ tasks.named("compileKotlin") {
 
 tasks.named("compileTestKotlin") {
     dependsOn(generateApiClient)
+}
+
+tasks.named("clean") {
+    this.doFirst {
+        file("$rootDir/src/gen").deleteRecursively()
+    }
 }
