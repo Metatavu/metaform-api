@@ -72,6 +72,7 @@ class AttachmentReplyFieldItemDAO : AbstractDAO<AttachmentReplyFieldItem>() {
     criteria.where(
       criteriaBuilder.equal(root.get(AttachmentReplyFieldItem_.attachment), attachment)
     )
+    criteria.groupBy(root[AttachmentReplyFieldItem_.attachment])
     return entityManager.createQuery(criteria).singleResult
   }
 
