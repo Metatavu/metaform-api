@@ -477,5 +477,34 @@
       </column>
     </createTable>
   </changeSet>
-  
+
+  <changeSet id="metaform-version" author="Tianxing">
+    <createTable tableName="metaformVersion">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="type" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="metaform_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_METAFORMVERSION_METAFORM_ID" referencedColumnNames="id" referencedTableName="metaform"/>
+      </column>
+      <column name="modifiedat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifierid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
 </databaseChangeLog>
