@@ -55,9 +55,8 @@ dependencies {
     testImplementation ("com.squareup.moshi:moshi-adapters:$moshiVersion")
     testImplementation("com.squareup.okhttp3:okhttp:4.10.0")
 
-    kapt("org.hibernate:hibernate-jpamodelgen:6.1.0.Final")
+    kapt("org.hibernate:hibernate-jpamodelgen:5.5.7.Final")
 
-//    kapt ("org.hibernate:hibernate-jpamodelgen:6.1.0.Final")
 }
 
 group = "fi.metatavu.metaform-api"
@@ -69,7 +68,7 @@ java {
 }
 
 sourceSets["main"].java {
-    srcDir("build/generated/api-spec/src/gen/java")
+    srcDir("build/generated/api-spec/src/main/kotlin")
 }
 
 sourceSets["test"].java {
@@ -89,15 +88,18 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 }
 
 val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
-    setProperty("generatorName", "jaxrs-spec")
+    setProperty("generatorName", "kotlin-server")
     setProperty("inputSpec",  "$rootDir/metaform-api-spec/swagger.yaml")
     setProperty("outputDir", "$buildDir/generated/api-spec")
     setProperty("apiPackage", "fi.metatavu.metaform.api.spec")
-    setProperty("invokerPackage", "fi.metatavu.metaform.api.spec.invoker")
-    setProperty("modelPackage", "fi.metatavu.metaform.api.spec.model")
+    setProperty("invokerPackage", "fi.metatavu.metaform.api.invoker")
+    setProperty("modelPackage", "fi.metatavu.metaform.api.model")
 
+    this.configOptions.put("library", "jaxrs-spec")
     this.configOptions.put("dateLibrary", "java8")
     this.configOptions.put("interfaceOnly", "true")
+    this.configOptions.put("useCoroutines", "true")
+    this.configOptions.put("enumPropertyNaming", "UPPERCASE")
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")
     this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
