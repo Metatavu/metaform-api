@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server.persistence.model
+package fi.metatavu.metaform.persistence.model
 
 import fi.metatavu.metaform.api.spec.model.MetaformVersionType
 import org.hibernate.annotations.Cache
@@ -29,7 +29,7 @@ class MetaformVersion : Metadata() {
   @Column(nullable = false)
   var data: String? = null
 
-  override lateinit var creatorId: UUID
+  override var creatorId: UUID? = null
 
-  override lateinit var lastModifierId: UUID
+  override var lastModifierId: UUID? = null
 }
