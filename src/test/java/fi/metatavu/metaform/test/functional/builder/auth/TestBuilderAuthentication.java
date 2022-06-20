@@ -23,6 +23,8 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
   private final AccessTokenProvider accessTokenProvider;
 
   private MetaformTestBuilderResource metaforms;
+
+  private MetaformVersionTestBuilderResource metaformVersions;
   private ReplyTestBuilderResource replies;
   private ExportThemeTestBuilderResource exportThemes;
   private ExportThemeFilesTestBuilderResource exportfiles;
@@ -49,6 +51,20 @@ public class TestBuilderAuthentication extends AuthorizedTestBuilderAuthenticati
     }
 
     return metaforms;
+  }
+
+  /**
+   * Returns metaform version test builder resource
+   *
+   * @return metaform version test builder resource
+   * @throws IOException thrown on communication error
+   */
+  public MetaformVersionTestBuilderResource metaformVersions() throws IOException {
+    if (metaformVersions == null) {
+      metaformVersions = new MetaformVersionTestBuilderResource(testBuilder, accessTokenProvider, createClient());
+    }
+
+    return metaformVersions;
   }
 
   /**
