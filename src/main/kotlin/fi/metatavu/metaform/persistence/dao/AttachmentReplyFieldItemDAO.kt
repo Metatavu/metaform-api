@@ -23,7 +23,7 @@ class AttachmentReplyFieldItemDAO : AbstractDAO<AttachmentReplyFieldItem>() {
    */
   fun create(
     id: UUID?,
-    field: AttachementReplyField?,
+    field: AttachmentReplyField?,
     attachment: Attachment?
   ): AttachmentReplyFieldItem {
     val attachmentReplyFieldItem = AttachmentReplyFieldItem()
@@ -39,7 +39,7 @@ class AttachmentReplyFieldItemDAO : AbstractDAO<AttachmentReplyFieldItem>() {
    * @param field attachment reply field
    * @return attachment of items
    */
-  fun listByField(field: AttachementReplyField): List<AttachmentReplyFieldItem> {
+  fun listByField(field: AttachmentReplyField): List<AttachmentReplyFieldItem> {
     val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
@@ -82,7 +82,7 @@ class AttachmentReplyFieldItemDAO : AbstractDAO<AttachmentReplyFieldItem>() {
    * @param field attachment reply field
    * @return attachment of items
    */
-  fun listAttachmentIdsByField(field: AttachementReplyField): List<UUID> {
+  fun listAttachmentIdsByField(field: AttachmentReplyField): List<UUID> {
     val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(

@@ -13,4 +13,4 @@ import javax.persistence.Entity
 @Entity
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
-class AttachementReplyField : ReplyField()
+class AttachmentReplyField : ReplyField()
