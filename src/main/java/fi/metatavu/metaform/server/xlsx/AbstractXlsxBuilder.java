@@ -10,11 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.poi.common.usermodel.HyperlinkType;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +72,7 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
   /**
    * Returns sheet by sheetId
    * 
-   * @param sheetId sheet id
+   * @param sheetName sheet name
    * @return sheet or null if not found
    */
   public S getSheetByName(String sheetName) {
@@ -433,7 +429,12 @@ public abstract class AbstractXlsxBuilder<B extends org.apache.poi.ss.usermodel.
    * @throws IOException thrown when writing fails
    */
   public void write(OutputStream stream) throws IOException {
-    workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
+    try {
+      workbook.getCreationHelper().createFormulaEvaluator().evaluateAll();
+    } catch (Exception e) {
+      // just silently eat the exception away
+    }
+
     workbook.write(stream);
   }
 
