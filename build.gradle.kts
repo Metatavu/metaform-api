@@ -92,8 +92,8 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     setProperty("inputSpec",  "$rootDir/metaform-api-spec/swagger.yaml")
     setProperty("outputDir", "$buildDir/generated/api-spec")
     setProperty("apiPackage", "fi.metatavu.metaform.api.spec")
-    setProperty("invokerPackage", "fi.metatavu.metaform.api.invoker")
-    setProperty("modelPackage", "fi.metatavu.metaform.api.model")
+    setProperty("invokerPackage", "fi.metatavu.metaform.api.spec.invoker")
+    setProperty("modelPackage", "fi.metatavu.metaform.api.spec.model")
 
     this.configOptions.put("library", "jaxrs-spec")
     this.configOptions.put("dateLibrary", "java8")

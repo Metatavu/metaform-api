@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.rest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fi.metatavu.metaform.api.spec.V1Api;
 import fi.metatavu.metaform.api.spec.model.*;
 import fi.metatavu.metaform.server.attachments.AttachmentController;
 import fi.metatavu.metaform.server.crypto.CryptoController;
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
 
 @RequestScoped
 @Transactional
-public class V1ApiImpl extends AbstractApi implements V1Api {
+public class V1ApiImpl extends AbstractApi {//implements V1Api {
 
   private static final String THEME_DOES_NOT_EXIST = "Theme %s does not exist";
   private static final String YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES = "You are not allowed to update themes";
@@ -133,7 +132,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
   @Inject
   private SystemSettingController systemSettingController;
 
-  @Override
+  //@Override
   public Response createDraft(UUID metaformId, @Valid fi.metatavu.metaform.api.spec.model.Draft payload) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
@@ -160,7 +159,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(draftEntity);
   }
 
-  @Override
+  //@Override
   public Response createEmailNotification(UUID metaformId, @Valid EmailNotification payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
@@ -186,7 +185,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
   }
 
-  @Override
+  //@Override
   public Response createExportTheme(@Valid ExportTheme payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -208,7 +207,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
   }
 
-  @Override
+  //@Override
   public Response createExportThemeFile(UUID exportThemeId, @Valid ExportThemeFile payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -227,7 +226,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeTranslator.translateExportThemeFile(themeFile));
   }
 
-  @Override
+  //@Override
   public Response createMetaform(@Valid Metaform payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to create Metaforms");
@@ -270,7 +269,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
-  @Override
+  //@Override
   public Response createMetaformVersion(UUID metaformId, @Valid MetaformVersion payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_CREATE_METAFORM_VERSIONS);
@@ -297,7 +296,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     }
   }
 
-  @Override
+  //@Override
   public Response createReply(UUID metaformId, @Valid Reply payload, Boolean updateExisting, String replyModeParam) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
@@ -383,7 +382,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(replyEntity);
   }
 
-  @Override
+  //@Override
   public Response deleteAuditLogEntry(UUID metaformId, UUID auditLogEntryId) {
     if (!systemSettingController.inTestMode()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_DELETE_LOGS);
@@ -399,7 +398,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response deleteDraft(UUID metaformId, UUID draftId) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -424,7 +423,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return null;
   }
 
-  @Override
+  //@Override
   public Response deleteEmailNotification(UUID metaformId, UUID emailNotificationId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
@@ -445,7 +444,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response deleteExportTheme(UUID exportThemeId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -461,7 +460,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response deleteExportThemeFile(UUID exportThemeId, UUID exportThemeFileId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -486,7 +485,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response deleteMetaform(UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to delete Metaforms");
@@ -502,7 +501,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response deleteMetaformVersion(UUID metaformId, UUID metaformVersionId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_DELETE_METAFORM_VERSIONS);
@@ -527,7 +526,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response deleteReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -553,7 +552,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response export(UUID metaformId, @NotNull String format) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden("You are not allowed to export Metaforms");
@@ -587,7 +586,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     }
   }
 
-  @Override
+  //@Override
   public Response findAttachment(UUID attachmentId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Attachment attachment = attachmentController.findAttachmentById(attachmentId);
     if (attachment == null) {
@@ -603,7 +602,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(attachmentTranslator.translateAttachment(attachment));
   }
 
-  @Override
+  //@Override
   public Response findAttachmentData(UUID attachmentId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Attachment attachment = attachmentController.findAttachmentById(attachmentId);
     if (attachment == null) {
@@ -620,7 +619,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
 
   }
 
-  @Override
+  //@Override
   public Response findDraft(UUID metaformId, UUID draftId) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -639,7 +638,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(draftTranslator.translateDraft(draft));
   }
 
-  @Override
+  //@Override
   public Response findEmailNotification(UUID metaformId, UUID emailNotificationId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
@@ -658,7 +657,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
   }
 
-  @Override
+  //@Override
   public Response findExportTheme(UUID exportThemeId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -672,7 +671,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeTranslator.translateExportTheme(exportTheme));
   }
 
-  @Override
+  //@Override
   public Response findExportThemeFile(UUID exportThemeId, UUID exportThemeFileId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -695,7 +694,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
   }
 
-  @Override
+  //@Override
   public Response findMetaform(UUID metaformId, UUID replyId, String ownerKey) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
@@ -721,7 +720,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(metaformTranslator.translateMetaform(metaform));
   }
 
-  @Override
+  //@Override
   public Response findMetaformVersion(UUID metaformId, UUID versionId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_FIND_METAFORM_VERSIONS);
@@ -744,7 +743,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(metaformVersionTranslator.translateMetaformVersion(foundMetaformVersion));
   }
 
-  @Override
+  //@Override
   public Response findReply(UUID metaformId, UUID replyId, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -770,7 +769,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(replyTranslator.translateReply(metaformEntity, reply, null));
   }
 
-  @Override
+  //@Override
   public Response listAuditLogEntries(UUID metaformId, UUID userId, UUID replyId, String createdBefore, String createdAfter) {
     if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE))
       return createForbidden(String.format("Only users with %s can access this view", VIEW_AUDIT_LOGS_ROLE));
@@ -792,7 +791,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(result);
   }
 
-  @Override
+  //@Override
   public Response listEmailNotifications(UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
@@ -806,7 +805,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(emailNotificationController.listEmailNotificationByMetaform(metaform).stream().map(emailNotificationTranslator::translateEmailNotification).collect(Collectors.toList()));
   }
 
-  @Override
+  //@Override
   public Response listExportThemeFiles(UUID exportThemeId) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -822,7 +821,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       .collect(Collectors.toList()));
   }
 
-  @Override
+  //@Override
   public Response listExportThemes() {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -833,7 +832,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
       .collect(Collectors.toList()));
   }
 
-  @Override
+  //@Override
   public Response listMetaformVersions(UUID metaformId) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_LIST_METAFORM_VERSIONS);
@@ -849,7 +848,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
             .collect(Collectors.toList()));
   }
 
-  @Override
+  //@Override
   public Response listMetaforms() {
     if (!isRealmUser()) {
       return createForbidden(ANONYMOUS_USERS_LIST_METAFORMS_MESSAGE);
@@ -858,7 +857,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(metaformController.listMetaforms().stream().map(entity -> metaformTranslator.translateMetaform(entity)).collect(Collectors.toList()));
   }
 
-  @Override
+  //@Override
   public Response listReplies(UUID metaformId, UUID userId, String createdBeforeParam, String createdAfterParam, String modifiedBeforeParam, String modifiedAfterParam, Boolean includeRevisions, List<String> fields, Integer firstResult, Integer maxResults) {
     if (firstResult != null) {
       return createNotImplemented("firstResult is not supported yet");
@@ -905,7 +904,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(result);
   }
 
-  @Override
+  //@Override
   public Response replyExport(UUID metaformId, UUID replyId, @NotNull String format) {
     Locale locale = getLocale();
     if (!isRealmUser()) {
@@ -949,7 +948,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     }
   }
 
-  @Override
+  //@Override
   public Response updateDraft(UUID metaformId, UUID draftId, @Valid fi.metatavu.metaform.api.spec.model.Draft payload) {
     UUID loggedUserId = getLoggerUserId();
     if (loggedUserId == null) {
@@ -984,7 +983,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(draftTranslator.translateDraft(updatedDraft));
   }
 
-  @Override
+  //@Override
   public Response updateEmailNotification(UUID metaformId, UUID emailNotificationId, @Valid EmailNotification payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
@@ -1009,7 +1008,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(emailNotificationTranslator.translateEmailNotification(emailNotification));
   }
 
-  @Override
+  //@Override
   public Response updateExportTheme(UUID exportThemeId, @Valid ExportTheme payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -1034,7 +1033,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeTranslator.translateExportTheme(exportThemeController.updateExportTheme(theme, payload.getLocales(), parent, payload.getName(), loggedUserId)));
   }
 
-  @Override
+  //@Override
   public Response updateExportThemeFile(UUID exportThemeId, UUID exportThemeFileId, @Valid ExportThemeFile payload) {
     if (!isRealmMetaformSuper()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_THEMES);
@@ -1061,7 +1060,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(exportThemeTranslator.translateExportThemeFile(exportThemeFile));
   }
 
-  @Override
+  //@Override
   public Response updateMetaform(UUID metaformId, @Valid Metaform payload) {
     if (!isRealmMetaformAdmin()) {
       return createForbidden(YOU_ARE_NOT_ALLOWED_TO_UPDATE_METAFORMS);
@@ -1109,7 +1108,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createOk(metaformTranslator.translateMetaform(metaformController.updateMetaform(metaform, exportTheme, data, allowAnonymous, slug)));
   }
 
-  @Override
+  //@Override
   public Response updateReply(UUID metaformId, UUID replyId, @Valid Reply payload, String ownerKey) {
     fi.metatavu.metaform.server.persistence.model.Metaform metaform = metaformController.findMetaformById(metaformId);
     if (metaform == null) {
@@ -1167,7 +1166,7 @@ public class V1ApiImpl extends AbstractApi implements V1Api {
     return createNoContent();
   }
 
-  @Override
+  //@Override
   public Response ping() {
     return createOk("pong");
   }

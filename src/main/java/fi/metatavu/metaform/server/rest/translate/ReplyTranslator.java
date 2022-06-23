@@ -60,13 +60,13 @@ public class ReplyTranslator {
       });
       
     Reply result = new Reply();
-    result.setId(reply.getId());
+  /*  result.setId(reply.getId());
     result.setData(replyData);
     result.setUserId(reply.getUserId());
     result.setRevision(reply.getRevision());
     result.setCreatedAt(reply.getCreatedAt());
     result.setModifiedAt(reply.getModifiedAt());
-    result.setOwnerKey(cryptoController.getPublicKeyBase64(ownerKey));
+    result.setOwnerKey(cryptoController.getPublicKeyBase64(ownerKey));*/
     
     return result;
   }

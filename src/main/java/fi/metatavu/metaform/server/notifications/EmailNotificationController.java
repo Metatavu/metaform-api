@@ -30,7 +30,6 @@ import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO;
 import fi.metatavu.metaform.server.persistence.model.Metaform;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification;
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotificationEmail;
-import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator;
 
 /**
  * Email notification controller
