@@ -20,25 +20,19 @@ class DraftDAO : AbstractDAO<Draft>() {
    * @param userId user id
    * @param metaform Metaform
    * @param data data
-   * @param creatorId creator id
-   * @param lastModifierId creator id
    * @return created Metaform
    */
   fun create(
-    id: UUID?,
-    userId: UUID?,
-    metaform: Metaform?,
-    data: String?,
-    creatorId: UUID,
-    lastModifierId: UUID
+    id: UUID,
+    userId: UUID,
+    metaform: Metaform,
+    data: String
   ): Draft {
     val draft = Draft()
     draft.id = id
     draft.metaform = metaform
     draft.userId = userId
     draft.data = data
-    draft.creatorId = creatorId
-    draft.lastModifierId = lastModifierId
     return persist(draft)
   }
 
@@ -46,13 +40,12 @@ class DraftDAO : AbstractDAO<Draft>() {
    * Updates data
    *
    * @param draft draft
-   * @param lastModifierId modifier id
    * @param data data
+   * @param lastModifierId modifier id
    * @return updated draft
    */
-  fun updateData(draft: Draft, lastModifierId: UUID, data: String?): Draft {
+  fun updateData(draft: Draft, data: String?): Draft {
     draft.data = data
-    draft.lastModifierId = lastModifierId
     return persist(draft)
   }
 }

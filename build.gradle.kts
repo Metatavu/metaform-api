@@ -20,6 +20,7 @@ val jaxrsFunctionalTestBuilderVersion: String by project
 val testContainersVersion: String by project
 val testContainersKeycloakVersion: String by project
 val moshiVersion: String by project
+val wiremockVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -44,15 +45,20 @@ dependencies {
     implementation("net.sargue:mailgun:1.9.2")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
+    implementation("io.quarkus:quarkus-undertow")
 
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:mysql")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
-
-    testImplementation ("com.squareup.moshi:moshi-kotlin:$moshiVersion")
-    testImplementation ("com.squareup.moshi:moshi-adapters:$moshiVersion")
+    testImplementation("org.awaitility:awaitility:3.1.2")
+    testImplementation("org.apache.pdfbox:pdfbox:2.0.26")
+    testImplementation("org.apache.pdfbox:pdfbox-tools:2.0.26")
+    testImplementation("io.rest-assured:rest-assured:5.1.1")
+    testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
+    testImplementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    testImplementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
     testImplementation("com.squareup.okhttp3:okhttp:4.10.0")
 
     kapt("org.hibernate:hibernate-jpamodelgen:5.5.7.Final")

@@ -21,18 +21,14 @@ class AttachmentDAO : AbstractDAO<Attachment>() {
    * @param content content
    * @param contentType contentType
    * @param userId user id
-   * @param creatorId creator id
-   * @param lastModifierId creator id
-   * @return created apptachment
+   * @return created attachment
    */
   fun create(
-    id: UUID?,
+    id: UUID,
     name: String,
     content: ByteArray,
     contentType: String,
-    userId: UUID,
-    creatorId: UUID,
-    lastModifierId: UUID,
+    userId: UUID
   ): Attachment {
     val attachment = Attachment()
     attachment.id = id
@@ -40,55 +36,51 @@ class AttachmentDAO : AbstractDAO<Attachment>() {
     attachment.content = content
     attachment.contentType = contentType
     attachment.userId = userId
-    attachment.creatorId = creatorId
-    attachment.lastModifierId = lastModifierId
     return persist(attachment)
   }
 
   /**
    * Updates name
    *
+   * @param attachment attachment
    * @param name name
-   * @param lastModifierId modifier id
    * @return updated attachment
    */
-  fun updateName(attachment: Attachment, lastModifierId: UUID, name: String): Attachment {
+  fun updateName(
+    attachment: Attachment,
+    name: String
+  ): Attachment {
     attachment.name = name
-    attachment.lastModifierId = lastModifierId
     return persist(attachment)
   }
 
   /**
    * Updates content
    *
+   * @param attachment attachment
    * @param content content
-   * @param lastModifierId modifier id
    * @return updated attachment
    */
   fun updateContent(
     attachment: Attachment,
-    lastModifierId: UUID,
-    content: ByteArray,
+    content: ByteArray
   ): Attachment {
     attachment.content = content
-    attachment.lastModifierId = lastModifierId
     return persist(attachment)
   }
 
   /**
    * Updates contentType
    *
+   * @param attachment attachment
    * @param contentType contentType
-   * @param lastModifierId modifier id
    * @return updated attachment
    */
   fun updateContentType(
     attachment: Attachment,
-    lastModifierId: UUID,
-    contentType: String,
+    contentType: String
   ): Attachment {
     attachment.contentType = contentType
-    attachment.lastModifierId = lastModifierId
     return persist(attachment)
   }
 }

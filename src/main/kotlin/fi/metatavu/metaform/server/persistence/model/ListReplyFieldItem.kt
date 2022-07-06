@@ -21,10 +21,10 @@ class ListReplyFieldItem {
   var id: UUID? = null
 
   @ManyToOne(optional = false)
-  var field: ListReplyField? = null
+  lateinit var field: ListReplyField
 
   @Column(nullable = false)
   @NotNull
   @NotEmpty
-  var value: String? = null
+  lateinit var value: String
 }

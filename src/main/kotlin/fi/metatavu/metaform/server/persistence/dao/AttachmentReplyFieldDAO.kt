@@ -20,7 +20,7 @@ class AttachmentReplyFieldDAO : ReplyFieldDAO<AttachmentReplyField>() {
    * @param name field name
    * @return created field
    */
-  fun create(id: UUID?, reply: Reply, name: String): AttachmentReplyField? {
+  fun create(id: UUID?, reply: Reply, name: String): AttachmentReplyField {
     val replyField = AttachmentReplyField()
     replyField.id = id
     replyField.name = name

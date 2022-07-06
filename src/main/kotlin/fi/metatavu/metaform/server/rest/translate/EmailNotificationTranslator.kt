@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.rest.translate
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.EmailNotification
 import fi.metatavu.metaform.api.spec.model.FieldRule
-import fi.metatavu.metaform.server.notifications.EmailNotificationController
+import fi.metatavu.metaform.server.controllers.EmailNotificationController
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.Logger
 import java.io.IOException
@@ -31,16 +31,12 @@ class EmailNotificationTranslator {
    * @param emailNotification JPA emailNotification object
    * @return REST emailNotification
    */
-  fun translateEmailNotification(emailNotification: fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification?): EmailNotification? {
-    if (emailNotification == null) {
-      return null
-    }
-
+  fun translate(emailNotification: fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification): EmailNotification {
     return EmailNotification(
       id = emailNotification.id,
       emails = emailNotificationController.getEmailNotificationEmails(emailNotification),
-      subjectTemplate = emailNotification.subjectTemplate!!,
-      contentTemplate = emailNotification.contentTemplate!!,
+      subjectTemplate = emailNotification.subjectTemplate,
+      contentTemplate = emailNotification.contentTemplate,
       notifyIf = deserializeFieldRule(emailNotification.notifyIf)
     )
   }

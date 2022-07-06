@@ -331,6 +331,7 @@ public class AbstractIntegrationTest {
   protected void assertPdfDownloadStatus(int expected, String accessToken, Metaform metaform, Reply reply) {
     ValidatableResponse response = given()
       .baseUri(TestSettings.basePath)
+      .header("Content-Type", "application/json")
       .header("Authorization", String.format("Bearer %s", accessToken))
       .get("/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.getId().toString(), reply.getId().toString())
       .then()

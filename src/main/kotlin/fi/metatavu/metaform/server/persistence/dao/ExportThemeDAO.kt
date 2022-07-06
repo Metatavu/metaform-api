@@ -40,8 +40,8 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
     exportTheme.locales = locales
     exportTheme.parent = parent
     exportTheme.name = name
-    exportTheme.lastModifierId = (lastModifier)
-    exportTheme.creatorId = (creator)
+    exportTheme.lastModifier = (lastModifier)
+    exportTheme.creator = (creator)
     return persist(exportTheme)
   }
 
@@ -52,9 +52,8 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
    * @return Found theme or null if not found
    */
   fun findByName(name: String): ExportTheme? {
-    val entityManager: EntityManager = getEntityManager()
-    val criteriaBuilder: CriteriaBuilder = entityManager.getCriteriaBuilder()
-    val criteria: CriteriaQuery<ExportTheme> = criteriaBuilder.createQuery<ExportTheme>(
+    val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
+    val criteria: CriteriaQuery<ExportTheme> = criteriaBuilder.createQuery(
       ExportTheme::class.java
     )
     val root = criteria.from(
@@ -62,8 +61,8 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
     )
     criteria.select(root)
     criteria.where(criteriaBuilder.equal(root.get(ExportTheme_.name), name))
-    val query: TypedQuery<ExportTheme> = entityManager.createQuery<ExportTheme>(criteria)
-    return getSingleResult<ExportTheme>(query)
+    val query: TypedQuery<ExportTheme> = entityManager.createQuery(criteria)
+    return getSingleResult(query)
   }
 
   /**
@@ -72,8 +71,7 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
    * @return List of themes
    */
   fun list(): List<ExportTheme> {
-    val entityManager: EntityManager = getEntityManager()
-    val criteriaBuilder: CriteriaBuilder = entityManager.getCriteriaBuilder()
+    val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<ExportTheme> = criteriaBuilder.createQuery<ExportTheme>(
       ExportTheme::class.java
     )
@@ -82,7 +80,7 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
     )
     criteria.select(root)
     criteria.orderBy(criteriaBuilder.asc(root.get(ExportTheme_.createdAt)))
-    return entityManager.createQuery<ExportTheme>(criteria).getResultList()
+    return entityManager.createQuery(criteria).resultList
   }
 
   /**
@@ -97,7 +95,7 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
     locales: String?,
     lastModifier: UUID,
   ): ExportTheme? {
-    exportTheme.lastModifierId = lastModifier
+    exportTheme.lastModifier = lastModifier
     exportTheme.locales = locales
     return persist(exportTheme)
   }
@@ -114,7 +112,7 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
     parent: ExportTheme?,
     lastModifier: UUID,
   ): ExportTheme? {
-    exportTheme.lastModifierId = lastModifier
+    exportTheme.lastModifier = lastModifier
     exportTheme.parent = parent
     return persist(exportTheme)
   }
@@ -127,7 +125,7 @@ class ExportThemeDAO : AbstractDAO<ExportTheme>() {
    * @return updated exportTheme
    */
   fun updateName(exportTheme: ExportTheme, name: String, lastModifier: UUID): ExportTheme? {
-    exportTheme.lastModifierId = lastModifier
+    exportTheme.lastModifier = lastModifier
     exportTheme.name = name
     return persist(exportTheme)
   }

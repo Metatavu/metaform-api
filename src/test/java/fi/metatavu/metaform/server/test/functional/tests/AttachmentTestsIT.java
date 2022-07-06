@@ -2,16 +2,12 @@ package fi.metatavu.metaform.server.test.functional.tests;
 
 import fi.metatavu.metaform.api.client.models.Reply;
 import fi.metatavu.metaform.server.rest.ReplyMode;
-import fi.metatavu.metaform.server.rest.ReplyMode;
 import fi.metatavu.metaform.server.test.functional.AbstractIntegrationTest;
 import fi.metatavu.metaform.server.test.functional.FileUploadResponse;
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource;
 import fi.metatavu.metaform.server.test.TestSettings;
-import fi.metatavu.metaform.server.test.functional.AbstractIntegrationTest;
-import fi.metatavu.metaform.server.test.functional.FileUploadResponse;
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource;
-import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
@@ -171,6 +167,7 @@ public class AttachmentTestsIT extends AbstractIntegrationTest {
     URL url = new URL(String.format("%sv1/attachments/%s/data", TestSettings.basePath, id.toString()));
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestProperty("Authorization", String.format("Bearer %s", accessToken));
+    connection.setRequestProperty("Content-Type", "application/json");
     connection.setDoOutput(true);
     return IOUtils.toByteArray(connection.getInputStream());
   }

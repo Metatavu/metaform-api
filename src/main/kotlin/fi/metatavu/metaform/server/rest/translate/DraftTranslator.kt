@@ -27,14 +27,10 @@ class DraftTranslator {
    * @param draft JPA drasft object
    * @return REST object
    */
-  fun translateDraft(draft: fi.metatavu.metaform.server.persistence.model.Draft?): Draft? {
-    if (draft == null) {
-      return null
-    }
-
+  fun translateDraft(draft: fi.metatavu.metaform.server.persistence.model.Draft): Draft {
     return Draft(
       id = draft.id,
-      data = deserializeData(draft.data!!)!! //todo add exception for deserialization fail to avoid npe
+      data = deserializeData(draft.data!!)!! // TODO add exception for deserialization fail to avoid npe
     )
   }
 

@@ -1,10 +1,10 @@
 package fi.metatavu.metaform.server.persistence.dao
 
+import fi.metatavu.metaform.server.metaform.FieldFilter
+import fi.metatavu.metaform.server.metaform.FieldFilterOperator
+import fi.metatavu.metaform.server.metaform.FieldFilters
+import fi.metatavu.metaform.server.metaform.StoreDataType
 import fi.metatavu.metaform.server.persistence.model.*
-import fi.metatavu.metaform.server.metaforms.FieldFilter
-import fi.metatavu.metaform.server.metaforms.FieldFilterOperator
-import fi.metatavu.metaform.server.metaforms.FieldFilters
-import fi.metatavu.metaform.server.metaforms.StoreDataType
 import org.slf4j.Logger
 import java.time.OffsetDateTime
 import java.util.*
@@ -23,8 +23,6 @@ import javax.persistence.criteria.*
  */
 @ApplicationScoped
 class ReplyDAO : AbstractDAO<Reply>() {
-  @Inject
-  private val logger: Logger? = null
 
   /**
    * Creates new reply
@@ -34,9 +32,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param metaform Metaform
    * @param resourceId authorization resource id
    * @param privateKey private key
-   * @param revision revisition
-   * @param creatorId creator id
-   * @param modfierId modifier id
+   * @param revision revision
    * @return created Metaform
    */
   fun create(
@@ -45,9 +41,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
     metaform: Metaform,
     resourceId: UUID?,
     privateKey: ByteArray?,
-    revision: OffsetDateTime?,
-    creatorId: UUID,
-    modfierId: UUID
+    revision: OffsetDateTime?
   ): Reply {
     val reply = Reply()
     reply.id = id
@@ -56,8 +50,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
     reply.resourceId = resourceId
     reply.privateKey = privateKey
     reply.revision = revision 
-    reply.creatorId = creatorId
-    reply.lastModifierId = modfierId
     return persist(reply)
   }
 
@@ -69,7 +61,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @return reply
    */
   fun findByMetaformAndUserIdAndRevisionNull(metaform: Metaform, userId: UUID): Reply? {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery<Reply>(
       Reply::class.java
@@ -95,7 +86,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @return list of replies
    */
   fun listByMetaform(metaform: Metaform): List<Reply> {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
       Reply::class.java
@@ -134,7 +124,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
     modifiedAfter: OffsetDateTime?,
     fieldFilters: FieldFilters?
   ): List<Reply> {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
       Reply::class.java
@@ -306,7 +295,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
       StoreDataType.NUMBER -> return (fieldRoot as Root<NumberReplyField>).get(
           NumberReplyField_.value)
       else -> {
-        logger!!.error("Could not resolve reply field for {}", storeDataType)
+        logger.error("Could not resolve reply field for {}", storeDataType)
         null
       }
     }
@@ -324,7 +313,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
       StoreDataType.BOOLEAN -> return BooleanReplyField::class.java
       StoreDataType.NUMBER -> return NumberReplyField::class.java
       else -> {
-        logger!!.error("Could not resolve root class for {}", storeDataType)
+        logger.error("Could not resolve root class for {}", storeDataType)
         null
       }
     }

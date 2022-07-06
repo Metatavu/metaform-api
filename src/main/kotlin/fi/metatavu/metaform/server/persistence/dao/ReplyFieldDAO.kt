@@ -19,7 +19,6 @@ abstract class ReplyFieldDAO<T : ReplyField?> : AbstractDAO<T>() {
    * @return reply field or null if field is not found
    */
   fun findByReplyAndName(reply: Reply, name: String): ReplyField? {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       ReplyField::class.java
@@ -44,7 +43,6 @@ abstract class ReplyFieldDAO<T : ReplyField?> : AbstractDAO<T>() {
    * @return list of fields
    */
   fun listByReply(reply: Reply): List<ReplyField> {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       ReplyField::class.java
@@ -66,7 +64,6 @@ abstract class ReplyFieldDAO<T : ReplyField?> : AbstractDAO<T>() {
    * @return field names
    */
   fun listNamesByReply(reply: Reply): List<String> {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       String::class.java

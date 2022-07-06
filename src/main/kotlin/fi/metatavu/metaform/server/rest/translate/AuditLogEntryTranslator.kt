@@ -17,11 +17,7 @@ class AuditLogEntryTranslator {
    * @param auditLogEntry JPA auditLogEntry
    * @return REST AuditLogEntry
    */
-  fun translateAuditLogEntry(auditLogEntry: AuditLogEntry?): fi.metatavu.metaform.api.spec.model.AuditLogEntry? {
-    if (auditLogEntry == null) {
-      return null
-    }
-
+  fun translate(auditLogEntry: AuditLogEntry): fi.metatavu.metaform.api.spec.model.AuditLogEntry {
     return fi.metatavu.metaform.api.spec.model.AuditLogEntry(
       id = auditLogEntry.id,
       message = auditLogEntry.message,

@@ -112,7 +112,7 @@ public class MailgunMocker {
   /**
    * Verifies that email with parameters has been sent n-times
    *
-   * @param count
+   * @param count count
    * @param parametersList parameters
    */
   private void verifyMessageSent(int count, List<NameValuePair> parametersList) {

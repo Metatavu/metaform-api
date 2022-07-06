@@ -34,7 +34,6 @@ class TableReplyFieldRowDAO : AbstractDAO<TableReplyFieldRow>() {
    * @return list of rows
    */
   fun listByField(field: TableReplyField): List<TableReplyFieldRow> {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       TableReplyFieldRow::class.java

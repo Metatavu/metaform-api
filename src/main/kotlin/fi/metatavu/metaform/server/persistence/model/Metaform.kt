@@ -23,13 +23,13 @@ class Metaform {
   @Column(nullable = false)
   @NotNull
   @NotEmpty
-  var slug: String? = null
+  lateinit var slug: String
 
   @Lob
   @Column(nullable = false)
   @NotNull
   @NotEmpty
-  var data: String? = null
+  lateinit var data: String
 
   @Column(nullable = false)
   @NotNull

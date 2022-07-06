@@ -20,7 +20,7 @@ class AttachmentReplyFieldItem {
   var id: UUID? = null
 
   @ManyToOne(optional = false)
-  var field: AttachmentReplyField? = null
+  lateinit var field: AttachmentReplyField
 
   @ManyToOne
   var attachment: Attachment? = null

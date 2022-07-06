@@ -30,8 +30,4 @@ class Draft : Metadata() {
   @Column(nullable = false)
   @NotNull
   var data: String? = null
-
-  override var creatorId: UUID? = null
-
-  override var lastModifierId: UUID? = null
 }

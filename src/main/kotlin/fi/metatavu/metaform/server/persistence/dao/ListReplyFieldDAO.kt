@@ -19,7 +19,6 @@ class ListReplyFieldDAO : ReplyFieldDAO<ListReplyField>() {
    * @param id id
    * @param reply reply
    * @param name field name
-   * @param value field value
    * @return created field
    */
   fun create(id: UUID, reply: Reply, name: String): ListReplyField {

@@ -25,7 +25,6 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
    * @param content content
    * @param theme theme
    * @param creator creator id
-   * @param lastModifier modifier
    * @return created exportThemeFile
    */
   fun create(
@@ -34,15 +33,14 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
     path: String,
     content: String,
     creator: UUID,
-    lastModifier: UUID
-  ): ExportThemeFile? {
+  ): ExportThemeFile {
     val exportThemeFile = ExportThemeFile()
     exportThemeFile.id = id
     exportThemeFile.path = path
     exportThemeFile.content = content
     exportThemeFile.theme = theme
-    exportThemeFile.lastModifierId = lastModifier
-    exportThemeFile.creatorId = creator
+    exportThemeFile.lastModifier = creator
+    exportThemeFile.creator = creator
     return persist(exportThemeFile)
   }
 
@@ -54,7 +52,6 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
    * @return Found theme file or null if not found
    */
   fun findByThemeAndPath(theme: ExportTheme, path: String): ExportThemeFile? {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<ExportThemeFile> = criteriaBuilder.createQuery<ExportThemeFile>(
       ExportThemeFile::class.java
@@ -80,7 +77,6 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
    * @return List of theme files
    */
   fun listByTheme(theme: ExportTheme): List<ExportThemeFile> {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<ExportThemeFile> = criteriaBuilder.createQuery(
       ExportThemeFile::class.java
@@ -105,7 +101,7 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
     path: String,
     lastModifier: UUID
   ): ExportThemeFile? {
-    exportThemeFile.lastModifierId = lastModifier
+    exportThemeFile.lastModifier = lastModifier
     exportThemeFile.path = path
     return persist(exportThemeFile)
   }
@@ -122,7 +118,7 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
     content: String,
     lastModifier: UUID
   ): ExportThemeFile? {
-    exportThemeFile.lastModifierId = lastModifier
+    exportThemeFile.lastModifier = lastModifier
     exportThemeFile.content = content
     return persist(exportThemeFile)
   }
@@ -139,7 +135,7 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
     theme: ExportTheme,
     lastModifier: UUID
   ): ExportThemeFile? {
-    exportThemeFile.lastModifierId = lastModifier
+    exportThemeFile.lastModifier = lastModifier
     exportThemeFile.theme = theme
     return persist(exportThemeFile)
   }

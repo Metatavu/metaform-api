@@ -50,7 +50,6 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    * @return found Metaform or null if non found
    */
   fun findBySlug(slug: String): Metaform? {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Metaform> = criteriaBuilder.createQuery<Metaform>(
       Metaform::class.java

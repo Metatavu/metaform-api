@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.persistence.model
 import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import java.time.OffsetDateTime
 import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotNull
@@ -15,14 +16,14 @@ import javax.validation.constraints.NotNull
 @Entity
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
-class AuditLogEntry : Metadata() {
+class AuditLogEntry {
 
   @Id
   var id: UUID? = null
 
   @Column(nullable = false)
   @NotNull
-  var userId: UUID? = null
+  lateinit var userId: UUID
 
   @Column
   var replyId: UUID? = null
@@ -35,11 +36,20 @@ class AuditLogEntry : Metadata() {
 
   @Column(nullable = false)
   @NotNull
-  var logEntryType: AuditLogEntryType? = null
+  lateinit var logEntryType: AuditLogEntryType
 
   @ManyToOne(optional = false)
-  var metaform: Metaform? = null
-  override var creatorId: UUID? = null
+  lateinit var metaform: Metaform
 
-  override var lastModifierId: UUID? = null
+  @Column(nullable = false)
+  lateinit var createdAt: OffsetDateTime
+
+  /**
+   * JPA pre-persist event handler
+   */
+  @PrePersist
+  fun onCreate() {
+    createdAt = OffsetDateTime.now()
+  }
+
 }

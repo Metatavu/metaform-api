@@ -16,7 +16,7 @@ public class KeycloakResource implements QuarkusTestResourceLifecycleManager {
   public Map<String, String> start() {
     keycloak.start();
 
-    HashMap config = new HashMap<String, String>();
+    HashMap<String, String> config = new HashMap();
     config.put("quarkus.oidc.auth-server-url", String.format("%s/realms/test-1", keycloak.getAuthServerUrl()));
     config.put("quarkus.oidc.client-id", "metaform-api");
     config.put("metaforms.keycloak.admin.host", keycloak.getAuthServerUrl());

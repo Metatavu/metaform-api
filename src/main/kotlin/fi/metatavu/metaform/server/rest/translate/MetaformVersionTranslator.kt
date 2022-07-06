@@ -27,10 +27,7 @@ class MetaformVersionTranslator {
    * @param entity JPA Metaform version
    * @return REST Metaform version
    */
-  fun translateMetaformVersion(entity: MetaformVersion?): fi.metatavu.metaform.api.spec.model.MetaformVersion? {
-    if (entity == null) {
-      return null
-    }
+  fun translate(entity: MetaformVersion): fi.metatavu.metaform.api.spec.model.MetaformVersion {
     return fi.metatavu.metaform.api.spec.model.MetaformVersion(
       id = entity.id,
       type = entity.type!!,

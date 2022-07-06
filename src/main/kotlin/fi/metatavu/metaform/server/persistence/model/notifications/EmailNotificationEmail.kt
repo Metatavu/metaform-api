@@ -31,5 +31,5 @@ class EmailNotificationEmail {
   @NotNull
   @NotEmpty
   @Email
-  var email: String? = null
+  lateinit var email: String
 }

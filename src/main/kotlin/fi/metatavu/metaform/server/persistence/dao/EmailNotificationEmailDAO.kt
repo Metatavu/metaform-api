@@ -43,10 +43,9 @@ class EmailNotificationEmailDAO : AbstractDAO<EmailNotificationEmail?>() {
    * @return list of email notifications
    */
   fun listByEmailNotification(emailNotification: EmailNotification?): List<EmailNotificationEmail> {
-    val entityManager: EntityManager = getEntityManager()
-    val criteriaBuilder: CriteriaBuilder = entityManager.getCriteriaBuilder()
+    val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<EmailNotificationEmail> =
-      criteriaBuilder.createQuery<EmailNotificationEmail>(
+      criteriaBuilder.createQuery(
         EmailNotificationEmail::class.java
       )
     val root: Root<EmailNotificationEmail> = criteria.from<EmailNotificationEmail>(

@@ -26,5 +26,5 @@ class TableReplyFieldRowCell {
   @Column(nullable = false)
   @NotNull
   @NotEmpty
-  var name: String? = null
+  lateinit var name: String
 }

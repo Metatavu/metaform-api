@@ -24,7 +24,7 @@ class ExportTheme : Metadata() {
   @Column(nullable = false, unique = true)
   @NotNull
   @NotEmpty
-  var name: String? = null
+  lateinit var name: String
 
   @ManyToOne
   var parent: ExportTheme? = null
@@ -33,7 +33,11 @@ class ExportTheme : Metadata() {
   @Type(type = "org.hibernate.type.TextType")
   var locales: String? = null
 
-  override var creatorId: UUID? = null
+  @Column(nullable = false)
+  @NotNull
+  lateinit var creator: UUID
 
-  override var lastModifierId: UUID? = null
+  @Column(nullable = false)
+  @NotNull
+  lateinit var lastModifier: UUID
 }

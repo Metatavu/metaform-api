@@ -40,8 +40,7 @@ class ListReplyFieldItemDAO : AbstractDAO<ListReplyFieldItem>() {
    * @return list of items
    */
   fun listByField(field: ListReplyField): List<ListReplyFieldItem> {
-    val entityManager: EntityManager = getEntityManager()
-    val criteriaBuilder: CriteriaBuilder = entityManager.getCriteriaBuilder()
+    val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<ListReplyFieldItem> =
       criteriaBuilder.createQuery(
         ListReplyFieldItem::class.java
@@ -61,7 +60,6 @@ class ListReplyFieldItemDAO : AbstractDAO<ListReplyFieldItem>() {
    * @return values
    */
   fun listItemValuesByField(field: ListReplyField): List<String> {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<String> = criteriaBuilder.createQuery(
       String::class.java

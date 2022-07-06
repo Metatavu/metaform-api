@@ -1,6 +1,6 @@
 package fi.metatavu.metaform.server.persistence.dao
 
-import org.jboss.logging.Logger
+import org.slf4j.Logger
 import java.lang.reflect.ParameterizedType
 import java.util.*
 import javax.inject.Inject
@@ -19,19 +19,11 @@ import javax.persistence.TypedQuery
 abstract class AbstractDAO<T> {
 
     @Inject
-    private lateinit var logger: Logger
+    open lateinit var logger: Logger
 
     @PersistenceContext
-    private lateinit var entityManager: EntityManager
+    lateinit var entityManager: EntityManager
 
-    /**
-     * Returns entity manager
-     *
-     * @return entity manager
-     */
-    open fun getEntityManager(): EntityManager {
-        return entityManager
-    }
 
     /**
      * Returns entity by id

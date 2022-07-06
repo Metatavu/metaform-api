@@ -27,20 +27,16 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
    * @param replyId reply Id
    * @param attachmentId attachment Id
    * @param message message
-   * @param creatorId creator id
-   * @param lastModifierId creator id
    * @return created auditlogentry
    */
   fun create(
-    id: UUID?,
-    metaform: Metaform?,
-    userId: UUID?,
-    auditLogEntryType: AuditLogEntryType?,
+    id: UUID,
+    metaform: Metaform,
+    userId: UUID,
+    auditLogEntryType: AuditLogEntryType,
     replyId: UUID?,
     attachmentId: UUID?,
-    message: String?,
-    creatorId: UUID,
-    lastModifierId: UUID
+    message: String?
   ): AuditLogEntry {
     val auditLogEntry = AuditLogEntry()
     auditLogEntry.id = id
@@ -50,8 +46,6 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
     auditLogEntry.replyId = replyId
     auditLogEntry.attachmentId = attachmentId
     auditLogEntry.message = message
-    auditLogEntry.creatorId = creatorId
-    auditLogEntry.lastModifierId = lastModifierId
     return persist(auditLogEntry)
   }
 
@@ -72,15 +66,17 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
     createdBefore: OffsetDateTime?,
     createdAfter: OffsetDateTime?
   ): List<AuditLogEntry> {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
+
     val criteria = criteriaBuilder.createQuery(
       AuditLogEntry::class.java
     )
     val root = criteria.from(
       AuditLogEntry::class.java
     )
+
     val restrictions: MutableList<Predicate> = ArrayList()
+
     restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform))
     if (replyId != null) {
       restrictions.add(criteriaBuilder.equal(root.get(AuditLogEntry_.replyId), replyId))
@@ -118,7 +114,6 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
    * @return list of audit log entries
    */
   fun listByMetaform(metaform: Metaform): List<AuditLogEntry> {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       AuditLogEntry::class.java

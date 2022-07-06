@@ -8,7 +8,6 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthe
 import fi.metatavu.jaxrs.test.functional.builder.auth.KeycloakAccessTokenProvider;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication;
-import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication;
 import org.apache.commons.codec.binary.Base64;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
@@ -28,7 +27,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class TestBuilder extends AbstractTestBuilder<ApiClient> {
 
-  private Logger logger = LoggerFactory.getLogger(TestBuilder.class);
+  private final Logger logger = LoggerFactory.getLogger(TestBuilder.class);
   private TestBuilderAuthentication anonymousToken;
   private final String serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String.class);
   private static final String DEFAULT_UI_CLIENT_SECRET = "22614bd2-6a85-441c-857d-7606f4359e5b";

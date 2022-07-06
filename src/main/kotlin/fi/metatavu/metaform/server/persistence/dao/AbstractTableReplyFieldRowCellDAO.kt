@@ -17,7 +17,6 @@ abstract class AbstractTableReplyFieldRowCellDAO<T : TableReplyFieldRowCell?> : 
    * @return list of rows
    */
   fun listByRow(row: TableReplyFieldRow?): List<TableReplyFieldRowCell> {
-    val entityManager = getEntityManager()
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       TableReplyFieldRowCell::class.java

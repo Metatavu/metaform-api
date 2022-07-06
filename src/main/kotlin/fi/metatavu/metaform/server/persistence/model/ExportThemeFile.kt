@@ -34,16 +34,20 @@ class ExportThemeFile : Metadata() {
   @Column(nullable = false)
   @NotEmpty
   @NotNull
-  var path: String? = null
+  lateinit var path: String
 
   @Lob
   @Column(nullable = false)
   @Type(type = "org.hibernate.type.TextType")
   @NotEmpty
   @NotNull
-  var content: String? = null
+  lateinit var content: String
 
-  override var creatorId: UUID? = null
+  @Column(nullable = false)
+  @NotNull
+  lateinit var creator: UUID
 
-  override var lastModifierId: UUID? = null
+  @Column(nullable = false)
+  @NotNull
+  lateinit var lastModifier: UUID
 }

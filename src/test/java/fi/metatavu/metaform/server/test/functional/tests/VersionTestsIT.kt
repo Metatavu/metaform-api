@@ -29,7 +29,7 @@ class VersionTestsIT : AbstractIntegrationTest() {
             val metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform)
             val versionData = testBuilder.metaformAdmin.metaformVersions().exampleVersionData
             val version = MetaformVersion(
-                    type = MetaformVersionType.ARCHIVED,
+                    type = MetaformVersionType.aRCHIVED,
                     data = versionData
             )
 

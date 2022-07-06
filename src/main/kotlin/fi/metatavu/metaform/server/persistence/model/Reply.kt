@@ -22,7 +22,7 @@ class Reply : Metadata() {
 
   @Column(nullable = false)
   @NotNull
-  var userId: UUID? = null
+  lateinit var userId: UUID
 
   @Lob
   @Column
@@ -32,13 +32,9 @@ class Reply : Metadata() {
   var revision: OffsetDateTime? = null
 
   @ManyToOne(optional = false)
-  var metaform: Metaform? = null
+  lateinit var metaform: Metaform
 
   @Column
   var resourceId: UUID? = null
-
-  override var creatorId: UUID? = null
-
-  override var lastModifierId: UUID? = null
 
 }

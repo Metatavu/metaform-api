@@ -22,10 +22,10 @@ class ReplyField {
   var id: UUID? = null
 
   @ManyToOne(optional = false)
-  var reply: Reply? = null
+  lateinit var reply: Reply
 
   @Column (nullable = false)
   @NotNull
   @NotEmpty
-  var name:String? = null
+  lateinit var name: String
 }

@@ -13,7 +13,7 @@ import java.util.Map;
 import fi.metatavu.metaform.api.spec.model.FieldRule;
 import fi.metatavu.metaform.api.spec.model.Reply;
 
-import fi.metatavu.metaform.server.metaforms.FieldRuleEvaluator;
+import fi.metatavu.metaform.server.metaform.FieldRuleEvaluator;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -74,8 +74,15 @@ public class FieldRuleEvaluatorTests {
     Reply reply = new Reply();
     Map<String, Object> data = new HashMap<>();
     data.put(field, value);
-    reply.setData(data);
-    return reply;
+    return new Reply(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            data
+    );
   }
 
   /**
@@ -88,12 +95,18 @@ public class FieldRuleEvaluatorTests {
    * @return created reply
    */
   private Reply createTwoFieldReply(String field1, String value1, String field2, String value2) {
-    Reply reply = new Reply();
     Map<String, Object> data = new HashMap<>();
     data.put(field1, value1);
     data.put(field2, value2);
-    reply.setData(data);
-    return reply;
+    return new Reply(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            data
+    );
   }
 
   /**
@@ -119,13 +132,13 @@ public class FieldRuleEvaluatorTests {
    * @return created rule
    */
   private FieldRule createRule(String field, String equals, String notEquals, List<FieldRule> ands, List<FieldRule> ors) {
-    FieldRule rule = new FieldRule();
-    rule.setField(field);
-    rule.setEquals(equals);
-    rule.setNotEquals(notEquals);
-    rule.setAnd(ands);
-    rule.setOr(ors);
-    return rule;
+    return new FieldRule(
+            field,
+            equals,
+            notEquals,
+            ands,
+            ors
+    );
   }
 
   

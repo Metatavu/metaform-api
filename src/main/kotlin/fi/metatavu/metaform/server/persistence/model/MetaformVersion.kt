@@ -29,7 +29,9 @@ class MetaformVersion : Metadata() {
   @Column(nullable = false)
   var data: String? = null
 
-  override var creatorId: UUID? = null
+  @Column(nullable = false)
+  lateinit var creatorId: UUID
 
-  override var lastModifierId: UUID? = null
+  @Column(nullable = false)
+  lateinit var lastModifierId: UUID
 }

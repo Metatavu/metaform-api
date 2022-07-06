@@ -18,15 +18,11 @@ class ExportThemeTranslator {
    * @param exportTheme JPA ExportTheme object
    * @return REST ExportTheme
    */
-  fun translateExportTheme(exportTheme: fi.metatavu.metaform.server.persistence.model.ExportTheme?): fi.metatavu.metaform.api.spec.model.ExportTheme? {
-    if (exportTheme == null) {
-      return null
-    }
-
+  fun translateExportTheme(exportTheme: fi.metatavu.metaform.server.persistence.model.ExportTheme): ExportTheme? {
     return ExportTheme(
       id = exportTheme.id,
       locales = exportTheme.locales,
-      name = exportTheme.name!!,
+      name = exportTheme.name,
       parentId = exportTheme.parent?.id
     )
   }
@@ -37,15 +33,11 @@ class ExportThemeTranslator {
    * @param exportThemeFile JPA ExportThemeFile object
    * @return REST ExportThemeFile
    */
-  fun translateExportThemeFile(exportThemeFile: fi.metatavu.metaform.server.persistence.model.ExportThemeFile?): ExportThemeFile? {
-    if (exportThemeFile == null) {
-      return null
-    }
-
+  fun translateExportThemeFile(exportThemeFile: fi.metatavu.metaform.server.persistence.model.ExportThemeFile): ExportThemeFile {
     return ExportThemeFile(
       id = exportThemeFile.id,
-      content = exportThemeFile.content!!,
-      path = exportThemeFile.path!!,
+      content = exportThemeFile.content,
+      path = exportThemeFile.path,
       themeId = exportThemeFile.theme!!.id!!
     )
   }

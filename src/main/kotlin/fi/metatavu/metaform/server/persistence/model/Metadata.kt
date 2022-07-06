@@ -19,10 +19,6 @@ abstract class Metadata {
   @Column(nullable = false)
   open var modifiedAt: OffsetDateTime? = null
 
-  abstract var creatorId: UUID?
-
-  abstract var lastModifierId: UUID?
-
   /**
    * JPA pre-persist event handler
    */

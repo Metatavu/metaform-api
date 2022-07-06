@@ -1,15 +1,11 @@
 package fi.metatavu.metaform.server.test.functional.builder.auth;
 
 import java.io.IOException;
-
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider;
 import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthentication;
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient;
-import fi.metatavu.metaform.api.client.models.EmailNotification;
-import fi.metatavu.metaform.server.test.functional.builder.TestBuilder;
 import fi.metatavu.metaform.server.test.functional.builder.impl.*;
-import fi.metatavu.metaform.test.functional.builder.impl.*;
 
 import static fi.metatavu.metaform.server.test.TestSettings.basePath;
 

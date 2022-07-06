@@ -20,25 +20,21 @@ class Attachment : Metadata() {
 
   @Column(nullable = false)
   @NotNull
-  var userId: UUID? = null
+  lateinit var userId: UUID
 
   @Column(nullable = false)
   @NotEmpty
   @NotNull
-  var name: String? = null
+  lateinit var name: String
 
   @Column(nullable = false)
   @NotEmpty
   @NotNull
-  var contentType: String? = null
+  lateinit var contentType: String
 
   @Column(nullable = false)
   @Lob
   @Type(type = "org.hibernate.type.BinaryType")
-  var content: ByteArray? = null
-
-  override var creatorId: UUID? = null
-
-  override var lastModifierId: UUID? = null
+  lateinit var content: ByteArray
 
 }

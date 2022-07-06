@@ -26,8 +26,6 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
    * @param subjectTemplate subject template
    * @param contentTemplate content template
    * @param notifyIf notify if JSON
-   * @param creatorId creator id
-   * @param lastModifierId creator id
    * @return created email notification
    */
   fun create(
@@ -35,9 +33,7 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
     metaform: Metaform,
     subjectTemplate: String,
     contentTemplate: String,
-    notifyIf: String?,
-    creatorId: UUID,
-    lastModifierId: UUID
+    notifyIf: String?
   ): EmailNotification {
     val emailNotification = EmailNotification()
     emailNotification.id = id
@@ -45,8 +41,6 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
     emailNotification.subjectTemplate = subjectTemplate
     emailNotification.contentTemplate = contentTemplate
     emailNotification.notifyIf = notifyIf
-    emailNotification.creatorId = creatorId
-    emailNotification.lastModifierId = lastModifierId
     return persist(emailNotification)
   }
 
@@ -57,7 +51,6 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
    * @return list of email notifications
    */
   fun listByMetaform(metaform: Metaform): List<EmailNotification> {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<EmailNotification> = criteriaBuilder.createQuery(
       EmailNotification::class.java
@@ -76,16 +69,13 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
    *
    * @param emailNotification email notification
    * @param subjectTemplate subject template
-   * @param lastModifierId modifier id
    * @return updated email notification
    */
   fun updateSubjectTemplate(
     emailNotification: EmailNotification,
-    subjectTemplate: String?,
-    lastModifierId: UUID,
+    subjectTemplate: String
   ): EmailNotification {
     emailNotification.subjectTemplate = subjectTemplate
-    emailNotification.lastModifierId = lastModifierId
     return persist(emailNotification)
   }
 
@@ -94,16 +84,13 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
    *
    * @param emailNotification email notification
    * @param contentTemplate content template
-   * @param lastModifierId modifier id
    * @return updated email notification
    */
   fun updateContentTemplate(
     emailNotification: EmailNotification,
-    contentTemplate: String?,
-    lastModifierId: UUID,
+    contentTemplate: String
   ): EmailNotification {
     emailNotification.contentTemplate = contentTemplate
-    emailNotification.lastModifierId = lastModifierId
     return persist(emailNotification)
   }
 
@@ -112,16 +99,13 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
    *
    * @param emailNotification email notification
    * @param notifyIf notify if JSON
-   * @param lastModifierId modifier id
    * @return updated email notification
    */
   fun updateNotifyIf(
     emailNotification: EmailNotification,
-    notifyIf: String?,
-    lastModifierId: UUID,
+    notifyIf: String?
   ): EmailNotification {
     emailNotification.notifyIf = notifyIf
-    emailNotification.lastModifierId = lastModifierId
     return persist(emailNotification)
   }
 }

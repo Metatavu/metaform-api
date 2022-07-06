@@ -26,14 +26,14 @@ class EmailNotification : fi.metatavu.metaform.server.persistence.model.Metadata
   @Column
   @NotNull
   @NotEmpty
-  var subjectTemplate: String? = null
+  lateinit var subjectTemplate: String
 
   @Lob
   @Type(type = "org.hibernate.type.TextType")
   @Column
   @NotNull
   @NotEmpty
-  var contentTemplate: String? = null
+  lateinit var contentTemplate: String
 
   @Lob
   var notifyIf: String? = null
@@ -41,7 +41,4 @@ class EmailNotification : fi.metatavu.metaform.server.persistence.model.Metadata
   @ManyToOne(optional = false)
   var metaform: Metaform? = null
 
-  override var creatorId: UUID? = null
-
-  override var lastModifierId: UUID? = null
 }

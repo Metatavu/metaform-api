@@ -36,7 +36,7 @@ class MetaformVersionDAO : AbstractDAO<MetaformVersion>() {
     data: String,
     creatorId: UUID,
     lastModifierId: UUID
-  ): MetaformVersion? {
+  ): MetaformVersion {
     val metaformVersion = MetaformVersion()
     metaformVersion.id = id
     metaformVersion.metaform = metaform
@@ -57,7 +57,6 @@ class MetaformVersionDAO : AbstractDAO<MetaformVersion>() {
   fun listByMetaform(
     metaform: Metaform
   ): List<MetaformVersion> {
-    val entityManager: EntityManager = getEntityManager()
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<MetaformVersion> = criteriaBuilder.createQuery(
       MetaformVersion::class.java

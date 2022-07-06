@@ -24,12 +24,7 @@ class MetaformTranslator {
    * @param entity JPA Metaform
    * @return REST Metaform
    */
-  fun translateMetaform(entity: Metaform?): fi.metatavu.metaform.api.spec.model.Metaform? {
-    if (entity == null) {
-      return null
-    }
-
-
+  fun translate(entity: Metaform): fi.metatavu.metaform.api.spec.model.Metaform? {
     var result: fi.metatavu.metaform.api.spec.model.Metaform?
     val objectMapper = ObjectMapper()
     try {
