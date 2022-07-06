@@ -10,13 +10,13 @@ import java.util.Map;
  * Starts test container for keycloak
  */
 public class KeycloakResource implements QuarkusTestResourceLifecycleManager {
-  static final KeycloakContainer keycloak = new KeycloakContainer().withRealmImportFile("kc.json");
+  static final KeycloakContainer keycloak = new KeycloakContainer().withRealmImportFile("kc.json").withFeaturesEnabled("upload-scripts");
 
   @Override
   public Map<String, String> start() {
     keycloak.start();
 
-    HashMap<String, String> config = new HashMap();
+    HashMap config = new HashMap();
     config.put("quarkus.oidc.auth-server-url", String.format("%s/realms/test-1", keycloak.getAuthServerUrl()));
     config.put("quarkus.oidc.client-id", "metaform-api");
     config.put("metaforms.keycloak.admin.host", keycloak.getAuthServerUrl());
