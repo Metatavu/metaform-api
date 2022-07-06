@@ -62,7 +62,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
               notifyIf = emailNotification.notifyIf
       )
     } catch (e: JsonProcessingException) {
-      return createBadRequest(e.message!!)
+      return createBadRequest(e.message)
     }
 
     return createOk(emailNotificationTranslator.translate(createdEmailNotification))
@@ -146,7 +146,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
               emailNotification.notifyIf
       )
     } catch (e: JsonProcessingException) {
-      return createBadRequest(e.message!!)
+      return createBadRequest(e.message)
     }
 
     return createOk(emailNotificationTranslator.translate(updatedEmailNotification))

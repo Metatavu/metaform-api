@@ -18,7 +18,6 @@ class AttachmentTranslator {
    * @return REST attachment
    */
   fun translate(attachment: fi.metatavu.metaform.server.persistence.model.Attachment): Attachment {
-//    TODO check metadata translator
     return Attachment(
             id = attachment.id,
             contentType = attachment.contentType,

@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest
 import fi.metatavu.metaform.api.spec.model.Draft
 import fi.metatavu.metaform.server.controllers.DraftController
 import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedDraftDataException
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.rest.translate.DraftTranslator
@@ -36,12 +37,12 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     val metaform: Metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaform = metaformTranslator.translate(metaform)!!
-    if (BooleanUtils.isNotTrue(foundMetaform.allowDrafts)) {
+    val foundMetaform = metaformTranslator.translate(metaform)
+    if (BooleanUtils.isNotTrue(foundMetaform?.allowDrafts)) {
       return createForbidden(createNotAllowedMessage(CREATE, DRAFT))
     }
 
-    if (!metaform.allowAnonymous!! && isAnonymous) {
+    if (metaform.allowAnonymous != true && isAnonymous) {
       return createForbidden(createAnonNotAllowedMessage(CREATE, DRAFT))
     }
 
@@ -52,7 +53,11 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     }
 
     val createdDraft = draftController.createDraft(metaform, userId, serializedDraftData)
-    val draftEntity: Draft = draftTranslator.translateDraft(createdDraft)
+    val draftEntity: Draft = try {
+       draftTranslator.translateDraft(createdDraft)
+    } catch (e: DeserializationFailedException) {
+      return createInternalServerError(e.message)
+    }
 
     return createOk(draftEntity)
   }
@@ -88,10 +93,15 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     val draft = draftController.findDraftById(draftId)
             ?: return createNotFound(createNotFoundMessage(DRAFT, draftId))
 
-    return if (draft.metaform?.id != metaform.id) {
+    if (draft.metaform?.id != metaform.id) {
       createNotFound(createNotBelongMessage(DRAFT))
-    } else createOk(draftTranslator.translateDraft(draft))
+    }
 
+    return try {
+      createOk(draftTranslator.translateDraft(draft))
+    } catch (e: DeserializationFailedException) {
+      createInternalServerError(e.message)
+    }
   }
 
   override suspend fun updateDraft(metaformId: UUID, draftId: UUID, draft: Draft): Response {
@@ -124,7 +134,11 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
 
     val updatedDraft = draftController.updateDraft(foundDraft, serializedDraftData)
 
-    return createOk(draftTranslator.translateDraft(updatedDraft))
+    return try {
+      createOk(draftTranslator.translateDraft(updatedDraft))
+    } catch (e: DeserializationFailedException) {
+      createInternalServerError(e.message)
+    }
   }
 
 

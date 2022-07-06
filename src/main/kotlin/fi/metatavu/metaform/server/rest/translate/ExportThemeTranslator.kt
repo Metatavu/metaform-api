@@ -18,7 +18,7 @@ class ExportThemeTranslator {
    * @param exportTheme JPA ExportTheme object
    * @return REST ExportTheme
    */
-  fun translateExportTheme(exportTheme: fi.metatavu.metaform.server.persistence.model.ExportTheme): ExportTheme? {
+  fun translateExportTheme(exportTheme: fi.metatavu.metaform.server.persistence.model.ExportTheme): ExportTheme {
     return ExportTheme(
       id = exportTheme.id,
       locales = exportTheme.locales,

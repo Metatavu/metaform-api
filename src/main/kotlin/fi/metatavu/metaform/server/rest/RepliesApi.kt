@@ -122,7 +122,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       }
     }
 
-    val replyEntity = replyTranslator.translate(metaformEntity, createdReply, publicKey)!!
+    val replyEntity = replyTranslator.translate(metaformEntity, createdReply, publicKey)
 
     if (metaformEntity.scripts?.afterCreateReply != null) {
       setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
@@ -220,7 +220,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       val metaformEntity = metaformTranslator.translate(metaform) ?: return createInternalServerError(FAILED_TO_TRANSLATE_METAFORM)
 
       val replies = replyController.listReplies(metaform = metaform, includeRevisions = false)
-      val replyEntities = replies.mapNotNull { reply -> replyTranslator.translate(metaformEntity, reply, null) }
+      val replyEntities = replies.map { reply -> replyTranslator.translate(metaformEntity, reply, null) }
 
       replies.forEach{ reply ->
         auditLogEntryController.generateAuditLog(
@@ -284,7 +284,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     firstResult: Int?,
     maxResults: Int?
   ): Response {
-//   TODO update spec for date parsing
     val auditLogUser = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (firstResult != null) {
@@ -307,7 +306,8 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform = metaformTranslator.translate(metaform)!!
+    val metaformEntity = metaformTranslator.translate(metaform)
+            ?: return createInternalServerError("Metaform translation failed")
 
     val fieldFilters = fieldController.parseFilters(metaformEntity, fields)
 
@@ -331,7 +331,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     ) }
 
     val result: List<Reply> = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW)
-            .mapNotNull { entity -> replyTranslator.translate(metaformEntity, entity, null) }
+            .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 
     return createOk(result)
   }

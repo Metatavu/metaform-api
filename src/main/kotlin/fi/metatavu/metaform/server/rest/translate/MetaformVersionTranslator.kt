@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.rest.translate
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion
 import org.slf4j.Logger
 import javax.enterprise.context.ApplicationScoped
@@ -27,16 +28,19 @@ class MetaformVersionTranslator {
    * @param entity JPA Metaform version
    * @return REST Metaform version
    */
+  @Throws(DeserializationFailedException::class)
   fun translate(entity: MetaformVersion): fi.metatavu.metaform.api.spec.model.MetaformVersion {
+    val deserializedData = entity.data?.let { versionData -> deserializeData(versionData) }
+            ?: throw DeserializationFailedException("Version data deserialization failed")
+
     return fi.metatavu.metaform.api.spec.model.MetaformVersion(
       id = entity.id,
       type = entity.type!!,
-      data = deserializeData(entity.data!!)!!, //todo add exception if translation fails
+      data = deserializedData,
       creatorId = entity.creatorId,
       lastModifierId = entity.lastModifierId,
       createdAt = entity.createdAt,
       modifiedAt = entity.modifiedAt
-
     )
   }
 

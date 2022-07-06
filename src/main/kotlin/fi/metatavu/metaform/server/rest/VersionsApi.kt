@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest
 import fi.metatavu.metaform.api.spec.model.MetaformVersion
 import fi.metatavu.metaform.server.controllers.MetaformController
 import fi.metatavu.metaform.server.controllers.MetaformVersionController
+import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedVersionJsonException
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.rest.translate.MetaformVersionTranslator
@@ -38,16 +39,21 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     val foundMetaform: Metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    return try {
-      val createdMetaformVersion = metaformVersionController.create(
+    val createdMetaformVersion = try {
+      metaformVersionController.create(
               foundMetaform,
               metaformVersion.type,
               metaformVersion.data,
               userId
       )
-      createOk(metaformVersionTranslator.translate(createdMetaformVersion))
     } catch (e: MalformedVersionJsonException) {
-      createBadRequest(createInvalidMessage(METAFORM_VERSION))
+      return createBadRequest(createInvalidMessage(METAFORM_VERSION))
+    }
+
+    return try {
+      createOk(metaformVersionTranslator.translate(createdMetaformVersion))
+    } catch (e: DeserializationFailedException) {
+      createInternalServerError(e.message)
     }
   }
 
@@ -86,9 +92,15 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     val foundMetaformVersion = metaformVersionController.findMetaformVersionById(versionId)
             ?: return createNotFound(createNotFoundMessage(METAFORM_VERSION, versionId))
 
-    return if (foundMetaformVersion.metaform?.id != foundMetaform.id) {
+    if (foundMetaformVersion.metaform?.id != foundMetaform.id) {
       return createNotFound(createNotBelongMessage(METAFORM_VERSION))
-    } else createOk(metaformVersionTranslator.translate(foundMetaformVersion))
+    }
+
+    return try {
+      createOk(metaformVersionTranslator.translate(foundMetaformVersion))
+    } catch (e: DeserializationFailedException) {
+      createInternalServerError(e.message)
+    }
   }
 
   override suspend fun listMetaformVersions(metaformId: UUID): Response {

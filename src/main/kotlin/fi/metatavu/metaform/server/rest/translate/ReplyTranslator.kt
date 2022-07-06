@@ -27,10 +27,7 @@ class ReplyTranslator {
      * @param ownerKey reply owner public key
      * @return REST reply
      */
-    fun translate(metaformEntity: Metaform, reply: fi.metatavu.metaform.server.persistence.model.Reply?, ownerKey: PublicKey?): Reply? {
-        if (reply == null) {
-            return null
-        }
+    fun translate(metaformEntity: Metaform, reply: fi.metatavu.metaform.server.persistence.model.Reply, ownerKey: PublicKey?): Reply {
         val replyFieldMap = fieldController.getReplyFieldMap(reply)
         val replyData = mutableMapOf<String, Any>()
 

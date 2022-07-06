@@ -62,11 +62,11 @@ class ExportThemeController {
             exportTheme: ExportTheme,
             locales: String?,
             parent: ExportTheme?,
-            name: String?,
+            name: String,
             userId: UUID
     ): ExportTheme {
         exportThemeDAO.updateLocales(exportTheme, locales, userId)
-        exportThemeDAO.updateName(exportTheme, name!!, userId)
+        exportThemeDAO.updateName(exportTheme, name, userId)
         exportThemeDAO.updateParent(exportTheme, parent, userId)
         return exportTheme
     }

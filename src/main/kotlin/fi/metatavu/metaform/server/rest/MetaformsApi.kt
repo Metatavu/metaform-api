@@ -69,7 +69,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     try {
       updateMetaformPermissionGroups(createdMetaform.slug, metaform)
     } catch (e: KeycloakClientNotFoundException) {
-      createInternalServerError(e.message!!)
+      createInternalServerError(e.message)
     }
     return createOk(metaformTranslator.translate(createdMetaform))
   }
@@ -201,7 +201,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     try {
       updateMetaformPermissionGroups(formSlug, metaform)
     } catch (e: KeycloakClientNotFoundException) {
-      return createInternalServerError(e.message!!)
+      return createInternalServerError(e.message)
     }
 
     return createOk(metaformTranslator.translate(metaformController.updateMetaform(

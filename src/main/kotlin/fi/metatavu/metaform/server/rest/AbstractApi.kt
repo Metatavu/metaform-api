@@ -97,7 +97,7 @@ abstract class AbstractApi {
      *
      * @return error response
      */
-    private fun createError(status: Response.Status, message: String): Response {
+    private fun createError(status: Response.Status, message: String?): Response {
         val entity = BadRequest(
                 message = message,
                 code = status.statusCode
@@ -173,7 +173,7 @@ abstract class AbstractApi {
      * @param message message
      * @return response
      */
-    protected fun createBadRequest(message: String): Response {
+    protected fun createBadRequest(message: String?): Response {
         return createError(Response.Status.BAD_REQUEST, message)
     }
 
@@ -213,7 +213,7 @@ abstract class AbstractApi {
      * @param message message
      * @return response
      */
-    protected fun createInternalServerError(message: String): Response {
+    protected fun createInternalServerError(message: String?): Response {
         return createError(Response.Status.INTERNAL_SERVER_ERROR, message)
     }
 

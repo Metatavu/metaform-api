@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest.translate
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.Draft
+import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import org.slf4j.Logger
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -27,10 +28,14 @@ class DraftTranslator {
    * @param draft JPA drasft object
    * @return REST object
    */
+  @Throws(DeserializationFailedException::class)
   fun translateDraft(draft: fi.metatavu.metaform.server.persistence.model.Draft): Draft {
+    val deserializedData = draft.data?.let { draftData -> deserializeData(draftData) }
+            ?: throw DeserializationFailedException("Draft data deserialization failed")
+
     return Draft(
       id = draft.id,
-      data = deserializeData(draft.data!!)!! // TODO add exception for deserialization fail to avoid npe
+      data = deserializedData
     )
   }
 
@@ -45,7 +50,7 @@ class DraftTranslator {
       val typeRef: TypeReference<Map<String, Any>> = object : TypeReference<Map<String, Any>>() {}
       return objectMapper.readValue(data, typeRef)
     } catch (e: Exception) {
-      logger.error("Failed to read version data", e)
+      logger.error("Failed to read draft data", e)
     }
     return null
   }
