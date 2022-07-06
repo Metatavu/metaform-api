@@ -80,12 +80,12 @@ class DraftController {
      * @param data data
      * @return data as string
      */
+    @Throws(MalformedDraftDataException::class)
     fun serializeData(data: Map<String, Any>): String {
         try {
             val objectMapper = ObjectMapper()
             return objectMapper.writeValueAsString(data)
         } catch (e: Exception) {
-            logger.error("Failed to serialize draft data", e)
             throw MalformedDraftDataException("Failed to serialize draft data", e)
         }
     }

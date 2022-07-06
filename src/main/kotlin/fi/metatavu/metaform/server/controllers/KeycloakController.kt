@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.controllers
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import fi.metatavu.metaform.server.exceptions.FailStoreFailedException
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
@@ -161,6 +162,7 @@ class KeycloakController {
      * @param keycloak admin client
      * @return Keycloak client
      */
+    @Throws(KeycloakClientNotFoundException::class)
     fun getKeycloakClient(keycloak: Keycloak): ClientRepresentation {
         return findClient(keycloak, configuration.resource) ?: throw KeycloakClientNotFoundException("Keycloak client not found")
     }

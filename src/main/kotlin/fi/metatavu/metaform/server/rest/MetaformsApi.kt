@@ -114,6 +114,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
    * @param formSlug form slug
    * @param metaformEntity Metaform REST entity
    */
+  @Throws(KeycloakClientNotFoundException::class)
   private fun updateMetaformPermissionGroups(formSlug: String, metaformEntity: Metaform) {
     val adminClient = keycloakController.getAdminClient()
     val keycloakClient = try {

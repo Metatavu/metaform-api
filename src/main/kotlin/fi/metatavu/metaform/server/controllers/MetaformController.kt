@@ -224,7 +224,6 @@ class MetaformController {
      * @param replyEntity reply entity
      * @param newPermissionGroups added permission groups
      */
-//    TODO check all throw error signature
     @Throws(KeycloakClientNotFoundException::class)
     fun handleReplyPostPersist(
             replyCreated: Boolean,
