@@ -196,7 +196,7 @@ class ReplyTestBuilderResource(
      * Deletes a reply from the API
      *
      * @param metaformId metaform id
-     * @param reply      reply to be deleted
+     * @param replyId      reply to be deleted
      * @param ownerKey   owner key
      */
     @Throws(IOException::class)
