@@ -53,7 +53,7 @@ class AttachmentController {
      * Finds attachment by id
      *
      * @param attachmentId attachment id
-     * @return
+     * @return attachment
      */
     fun findAttachmentById(attachmentId: UUID): Attachment? {
         return attachmentDAO.findById(attachmentId)
