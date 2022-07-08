@@ -81,23 +81,6 @@ class TableFieldTestsIT : AbstractTest() {
         }
     }
 
-//    @Test
-//    @Throws(Exception::class)
-//    fun nullTableReply() {
-//        TestBuilder().use { testBuilder ->
-//            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-table")
-//            val replyData: MutableMap<String, Any> = HashMap()
-////            TODO check object nullability
-//            replyData["table"] = null
-//            val reply: Reply = testBuilder.test1.replies.createReplyWithData(replyData.toMap())
-//            val reply1 = testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
-//            val foundReply: Reply = testBuilder.test1.replies.findReply(metaform.id, reply1.id!!, null)
-//            Assertions.assertNotNull(foundReply)
-//            Assertions.assertNotNull(foundReply.id)
-//            Assertions.assertNull(foundReply.data!!["table"])
-//        }
-//    }
-
     @Test
     @Throws(Exception::class)
     fun invalidTableReply() {

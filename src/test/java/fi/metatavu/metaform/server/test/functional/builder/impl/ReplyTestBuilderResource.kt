@@ -127,7 +127,6 @@ class ReplyTestBuilderResource(
     fun createTBNCReply(metaformId: UUID, text: String, bool: Boolean?, number: Double, checklist: Array<String?>): Reply {
         val replyData: MutableMap<String, Any> = HashMap()
         replyData["text"] = text
-//        TODO check object nullability
         bool?.let { replyData["boolean"] = bool }
         replyData["number"] = number
         replyData["checklist"] = checklist
@@ -138,7 +137,7 @@ class ReplyTestBuilderResource(
     /**
      * Creates new reply for the simple form
      *
-     * @param metaform  metaform
+     * @param metaformId metaform id
      * @param value     value
      * @param replyMode reply model
      * @return reply
