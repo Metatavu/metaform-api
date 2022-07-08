@@ -154,7 +154,7 @@ class CryptoController {
             logger.error("Failed to sign data", e)
             null
         } catch (e: InvalidKeyException) {
-            logger.error("Failed to  sign data", e)
+            logger.error("Failed to sign data", e)
             null
         } catch (e: SignatureException) {
             logger.error("Failed to sign data", e)
