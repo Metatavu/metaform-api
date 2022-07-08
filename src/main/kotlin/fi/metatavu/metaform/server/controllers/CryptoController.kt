@@ -177,7 +177,7 @@ class CryptoController {
             signInstance.update(data)
             signInstance.verify(signature)
         } catch (e: SignatureException) {
-            logger.error("Failed to  verífy data", e)
+            logger.error("Failed to verífy data", e)
             false
         } catch (e: InvalidKeyException) {
             logger.error("Failed to  verífy data", e)
