@@ -18,8 +18,8 @@ class TableReplyFieldStringRowCellDAO :
    *
    * @param id id
    * @param row row
-   * @param value value
    * @param name name
+   * @param value value
    * @return created tableReplyFieldStringRowCell
    */
   fun create(
