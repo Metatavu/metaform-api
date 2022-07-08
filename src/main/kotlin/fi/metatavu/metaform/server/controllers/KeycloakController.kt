@@ -351,7 +351,7 @@ class KeycloakController {
      * @param realmName realm name
      * @param client client
      * @param scopes scopes to be created
-     * @return
+     * @return authorization scopes
      */
     fun createAuthorizationScopes(keycloak: Keycloak, realmName: String?, client: ClientRepresentation, scopes: List<AuthorizationScope>): List<UUID> {
         val scopesResource = keycloak.realm(realmName).clients()[client.id].authorization().scopes()

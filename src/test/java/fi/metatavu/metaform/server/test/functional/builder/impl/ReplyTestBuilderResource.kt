@@ -154,7 +154,7 @@ class ReplyTestBuilderResource(
      * Asserts reply can not be found with given owner key
      *
      * @param metaformId metaform id
-     * @param reply    reply
+     * @param replyId    reply
      * @param ownerKey owner key
      */
     @Throws(IOException::class)
@@ -184,6 +184,7 @@ class ReplyTestBuilderResource(
      * Updates a reply into the API
      *
      * @param metaformId metaform id
+     * @param replyId    reply to update
      * @param body       body payload
      * @param ownerKey   owner key
      */

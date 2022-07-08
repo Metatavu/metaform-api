@@ -99,7 +99,7 @@ class FileUploadServlet : HttpServlet() {
     /*
    * Sets CORS headers for the response
    * 
-   * @param resp reponse
+   * @param resp response
 */
     private fun setCorsHeaders(resp: HttpServletResponse) {
         resp.setHeader("Access-Control-Allow-Origin", "*")

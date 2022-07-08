@@ -14,7 +14,7 @@ class FieldRuleEvaluator {
     /**
      * Evaluates field rule
      *
-     * @param rule  rule
+     * @param rule rule
      * @param reply reply data
      * @return evaluation result
      */

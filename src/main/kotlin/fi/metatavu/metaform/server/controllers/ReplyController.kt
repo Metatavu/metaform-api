@@ -350,7 +350,6 @@ class ReplyController {
      * @param modifiedAfter filter results by modified after specified time.
      * @param includeRevisions
      * @return replies list of replies
-     * @return replies
      */
     fun listReplies(
             metaform: Metaform? = null,
@@ -520,7 +519,7 @@ class ReplyController {
      * @param replyIndex
      * @param field
      * @param value
-     * @return
+     * @return Xlsx table sheet
      */
     private fun createXlsxTableSheet(xlsxBuilder: XlsxBuilder, replyIndex: Int, field: MetaformField, value: Any): String? {
         val columns = field.columns

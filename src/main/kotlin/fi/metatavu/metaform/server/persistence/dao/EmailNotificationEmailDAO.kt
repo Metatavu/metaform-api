@@ -22,6 +22,7 @@ class EmailNotificationEmailDAO : AbstractDAO<EmailNotificationEmail?>() {
    *
    * @param id id
    * @param emailNotification Email notification
+   * @param email email
    * @return created EmailNotificationEmail
    */
   fun create(

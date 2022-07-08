@@ -180,10 +180,10 @@ class CryptoController {
             logger.error("Failed to verífy data", e)
             false
         } catch (e: InvalidKeyException) {
-            logger.error("Failed to  verífy data", e)
+            logger.error("Failed to verífy data", e)
             false
         } catch (e: NoSuchAlgorithmException) {
-            logger.error("Failed to  verífy data", e)
+            logger.error("Failed to verífy data", e)
             false
         }
     }
