@@ -151,7 +151,7 @@ class CryptoController {
             signature.update(data)
             signature.sign()
         } catch (e: NoSuchAlgorithmException) {
-            logger.error("Failed to  sign data", e)
+            logger.error("Failed to sign data", e)
             null
         } catch (e: InvalidKeyException) {
             logger.error("Failed to  sign data", e)
