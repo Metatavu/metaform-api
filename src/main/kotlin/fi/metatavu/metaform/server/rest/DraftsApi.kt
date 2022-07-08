@@ -31,6 +31,13 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
   @Inject
   lateinit var draftTranslator: DraftTranslator
 
+  /**
+   * Creates a new draft
+   * 
+   * @param metaformId Metaform id
+   * @param draft Draft to create
+   * @return Created draft
+   */
   override suspend fun createDraft(metaformId: UUID, draft: Draft): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -62,6 +69,12 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     return createOk(draftEntity)
   }
 
+  /**
+   * Deletes a draft
+   * 
+   * @param metaformId Metaform id
+   * @param draftId Draft id
+   */
   override suspend fun deleteDraft(metaformId: UUID, draftId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -84,6 +97,12 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     return createNoContent()
   }
 
+  /**
+   * Finds a draft by id
+   * 
+   * @param metaformId Metaform id
+   * @param draftId Draft id
+   */
   override suspend fun findDraft(metaformId: UUID, draftId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -104,6 +123,13 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     }
   }
 
+  /**
+   * Update a draft
+   * 
+   * @param metaformId Metaform id
+   * @param draftId Draft id
+   * @param draft Draft data
+   */
   override suspend fun updateDraft(metaformId: UUID, draftId: UUID, draft: Draft): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 

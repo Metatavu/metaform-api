@@ -19,6 +19,12 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   @Inject
   lateinit var exportThemeTranslator: ExportThemeTranslator
 
+  /**
+   * Creates a new export theme
+   * 
+   * @param exportTheme export theme to create
+   * @return created export theme
+   */
   override suspend fun createExportTheme(exportTheme: ExportTheme): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -41,6 +47,12 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
     return createOk(exportThemeTranslator.translateExportTheme(createdExportTheme))
   }
 
+  /**
+   * Deletes an export theme
+   * 
+   * @param exportThemeId export theme id
+   * @return deleted export theme
+   */
   override suspend fun deleteExportTheme(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -56,6 +68,12 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
     return createNoContent()
   }
 
+  /**
+   * Finds export theme by id
+   * 
+   * @param exportThemeId export theme id
+   * @return export theme
+   */
   override suspend fun findExportTheme(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -69,6 +87,9 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
     return createOk(exportThemeTranslator.translateExportTheme(exportTheme))
   }
 
+  /**
+   * Lists export themes
+   */
   override suspend fun listExportThemes(): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -79,6 +100,12 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
 
   }
 
+  /**
+   * Updates an export theme
+   * 
+   * @param exportThemeId export theme id
+   * @param exportTheme export theme data
+   */
   override suspend fun updateExportTheme(exportThemeId: UUID, exportTheme: ExportTheme): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
