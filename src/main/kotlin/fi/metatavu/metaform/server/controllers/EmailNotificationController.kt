@@ -172,7 +172,7 @@ class EmailNotificationController {
         val data = toFreemarkerData(replyEntity)
         val subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE)
         val content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE)
-        emails.stream().forEach { email -> emailProvider.sendMail(email, subject, content, MailFormat.HTML) }
+        emails.forEach { email -> emailProvider.sendMail(email, subject, content, MailFormat.HTML) }
     }
 
     /**

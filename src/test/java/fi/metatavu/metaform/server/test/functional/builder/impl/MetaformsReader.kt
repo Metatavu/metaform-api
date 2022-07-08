@@ -44,7 +44,7 @@ class MetaformsReader {
                 .add(UUIDAdapter())
                 .add(
                     MetaformFieldType::class.java,
-                    EnumJsonAdapter.create<MetaformFieldType>(MetaformFieldType::class.java).withUnknownFallback(null)
+                    EnumJsonAdapter.create(MetaformFieldType::class.java).withUnknownFallback(null)
                 )
                 .addLast(KotlinJsonAdapterFactory()).build()
             val jsonAdapter = moshi.adapter(

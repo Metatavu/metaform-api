@@ -48,7 +48,7 @@ class EmailNotificationEmailDAO : AbstractDAO<EmailNotificationEmail?>() {
       criteriaBuilder.createQuery(
         EmailNotificationEmail::class.java
       )
-    val root: Root<EmailNotificationEmail> = criteria.from<EmailNotificationEmail>(
+    val root: Root<EmailNotificationEmail> = criteria.from(
       EmailNotificationEmail::class.java
     )
     criteria.select(root)
@@ -58,6 +58,6 @@ class EmailNotificationEmailDAO : AbstractDAO<EmailNotificationEmail?>() {
         emailNotification
       )
     )
-    return entityManager.createQuery<EmailNotificationEmail>(criteria).getResultList()
+    return entityManager.createQuery(criteria).resultList
   }
 }
