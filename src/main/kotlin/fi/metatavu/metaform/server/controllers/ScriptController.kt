@@ -20,8 +20,8 @@ class ScriptController {
      *
      * @param scripts scripts
      */
-    fun runScripts(scripts: List<MetaformScript?>?) {
-        scripts?.stream()?.forEach { script: MetaformScript? -> runScript(script) }
+    fun runScripts(scripts: List<MetaformScript>?) {
+        scripts?.forEach { runScript(it) }
     }
 
     /**
@@ -31,7 +31,7 @@ class ScriptController {
      */
     private fun runScript(script: MetaformScript?) {
         if (script != null) {
-            scriptProcessor.processScript(RunnableScript(script.language, script.content, script.name), HashMap())
+            scriptProcessor.processScript(RunnableScript(script.language, script.content, script.name), mapOf())
         }
     }
 }

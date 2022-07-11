@@ -10,8 +10,7 @@ import javax.inject.Inject
  *
  * @author Antti Leppa
  */
-@ApplicationScoped
-class FieldTypeMapper {
+object FieldTypeMapper {
 
     @Inject
     lateinit var logger: Logger

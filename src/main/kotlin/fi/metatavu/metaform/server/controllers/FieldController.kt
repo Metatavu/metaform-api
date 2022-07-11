@@ -27,9 +27,6 @@ class FieldController {
     lateinit var logger: Logger
 
     @Inject
-    lateinit var fieldTypeMapper: FieldTypeMapper
-
-    @Inject
     lateinit var anyReplyFieldDAO: AnyReplyFieldDAO
 
     @Inject
@@ -156,8 +153,8 @@ class FieldController {
     fun resolveMetaField(fieldName: String?, entity: Reply): Any? {
         return when (fieldName) {
             "lastEditor" -> entity.userId
-            "created", "createdAt" -> formatDateTime(entity.createdAt)
-            "modified" -> formatDateTime(entity.modifiedAt)
+            "created", "createdAt" -> formatDateTime(entity.createdAt!!)
+            "modified" -> formatDateTime(entity.modifiedAt!!)
             else -> {
                 logger.warn("Metafield {} not recognized", fieldName)
                 null
@@ -212,7 +209,7 @@ class FieldController {
             val operatorString = tokenizedFilter[1]
             val valueString = tokenizedFilter[2]
             val fieldType = getFieldType(metaformEntity, fieldName)
-            val storeDataType = fieldTypeMapper.getStoreDataType(fieldType)
+            val storeDataType = FieldTypeMapper.getStoreDataType(fieldType)
             val operator = when (operatorString) {
                 ":" -> FieldFilterOperator.EQUALS
                 "^" -> FieldFilterOperator.NOT_EQUALS
@@ -279,8 +276,8 @@ class FieldController {
      * @param dateTime date time
      * @return date time in ISO date-time format
      */
-    private fun formatDateTime(dateTime: OffsetDateTime?): String? {
-        return dateTime?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    private fun formatDateTime(dateTime: OffsetDateTime): String {
+        return dateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
     }
 
 }
