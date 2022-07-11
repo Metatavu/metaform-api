@@ -9,7 +9,6 @@ import fi.metatavu.metaform.api.client.models.Reply
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.pickway.cloud.api.test.functional.impl.ApiTestBuilderResource
 import org.json.JSONException
 import org.junit.Assert
 import java.io.IOException

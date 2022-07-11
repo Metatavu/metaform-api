@@ -1,4 +1,4 @@
-package fi.metatavu.pickway.cloud.api.test.functional.impl
+package fi.metatavu.metaform.server.test.functional.builder.impl
 
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ClientException

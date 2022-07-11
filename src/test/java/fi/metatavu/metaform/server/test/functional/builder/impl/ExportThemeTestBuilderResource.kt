@@ -8,7 +8,6 @@ import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.ExportTheme
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.pickway.cloud.api.test.functional.impl.ApiTestBuilderResource
 import org.junit.Assert
 import java.io.IOException
 import java.util.*
@@ -35,11 +34,6 @@ class ExportThemeTestBuilderResource(
      * Creates simple export theme
      *
      * @param name name
-     * @return export theme
-     */
-    /**
-     * Creates simple export theme
-     *
      * @return export theme
      * @throws IOException thrown when request fails
      */

@@ -8,7 +8,6 @@ import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.ExportThemeFile
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.pickway.cloud.api.test.functional.impl.ApiTestBuilderResource
 import org.junit.Assert
 import java.io.IOException
 import java.util.*

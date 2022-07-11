@@ -8,7 +8,6 @@ import fi.metatavu.metaform.api.client.models.Draft
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.pickway.cloud.api.test.functional.impl.ApiTestBuilderResource
 import java.io.IOException
 import java.util.*
 
@@ -30,7 +29,7 @@ class DraftTestBuilderResource(
     @Throws(IOException::class)
     override fun clean(draft: Draft) {
         val testBuilder = TestBuilder()
-        val draftsAdminApi = testBuilder.metaformAdmin.drafts.api;
+        val draftsAdminApi = testBuilder.metaformAdmin.drafts.api
 
         metaformDraftMap.entries.stream()
                 .filter { it.value == draft }

@@ -9,7 +9,6 @@ import fi.metatavu.metaform.api.client.models.Attachment
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.FileUploadResponse
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.pickway.cloud.api.test.functional.impl.ApiTestBuilderResource
 import org.junit.Assert
 import org.junit.jupiter.api.Assertions
 import java.io.IOException
@@ -38,7 +37,7 @@ class AttachmentTestBuilderResource(
      */
     @Throws(IOException::class)
     fun assertAttachmentExists(fileUpload1: FileUploadResponse) {
-        val attachment1 = api.findAttachment(fileUpload1.fileRef!!, "")
+        val attachment1 = api.findAttachment(fileUpload1.fileRef, "")
         Assertions.assertNotNull(attachment1)
         Assertions.assertEquals(fileUpload1.fileRef, attachment1.id)
     }

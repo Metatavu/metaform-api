@@ -8,7 +8,7 @@ import fi.metatavu.metaform.api.client.models.EmailNotification
 import fi.metatavu.metaform.api.client.models.FieldRule
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.pickway.cloud.api.test.functional.impl.ApiTestBuilderResource
+import fi.metatavu.metaform.server.test.functional.builder.impl.ApiTestBuilderResource
 import java.io.IOException
 import java.util.*
 
@@ -37,7 +37,7 @@ class EmailNotificationsTestBuilderResource(
     /**
      * Creates new email notification for a Metaform
      *
-     * @param metaform        metaform
+     * @param metaformId      metaform id
      * @param subjectTemplate freemarker template for subject
      * @param contentTemplate freemarker template for content
      * @param emails          email addresses
