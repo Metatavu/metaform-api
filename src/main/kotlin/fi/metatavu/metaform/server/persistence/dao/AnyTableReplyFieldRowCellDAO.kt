@@ -9,4 +9,4 @@ import javax.enterprise.context.ApplicationScoped
  * @author Antti Leppä
  */
 @ApplicationScoped
-class AnyTableReplyFieldRowCellDAO : AbstractTableReplyFieldRowCellDAO<TableReplyFieldRowCell>
+class AnyTableReplyFieldRowCellDAO : AbstractTableReplyFieldRowCellDAO<TableReplyFieldRowCell>()
