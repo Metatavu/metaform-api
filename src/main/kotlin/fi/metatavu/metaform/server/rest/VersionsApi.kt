@@ -26,6 +26,13 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
   @Inject
   lateinit var metaformVersionTranslator: MetaformVersionTranslator
 
+  /**
+   * Create a metaform version
+   * 
+   * @param metaformId metaform id
+   * @param metaformVersion metaform version
+   * @return created metaform version
+   */
   override suspend fun createMetaformVersion(
     metaformId: UUID,
     metaformVersion: MetaformVersion
@@ -57,6 +64,13 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     }
   }
 
+  /**
+   * Delete metaform version
+   * 
+   * @param metaformId metaform id
+   * @param versionId version id
+   * @return deleted metaform version
+   */
   override suspend fun deleteMetaformVersion(metaformId: UUID, versionId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -79,6 +93,13 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     return createNoContent()
   }
 
+  /**
+   * Find metaform version by id
+   * 
+   * @param metaformId metaform id
+   * @param versionId version id
+   * @return metaform version
+   */
   override suspend fun findMetaformVersion(metaformId: UUID, versionId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -103,6 +124,12 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     }
   }
 
+  /**
+   * List metaform versions
+   * 
+   * @param metaformId metaform id
+   * @return metaform versions
+   */
   override suspend fun listMetaformVersions(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
