@@ -60,6 +60,15 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   @Inject
   lateinit var attachmentTranslator: AttachmentTranslator
 
+  /**
+   * Create reply
+   * 
+   * @param metaformId Metaform id
+   * @param reply Reply to create
+   * @param updateExisting If true, existing reply will be updated
+   * @param replyModeParam Reply mode
+   * @return Created reply
+   */
   override suspend fun createReply(
     metaformId: UUID,
     reply: Reply,
@@ -206,6 +215,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     return createNoContent()
   }
 
+  /**
+   * Export reply
+   * 
+   * @param metaformId metaform id
+   * @param format format
+   */
   override suspend fun export(metaformId: UUID, format: String): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -242,6 +257,13 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
   }
 
+  /**
+   * Find a reply by id
+   * 
+   * @param metaformId metaform id
+   * @param replyId reply id
+   * @param ownerKey owner key
+   */
   override suspend fun findReply(metaformId: UUID, replyId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -272,6 +294,21 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     return createOk(replyTranslator.translate(metaformEntity, reply, null))
   }
 
+  /**
+   * List replies
+   * 
+   * @param metaformId metaform id
+   * @param userId user id
+   * @param createdBeforeParam created before
+   * @param createdAfterParam created after
+   * @param modifiedBeforeParam modified before
+   * @param modifiedAfterParam modified after
+   * @param includeRevisions include revisions
+   * @param fields fields
+   * @param firstResult first result
+   * @param maxResults max results
+   * @return list of replies
+   */
   override suspend fun listReplies(
     metaformId: UUID,
     userId: UUID?,
@@ -394,6 +431,15 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
   }
 
+  /**
+   * Update a reply by id
+   * 
+   * @param metaformId metaform id
+   * @param replyId reply id
+   * @param reply reply data
+   * @param ownerKey owner key
+   * @return updated reply
+   */
   override suspend fun updateReply(
     metaformId: UUID,
     replyId: UUID,

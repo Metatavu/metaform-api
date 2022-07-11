@@ -45,7 +45,7 @@ abstract class AbstractApi {
 
     /**
      * Returns request locale
-     *
+     * 
      * @return request locale
      */
     protected val locale: Locale
@@ -94,7 +94,6 @@ abstract class AbstractApi {
      *
      * @param status status code
      * @param message message
-     *
      * @return error response
      */
     private fun createError(status: Response.Status, message: String?): Response {
@@ -114,7 +113,6 @@ abstract class AbstractApi {
      *
      * @param action target action
      * @param target target
-     * 
      * @return not allowed message
      */
     protected fun createNotAllowedMessage(action: String, target: String): String {
@@ -126,7 +124,6 @@ abstract class AbstractApi {
      *
      * @param action target action
      * @param target target
-     * 
      * @return not allowed message
      */
     protected fun createAnonNotAllowedMessage(action: String, target: String): String {
@@ -138,7 +135,6 @@ abstract class AbstractApi {
      *
      * @param target target of the find method
      * @param id ID of the target
-     * 
      * @return not found message
      */
     protected fun createNotFoundMessage(target: String, id: UUID): String {
@@ -149,7 +145,6 @@ abstract class AbstractApi {
      * Creates invalid message with given parameters
      *
      * @param target target of the find method
-     * 
      * @return invalid target message
      */
     protected fun createInvalidMessage(target: String): String {
@@ -160,7 +155,6 @@ abstract class AbstractApi {
      * Constructs internal server error response
      *
      * @param message message
-     * 
      * @return not belong message
      */
     protected fun createNotBelongMessage(target: String): String {
@@ -171,7 +165,6 @@ abstract class AbstractApi {
      * Creates duplicated message with given parameters
      *
      * @param target target of the find method
-     * 
      * @return duplicated target message
      */
     protected fun createDuplicatedMessage(target: String): String {
@@ -192,7 +185,6 @@ abstract class AbstractApi {
      * Constructs not found response
      *
      * @param message message
-     * 
      * @return response
      */
     protected fun createNotFound(message: String): Response {
@@ -203,7 +195,6 @@ abstract class AbstractApi {
      * Constructs conflict response
      *
      * @param message message
-     * 
      * @return response
      */
     protected fun createConflict(message: String): Response {
@@ -214,7 +205,6 @@ abstract class AbstractApi {
      * Constructs not implemented response
      *
      * @param message message
-     * 
      * @return response
      */
     protected fun createNotImplemented(message: String): Response {
@@ -225,7 +215,6 @@ abstract class AbstractApi {
      * Constructs internal server error response
      *
      * @param message message
-     * 
      * @return response
      */
     protected fun createInternalServerError(message: String?): Response {
@@ -236,7 +225,6 @@ abstract class AbstractApi {
      * Constructs forbidden response
      *
      * @param message message
-     * 
      * @return response
      */
     protected fun createForbidden(message: String): Response {
@@ -248,7 +236,6 @@ abstract class AbstractApi {
      *
      * @param data data
      * @param type content type
-     * 
      * @return Response
      */
     fun streamResponse(data: String, type: String): Response {
@@ -260,7 +247,6 @@ abstract class AbstractApi {
      *
      * @param data data
      * @param type content type
-     * 
      * @return Response
      */
     fun streamResponse(data: String, charsetName: String, type: String): Response {
@@ -278,7 +264,6 @@ abstract class AbstractApi {
      *
      * @param data data
      * @param type content type
-     * 
      * @return Response
      */
     fun streamResponse(data: ByteArray, type: String): Response {
@@ -297,7 +282,6 @@ abstract class AbstractApi {
      * @param inputStream data
      * @param type content type
      * @param contentLength content length
-     * 
      * @return Response
      */
     fun streamResponse(type: String, inputStream: InputStream, contentLength: Int): Response {
@@ -366,7 +350,6 @@ abstract class AbstractApi {
      * @param reply reply
      * @param ownerKey reply owner key
      * @param authorizationScope scope
-     * 
      * @return whether given reply is permitted within given scope
      */
     fun isPermittedReply(reply: Reply?, ownerKey: String?, authorizationScope: AuthorizationScope): Boolean {
@@ -391,7 +374,6 @@ abstract class AbstractApi {
      *
      * @param resourceId resource id
      * @param authorizationScope scope
-     * 
      * @return whether given resource id is permitted within given scope
      */
     private fun isPermittedResourceId(resourceId: UUID, authorizationScope: AuthorizationScope): Boolean {
@@ -403,7 +385,6 @@ abstract class AbstractApi {
      * Parses date time from string
      *
      * @param timeString
-     * 
      * @return Parsed offset date time
      */
     protected fun parseTime(timeString: String?): OffsetDateTime? {
