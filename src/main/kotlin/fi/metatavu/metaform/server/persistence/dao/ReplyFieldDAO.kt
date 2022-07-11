@@ -15,7 +15,7 @@ abstract class ReplyFieldDAO<T : ReplyField?> : AbstractDAO<T>() {
    * Finds a reply field by reply by name
    *
    * @param reply a reply
-   * @param name  a name
+   * @param name a name
    * @return reply field or null if field is not found
    */
   fun findByReplyAndName(reply: Reply, name: String): ReplyField? {

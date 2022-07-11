@@ -26,6 +26,15 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
 
   @Inject
   lateinit var auditLogEntryTranslator: AuditLogEntryTranslator
+
+  /**
+   * Delete audit log entry
+   * 
+   * @param metaformId metaform id
+   * @param auditLogEntryId audit log entry id
+   * 
+   * @return deleted audit log entry
+   */
   override suspend fun deleteAuditLogEntry(metaformId: UUID, auditLogEntryId: UUID): Response {
     if (!systemSettingController.inTestMode()) {
       return createForbidden(createNotAllowedMessage(DELETE, LOGS))
@@ -40,6 +49,16 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
     return createNoContent()
   }
 
+  /**
+   * List audit log entries
+   * 
+   * @param metaformId metaform id
+   * @param userId user id
+   * @param replyId reply id
+   * @param createdBefore filter results created before this date
+   * @param createdAfter filter results created after this date
+   * @return list of audit log entries
+   */
   override suspend fun listAuditLogEntries(
     metaformId: UUID,
     userId: UUID?,

@@ -13,6 +13,9 @@ import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.io.IOException
 
+/**
+ * Tests for Xlsx exports
+ */
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),

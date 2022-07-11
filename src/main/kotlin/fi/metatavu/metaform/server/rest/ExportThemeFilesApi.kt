@@ -20,6 +20,13 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   @Inject
   lateinit var exportThemeTranslator: ExportThemeTranslator
 
+  /**
+   * Creates a new export theme file
+   * 
+   * @param exportThemeId export theme id
+   * @param exportThemeFile export theme file
+   * @return created export theme file
+   */
   override suspend fun createExportThemeFile(
     exportThemeId: UUID,
     exportThemeFile: ExportThemeFile
@@ -44,6 +51,13 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
+  /**
+   * Deletes an export theme file
+   * 
+   * @param exportThemeId export theme id
+   * @param exportThemeFileId export theme file id
+   * @return deleted export theme file
+   */
   override suspend fun deleteExportThemeFile(
     exportThemeId: UUID,
     exportThemeFileId: UUID
@@ -70,6 +84,13 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
+  /**
+   * Finds export theme file by id
+   * 
+   * @param exportThemeId export theme id
+   * @param exportThemeFileId export theme file id
+   * @return export theme file
+   */
   override suspend fun findExportThemeFile(exportThemeId: UUID, exportThemeFileId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -89,6 +110,12 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
+  /**
+   * Lists export theme files
+   * 
+   * @param exportThemeId export theme id
+   * @return export theme files
+   */
   override suspend fun listExportThemeFiles(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -104,6 +131,13 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
+  /**
+   * Updates an export theme file
+   * 
+   * @param exportThemeId export theme id
+   * @param exportThemeFileId export theme file id
+   * @param exportThemeFile export theme file data
+   */
   override suspend fun updateExportThemeFile(
     exportThemeId: UUID,
     exportThemeFileId: UUID,

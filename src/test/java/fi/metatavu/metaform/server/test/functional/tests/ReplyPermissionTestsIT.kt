@@ -20,6 +20,9 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import java.util.stream.Collectors
 
+/**
+ * Tests that test the reply permissions
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @QuarkusTest
 @QuarkusTestResource.List(

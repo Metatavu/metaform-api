@@ -25,6 +25,12 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
   @Inject
   lateinit var emailNotificationTranslator: EmailNotificationTranslator
 
+  /**
+   * Lists email notifications
+   * 
+   * @param metaformId Metaform id
+   * @return List of email notifications
+   */
   override suspend fun listEmailNotifications(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -40,6 +46,13 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
 
   }
 
+  /**
+   * Creates email notification
+   * 
+   * @param metaformId Metaform id
+   * @param emailNotification email notification
+   * @return created email notification
+   */
   override suspend fun createEmailNotification(
     metaformId: UUID,
     emailNotification: EmailNotification
@@ -69,6 +82,13 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
 
   }
 
+  /**
+   * Deletes email notification
+   * 
+   * @param metaformId Metaform id
+   * @param emailNotificationId email notification id
+   * @return deleted email notification
+   */
   override suspend fun deleteEmailNotification(
     metaformId: UUID,
     emailNotificationId: UUID
@@ -94,6 +114,13 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
     return createNoContent()
   }
 
+  /**
+   * Finds email notification by id
+   * 
+   * @param metaformId Metaform id
+   * @param emailNotificationId email notification id
+   * @return email notification
+   */
   override suspend fun findEmailNotification(
     metaformId: UUID,
     emailNotificationId: UUID
@@ -116,6 +143,14 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
 
   }
 
+  /**
+   * Updates email notification
+   * 
+   * @param metaformId Metaform id
+   * @param emailNotificationId email notification id
+   * @param emailNotification email data
+   * @return updated email notification
+   */
   override suspend fun updateEmailNotification(
     metaformId: UUID,
     emailNotificationId: UUID,

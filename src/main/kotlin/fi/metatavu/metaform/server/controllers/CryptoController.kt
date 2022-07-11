@@ -151,13 +151,13 @@ class CryptoController {
             signature.update(data)
             signature.sign()
         } catch (e: NoSuchAlgorithmException) {
-            logger.error("Failed to  sign data", e)
+            logger.error("Failed to sign data", e)
             null
         } catch (e: InvalidKeyException) {
-            logger.error("Failed to  sign data", e)
+            logger.error("Failed to sign data", e)
             null
         } catch (e: SignatureException) {
-            logger.error("Failed to  sign data", e)
+            logger.error("Failed to sign data", e)
             null
         }
     }
@@ -177,13 +177,13 @@ class CryptoController {
             signInstance.update(data)
             signInstance.verify(signature)
         } catch (e: SignatureException) {
-            logger.error("Failed to  verífy data", e)
+            logger.error("Failed to verífy data", e)
             false
         } catch (e: InvalidKeyException) {
-            logger.error("Failed to  verífy data", e)
+            logger.error("Failed to verífy data", e)
             false
         } catch (e: NoSuchAlgorithmException) {
-            logger.error("Failed to  verífy data", e)
+            logger.error("Failed to verífy data", e)
             false
         }
     }

@@ -41,7 +41,6 @@ class DraftDAO : AbstractDAO<Draft>() {
    *
    * @param draft draft
    * @param data data
-   * @param lastModifierId modifier id
    * @return updated draft
    */
   fun updateData(draft: Draft, data: String?): Draft {

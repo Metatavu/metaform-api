@@ -28,6 +28,9 @@ import kotlin.String
 import kotlin.Throws
 import kotlin.arrayOf
 
+/**
+ * Tests that test Metaform replies
+ */
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),

@@ -21,9 +21,9 @@ class ExportThemeFileDAO : AbstractDAO<ExportThemeFile>() {
    * Creates new exportThemeFile
    *
    * @param id id
+   * @param theme theme
    * @param path path
    * @param content content
-   * @param theme theme
    * @param creator creator id
    * @return created exportThemeFile
    */

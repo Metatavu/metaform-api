@@ -12,6 +12,9 @@ import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
+/**
+ * Tests for draft system
+ */
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),

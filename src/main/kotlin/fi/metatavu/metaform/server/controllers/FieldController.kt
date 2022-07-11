@@ -200,7 +200,7 @@ class FieldController {
      *
      * @param metaformEntity
      * @param filter
-     * @return
+     * @return parsed filter
      */
     private fun parseFilter(metaformEntity: Metaform, filter: String): FieldFilter? {
         val tokenizedFilter = tokenizeFilter(filter)

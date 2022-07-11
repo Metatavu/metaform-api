@@ -45,7 +45,7 @@ abstract class AbstractApi {
 
     /**
      * Returns request locale
-     *
+     * 
      * @return request locale
      */
     protected val locale: Locale
@@ -94,7 +94,6 @@ abstract class AbstractApi {
      *
      * @param status status code
      * @param message message
-     *
      * @return error response
      */
     private fun createError(status: Response.Status, message: String?): Response {
@@ -114,6 +113,7 @@ abstract class AbstractApi {
      *
      * @param action target action
      * @param target target
+     * @return not allowed message
      */
     protected fun createNotAllowedMessage(action: String, target: String): String {
         return "You are not allowed to $action $target"
@@ -124,6 +124,7 @@ abstract class AbstractApi {
      *
      * @param action target action
      * @param target target
+     * @return not allowed message
      */
     protected fun createAnonNotAllowedMessage(action: String, target: String): String {
         return "Anonymous users are not allowed to $action $target"
@@ -134,6 +135,7 @@ abstract class AbstractApi {
      *
      * @param target target of the find method
      * @param id ID of the target
+     * @return not found message
      */
     protected fun createNotFoundMessage(target: String, id: UUID): String {
         return "$target with ID $id could not be found"
@@ -143,6 +145,7 @@ abstract class AbstractApi {
      * Creates invalid message with given parameters
      *
      * @param target target of the find method
+     * @return invalid target message
      */
     protected fun createInvalidMessage(target: String): String {
         return "Invalid $target"
@@ -152,7 +155,7 @@ abstract class AbstractApi {
      * Constructs internal server error response
      *
      * @param message message
-     * @return response
+     * @return not belong message
      */
     protected fun createNotBelongMessage(target: String): String {
         return "$target does not belong to metaform"
@@ -162,6 +165,7 @@ abstract class AbstractApi {
      * Creates duplicated message with given parameters
      *
      * @param target target of the find method
+     * @return duplicated target message
      */
     protected fun createDuplicatedMessage(target: String): String {
         return "Duplicated $target"
@@ -322,6 +326,7 @@ abstract class AbstractApi {
      * Returns whether logged user has at least one of specified realm roles
      *
      * @param roles roles
+     * 
      * @return whether logged user has specified realm role or not
      */
     protected fun hasRealmRole(vararg roles: String?): Boolean {
@@ -380,7 +385,7 @@ abstract class AbstractApi {
      * Parses date time from string
      *
      * @param timeString
-     * @return
+     * @return Parsed offset date time
      */
     protected fun parseTime(timeString: String?): OffsetDateTime? {
         return if (StringUtils.isEmpty(timeString)) {

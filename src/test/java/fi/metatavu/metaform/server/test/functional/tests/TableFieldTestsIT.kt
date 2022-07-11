@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.*
 
+/**
+ * Tests that test the table fields of metaforms
+ */
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),
