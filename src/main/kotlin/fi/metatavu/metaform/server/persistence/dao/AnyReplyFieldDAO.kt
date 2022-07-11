@@ -9,4 +9,4 @@ import javax.enterprise.context.ApplicationScoped
  * @author Antti Leppä
  */
 @ApplicationScoped
-class AnyReplyFieldDAO : ReplyFieldDAO<ReplyField>()
+class AnyReplyFieldDAO : ReplyFieldDAO<ReplyField>
