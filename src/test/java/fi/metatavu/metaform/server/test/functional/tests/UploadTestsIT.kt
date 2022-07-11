@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.net.URISyntaxException
 
+/**
+ * Tests to test uploading files
+ */
 @QuarkusTest
 @TestProfile(GeneralTestProfile::class)
 class UploadTestsIT : AbstractTest() {

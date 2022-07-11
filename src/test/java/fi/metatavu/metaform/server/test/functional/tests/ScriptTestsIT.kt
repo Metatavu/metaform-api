@@ -15,6 +15,9 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+/**
+ * Tests that test the scripts
+ */
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),

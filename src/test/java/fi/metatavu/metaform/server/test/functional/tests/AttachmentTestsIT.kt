@@ -21,6 +21,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
+/**
+ * Tests for attachments
+ */
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),
