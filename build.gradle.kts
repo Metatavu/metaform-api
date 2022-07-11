@@ -43,6 +43,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3")
     implementation("org.apache.poi:poi:4.1.2")
     implementation("org.apache.poi:poi-ooxml:4.1.2")
+    implementation("org.liquibase:liquibase-cdi:4.3.1")
     implementation("net.sargue:mailgun:1.9.2")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
