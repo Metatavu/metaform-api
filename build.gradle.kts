@@ -47,6 +47,8 @@ dependencies {
     implementation("net.sargue:mailgun:1.9.2")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     testImplementation("io.rest-assured:rest-assured:5.1.1")
     testImplementation("io.quarkus:quarkus-junit5")
