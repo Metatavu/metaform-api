@@ -2,7 +2,9 @@ package fi.metatavu.metaform.server.persistence.dao
 
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import java.util.UUID
+import javax.enterprise.context.ApplicationScoped
 
+@ApplicationScoped
 class AdminThemeDAO : AbstractDAO<AdminTheme>() {
     /**
      * Creates a new admin theme
