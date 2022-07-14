@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.controllers
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.server.persistence.dao.AdminThemeDAO
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import java.util.UUID
@@ -14,6 +15,8 @@ class AdminThemeController {
     @Inject
     lateinit var adminThemeDAO: AdminThemeDAO
 
+    private val mapper = ObjectMapper()
+
     /**
      * Creates a new admin theme
      *
@@ -27,10 +30,10 @@ class AdminThemeController {
      * @return new [AdminTheme] object
      */
     fun create(
-        id: UUID, data: String, name: String, slug: String,
+        id: UUID, data: Any?, name: String, slug: String,
         creatorId: UUID, lastModifierId: UUID
     ): AdminTheme =
-        adminThemeDAO.create(id, data, name, slug, creatorId, lastModifierId)
+        adminThemeDAO.create(id, mapper.writeValueAsString(data), name, slug, creatorId, lastModifierId)
 
 
     /**
@@ -45,6 +48,6 @@ class AdminThemeController {
 
     fun updateAdminTheme(
         theme: AdminTheme,
-        data: String, name: String, slug: String,
-    ): AdminTheme = adminThemeDAO.update(theme, data, name, slug)
+        data: Any?, name: String, slug: String,
+    ): AdminTheme = adminThemeDAO.update(theme, mapper.writeValueAsString(data), name, slug)
 }

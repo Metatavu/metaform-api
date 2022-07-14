@@ -408,6 +408,7 @@ abstract class AbstractApi {
         const val CREATE = "create"
         const val EXPORT = "export"
         const val METAFORM = "metaform"
+        const val ADMIN_THEME = "admin theme"
         const val REPLY = "reply"
         const val SLUG = "slug"
         const val LOGS = "logs"
