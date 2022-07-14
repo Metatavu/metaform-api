@@ -36,7 +36,12 @@ class AdminThemeDAO : AbstractDAO<AdminTheme>() {
         return persist(adminTheme)
     }
 
-    fun update(adminTheme: AdminTheme, data: String, name: String, slug: String): AdminTheme {
+    fun update(
+        adminTheme: AdminTheme,
+        data: String,
+        name: String,
+        slug: String
+        ): AdminTheme {
         adminTheme.data = data
         adminTheme.name = name
         adminTheme.slug = slug

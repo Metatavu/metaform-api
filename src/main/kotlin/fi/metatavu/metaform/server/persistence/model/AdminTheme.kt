@@ -1,17 +1,19 @@
 package fi.metatavu.metaform.server.persistence.model
 
-import java.util.UUID
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Lob
+import java.util.*
+import javax.persistence.*
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
+import org.hibernate.annotations.Cache
+import org.hibernate.annotations.CacheConcurrencyStrategy
 
 /**
  * Class representing an admin theme
  */
 @Entity
+@Cacheable(true)
+@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+@Table
 class AdminTheme : Metadata() {
     @Id
     var id: UUID? = null
