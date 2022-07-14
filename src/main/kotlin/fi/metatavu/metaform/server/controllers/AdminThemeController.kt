@@ -30,8 +30,12 @@ class AdminThemeController {
      * @return new [AdminTheme] object
      */
     fun create(
-        id: UUID, data: Any?, name: String, slug: String,
-        creatorId: UUID, lastModifierId: UUID
+        id: UUID,
+        data: Any?,
+        name: String,
+        slug: String,
+        creatorId: UUID,
+        lastModifierId: UUID
     ): AdminTheme =
         adminThemeDAO.create(id, mapper.writeValueAsString(data), name, slug, creatorId, lastModifierId)
 
@@ -48,6 +52,8 @@ class AdminThemeController {
 
     fun updateAdminTheme(
         theme: AdminTheme,
-        data: Any?, name: String, slug: String,
+        data: Any?,
+        name: String,
+        slug: String,
     ): AdminTheme = adminThemeDAO.update(theme, mapper.writeValueAsString(data), name, slug)
 }
