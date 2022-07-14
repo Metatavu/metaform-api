@@ -10,6 +10,11 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import java.io.IOException
 import java.util.*
 
+/**
+ * Test builder resource for admin themes
+ * 
+ * @author Otto Hooper
+ */
 class AdminThemeTestBuilderResource(
     testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,

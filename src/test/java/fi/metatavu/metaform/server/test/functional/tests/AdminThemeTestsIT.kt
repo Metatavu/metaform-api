@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for Admin Theme API]#
+ * Tests for Admin Theme API
  * @author Otto Hooper
  */
 @QuarkusTest
@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test
 class AdminThemeTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
-    // Create admin theme (id: UUID, data: Any?, name: String, slug: String, creatorId: UUID, lastModifierId: UUID)
     fun createAdminThemeTest() {
         TestBuilder().use { builder ->
             val adminTheme = builder.metaformAdmin.adminThemes.create(
@@ -35,7 +34,24 @@ class AdminThemeTestsIT : AbstractTest() {
             )
             
             Assertions.assertNotNull(adminTheme)
+            Assertions.assertNotNull(adminTheme.id)
             Assertions.assertNotNull(adminTheme.data)
+            Assertions.assertNotNull(adminTheme.name)
+            Assertions.assertNotNull(adminTheme.slug)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findAdminThemeTest() {
+        TestBuilder().use { builder ->
+            val adminTheme = builder.metaformAdmin.adminThemes.create(
+                    data = "data",
+                    name = "Test admin theme",
+                    slug = "test-admin-theme"
+            )
+            val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
+            Assertions.assertNotNull(foundAdminTheme)
         }
     }
 }
