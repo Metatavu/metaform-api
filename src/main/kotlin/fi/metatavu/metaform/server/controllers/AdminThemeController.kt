@@ -15,7 +15,8 @@ class AdminThemeController {
     @Inject
     lateinit var adminThemeDAO: AdminThemeDAO
 
-    private val mapper = ObjectMapper()
+    @Inject
+    lateinit var mapper: ObjectMapper
 
     /**
      * Creates a new admin theme
