@@ -70,4 +70,14 @@ class AdminThemeTestBuilderResource(
     fun update(themeId: UUID, adminTheme: AdminTheme): AdminTheme {
         return api.updateAdminTheme(themeId, adminTheme)
     }
+
+    /**
+     * List admin theme
+     * 
+     * @return admin themes
+     */
+    @Throws(IOException::class)
+    fun list(): Array<AdminTheme> {
+        return api.listAdminTheme()
+    }
 }
