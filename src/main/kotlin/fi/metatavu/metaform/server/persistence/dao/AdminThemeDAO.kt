@@ -18,12 +18,13 @@ class AdminThemeDAO : AbstractDAO<AdminTheme>() {
      *
      * @return new [AdminTheme] object
      */
-    fun create(id: UUID,
-               data: String,
-               name: String,
-               slug: String,
-               creatorId: UUID,
-               lastModifierId: UUID
+    fun create(
+        id: UUID,
+        data: String,
+        name: String,
+        slug: String,
+        creatorId: UUID,
+        lastModifierId: UUID
     ): AdminTheme {
         val adminTheme = AdminTheme()
         adminTheme.id = id

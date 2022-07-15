@@ -14,6 +14,13 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
     @Inject
     lateinit var adminThemeController: AdminThemeController
 
+    /***
+     * Creates a new admin theme
+     * 
+     * @param adminTheme admin theme to create
+     * 
+     * @return created admin theme
+     */
     override suspend fun createAdminTheme(adminTheme: AdminTheme): Response {
         val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmMetaformAdmin) {
@@ -30,6 +37,13 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         ))
     }
 
+    /**
+     * Deletes an admin theme
+     * 
+     * @param themeId admin theme id
+     * 
+     * @return deleted admin theme
+     */
     override suspend fun deleteAdminTheme(themeId: UUID): Response {
         val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmMetaformAdmin) {
@@ -41,6 +55,13 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createNoContent()
     }
 
+    /**
+     * Finds admin theme by id
+     * 
+     * @param themeId admin theme id
+     * 
+     * @return admin theme
+     */
     override suspend fun findAdminTheme(themeId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmMetaformAdmin) {
@@ -51,6 +72,11 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(theme)
     }
 
+    /**
+     * Lists admin themes
+     * 
+     * @return admin themes
+     */
     override suspend fun listAdminTheme(): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmMetaformAdmin) {
@@ -60,6 +86,14 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(adminThemeController.adminThemeDAO.listAll())
     }
 
+    /**
+     * Updates an admin theme
+     * 
+     * @param themeId admin theme id
+     * @param adminTheme data to update with
+     * 
+     * @return updated admin theme
+     */
     override suspend fun updateAdminTheme(themeId: UUID, adminTheme: AdminTheme): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmMetaformAdmin) {
