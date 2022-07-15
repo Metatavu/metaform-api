@@ -82,8 +82,6 @@ class AdminThemeTestsIT : AbstractTest() {
             Assertions.assertNotNull(updatedAdminTheme.data)
             Assertions.assertNotNull(updatedAdminTheme.name)
             Assertions.assertNotNull(updatedAdminTheme.slug)
-            
-            // Check that data field is "data2"
             Assertions.assertEquals(updatedAdminTheme.data, foundAdminTheme.data)
         }
     }

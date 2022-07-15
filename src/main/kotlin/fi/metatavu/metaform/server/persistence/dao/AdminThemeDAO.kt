@@ -37,6 +37,16 @@ class AdminThemeDAO : AbstractDAO<AdminTheme>() {
         return persist(adminTheme)
     }
 
+    /**
+     * Updates an admin theme
+     * 
+     * @param adminTheme to update
+     * @param data to update with
+     * @param name to update to
+     * @param slug to update to
+     * 
+     * @return updated admin theme
+     */
     fun update(
         adminTheme: AdminTheme,
         data: String,

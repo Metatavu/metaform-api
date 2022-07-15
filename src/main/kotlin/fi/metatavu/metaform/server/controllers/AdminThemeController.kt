@@ -36,14 +36,23 @@ class AdminThemeController {
         slug: String,
         creatorId: UUID,
         lastModifierId: UUID
-    ): AdminTheme =
-        adminThemeDAO.create(id, mapper.writeValueAsString(data), name, slug, creatorId, lastModifierId)
+    ): AdminTheme {
+        return adminThemeDAO.create(
+            id, 
+            mapper.writeValueAsString(data), 
+            name, 
+            slug, 
+            creatorId, 
+            lastModifierId
+        )
+    }
 
 
     /**
      * Finds an admin theme by id
      *
      * @param id the id of the admin theme
+     * 
      * @return the located admin theme or null
      */
     fun findById(id: UUID): AdminTheme? {
@@ -55,5 +64,12 @@ class AdminThemeController {
         data: Any?,
         name: String,
         slug: String,
-    ): AdminTheme = adminThemeDAO.update(theme, mapper.writeValueAsString(data), name, slug)
+    ): AdminTheme { 
+        return adminThemeDAO.update(
+            theme,
+            mapper.writeValueAsString(data),
+            name,
+            slug
+        )
+    }
 }
