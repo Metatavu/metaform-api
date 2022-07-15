@@ -52,6 +52,10 @@ class AdminThemeTestsIT : AbstractTest() {
             )
             val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
             Assertions.assertNotNull(foundAdminTheme)
+            Assertions.assertNotNull(foundAdminTheme.id)
+            Assertions.assertNotNull(foundAdminTheme.data)
+            Assertions.assertNotNull(foundAdminTheme.name)
+            Assertions.assertNotNull(foundAdminTheme.slug)
         }
     }
 }

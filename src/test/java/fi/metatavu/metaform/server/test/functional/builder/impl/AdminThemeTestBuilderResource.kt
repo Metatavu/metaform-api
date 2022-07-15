@@ -54,7 +54,19 @@ class AdminThemeTestBuilderResource(
      * @return admin theme
      */
     @Throws(IOException::class)
-    fun findById(id: UUID): AdminTheme? {
+    fun findById(id: UUID): AdminTheme {
         return api.findAdminTheme(id)
+    }
+
+    /**
+     * Deletes an admin theme
+     * 
+     * @param adminTheme admin theme to delete
+     * 
+     * @return deleted admin theme
+     */
+    @Throws(IOException::class)
+    fun delete(themeId: UUID) {
+        return api.deleteAdminTheme(themeId)
     }
 }
