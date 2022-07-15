@@ -1,11 +1,11 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-    kotlin("jvm") version "1.7.0"
-    kotlin("plugin.allopen") version "1.7.0"
+    kotlin("jvm") version "1.6.10"
+    kotlin("plugin.allopen") version "1.6.10"
     id("io.quarkus")
     id("org.openapi.generator") version "5.4.0"
-    id("org.jetbrains.kotlin.kapt") version "1.7.0"
+    id("org.jetbrains.kotlin.kapt") version "1.6.10"
 }
 
 repositories {
@@ -31,6 +31,7 @@ dependencies {
     implementation("io.quarkus:quarkus-oidc")
     implementation("io.quarkus:quarkus-keycloak-admin-client")
     implementation("io.quarkus:quarkus-resteasy-jackson")
+    implementation("io.quarkus:quarkus-resteasy")
     implementation("io.quarkus:quarkus-liquibase")
     implementation("io.quarkus:quarkus-jdbc-mysql")
     implementation("io.quarkus:quarkus-scheduler")
