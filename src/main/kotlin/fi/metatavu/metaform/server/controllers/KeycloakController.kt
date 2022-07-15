@@ -607,4 +607,16 @@ class KeycloakController {
         } else null
     }
 
+    /**
+     * Check if a user is metaform admin
+     *
+     * @param metaformId metaform id
+     * @param userId user id
+     * @return boolean indicate is admin or not
+     */
+    fun isMetaformAdmin(metaformId: UUID, userId: UUID): Boolean {
+//        TODO
+        return true
+    }
+
 }

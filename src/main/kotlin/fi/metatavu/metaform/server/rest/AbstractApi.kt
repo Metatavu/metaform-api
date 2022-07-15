@@ -311,6 +311,7 @@ abstract class AbstractApi {
      *
      * @return whether logged user is realm Metaform admin
      */
+    // TODO check if this is needed
     protected val isRealmMetaformAdmin: Boolean
         get() = hasRealmRole(ADMIN_ROLE)
 
@@ -395,9 +396,12 @@ abstract class AbstractApi {
 
     companion object {
         const val USER_ROLE = "user"
+        // TODO remove deprecated
         const val ANSWERER_ROLE = "answerer"
         const val ADMIN_ROLE = "metaform-admin"
+        // TODO remove deprecated
         const val SUPER_ROLE = "metaform-super"
+        // TODO remove deprecated
         const val VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies"
         const val VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs"
         const val UNAUTHORIZED = "Unauthorized"
@@ -416,6 +420,8 @@ abstract class AbstractApi {
         const val ATTACHMENT = "attachment"
         const val REPLY_MODE = "reply mode"
         const val DRAFT = "draft"
+        const val METAFORM_MEMBER = "metaform member"
+        const val METAFORM_MEMBER_GROUP = "metaform member group"
         const val EMAIL_NOTIFICATION = "email notification"
         const val METAFORM_VERSION = "metaform version"
         const val ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform"
