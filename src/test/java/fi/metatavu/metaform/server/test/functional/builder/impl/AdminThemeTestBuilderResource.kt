@@ -57,4 +57,17 @@ class AdminThemeTestBuilderResource(
     fun findById(id: UUID): AdminTheme {
         return api.findAdminTheme(id)
     }
+
+    /**
+     * Updates an admin theme
+     * 
+     * @param themeId id of the admin theme
+     * @param adminTheme data for the admin theme
+     * 
+     * @return updated admin theme
+     */
+    @Throws(IOException::class)
+    fun update(themeId: UUID, adminTheme: AdminTheme): AdminTheme {
+        return api.updateAdminTheme(themeId, adminTheme)
+    }
 }
