@@ -50,7 +50,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        val theme = adminThemeController.findById(themeId) ?: return createNotFoundMessage(ADMIN_THEME, themeId)
+        val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
         adminThemeController.adminThemeDAO.delete(theme)
         return createNoContent()
     }
@@ -68,7 +68,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        val theme = adminThemeController.findById(themeId) ?: return createNotFoundMessage(ADMIN_THEME, themeId)
+        val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
         return createOk(theme)
     }
 
@@ -100,7 +100,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        val theme = adminThemeController.findById(themeId) ?: return createNotFoundMessage(ADMIN_THEME, themeId)
+        val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
         return adminTheme.run {
             createOk(adminThemeController.updateAdminTheme(theme, data, name, slug))
         }
