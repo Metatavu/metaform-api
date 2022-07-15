@@ -45,7 +45,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
      * @return deleted admin theme
      */
     override suspend fun deleteAdminTheme(themeId: UUID): Response {
-        val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
+        loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmMetaformAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
