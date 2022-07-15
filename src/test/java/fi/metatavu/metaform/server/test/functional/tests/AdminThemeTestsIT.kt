@@ -110,4 +110,20 @@ class AdminThemeTestsIT : AbstractTest() {
             Assertions.assertEquals(5, adminThemes.size)
         }
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteAdminThemeTest() {
+        TestBuilder().use { builder ->
+            val adminTheme = builder.metaformAdmin.adminThemes.create(
+                    data = "data",
+                    name = "Test admin theme",
+                    slug = "test-admin-theme"
+            )
+
+            Assertions.assertNotNull(adminTheme)
+            builder.metaformAdmin.adminThemes.delete(adminTheme.id!!)
+            builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, adminTheme.id)
+        }
+    }
 }
