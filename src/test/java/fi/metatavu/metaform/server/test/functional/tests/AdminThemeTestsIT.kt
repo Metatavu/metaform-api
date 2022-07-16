@@ -33,24 +33,6 @@ class AdminThemeTestsIT : AbstractTest() {
                     slug = "test-admin-theme"
             )
             
-            Assertions.assertNotNull(adminTheme)
-            Assertions.assertNotNull(adminTheme.id)
-            Assertions.assertNotNull(adminTheme.data)
-            Assertions.assertNotNull(adminTheme.name)
-            Assertions.assertNotNull(adminTheme.slug)
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun findAdminThemeTest() {
-        TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme"
-            )
-
             val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
             Assertions.assertNotNull(foundAdminTheme)
             Assertions.assertNotNull(foundAdminTheme.id)
