@@ -464,7 +464,7 @@ class ReplyTestsIT : AbstractTest() {
             val exportTheme = testBuilder.metaformSuper.exportThemes.createSimpleExportTheme()
             testBuilder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val newMetaform = Metaform(metaform.id, metaform.replyStrategy, exportTheme.id, metaform.allowAnonymous,
+            val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
                     metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
             testBuilder.metaformAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
@@ -480,7 +480,7 @@ class ReplyTestsIT : AbstractTest() {
             val exportTheme = testBuilder.metaformSuper.exportThemes.createSimpleExportTheme()
             testBuilder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-files")
-            val newMetaform = Metaform(metaform.id, metaform.replyStrategy, exportTheme.id, metaform.allowAnonymous,
+            val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
                     metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
             testBuilder.metaformAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)

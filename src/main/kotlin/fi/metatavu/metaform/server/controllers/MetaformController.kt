@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.controllers
 
 import com.github.slugify.Slugify
 import fi.metatavu.metaform.api.spec.model.MetaformField
+import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
 import fi.metatavu.metaform.server.exceptions.ResourceNotFoundException
 import fi.metatavu.metaform.server.utils.MetaformUtils
@@ -66,17 +67,22 @@ class MetaformController {
     fun createMetaform(
             exportTheme: ExportTheme?,
             allowAnonymous: Boolean,
+            visibility: MetaformVisibility,
             title: String?,
             slug: String? = null,
             data: String
     ): Metaform {
         return metaformDAO.create(
-                id = UUID.randomUUID(),
-                slug = slug ?: createSlug(title),
-                exportTheme = exportTheme,
-                allowAnonymous = allowAnonymous,
-                data = data
-        )
+            id = UUID.randomUUID(),
+            slug = slug ?: createSlug(title),
+            exportTheme = exportTheme,
+            visibility = visibility,
+            allowAnonymous = allowAnonymous,
+            data = data
+        ).let {
+            keycloakController.createMetaformManagementGroup(it.id!!)
+            it
+        }
     }
 
     /**
@@ -94,8 +100,9 @@ class MetaformController {
      *
      * @return list of Metaforms
      */
-    fun listMetaforms(): List<Metaform> {
-        return metaformDAO.listAll()
+    fun listMetaforms(visibility: MetaformVisibility?): List<Metaform> {
+        visibility ?: return metaformDAO.listAll()
+        return metaformDAO.listByVisibility(visibility)
     }
 
     /**
@@ -110,6 +117,7 @@ class MetaformController {
     fun updateMetaform(
             metaform: Metaform,
             exportTheme: ExportTheme?,
+            visibility: MetaformVisibility,
             data: String,
             allowAnonymous: Boolean?,
             slug: String
@@ -118,6 +126,7 @@ class MetaformController {
         metaformDAO.updateAllowAnonymous(metaform, allowAnonymous)
         metaformDAO.updateExportTheme(metaform, exportTheme)
         metaformDAO.updateSlug(metaform, slug)
+        metaformDAO.updateVisibility(metaform, visibility)
         return metaform
     }
 
@@ -232,7 +241,7 @@ class MetaformController {
             replyEntity: fi.metatavu.metaform.api.spec.model.Reply,
             newPermissionGroups: EnumMap<AuthorizationScope, MutableList<String>>
     ) {
-        val adminClient = keycloakController.getAdminClient()
+        val adminClient = keycloakController.adminClient
         val keycloakClient = try {
             keycloakController.getKeycloakClient(adminClient)
         } catch (e: KeycloakClientNotFoundException) {

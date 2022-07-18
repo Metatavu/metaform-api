@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
 import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.MetaformVisibility
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
@@ -31,6 +32,7 @@ class MetaformTestsIT : AbstractTest() {
             assertNotNull(metaform1.id)
             assertNotNull(metaform1.slug)
             assertEquals("Simple", metaform1.title)
+            assertEquals(MetaformVisibility.pUBLIC, metaform1.visibility)
             assertEquals(1, metaform1.sections!!.size)
             assertEquals("Simple form", metaform1.sections[0].title)
             assertEquals(1, metaform1.sections[0].fields!!.size)
@@ -42,6 +44,7 @@ class MetaformTestsIT : AbstractTest() {
             assertNotNull(metaform2)
             assertNotNull(metaform2.id)
             assertEquals("Simple", metaform2.title)
+            assertEquals(MetaformVisibility.pRIVATE, metaform2.visibility)
             assertEquals("simple-slug-0", metaform2.slug)
             assertEquals(1, metaform2.sections!!.size)
             assertEquals("Simple form", metaform2.sections[0].title)
@@ -110,20 +113,33 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals(0, builder.metaformAdmin.metaforms.list().size)
             val metaform1: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
             val metaform2: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform3: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
             val metaform1Modified = metaform1.copy(
                     title="first",
-                    slug="first-slug-0"
+                    slug="first-slug-0",
+                    visibility = MetaformVisibility.pRIVATE
             )
             val metaform2Modified = metaform2.copy(
                     title="second",
-                    slug="second-slug-0"
+                    slug="second-slug-0",
+                    visibility = MetaformVisibility.pUBLIC
+            )
+            val metaform3Modified = metaform3.copy(
+                title="third",
+                slug="third-slug-0",
+                visibility = MetaformVisibility.pUBLIC
             )
             builder.metaformAdmin.metaforms.updateMetaform(metaform1.id!!, metaform1Modified)
             builder.metaformAdmin.metaforms.updateMetaform(metaform2.id!!, metaform2Modified)
+            builder.metaformAdmin.metaforms.updateMetaform(metaform3.id!!, metaform3Modified)
             val list: MutableList<Metaform> = builder.metaformAdmin.metaforms.list().clone().toMutableList()
             val sortedList = list.sortedBy { it.title }
             assertEquals(metaform1Modified.toString(), sortedList[0].toString())
             assertEquals(metaform2Modified.toString(), sortedList[1].toString())
+            assertEquals(metaform3Modified.toString(), sortedList[2].toString())
+
+            builder.metaformAdmin.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
+            builder.metaformAdmin.metaforms.assertCount(1, MetaformVisibility.pRIVATE)
         }
     }
 
@@ -137,6 +153,7 @@ class MetaformTestsIT : AbstractTest() {
             val updatedMetaform = builder.metaformAdmin.metaforms.updateMetaform(metaform.id!!, updatePayload!!)
 
             assertEquals(metaform.id, updatedMetaform.id)
+            assertEquals(MetaformVisibility.pUBLIC, updatedMetaform.visibility)
             assertEquals(1, updatedMetaform.sections!!.size)
             assertEquals("Text, boolean, number, checklist form", updatedMetaform.sections[0].title)
             assertEquals(4, updatedMetaform.sections[0].fields!!.size)
@@ -144,6 +161,10 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals("boolean", updatedMetaform.sections[0].fields!![1].name)
             assertEquals("number", updatedMetaform.sections[0].fields!![2].name)
             assertEquals("checklist", updatedMetaform.sections[0].fields!![3].name)
+
+            val updatedMetaformModified = updatedMetaform.copy(visibility = MetaformVisibility.pUBLIC)
+            val updatedMetaform2 = builder.metaformAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
+            assertEquals(MetaformVisibility.pUBLIC, updatedMetaform2.visibility)
         }
     }
 

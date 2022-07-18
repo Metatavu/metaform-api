@@ -6,6 +6,7 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.MetaformVisibility
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import org.json.JSONException
@@ -74,8 +75,8 @@ class MetaformTestBuilderResource(
      * @return all metaforms
      */
     @Throws(IOException::class)
-    fun list(): Array<Metaform> {
-        return api.listMetaforms()
+    fun list(visibility: MetaformVisibility? = null): Array<Metaform> {
+        return api.listMetaforms(visibility)
     }
 
     /**
@@ -100,8 +101,8 @@ class MetaformTestBuilderResource(
      * @param expected expected count
      */
     @Throws(IOException::class)
-    fun assertCount(expected: Int) {
-        Assert.assertEquals(expected.toLong(), api.listMetaforms().size.toLong())
+    fun assertCount(expected: Int, visibility: MetaformVisibility? = null) {
+        Assert.assertEquals(expected.toLong(), api.listMetaforms(visibility).size.toLong())
     }
 
     /**
@@ -180,7 +181,7 @@ class MetaformTestBuilderResource(
     @Throws(IOException::class)
     fun assertListFailStatus(expectedStatus: Int) {
         try {
-            api.listMetaforms()
+            api.listMetaforms(null)
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())

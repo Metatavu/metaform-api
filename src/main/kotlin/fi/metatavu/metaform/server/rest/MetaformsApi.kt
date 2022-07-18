@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.Metaform
 import fi.metatavu.metaform.api.spec.model.MetaformField
+import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.controllers.ExportThemeController
 import fi.metatavu.metaform.server.utils.MetaformUtils
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
@@ -62,6 +63,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
             metaformController.createMetaform(
                     exportTheme,
                     metaform.allowAnonymous ?: false,
+                    metaform.visibility ?: MetaformVisibility.PRIVATE,
                     metaform.title,
                     metaform.slug,
                     metaformData
@@ -116,7 +118,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
    */
   @Throws(KeycloakClientNotFoundException::class)
   private fun updateMetaformPermissionGroups(formSlug: String, metaformEntity: Metaform) {
-    val adminClient = keycloakController.getAdminClient()
+    val adminClient = keycloakController.adminClient
     val keycloakClient = try {
       keycloakController.getKeycloakClient(adminClient)
     } catch (e: KeycloakClientNotFoundException) {
@@ -142,6 +144,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
     metaformController.deleteMetaform(metaform)
 
+    keycloakController.deleteMetaformManagementGroup(metaformId)
     return createNoContent()
   }
 
@@ -163,12 +166,12 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     return createOk(metaformTranslator.translate(metaform))
   }
 
-  override suspend fun listMetaforms(): Response {
+  override suspend fun listMetaforms(visibility: MetaformVisibility?): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     return if (!isRealmUser) {
       createForbidden(createAnonNotAllowedMessage(LIST, METAFORM))
-    } else createOk(metaformController.listMetaforms().map(metaformTranslator::translate))
+    } else createOk(metaformController.listMetaforms(visibility).map(metaformTranslator::translate))
 
   }
 
@@ -208,6 +211,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     return createOk(metaformTranslator.translate(metaformController.updateMetaform(
             foundMetaform,
             exportTheme,
+            metaform.visibility ?: foundMetaform.visibility!!,
             data,
             metaform.allowAnonymous ?: false,
             formSlug

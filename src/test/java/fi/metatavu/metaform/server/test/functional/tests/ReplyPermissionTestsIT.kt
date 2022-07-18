@@ -148,7 +148,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
             val exportTheme = builder.metaformSuper.exportThemes.createSimpleExportTheme("theme 1")
             builder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
-            val updateData = Metaform(metaform.id, metaform.replyStrategy, exportTheme.id, metaform.allowAnonymous, metaform.allowDrafts,
+            val updateData = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous, metaform.allowDrafts,
                     metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave, metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
             builder.metaformAdmin.metaforms.updateMetaform(metaform.id!!, updateData)
             val reply1: Reply = builder.test1.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),

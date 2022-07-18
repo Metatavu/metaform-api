@@ -24,31 +24,29 @@ val wiremockVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
-    implementation("io.quarkus:quarkus-hibernate-orm")//
+    implementation("io.quarkus:quarkus-hibernate-orm")
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation("io.quarkus:quarkus-hibernate-validator")
-    implementation("io.quarkus:quarkus-kotlin")//
-    implementation("io.quarkus:quarkus-oidc")//
-    implementation("org.jboss.resteasy:resteasy-jaxrs:3.15.3.Final")// added    implementation("io.quarkus:quarkus-keycloak-admin-client")//
-    implementation("io.quarkus:quarkus-resteasy-jackson")//
-    implementation("io.quarkus:quarkus-liquibase")//
-    implementation("io.quarkus:quarkus-jdbc-mysql")//
+    implementation("io.quarkus:quarkus-kotlin")
+    implementation("io.quarkus:quarkus-oidc")
+    implementation("io.quarkus:quarkus-keycloak-admin-client")
+    implementation("io.quarkus:quarkus-resteasy-jackson")
+    implementation("io.quarkus:quarkus-liquibase")
+    implementation("io.quarkus:quarkus-jdbc-mysql")
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.quarkus:quarkus-undertow")//
-    implementation("javax.servlet:javax.servlet-api:4.0.1")//
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")//
-    implementation("org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.15")//
-    implementation("org.freemarker:freemarker:2.3.28")//
-    implementation("org.apache.commons:commons-lang3")//
-    implementation("org.apache.poi:poi:4.1.2")//
-    implementation("org.apache.poi:poi-ooxml:4.1.2")//
-    implementation("org.liquibase:liquibase-cdi:4.3.1")//
-    implementation("net.sargue:mailgun:1.9.2")//
-    implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")//
-    implementation("com.github.slugify:slugify:2.2")//
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.6.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")//
+    implementation("io.quarkus:quarkus-undertow")
+    implementation("javax.servlet:javax.servlet-api:4.0.1")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.15")
+    implementation("org.freemarker:freemarker:2.3.28")
+    implementation("org.apache.commons:commons-lang3")
+    implementation("org.apache.poi:poi:4.1.2")
+    implementation("org.apache.poi:poi-ooxml:4.1.2")
+    implementation("org.liquibase:liquibase-cdi:4.3.1")
+    implementation("net.sargue:mailgun:1.9.2")
+    implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
+    implementation("com.github.slugify:slugify:2.2")
 
     testImplementation("io.rest-assured:rest-assured:5.1.1")
     testImplementation("io.quarkus:quarkus-junit5")

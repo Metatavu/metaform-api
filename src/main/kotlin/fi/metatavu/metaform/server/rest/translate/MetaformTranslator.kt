@@ -8,7 +8,7 @@ import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
 /**
- * Translatro for Metaforms
+ * Translator for Metaforms
  *
  * @author Antti Leppä
  */
@@ -34,7 +34,8 @@ class MetaformTranslator {
         result = result.copy(
           id = entity.id,
           slug = entity.slug,
-          exportThemeId = entity.exportTheme?.id
+          exportThemeId = entity.exportTheme?.id,
+          visibility = entity.visibility
         )
 
       }

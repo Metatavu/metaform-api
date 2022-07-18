@@ -2,8 +2,10 @@ package fi.metatavu.metaform.server.controllers
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.metatavu.metaform.server.exceptions.FailStoreFailedException
+import fi.metatavu.metaform.api.spec.model.MetaformMember
+import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
+import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
 import org.apache.commons.io.IOUtils
@@ -61,6 +63,9 @@ class KeycloakController {
 
     @Inject
     private lateinit var logger: Logger
+
+    @Inject
+    lateinit var objectMapper: ObjectMapper
 
     /**
      * Resolves Keycloak client configuration for a realm
@@ -131,19 +136,20 @@ class KeycloakController {
      *
      * @return admin client
      */
-    fun getAdminClient(): Keycloak {
-        val credentials = configuration.credentials
-        val clientSecret = credentials["secret"] as String?
-        val adminUser = credentials["realm-admin-user"] as String?
-        val adminPass = credentials["realm-admin-pass"] as String?
-        val token = getAccessToken(configuration.authServerUrl, configuration.realm, configuration.resource, clientSecret, adminUser, adminPass)
-        val clientBuilder = ClientBuilderWrapper.create(null, false)
-        clientBuilder.register(NotNullResteasyJackson2Provider(), 100)
-        logger.info("Using {} as admin user", adminUser)
-        if (StringUtils.isBlank(token)) {
-            logger.error("Could not retrieve admin client access token")
-        }
-        return KeycloakBuilder.builder()
+    val adminClient: Keycloak
+        get() {
+            val credentials = configuration.credentials
+            val clientSecret = credentials["secret"] as String?
+            val adminUser = credentials["realm-admin-user"] as String?
+            val adminPass = credentials["realm-admin-pass"] as String?
+            val token = getAccessToken(configuration.authServerUrl, configuration.realm, configuration.resource, clientSecret, adminUser, adminPass)
+            val clientBuilder = ClientBuilderWrapper.create(null, false)
+            clientBuilder.register(NotNullResteasyJackson2Provider(), 100)
+            logger.info("Using {} as admin user", adminUser)
+            if (StringUtils.isBlank(token)) {
+                logger.error("Could not retrieve admin client access token")
+            }
+            return KeycloakBuilder.builder()
                 .serverUrl(configuration.authServerUrl)
                 .realm(configuration.realm)
                 .grantType(OAuth2Constants.PASSWORD)
@@ -154,7 +160,7 @@ class KeycloakController {
                 .resteasyClient(clientBuilder.build() as ResteasyClient)
                 .authorization(String.format("Bearer %s", token))
                 .build()
-    }
+        }
 
     /**
      * Resolves Keycloak API client
@@ -360,21 +366,6 @@ class KeycloakController {
                 .map { ScopeRepresentation(it) }
                 .map { scope -> scopesResource.create(scope) }
                 .mapNotNull { getCreateResponseId(it) }
-    }
-
-    /**
-     * Finds user by username
-     *
-     * @param keycloak Keycloak admin client
-     * @param realmName realm name
-     * @param username username
-     * @return found user or null if not found
-     */
-    fun findUser(keycloak: Keycloak, realmName: String?, username: String?): UserRepresentation? {
-        val result = keycloak.realm(realmName).users().search(username)
-        return if (result.isEmpty()) {
-            null
-        } else result[0]
     }
 
     /**
@@ -608,6 +599,64 @@ class KeycloakController {
     }
 
     /**
+     * Gets metaform admin group name
+     *
+     * @param metaformId metaform id
+     * @return metaform admin group name
+     */
+    fun getMetaformAdminGroupName(metaformId: UUID): String {
+        return String.format(ADMIN_GROUP_NAME_TEMPLATE, metaformId)
+    }
+
+    /**
+     * Gets metaform manager group name
+     *
+     * @param metaformId metaform id
+     * @return metaform manager group name
+     */
+    fun getMetaformManagerGroupName(metaformId: UUID): String {
+        return String.format(MANAGER_GROUP_NAME_TEMPLATE, metaformId)
+    }
+
+    /**
+     * Creates metaform admin and manager group name
+     *
+     * @param metaformId metaform id
+     */
+    fun createMetaformManagementGroup(metaformId: UUID) {
+        val adminGroup = GroupRepresentation()
+        adminGroup.name = getMetaformAdminGroupName(metaformId)
+        adminClient.realm(realm).groups().add(adminGroup)
+        val managerGroup = GroupRepresentation()
+        managerGroup.name = getMetaformManagerGroupName(metaformId)
+        adminClient.realm(realm).groups().add(managerGroup)
+    }
+
+    /**
+     * Deletes metaform admin and manager group name
+     *
+     * @param metaformId metaform id
+     */
+    fun deleteMetaformManagementGroup(metaformId: UUID) {
+        val adminGroup = adminClient.realm(realm).groups().groups(getMetaformAdminGroupName(metaformId), 0, 1).first()
+        val managerGroup = adminClient.realm(realm).groups().groups(getMetaformManagerGroupName(metaformId), 0, 1).first()
+        adminClient.realm(realm).groups().group(adminGroup.id).remove()
+        adminClient.realm(realm).groups().group(managerGroup.id).remove()
+    }
+
+    /**
+     * Gets metaform admin group
+     *
+     * @param metaformId metaform id
+     * @return metaform admin group
+     */
+    fun getMetaformManagerGroup(metaformId: UUID): GroupRepresentation {
+        return adminClient.realm(realm).groups()
+            .groups(getMetaformManagerGroupName(metaformId), 0, 1)
+            .first()
+    }
+
+    /**
      * Check if a user is metaform admin
      *
      * @param metaformId metaform id
@@ -615,8 +664,192 @@ class KeycloakController {
      * @return boolean indicate is admin or not
      */
     fun isMetaformAdmin(metaformId: UUID, userId: UUID): Boolean {
-//        TODO
-        return true
+        return adminClient.realm(realm).users()[userId.toString()].groups().any { group ->
+            group.name == getMetaformAdminGroupName(metaformId)
+        }
     }
 
+    /**
+     * Finds metaform member group
+     *
+     * @param userRepresentation userRepresentation
+     * @return found group or null
+     */
+    fun createMetaformMember(userRepresentation: UserRepresentation): UserRepresentation {
+//        TODO check type casting
+        return adminClient.realm(realm).users().create(userRepresentation).entity as UserRepresentation
+    }
+
+    /**
+     * Finds metaform member group
+     *
+     * @param userRepresentation userRepresentation
+     * @return found group or null
+     */
+    fun findMetaformMember(metaformMemberId: UUID): UserRepresentation? {
+//        TODO check type casting, keycloak error handling
+        return adminClient.realm(realm).users()
+            .searchByAttributes(formatSearchQuery("id", metaformMemberId.toString()))
+            .firstOrNull()
+    }
+
+    /**
+     * Finds metaform member group
+     *
+     * @param metaformId metaform id
+     * @param metaformMemberGroupId metaform member group id
+     * @return found group or null
+     */
+    fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): GroupRepresentation? {
+        return adminClient.realm(realm).groups()
+            .groups(getMetaformManagerGroupName(metaformId),0,1)
+            .firstOrNull()
+            ?.subGroups
+            ?.find{ group -> group.id == metaformMemberGroupId.toString() }
+    }
+
+    /**
+     * Finds metaform member group members
+     *
+     * @param metaformMemberGroupId metaform member group id
+     * @return group members
+     */
+    fun findMetaformMemberGroupMembers(metaformMemberGroupId: UUID): List<UUID> {
+        return adminClient.realm(realm).groups()
+            .group(metaformMemberGroupId.toString())
+            .members()
+            .map { UUID.fromString(it.id) }
+    }
+
+    /**
+     * Deletes metaform member
+     *
+     * @param metaformMemberId metaform member id
+     */
+    fun deleteMetaformMember(metaformMemberId: UUID) {
+        adminClient.realm(realm).users().delete(metaformMemberId.toString())
+    }
+
+
+    /**
+     * Deletes metaform member group
+     *
+     * @param metaformMemberGroupId metaform member group id
+     */
+    fun deleteMetaformMemberGroupMembers(metaformMemberGroupId: UUID) {
+        return adminClient.realm(realm).groups()
+            .group(metaformMemberGroupId.toString())
+            .remove()
+    }
+
+    /**
+     * Updates metaform member
+     *
+     * @param metaformMember metaform member
+     */
+    fun updateMetaformMember(metaformMember: UserRepresentation) {
+        adminClient.realm(realm).users().get(metaformMember.id).update(metaformMember)
+    }
+
+    /**
+     * Updates metaform member group
+     *
+     * @param metaformMemberGroup metaform member group
+     */
+    fun updateMetaformMemberGroup(metaformMemberGroup: GroupRepresentation) {
+        adminClient.realm(realm).groups().group(metaformMemberGroup.id).update(metaformMemberGroup)
+    }
+
+    /**
+     * Gets metaform member role
+     *
+     * @param metaformMember metaform member
+     * @param metaformId metaform id
+     * @return metaform member role
+     */
+    @Throws(MetaformMemberRoleNotFoundException::class)
+    fun getMetaformMemberRole(metaformMember: UserRepresentation, metaformId: UUID): MetaformMemberRole {
+        val adminGroupName = getMetaformAdminGroupName(metaformId)
+        val managerGroupName = getMetaformManagerGroupName(metaformId)
+        with (metaformMember.groups) {
+            when {
+                contains(adminGroupName) -> return MetaformMemberRole.ADMINISTRATOR
+                contains(managerGroupName) -> return MetaformMemberRole.MANAGER
+                else -> throw MetaformMemberRoleNotFoundException("Metaform member role not found")
+            }
+        }
+    }
+
+    /**
+     * Formats keycloak search query
+     *
+     * @param name name
+     * @param value value
+     * @return search query
+     */
+    private fun formatSearchQuery(name: String, value: String): String {
+        return String.format(SEARCH_QUERY_TEMPLATE, name, value)
+    }
+
+    /**
+     * Formats keycloak search query
+     *
+     * @param metaformId metaform Id
+     * @param metaformMember metaform member
+     * @param newRole new metaform member role
+     * @return search query
+     */
+    fun updateMemberManagementGroup(
+        metaformId: UUID,
+        metaformMember: UserRepresentation,
+        newRole: MetaformMemberRole
+    ) {
+        val prevRole = getMetaformMemberRole(metaformMember, metaformId)
+        when {
+            prevRole == MetaformMemberRole.ADMINISTRATOR && newRole == MetaformMemberRole.MANAGER ->
+                metaformMember.groups.remove(getMetaformAdminGroupName(metaformId))
+            prevRole == MetaformMemberRole.MANAGER && newRole == MetaformMemberRole.ADMINISTRATOR ->
+                metaformMember.groups.add(getMetaformManagerGroupName(metaformId))
+            else -> return
+        }
+    }
+
+    /**
+     * Creates metaform member group
+     *
+     * @param metaformId metaform Id
+     * @param memberGroup member group
+     * @return created group
+     */
+    fun createMetaformMemberGroup(metaformId: UUID, memberGroup: GroupRepresentation): GroupRepresentation {
+        val managerGroup = getMetaformManagerGroup(metaformId)
+//        TODO check type casting
+        return adminClient.realm(realm).groups().group(managerGroup.id).subGroup(memberGroup).entity as GroupRepresentation
+    }
+
+    /**
+     * Adds a user to a group
+     *
+     * @param memberGroupId member group id
+     * @param memberId member id
+     */
+    fun userJoinGroup(memberGroupId: String, memberId: String) {
+        adminClient.realm(realm).users()[memberId].joinGroup(memberGroupId)
+    }
+
+    /**
+     * Pops a user from group
+     *
+     * @param memberGroupId member group id
+     * @param memberId member idp
+     */
+    fun userLeaveGroup(memberGroupId: String, memberId: String) {
+        adminClient.realm(realm).users()[memberId].leaveGroup(memberGroupId)
+    }
+
+    companion object {
+        private const val ADMIN_GROUP_NAME_TEMPLATE = "%s-admin"
+        private const val MANAGER_GROUP_NAME_TEMPLATE = "%s-manager"
+        private const val SEARCH_QUERY_TEMPLATE = "%s:%s"
+    }
 }

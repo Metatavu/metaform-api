@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
 /**
- * Translatro for Metaform versions
+ * Translator for Metaform versions
  *
  * @author Tianxing Wu
  */
