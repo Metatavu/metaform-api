@@ -1,8 +1,12 @@
 package fi.metatavu.metaform.server.persistence.dao
 
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
+import fi.metatavu.metaform.server.persistence.model.AdminTheme_
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
+import javax.persistence.EntityManager
+import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.CriteriaQuery
 
 @ApplicationScoped
 class AdminThemeDAO : AbstractDAO<AdminTheme>() {
@@ -57,5 +61,25 @@ class AdminThemeDAO : AbstractDAO<AdminTheme>() {
         adminTheme.name = name
         adminTheme.slug = slug
         return persist(adminTheme)
+    }
+
+    /**
+     * Finds admin theme by slug
+     * 
+     * @param slug to find
+     * 
+     * @return admin theme or null if not found
+     */
+    fun findBySlug(slug: String): AdminTheme? {
+        val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
+        val criteria: CriteriaQuery<AdminTheme> = criteriaBuilder.createQuery<AdminTheme>(
+            AdminTheme::class.java
+        )
+        val root = criteria.from(
+            AdminTheme::class.java
+        )
+        criteria.select(root)
+        criteria.where(criteriaBuilder.equal(root.get(AdminTheme_.slug), slug))
+        return getSingleResult<AdminTheme>(entityManager.createQuery(criteria))
     }
 }

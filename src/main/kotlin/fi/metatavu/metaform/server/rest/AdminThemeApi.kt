@@ -31,6 +31,15 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
+        adminTheme.slug?.let{ slug ->
+            if (!adminThemeController.validateSlug(slug)) {
+                return createConflict(createInvalidMessage(SLUG))
+              } else if (!adminThemeController.isSlugUnique(null, slug)) {
+                return createConflict(createDuplicatedMessage(SLUG))
+            }
+        }
+                
+
         val createdTheme = adminThemeController.create(
             UUID.randomUUID(),
             adminTheme.data,

@@ -29,17 +29,22 @@ class AdminThemeTestsIT : AbstractTest() {
     fun createAdminThemeTest() {
         TestBuilder().use { builder ->
             val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data",
+                    data = "data-create",
                     name = "Test admin theme",
-                    slug = "test-admin-theme"
+                    slug = "test-admin-theme-create"
             )
+
+            Assertions.assertNotNull(adminTheme)
+            Assertions.assertEquals("Test admin theme", adminTheme.name)
+            Assertions.assertEquals("test-admin-theme-create", adminTheme.slug)
+            Assertions.assertEquals("data-create", adminTheme.data)
             
             val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
             Assertions.assertNotNull(foundAdminTheme)
-            Assertions.assertNotNull(foundAdminTheme.id)
-            Assertions.assertNotNull(foundAdminTheme.data)
-            Assertions.assertNotNull(foundAdminTheme.name)
-            Assertions.assertNotNull(foundAdminTheme.slug)
+            Assertions.assertEquals(adminTheme.id, foundAdminTheme.id)
+            Assertions.assertEquals(adminTheme.name, foundAdminTheme.name)
+            Assertions.assertEquals(adminTheme.slug, foundAdminTheme.slug)
+            
         }
     }
 
@@ -48,24 +53,21 @@ class AdminThemeTestsIT : AbstractTest() {
     fun updateAdminThemeTest() {
         TestBuilder().use { builder ->
             val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data",
+                    data = "data-update",
                     name = "Test admin theme",
-                    slug = "test-admin-theme"
+                    slug = "test-admin-theme-update"
             )
             val secondAdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data2",
+                    data = "data2-update",
                     name = "Test admin theme2",
-                    slug = "test-admin-theme2"
+                    slug = "test-admin-theme2-update"
             )
 
             val updatedAdminTheme = builder.metaformAdmin.adminThemes.update(adminTheme.id!!, secondAdminTheme)
-            val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
             Assertions.assertNotNull(updatedAdminTheme)
-            Assertions.assertNotNull(updatedAdminTheme.id)
-            Assertions.assertNotNull(updatedAdminTheme.data)
-            Assertions.assertNotNull(updatedAdminTheme.name)
-            Assertions.assertNotNull(updatedAdminTheme.slug)
-            Assertions.assertEquals(updatedAdminTheme.data, foundAdminTheme.data)
+            Assertions.assertEquals(secondAdminTheme.data, updatedAdminTheme.data)
+            Assertions.assertEquals(secondAdminTheme.name, updatedAdminTheme.name)
+            Assertions.assertEquals(secondAdminTheme.slug, updatedAdminTheme.slug)
         }
     }
     
@@ -74,21 +76,21 @@ class AdminThemeTestsIT : AbstractTest() {
     fun listAdminThemesTest() {
         TestBuilder().use { builder ->
             val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data",
+                    data = "data-list",
                     name = "Test admin theme",
-                    slug = "test-admin-theme"
+                    slug = "test-admin-theme-list"
             )
             val secondAdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data2",
-                    name = "Test admin theme2",
-                    slug = "test-admin-theme2"
+                    data = "data2-list",
+                    name = "Test admin theme",
+                    slug = "test-admin-theme2-list"
             )
 
             Assertions.assertNotNull(adminTheme)
             Assertions.assertNotNull(secondAdminTheme)
             val adminThemes = builder.metaformAdmin.adminThemes.list()
             Assertions.assertNotNull(adminThemes)
-            Assertions.assertEquals(4, adminThemes.size)
+            Assertions.assertEquals(2, adminThemes.size)
         }
     }
 
@@ -97,14 +99,14 @@ class AdminThemeTestsIT : AbstractTest() {
     fun deleteAdminThemeTest() {
         TestBuilder().use { builder ->
             val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data",
+                    data = "data-delete",
                     name = "Test admin theme",
-                    slug = "test-admin-theme"
+                    slug = "test-admin-theme-delete"
             )
 
             Assertions.assertNotNull(adminTheme)
             builder.metaformAdmin.adminThemes.delete(adminTheme.id!!)
-            builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, adminTheme.id)
+            builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, adminTheme.id!!)
         }
     }
 
@@ -113,9 +115,9 @@ class AdminThemeTestsIT : AbstractTest() {
     fun createAdminThemeNotFoundTest() {
         TestBuilder().use { builder ->
             val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data",
+                    data = "data-create-not-found",
                     name = "Test admin theme",
-                    slug = "test-admin-theme"
+                    slug = "test-admin-theme-create-not-found"
             )
 
             Assertions.assertNotNull(adminTheme)
