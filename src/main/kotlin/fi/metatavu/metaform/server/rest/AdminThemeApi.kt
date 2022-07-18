@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.AdminTheme
 import fi.metatavu.metaform.server.controllers.AdminThemeController
+import fi.metatavu.metaform.server.rest.translate.AdminThemeTranslator
 import java.util.UUID
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -13,6 +14,9 @@ import javax.ws.rs.core.Response
 class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi() {
     @Inject
     lateinit var adminThemeController: AdminThemeController
+
+    @Inject
+    lateinit var adminThemeTranslator: AdminThemeTranslator
 
     /***
      * Creates a new admin theme
@@ -27,14 +31,16 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        return createOk(adminThemeController.create(
+        val createdTheme = adminThemeController.create(
             UUID.randomUUID(),
             adminTheme.data,
             adminTheme.name,
             adminTheme.slug,
             userId,
             userId,
-        ))
+        )
+
+        return createOk(adminThemeTranslator.translate(createdTheme))
     }
 
     /**
@@ -69,7 +75,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         }
 
         val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
-        return createOk(theme)
+        return createOk(adminThemeTranslator.translate(theme))
     }
 
     /**
@@ -83,7 +89,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        return createOk(adminThemeController.adminThemeDAO.listAll())
+        return createOk(adminThemeController.adminThemeDAO.listAll().map { adminThemeTranslator.translate(it) })
     }
 
     /**
@@ -102,7 +108,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
         val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
         return adminTheme.run {
-            createOk(adminThemeController.updateAdminTheme(theme, data, name, slug))
+            createOk(adminThemeTranslator.translate(adminThemeController.updateAdminTheme(theme, data, name, slug)))
         }
     }
 }
