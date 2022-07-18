@@ -11,6 +11,7 @@ import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.util.UUID.randomUUID
 
 /**
  * Tests for Admin Theme API
@@ -104,6 +105,21 @@ class AdminThemeTestsIT : AbstractTest() {
             Assertions.assertNotNull(adminTheme)
             builder.metaformAdmin.adminThemes.delete(adminTheme.id!!)
             builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, adminTheme.id)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun createAdminThemeNotFoundTest() {
+        TestBuilder().use { builder ->
+            val adminTheme = builder.metaformAdmin.adminThemes.create(
+                    data = "data",
+                    name = "Test admin theme",
+                    slug = "test-admin-theme"
+            )
+
+            Assertions.assertNotNull(adminTheme)
+            builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, randomUUID())
         }
     }
 }
