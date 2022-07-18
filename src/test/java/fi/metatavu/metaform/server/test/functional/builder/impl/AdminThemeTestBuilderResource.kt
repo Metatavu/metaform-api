@@ -29,7 +29,13 @@ class AdminThemeTestBuilderResource(
     }
 
     @Throws(IOException::class)
-    override fun clean(adminTheme: AdminTheme) {}
+    override fun clean(adminTheme: AdminTheme) {
+        try {
+            api.deleteAdminTheme(adminTheme.id!!)
+        } catch (e: ClientException) {
+            Assert.fail("Failed to delete admin theme ${adminTheme.id}")
+        }    
+    }
 
     /**
      * Creates a new admin theme
