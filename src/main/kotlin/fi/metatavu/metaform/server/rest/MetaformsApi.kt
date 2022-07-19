@@ -144,7 +144,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
     metaformController.deleteMetaform(metaform)
 
-    keycloakController.deleteMetaformManagementGroup(metaformId)
     return createNoContent()
   }
 

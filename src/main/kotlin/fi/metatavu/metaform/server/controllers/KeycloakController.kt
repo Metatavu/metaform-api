@@ -273,7 +273,6 @@ class KeycloakController {
      * Updates groups and group policies into Keycloak
      *
      * @param keycloak admin client
-     * @param realmName realm name
      * @param client client
      * @param groupNames groups names
      */
@@ -624,12 +623,8 @@ class KeycloakController {
      * @param metaformId metaform id
      */
     fun createMetaformManagementGroup(metaformId: UUID) {
-        val adminGroup = GroupRepresentation()
-        adminGroup.name = getMetaformAdminGroupName(metaformId)
-        adminClient.realm(realm).groups().add(adminGroup)
-        val managerGroup = GroupRepresentation()
-        managerGroup.name = getMetaformManagerGroupName(metaformId)
-        adminClient.realm(realm).groups().add(managerGroup)
+        adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformAdminGroupName(metaformId) })
+        adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformManagerGroupName(metaformId) })
     }
 
     /**
@@ -664,8 +659,10 @@ class KeycloakController {
      * @return boolean indicate is admin or not
      */
     fun isMetaformAdmin(metaformId: UUID, userId: UUID): Boolean {
-        return adminClient.realm(realm).users()[userId.toString()].groups().any { group ->
-            group.name == getMetaformAdminGroupName(metaformId)
+        return try {
+            getMetaformMemberRole(userId.toString(), metaformId) == MetaformMemberRole.ADMINISTRATOR
+        } catch (e: MetaformMemberRoleNotFoundException) {
+            false
         }
     }
 
@@ -676,21 +673,24 @@ class KeycloakController {
      * @return found group or null
      */
     fun createMetaformMember(userRepresentation: UserRepresentation): UserRepresentation {
-//        TODO check type casting
-        return adminClient.realm(realm).users().create(userRepresentation).entity as UserRepresentation
+        val response = adminClient.realm(realm).users().create(userRepresentation)
+        val userId = getCreateResponseId(response)
+        return findMetaformMember(userId!!)!! // TODO check null
     }
 
     /**
      * Finds metaform member group
      *
-     * @param userRepresentation userRepresentation
+     * @param metaformMemberId metaform member id
      * @return found group or null
      */
     fun findMetaformMember(metaformMemberId: UUID): UserRepresentation? {
-//        TODO check type casting, keycloak error handling
-        return adminClient.realm(realm).users()
-            .searchByAttributes(formatSearchQuery("id", metaformMemberId.toString()))
-            .firstOrNull()
+        return try {
+            adminClient.realm(realm).users()[metaformMemberId.toString()].toRepresentation()
+        } catch (e: Exception) {
+            null
+        }
+//        TODO keycloak error handling
     }
 
     /**
@@ -763,32 +763,22 @@ class KeycloakController {
     /**
      * Gets metaform member role
      *
-     * @param metaformMember metaform member
+     * @param userId user id
      * @param metaformId metaform id
      * @return metaform member role
      */
     @Throws(MetaformMemberRoleNotFoundException::class)
-    fun getMetaformMemberRole(metaformMember: UserRepresentation, metaformId: UUID): MetaformMemberRole {
+    fun getMetaformMemberRole(userId: String, metaformId: UUID): MetaformMemberRole {
         val adminGroupName = getMetaformAdminGroupName(metaformId)
         val managerGroupName = getMetaformManagerGroupName(metaformId)
-        with (metaformMember.groups) {
+        val userGroupNames = adminClient.realm(realm).users()[userId].groups().map { group -> group.name }
+        with (userGroupNames) {
             when {
                 contains(adminGroupName) -> return MetaformMemberRole.ADMINISTRATOR
                 contains(managerGroupName) -> return MetaformMemberRole.MANAGER
                 else -> throw MetaformMemberRoleNotFoundException("Metaform member role not found")
             }
         }
-    }
-
-    /**
-     * Formats keycloak search query
-     *
-     * @param name name
-     * @param value value
-     * @return search query
-     */
-    private fun formatSearchQuery(name: String, value: String): String {
-        return String.format(SEARCH_QUERY_TEMPLATE, name, value)
     }
 
     /**
@@ -804,7 +794,7 @@ class KeycloakController {
         metaformMember: UserRepresentation,
         newRole: MetaformMemberRole
     ) {
-        val prevRole = getMetaformMemberRole(metaformMember, metaformId)
+        val prevRole = getMetaformMemberRole(metaformMember.id, metaformId)
         when {
             prevRole == MetaformMemberRole.ADMINISTRATOR && newRole == MetaformMemberRole.MANAGER ->
                 metaformMember.groups.remove(getMetaformAdminGroupName(metaformId))
@@ -823,8 +813,9 @@ class KeycloakController {
      */
     fun createMetaformMemberGroup(metaformId: UUID, memberGroup: GroupRepresentation): GroupRepresentation {
         val managerGroup = getMetaformManagerGroup(metaformId)
-//        TODO check type casting
-        return adminClient.realm(realm).groups().group(managerGroup.id).subGroup(memberGroup).entity as GroupRepresentation
+        val response = adminClient.realm(realm).groups().group(managerGroup.id).subGroup(memberGroup)
+        val groupId = getCreateResponseId(response)
+        return findMetaformMemberGroup(metaformId, groupId!!)!! // TODO check null
     }
 
     /**

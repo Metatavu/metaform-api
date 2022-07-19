@@ -26,7 +26,11 @@ class KeycloakResource : QuarkusTestResourceLifecycleManager {
     }
 
     companion object {
+        const val serverAdminUser = "admin"
+        const val serverAdminPass = "admin"
         val keycloak: KeycloakContainer = KeycloakContainer()
+                .withAdminUsername(serverAdminUser)
+                .withAdminPassword(serverAdminPass)
                 .withRealmImportFile("kc.json")
                 .withFeaturesEnabled("upload-scripts")
     }

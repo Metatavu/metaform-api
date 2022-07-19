@@ -8,14 +8,24 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthentication
 import fi.metatavu.jaxrs.test.functional.builder.auth.KeycloakAccessTokenProvider
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
+import fi.metatavu.metaform.api.client.models.MetaformMember
+import fi.metatavu.metaform.api.client.models.MetaformMemberRole
+import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
+import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import io.restassured.RestAssured
 import org.apache.commons.codec.binary.Base64
 import org.eclipse.microprofile.config.ConfigProvider
+import org.jboss.resteasy.client.jaxrs.ResteasyClient
 import org.junit.Assert
+import org.keycloak.OAuth2Constants
+import org.keycloak.admin.client.ClientBuilderWrapper
+import org.keycloak.admin.client.KeycloakBuilder
+import org.keycloak.representations.idm.CredentialRepresentation
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
  * Test builder class
@@ -53,7 +63,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
             val passwordEncoded = Base64.encodeBase64String(password.toByteArray(StandardCharsets.UTF_8))
             val authorization = String.format("Basic %s", passwordEncoded)
             val response = RestAssured.given()
-                    .baseUri(ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String::class.java))
+                    .baseUri(serverUrl)
                     .header("Authorization", authorization)
                     .formParam("grant_type", "client_credentials")
                     .post(path)
@@ -74,13 +84,96 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
     }
 
     /**
+     * Resets metaform member password
+     *
+     * @param memberId member id
+     * @param newPassword new password
+     */
+    private fun resetMetaformMemberPassword(memberId: UUID, newPassword: String) {
+        val clientId = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.admin_client_id", String::class.java)
+        val clientSecret = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.secret", String::class.java)
+        val clientBuilder = ClientBuilderWrapper.create(null, false)
+        clientBuilder.register(NotNullResteasyJackson2Provider(), 100)
+        val accessTokenProvider = KeycloakAccessTokenProvider(
+            serverUrl,
+            "master",
+            "admin-cli",
+            KeycloakResource.serverAdminUser,
+            KeycloakResource.serverAdminPass,
+            null
+        )
+
+        val client = KeycloakBuilder.builder()
+            .serverUrl(serverUrl)
+            .realm(REALM_1)
+            .grantType(OAuth2Constants.PASSWORD)
+            .clientId(clientId)
+            .clientSecret(clientSecret)
+            .username(KeycloakResource.serverAdminUser)
+            .password(KeycloakResource.serverAdminPass)
+            .resteasyClient(clientBuilder.build() as ResteasyClient)
+            .authorization(String.format("Bearer %s", accessTokenProvider.accessToken))
+            .build()
+
+        client.realm(REALM_1).users().get(memberId.toString()).resetPassword(CredentialRepresentation().apply {
+            type = "password"
+            isTemporary = false
+            value = newPassword
+        })
+    }
+
+    /**
+     * Creates metaform admin authentication
+     *
+     * @param metaformId metaform id
+     * @return metaform admin test builder authentication
+     */
+    fun createMetaformAdminAuthentication(metaformId: UUID): TestBuilderAuthentication {
+        val metaformMember = metaformAdmin.metaformMembers.create(
+            metaformId,
+            MetaformMember(
+                email = "tommi@example.com",
+                firstName = "tommi",
+                lastName = "tommi",
+                role = MetaformMemberRole.aDMINISTRATOR
+            )
+        )
+        val metaformAdminPass = UUID.randomUUID().toString()
+        resetMetaformMemberPassword(metaformMember.id!!, metaformAdminPass)
+
+        return createTestBuilderAuthentication(metaformMember.firstName, metaformAdminPass)
+    }
+
+    /**
+     * Creates metaform manager authentication
+     *
+     * @param metaformId metaform id
+     * @return metaform manager test builder authentication
+     */
+    fun createMetaformManagerAuthentication(metaformId: UUID): TestBuilderAuthentication {
+        val metaformMember = metaformAdmin.metaformMembers.create(
+            metaformId,
+            MetaformMember(
+                email = "manager@example.com",
+                firstName = "manager",
+                lastName = "manager",
+                role = MetaformMemberRole.mANAGER
+            )
+        )
+        val metaformAdminPass = UUID.randomUUID().toString()
+        resetMetaformMemberPassword(metaformMember.id!!, metaformAdminPass)
+
+        return createTestBuilderAuthentication(metaformMember.firstName, metaformAdminPass)
+    }
+
+    /**
      * Creates test builder authentication
      *
      * @param username username
      * @param password password
      * @return created test builder authentication
      */
-    private fun createTestBuilderAuthentication(username: String, password: String): TestBuilderAuthentication {
+    fun createTestBuilderAuthentication(username: String, password: String): TestBuilderAuthentication {
         return try {
             val accessTokenProvider = KeycloakAccessTokenProvider(serverUrl, REALM_1, DEFAULT_UI_CLIENT_ID, username, password, DEFAULT_UI_CLIENT_SECRET)
             TestBuilderAuthentication(this, accessTokenProvider)
