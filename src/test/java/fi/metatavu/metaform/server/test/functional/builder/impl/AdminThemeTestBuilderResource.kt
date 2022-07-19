@@ -136,4 +136,53 @@ class AdminThemeTestBuilderResource(
             Assert.assertEquals(status.toLong(), e.statusCode.toLong())
         }
     }
+
+    /**
+     * Assert create to fail with given status
+     * 
+     * @param status expected status
+     * @param data data for the admin theme
+     * @param name name of the admin theme
+     * @param slug slug of the admin theme
+     */
+    @Throws(IOException::class)
+    fun assertCreateFailStatus(status: Int, data: String, name: String, slug: String) {
+        try {
+            api.createAdminTheme(AdminTheme(data, name, slug))
+            Assert.fail(String.format("Expected create to fail with status %d", status))
+        } catch (e: ClientException) {
+            Assert.assertEquals(status.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /***
+     * Assert list to fail with given status
+     * 
+     * @param status expected status
+     */
+    @Throws(IOException::class)
+    fun assertListFailStatus(status: Int) {
+        try {
+            api.listAdminTheme()
+            Assert.fail(String.format("Expected list to fail with status %d", status))
+        } catch (e: ClientException) {
+            Assert.assertEquals(status.toLong(), e.statusCode.toLong())
+        }
+    }
+    
+    /**
+     * Assert find to fail with given status
+     * 
+     * @param status expected status
+     * @param themeId theme id
+     */
+    @Throws(IOException::class)
+    fun assertFindFailStatus(status: Int, themeId: UUID) {
+        try {
+            api.findAdminTheme(themeId)
+            Assert.fail(String.format("Expected find to fail with status %d", status))
+        } catch (e: ClientException) {
+            Assert.assertEquals(status.toLong(), e.statusCode.toLong())
+        }
+    }
 }
