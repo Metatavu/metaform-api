@@ -1,11 +1,10 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
-import fi.metatavu.metaform.server.persistence.model.Metaform
+import fi.metatavu.metaform.api.client.models.AdminTheme
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
-import fi.metatavu.metaform.server.test.functional.tests.GeneralTestProfile
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
@@ -28,7 +27,7 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createAdminThemeTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
                     data = "data-create",
                     name = "Test admin theme",
                     slug = "test-admin-theme-create"
@@ -39,7 +38,7 @@ class AdminThemeTestsIT : AbstractTest() {
             Assertions.assertEquals("test-admin-theme-create", adminTheme.slug)
             Assertions.assertEquals("data-create", adminTheme.data)
             
-            val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
+            val foundAdminTheme: AdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
             Assertions.assertNotNull(foundAdminTheme)
             Assertions.assertEquals(adminTheme.id, foundAdminTheme.id)
             Assertions.assertEquals(adminTheme.name, foundAdminTheme.name)
@@ -75,12 +74,12 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listAdminThemesTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
                     data = "data-list",
                     name = "Test admin theme",
                     slug = "test-admin-theme-list"
             )
-            val secondAdminTheme = builder.metaformAdmin.adminThemes.create(
+            val secondAdminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
                     data = "data2-list",
                     name = "Test admin theme",
                     slug = "test-admin-theme2-list"
@@ -88,7 +87,7 @@ class AdminThemeTestsIT : AbstractTest() {
 
             Assertions.assertNotNull(adminTheme)
             Assertions.assertNotNull(secondAdminTheme)
-            val adminThemes = builder.metaformAdmin.adminThemes.list()
+            val adminThemes: List<AdminTheme> = builder.metaformAdmin.adminThemes.list()
             Assertions.assertNotNull(adminThemes)
             Assertions.assertEquals(2, adminThemes.size)
         }
@@ -98,7 +97,7 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun deleteAdminThemeTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
                     data = "data-delete",
                     name = "Test admin theme",
                     slug = "test-admin-theme-delete"
@@ -106,7 +105,8 @@ class AdminThemeTestsIT : AbstractTest() {
 
             Assertions.assertNotNull(adminTheme)
             builder.metaformAdmin.adminThemes.delete(adminTheme.id!!)
-            builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, adminTheme.id!!)
+            Assertions.assertEquals(0, builder.metaformAdmin.adminThemes.list().size)
+            builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, adminTheme.id)
         }
     }
 
@@ -114,7 +114,7 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createAdminThemeNotFoundTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
                     data = "data-create-not-found",
                     name = "Test admin theme",
                     slug = "test-admin-theme-create-not-found"
@@ -122,6 +122,27 @@ class AdminThemeTestsIT : AbstractTest() {
 
             Assertions.assertNotNull(adminTheme)
             builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, randomUUID())
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testUpdateAdminThemeDuplicatedSlug() {
+        TestBuilder().use { builder ->
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
+                    data = "data-update-duplicated-slug",
+                    name = "Test admin theme",
+                    slug = "test-admin-theme-update-duplicated-slug"
+            )
+
+            val secondAdminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
+                    data = "data2-update-duplicated-slug",
+                    name = "Test admin theme2",
+                    slug = "test-admin-theme-update-duplicated-slug"
+            )
+
+            Assertions.assertNotNull(adminTheme)
+            builder.metaformAdmin.adminThemes.assertUpdateFailStatus(409, adminTheme.id!!, secondAdminTheme)
         }
     }
 }

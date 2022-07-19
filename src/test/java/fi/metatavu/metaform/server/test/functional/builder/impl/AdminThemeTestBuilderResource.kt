@@ -30,11 +30,7 @@ class AdminThemeTestBuilderResource(
 
     @Throws(IOException::class)
     override fun clean(adminTheme: AdminTheme) {
-        try {
-            api.deleteAdminTheme(adminTheme.id!!)
-        } catch (e: ClientException) {
-            Assert.fail("Failed to delete admin theme ${adminTheme.id}")
-        }    
+        api.deleteAdminTheme(adminTheme.id!!) 
     }
 
     /**
@@ -51,7 +47,8 @@ class AdminThemeTestBuilderResource(
     @Throws(IOException::class)
     fun create(data: String, name: String, slug: String): AdminTheme {
         val adminTheme = AdminTheme(data, name, slug)
-        return api.createAdminTheme(adminTheme)
+        val createdAdminTheme = api.createAdminTheme(adminTheme)
+        return addClosable(createdAdminTheme)
     }
 
     /**
@@ -85,8 +82,8 @@ class AdminThemeTestBuilderResource(
      * @return admin themes
      */
     @Throws(IOException::class)
-    fun list(): Array<AdminTheme> {
-        return api.listAdminTheme()
+    fun list(): List<AdminTheme> {
+        return listOf(*api.listAdminTheme())
     }
 
     /**
@@ -99,6 +96,12 @@ class AdminThemeTestBuilderResource(
     @Throws(IOException::class)
     fun delete(themeId: UUID) {
         return api.deleteAdminTheme(themeId)
+        removeCloseable { closable ->
+            if (closable is AdminTheme) {
+                return@removeCloseable themeId == closable.id
+            }
+            false   
+        }
     }
 
     /**
@@ -108,10 +111,27 @@ class AdminThemeTestBuilderResource(
      * @param themeId theme id
      */
     @Throws(IOException::class)
-    fun assertSearchFailStatus(status: Int, themeId: UUID) {
+    fun assertSearchFailStatus(status: Int, themeId: UUID?) {
         try {
-            api.findAdminTheme(themeId)
+            api.findAdminTheme(themeId!!)
             Assert.fail(String.format("Expected find to fail with status %d", status))
+        } catch (e: ClientException) {
+            Assert.assertEquals(status.toLong(), e.statusCode.toLong())
+        }
+    }
+    
+    /**
+     * Asserts update to fail with given status
+     *
+     * @param status expected status
+     * @param themeId theme id
+     * @param adminTheme data for the admin theme
+     */
+    @Throws(IOException::class)
+    fun assertUpdateFailStatus(status: Int, themeId: UUID, adminTheme: AdminTheme) {
+        try {
+            api.updateAdminTheme(themeId, adminTheme)
+            Assert.fail(String.format("Expected update to fail with status %d", status))
         } catch (e: ClientException) {
             Assert.assertEquals(status.toLong(), e.statusCode.toLong())
         }

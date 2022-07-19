@@ -42,7 +42,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
         val createdTheme = adminThemeController.create(
             UUID.randomUUID(),
-            adminTheme.data,
+            adminTheme.data.toString(),
             adminTheme.name,
             adminTheme.slug,
             userId,
@@ -117,7 +117,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
         val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
         return adminTheme.run {
-            createOk(adminThemeTranslator.translate(adminThemeController.updateAdminTheme(theme, data, name, slug)))
+            createOk(adminThemeTranslator.translate(adminThemeController.updateAdminTheme(theme, data.toString(), name, slug)))
         }
     }
 }
