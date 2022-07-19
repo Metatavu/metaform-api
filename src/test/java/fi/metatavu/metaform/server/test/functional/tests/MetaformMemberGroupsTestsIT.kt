@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
-import fi.metatavu.metaform.api.client.models.MetaformVersion
-import fi.metatavu.metaform.api.client.models.MetaformVersionType
+import fi.metatavu.metaform.api.client.models.*
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
@@ -14,7 +13,7 @@ import org.junit.jupiter.api.Test
 import java.util.*
 
 /**
- * Tests to test the Metaform version system
+ * Tests to test the Metaform member group system
  */
 @QuarkusTest
 @QuarkusTestResource.List(
@@ -25,241 +24,265 @@ import java.util.*
 @TestProfile(GeneralTestProfile::class)
 class MetaformMemberGroupsTestsIT : AbstractTest() {
     @Test
-    @Throws(Exception::class)
-    fun createVersion() {
+    fun createMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
-            )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            Assertions.assertNotNull(createdVersion)
-            Assertions.assertNotNull(createdVersion.id)
-            Assertions.assertEquals(MetaformVersionType.aRCHIVED, createdVersion.type)
-            Assertions.assertEquals(versionData, createdVersion.data)
-
-            val foundVersion = testBuilder.metaformAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
-            Assertions.assertNotNull(foundVersion)
-            Assertions.assertEquals(createdVersion.id, foundVersion.id)
-            Assertions.assertEquals(createdVersion.type, foundVersion.type)
-            Assertions.assertEquals(createdVersion.data, foundVersion.data)
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun createVersionNotFound() {
-        TestBuilder().use { testBuilder ->
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
-            )
-
-            testBuilder.metaformAdmin.metaformVersions.assertCreateFailStatus(404, UUID.randomUUID(), version);
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun createVersionUnAuthorized() {
-        TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
-            )
-
-            testBuilder.test1.metaformVersions.assertCreateFailStatus(403, metaform.id!!, version);
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun listVersions() {
-        TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            testBuilder.metaformAdmin.metaformVersions.create(
-                metaform.id!!,
-                MetaformVersion(
-                        type = MetaformVersionType.aRCHIVED,
-                        data = versionData
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = arrayOf(metaformMember.id!!)
                 )
             )
 
-            testBuilder.metaformAdmin.metaformVersions.assertCount(metaform.id, 1)
+            Assertions.assertNotNull(metaformMemberGroup)
+            Assertions.assertNotNull(metaformMemberGroup.id)
+            Assertions.assertEquals("Mikkeli", metaformMemberGroup.displayName)
+            Assertions.assertEquals(metaformMember.id, metaformMemberGroup.memberIds[0])
 
-            testBuilder.metaformAdmin.metaformVersions.create(
-                    metaform.id,
-                    MetaformVersion(
-                            type = MetaformVersionType.dRAFT,
-                            data = versionData
-                    )
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+
+            Assertions.assertNotNull(foundMemberGroup)
+            Assertions.assertEquals(metaformMemberGroup.id, foundMemberGroup.id)
+            Assertions.assertEquals(metaformMemberGroup.displayName, foundMemberGroup.displayName)
+            Assertions.assertEquals(metaformMemberGroup.memberIds[0], foundMemberGroup.memberIds[0])
+        }
+    }
+
+    @Test
+    fun createMetaformMemberGroupUnauthorized() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            testBuilder.test1.metaformMemberGroups.assertCreateFailStatus(
+                403,
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
-            testBuilder.metaformAdmin.metaformVersions.assertCount(metaform.id, 2)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun listVersionsNotFound() {
+    fun createMetaformMemberGroupNotFound() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            testBuilder.metaformAdmin.metaformVersions.create(
-                    metaform.id!!,
-                    MetaformVersion(
-                            type = MetaformVersionType.aRCHIVED,
-                            data = versionData
-                    )
+            testBuilder.metaformAdmin.metaformMemberGroups.assertCreateFailStatus(
+                404,
+                UUID.randomUUID(),
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
-            testBuilder.metaformAdmin.metaformVersions.assertListFailStatus(404, UUID.randomUUID())
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun listUnauthorized() {
+    fun findMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            testBuilder.metaformAdmin.metaformVersions.create(
-                    metaform.id!!,
-                    MetaformVersion(
-                            type = MetaformVersionType.aRCHIVED,
-                            data = versionData
-                    )
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            testBuilder.test1.metaformVersions.assertListFailStatus(403, metaform.id)
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+
+            Assertions.assertNotNull(foundMemberGroup)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findVersion() {
+    fun findMetaformMemberGroupUnauthorized() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            val foundVersion = testBuilder.metaformAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
-            testBuilder.metaformAdmin.metaformVersions.assertCount(metaform.id, 1)
-
-            Assertions.assertNotNull(foundVersion)
-            Assertions.assertEquals(MetaformVersionType.aRCHIVED, foundVersion.type)
-            Assertions.assertEquals(versionData, foundVersion.data)
+            testBuilder.test1.metaformMemberGroups.assertFindFailStatus(403, metaform.id, metaformMemberGroup.id!!)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findVersionUnauthorized() {
+    fun findMetaformMemberGroupNotFound() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            testBuilder.test1.metaformVersions.assertFindFailStatus(403, metaform.id, createdVersion.id!!)
+            testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, UUID.randomUUID(), metaformMemberGroup.id!!)
+            testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, metaform.id, UUID.randomUUID())
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findVersionNotFound() {
+    fun deleteMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            testBuilder.metaformAdmin.metaformVersions.assertFindFailStatus(404, UUID.randomUUID(), createdVersion.id!!)
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+
+            Assertions.assertNotNull(foundMemberGroup)
+            testBuilder.metaformAdmin.metaformMemberGroups.delete(metaform.id, foundMemberGroup.id!!)
+
+            testBuilder.metaformAdmin.metaformMemberGroups.assertFindFailStatus(404, metaform.id, foundMemberGroup.id)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun deleteVersion() {
+    fun deleteMetaformMemberNotFound() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            val foundVersion = testBuilder.metaformAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
-            testBuilder.metaformAdmin.metaformVersions.assertCount(metaform.id, 1)
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
 
-            Assertions.assertNotNull(foundVersion)
-            Assertions.assertEquals(MetaformVersionType.aRCHIVED, foundVersion.type)
-            Assertions.assertEquals(versionData, foundVersion.data)
-            testBuilder.metaformAdmin.metaformVersions.delete(metaform.id, foundVersion.id!!)
-
-            testBuilder.metaformAdmin.metaformVersions.assertCount(metaform.id, 0)
+            testBuilder.metaformAdmin.metaformMemberGroups.assertDeleteFailStatus(404, UUID.randomUUID(), foundMemberGroup.id!!)
+            testBuilder.metaformAdmin.metaformMemberGroups.assertDeleteFailStatus(404, metaform.id, UUID.randomUUID())
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun deleteVersionNotFound() {
+    fun deleteMetaformMemberGroupUnauthorized() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            val foundVersion = testBuilder.metaformAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
 
-            testBuilder.metaformAdmin.metaformVersions.assertDeleteFailStatus(404, UUID.randomUUID(), foundVersion.id!!)
-            testBuilder.metaformAdmin.metaformVersions.assertDeleteFailStatus(404, metaform.id, UUID.randomUUID())
+            testBuilder.test1.metaformMembers.assertDeleteFailStatus(403, metaform.id, foundMemberGroup.id!!)
+        }
+    }
+
+    // TODO find a way to integrate all the authentication related tests
+    @Test
+    @Throws(Exception::class)
+    fun updateMetaformMemberGroup() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
+            )
+
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+
+            Assertions.assertEquals(0, foundMemberGroup.memberIds.size)
+            Assertions.assertEquals("Mikkeli", foundMemberGroup.displayName)
+
+            val metaformMember1 = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi")
+            val metaformMember2 = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi2")
+
+            testBuilder.metaformAdmin.metaformMemberGroups.update(
+                metaform.id,
+                foundMemberGroup.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli2",
+                    memberIds = arrayOf(metaformMember1.id!!, metaformMember2.id!!)
+                )
+            )
+
+            val foundUpdatedMember = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id)
+
+            Assertions.assertEquals(metaformMember1.id, foundUpdatedMember.memberIds[0])
+            Assertions.assertEquals(metaformMember2.id, foundUpdatedMember.memberIds[1])
+            Assertions.assertEquals("Mikkeli2", foundUpdatedMember.displayName)
+
+            testBuilder.metaformAdmin.metaformMemberGroups.update(
+                metaform.id,
+                foundMemberGroup.id,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli2",
+                    memberIds = emptyArray()
+                )
+            )
+            val foundUpdatedMember2 = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id)
+            Assertions.assertEquals(0, foundUpdatedMember2.memberIds.size)
+
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun deleteVersionUnauthorized() {
+    fun updateMetaformMemberGroupNotFound() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val versionData = testBuilder.metaformAdmin.metaformVersions.exampleVersionData
-
-            val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
-                    data = versionData
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
             )
 
-            val createdVersion = testBuilder.metaformAdmin.metaformVersions.create(metaform.id!!, version)
-            val foundVersion = testBuilder.metaformAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
 
-            testBuilder.test1.metaformVersions.assertDeleteFailStatus(403, metaform.id, foundVersion.id!!)
+            testBuilder.metaformAdmin.metaformMemberGroups.assertUpdateFailStatus(404, UUID.randomUUID(), foundMemberGroup.id!!, foundMemberGroup)
+            testBuilder.metaformAdmin.metaformMemberGroups.assertUpdateFailStatus(404, metaform.id, UUID.randomUUID(), foundMemberGroup)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateMetaformMemberGroupUnauthorized() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
+            )
+
+            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+
+            testBuilder.test1.metaformMemberGroups.assertUpdateFailStatus(403, metaform.id, foundMemberGroup.id!!, foundMemberGroup)
         }
     }
 }

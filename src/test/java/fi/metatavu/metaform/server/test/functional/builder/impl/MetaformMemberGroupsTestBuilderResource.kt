@@ -70,14 +70,25 @@ class MetaformMemberGroupsTestBuilderResource(
      */
     @Throws(IOException::class)
     fun delete(metaformId: UUID, metaformMemberGroupId: UUID) {
-        Assert.assertNotNull(metaformMemberGroupId)
         api.deleteMetaformMemberGroup(metaformId, metaformMemberGroupId)
         removeCloseable { closable ->
-            if (closable is MetaformMember) {
+            if (closable is MetaformMemberGroup) {
                 return@removeCloseable metaformMemberGroupId == closable.id
             }
             false
         }
+    }
+
+    /**
+     * Updates a metaform member group from the API
+     *
+     * @param metaformId metaform id
+     * @param metaformMemberGroupId metaform member group id
+     * @param payload payload
+     */
+    @Throws(IOException::class)
+    fun update(metaformId: UUID, metaformMemberGroupId: UUID, payload: MetaformMemberGroup) {
+        api.updateMetaformMemberGroup(metaformId, metaformMemberGroupId, payload)
     }
 
     /**
@@ -91,6 +102,24 @@ class MetaformMemberGroupsTestBuilderResource(
     fun assertFindFailStatus(expectedStatus: Int, metaformId: UUID, memberGroupId: UUID) {
         try {
             api.findMetaformMemberGroup(metaformId, memberGroupId)
+            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param metaformId     metaform id
+     * @param memberGroupId member group id
+     * @param payload payload
+     */
+    @Throws(IOException::class)
+    fun assertUpdateFailStatus(expectedStatus: Int, metaformId: UUID, memberGroupId: UUID, payload: MetaformMemberGroup) {
+        try {
+            api.updateMetaformMemberGroup(metaformId, memberGroupId, payload)
             Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())

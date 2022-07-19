@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.controllers
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import fi.metatavu.metaform.api.spec.model.MetaformMember
 import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
@@ -640,14 +639,26 @@ class KeycloakController {
     }
 
     /**
+     * Gets metaform manager group
+     *
+     * @param metaformId metaform id
+     * @return metaform manager group
+     */
+    fun getMetaformManagerGroup(metaformId: UUID): GroupRepresentation {
+        return adminClient.realm(realm).groups()
+            .groups(getMetaformManagerGroupName(metaformId), 0, 1)
+            .first()
+    }
+
+    /**
      * Gets metaform admin group
      *
      * @param metaformId metaform id
      * @return metaform admin group
      */
-    fun getMetaformManagerGroup(metaformId: UUID): GroupRepresentation {
+    fun getMetaformAdminGroup(metaformId: UUID): GroupRepresentation {
         return adminClient.realm(realm).groups()
-            .groups(getMetaformManagerGroupName(metaformId), 0, 1)
+            .groups(getMetaformAdminGroupName(metaformId), 0, 1)
             .first()
     }
 
@@ -701,11 +712,13 @@ class KeycloakController {
      * @return found group or null
      */
     fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): GroupRepresentation? {
+        val managerGroup = getMetaformManagerGroup(metaformId)
+
         return adminClient.realm(realm).groups()
-            .groups(getMetaformManagerGroupName(metaformId),0,1)
-            .firstOrNull()
-            ?.subGroups
-            ?.find{ group -> group.id == metaformMemberGroupId.toString() }
+            .group(managerGroup.id)
+            .toRepresentation()
+            .subGroups
+            .find{ group -> group.id == metaformMemberGroupId.toString() }
     }
 
     /**
@@ -797,9 +810,9 @@ class KeycloakController {
         val prevRole = getMetaformMemberRole(metaformMember.id, metaformId)
         when {
             prevRole == MetaformMemberRole.ADMINISTRATOR && newRole == MetaformMemberRole.MANAGER ->
-                metaformMember.groups.remove(getMetaformAdminGroupName(metaformId))
+                userLeaveGroup(getMetaformAdminGroup(metaformId).id, metaformMember.id)
             prevRole == MetaformMemberRole.MANAGER && newRole == MetaformMemberRole.ADMINISTRATOR ->
-                metaformMember.groups.add(getMetaformManagerGroupName(metaformId))
+                userJoinGroup(getMetaformAdminGroup(metaformId).id, metaformMember.id)
             else -> return
         }
     }
@@ -841,6 +854,5 @@ class KeycloakController {
     companion object {
         private const val ADMIN_GROUP_NAME_TEMPLATE = "%s-admin"
         private const val MANAGER_GROUP_NAME_TEMPLATE = "%s-manager"
-        private const val SEARCH_QUERY_TEMPLATE = "%s:%s"
     }
 }

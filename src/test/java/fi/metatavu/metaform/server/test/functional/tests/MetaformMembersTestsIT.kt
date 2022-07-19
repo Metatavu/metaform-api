@@ -28,14 +28,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun createMetaformMember() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                ))
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             assertNotNull(metaformMember)
             assertNotNull(metaformMember.id)
@@ -62,15 +55,7 @@ class MetaformMembersTestsIT : AbstractTest() {
 
             val metaformAdminAuthentication = testBuilder.createMetaformAdminAuthentication(metaform.id!!)
 
-            val adminCreatedMetaformMember = metaformAdminAuthentication.metaformMembers.create(
-                metaform.id,
-                MetaformMember(
-                    email = "tommi2@example.com",
-                    firstName = "tommi2",
-                    lastName = "tommi2",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val adminCreatedMetaformMember = metaformAdminAuthentication.metaformMembers.createSimpleMember(metaform.id, "tommi2")
 
             assertNotNull(adminCreatedMetaformMember)
         }
@@ -127,14 +112,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun findMetaformMemberMetaformAdmin() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi2@example.com",
-                    firstName = "tommi2",
-                    lastName = "tommi2",
-                    role = MetaformMemberRole.mANAGER
-                ))
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi2")
 
             val metaformAdminAuthentication = testBuilder.createMetaformAdminAuthentication(metaform.id)
             val foundMetaformMember = metaformAdminAuthentication.metaformMembers.findMember(metaform.id, metaformMember.id!!)
@@ -148,20 +126,12 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun findMetaformMemberUnauthorized() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             testBuilder.test1.metaformMembers.assertFindFailStatus(403, metaform.id, metaformMember.id!!)
 
             val metaformManagerAuthentication = testBuilder.createMetaformManagerAuthentication(metaform.id)
-            metaformManagerAuthentication.metaformMembers.assertFindFailStatus(403, metaform.id, metaformMember.id!!)
+            metaformManagerAuthentication.metaformMembers.assertFindFailStatus(403, metaform.id, metaformMember.id)
         }
     }
 
@@ -170,17 +140,9 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun findMetaformMemberNotFound() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
-//            testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, UUID.randomUUID(), metaformMember.id!!)
+            testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, UUID.randomUUID(), metaformMember.id!!)
             testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, metaform.id, UUID.randomUUID())
         }
     }
@@ -190,15 +152,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun deleteMetaformMember() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             val foundMember = testBuilder.metaformAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
@@ -214,15 +168,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun deleteMetaformMemberNotFound() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             val foundMember = testBuilder.metaformAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
@@ -236,15 +182,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun deleteMetaformMemberUnauthorized() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!,"tommi")
 
             val foundMember = testBuilder.metaformAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
@@ -260,15 +198,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun deleteMetaformMemberMetaformAdmin() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi2@example.com",
-                    firstName = "tommi2",
-                    lastName = "tommi2",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi2")
 
             val metaformAdminAuthentication = testBuilder.createMetaformAdminAuthentication(metaform.id)
 
@@ -283,15 +213,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun updateMetaformMember() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             val foundMember = testBuilder.metaformAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
@@ -323,15 +245,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun updateMetaformMemberNotFound() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             val foundMember = testBuilder.metaformAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
@@ -345,15 +259,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun updateMetaformMemberUnauthorized() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
             val foundMember = testBuilder.metaformAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
@@ -369,15 +275,7 @@ class MetaformMembersTestsIT : AbstractTest() {
     fun updateMetaformMemberMetaformAdmin() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
-                metaform.id!!,
-                MetaformMember(
-                    email = "tommi2@example.com",
-                    firstName = "tommi2",
-                    lastName = "tommi2",
-                    role = MetaformMemberRole.mANAGER
-                )
-            )
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi2")
 
             val metaformAdminAuthentication = testBuilder.createMetaformAdminAuthentication(metaform.id)
 
@@ -398,12 +296,69 @@ class MetaformMembersTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
     fun updateMetaformMemberRole1() {
-        // TODO manager -> admin
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
+
+            val memberPassword = UUID.randomUUID().toString()
+            testBuilder.resetMetaformMemberPassword(metaformMember.id!!, memberPassword)
+            val managerAuthentication = testBuilder.createTestBuilderAuthentication(metaformMember.firstName, memberPassword)
+
+            managerAuthentication.metaformMembers.assertFindFailStatus(403, metaform.id, metaformMember.id)
+
+            testBuilder.metaformAdmin.metaformMembers.updateMember(
+                metaform.id,
+                metaformMember.id,
+                MetaformMember(
+                    email = "tommi@example.com",
+                    firstName = "tommi",
+                    lastName = "tommi",
+                    role = MetaformMemberRole.aDMINISTRATOR
+                )
+            )
+
+            val adminAuthentication = testBuilder.createTestBuilderAuthentication(metaformMember.firstName, memberPassword)
+            val foundMember = adminAuthentication.metaformMembers.findMember(metaform.id, metaformMember.id)
+
+            assertNotNull(foundMember)
+        }
     }
 
     @Test
     @Throws(Exception::class)
     fun updateMetaformMemberRole2() {
-        // TODO admin -> manager
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMember = testBuilder.metaformAdmin.metaformMembers.create(
+                metaform.id!!,
+                MetaformMember(
+                    email = "tommi@example.com",
+                    firstName = "tommi",
+                    lastName = "tommi",
+                    role = MetaformMemberRole.aDMINISTRATOR
+                )
+            )
+
+            val memberPassword = UUID.randomUUID().toString()
+            testBuilder.resetMetaformMemberPassword(metaformMember.id!!, memberPassword)
+            val adminAuthentication = testBuilder.createTestBuilderAuthentication(metaformMember.firstName, memberPassword)
+
+            val foundMember = adminAuthentication.metaformMembers.findMember(metaform.id, metaformMember.id)
+            assertNotNull(foundMember)
+
+            testBuilder.metaformAdmin.metaformMembers.updateMember(
+                metaform.id,
+                metaformMember.id,
+                MetaformMember(
+                    email = "tommi@example.com",
+                    firstName = "tommi",
+                    lastName = "tommi",
+                    role = MetaformMemberRole.mANAGER
+                )
+            )
+
+            val managerAuthentication = testBuilder.createTestBuilderAuthentication(metaformMember.firstName, memberPassword)
+            managerAuthentication.metaformMembers.assertFindFailStatus(403, metaform.id, metaformMember.id)
+        }
     }
 }

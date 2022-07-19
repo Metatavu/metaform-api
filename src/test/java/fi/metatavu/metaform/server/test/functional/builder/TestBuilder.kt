@@ -89,7 +89,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
      * @param memberId member id
      * @param newPassword new password
      */
-    private fun resetMetaformMemberPassword(memberId: UUID, newPassword: String) {
+    fun resetMetaformMemberPassword(memberId: UUID, newPassword: String) {
         val clientId = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.admin_client_id", String::class.java)
         val clientSecret = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.secret", String::class.java)
         val clientBuilder = ClientBuilderWrapper.create(null, false)

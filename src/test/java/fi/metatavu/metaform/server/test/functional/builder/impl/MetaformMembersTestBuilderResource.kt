@@ -6,6 +6,7 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.MetaformMember
+import fi.metatavu.metaform.api.client.models.MetaformMemberRole
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import org.junit.Assert
@@ -45,6 +46,25 @@ class MetaformMembersTestBuilderResource(
     @Throws(IOException::class)
     fun create(metaformId: UUID, payload: MetaformMember): MetaformMember {
         val result = api.createMetaformMember(metaformId, payload)
+        membersMetaforms[result.id] = metaformId
+        return addClosable(result)
+    }
+
+    /**
+     * Creates simple metaform member
+     *
+     * @param metaformId metaform id
+     * @param name    name
+     * @return created simple metaform member
+     */
+    @Throws(IOException::class)
+    fun createSimpleMember(metaformId: UUID, name: String): MetaformMember {
+        val result = api.createMetaformMember(metaformId, MetaformMember(
+            firstName = name,
+            lastName  = name,
+            email = String.format("%s@example.com", name),
+            role = MetaformMemberRole.mANAGER
+        ))
         membersMetaforms[result.id] = metaformId
         return addClosable(result)
     }
