@@ -632,8 +632,8 @@ class KeycloakController {
      * @param metaformId metaform id
      */
     fun deleteMetaformManagementGroup(metaformId: UUID) {
-        val adminGroup = adminClient.realm(realm).groups().groups(getMetaformAdminGroupName(metaformId), 0, 1).first()
-        val managerGroup = adminClient.realm(realm).groups().groups(getMetaformManagerGroupName(metaformId), 0, 1).first()
+        val adminGroup = getMetaformAdminGroup(metaformId)
+        val managerGroup = getMetaformManagerGroup(metaformId)
         adminClient.realm(realm).groups().group(adminGroup.id).remove()
         adminClient.realm(realm).groups().group(managerGroup.id).remove()
     }
