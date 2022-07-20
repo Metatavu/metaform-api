@@ -208,8 +208,8 @@ class AdminThemeTestBuilderResource(
      */
     val exampleThemeData: Map<String, String>
         get() {
-            val versionData: MutableMap<String, String> = HashMap()
-            versionData["formData"] = "form value"
-            return versionData
+            val themeData: MutableMap<String, String> = HashMap()
+            themeData["formData"] = "form value"
+            return themeData
         }
 }
