@@ -33,21 +33,38 @@ class AdminThemeTestBuilderResource(
         api.deleteAdminTheme(adminTheme.id!!) 
     }
 
+
+    /**
+     * Creates a simple admin theme
+     *
+     * @return created simple admin theme
+     */
+    fun getSimpleTheme(): AdminTheme {
+        return AdminTheme(
+            name = "simple-theme",
+            data = exampleThemeData
+        )
+    }
+
     /**
      * Creates a new admin theme
      *
-     * @param data data for the admin theme
-     * @param name name of the admin theme
-     * @param slug slug of the admin theme
-     * @param creatorId creator id of the admin theme
-     * @param lastModifierId last modifier id of the admin theme
-     *
+     * @param adminTheme admin theme
      * @return created admin theme
      */
     @Throws(IOException::class)
-    fun create(data: String, name: String, slug: String): AdminTheme {
-        val adminTheme = AdminTheme(data, name, slug)
+    fun create(adminTheme: AdminTheme): AdminTheme {
         val createdAdminTheme = api.createAdminTheme(adminTheme)
+        return addClosable(createdAdminTheme)
+    }
+
+    /**
+     * Creates a simple admin theme
+     *
+     * @return created simple admin theme
+     */
+    fun createSimpleTheme(): AdminTheme {
+        val createdAdminTheme = api.createAdminTheme(getSimpleTheme())
         return addClosable(createdAdminTheme)
     }
 
@@ -95,7 +112,7 @@ class AdminThemeTestBuilderResource(
      */
     @Throws(IOException::class)
     fun delete(themeId: UUID) {
-        return api.deleteAdminTheme(themeId)
+        api.deleteAdminTheme(themeId)
         removeCloseable { closable ->
             if (closable is AdminTheme) {
                 return@removeCloseable themeId == closable.id
@@ -141,14 +158,12 @@ class AdminThemeTestBuilderResource(
      * Assert create to fail with given status
      * 
      * @param status expected status
-     * @param data data for the admin theme
-     * @param name name of the admin theme
-     * @param slug slug of the admin theme
+     * @param adminTheme admin theme
      */
     @Throws(IOException::class)
-    fun assertCreateFailStatus(status: Int, data: String, name: String, slug: String) {
+    fun assertCreateFailStatus(status: Int, adminTheme: AdminTheme) {
         try {
-            api.createAdminTheme(AdminTheme(data, name, slug))
+            api.createAdminTheme(adminTheme)
             Assert.fail(String.format("Expected create to fail with status %d", status))
         } catch (e: ClientException) {
             Assert.assertEquals(status.toLong(), e.statusCode.toLong())
@@ -185,4 +200,16 @@ class AdminThemeTestBuilderResource(
             Assert.assertEquals(status.toLong(), e.statusCode.toLong())
         }
     }
+
+    /**
+     * Gets example theme data
+     *
+     * @return example theme data
+     */
+    val exampleThemeData: Map<String, String>
+        get() {
+            val versionData: MutableMap<String, String> = HashMap()
+            versionData["formData"] = "form value"
+            return versionData
+        }
 }

@@ -4,7 +4,6 @@ import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import fi.metatavu.metaform.server.persistence.model.AdminTheme_
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
-import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 
@@ -56,7 +55,7 @@ class AdminThemeDAO : AbstractDAO<AdminTheme>() {
         data: String,
         name: String,
         slug: String
-        ): AdminTheme {
+    ): AdminTheme {
         adminTheme.data = data
         adminTheme.name = name
         adminTheme.slug = slug

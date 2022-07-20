@@ -1,6 +1,9 @@
 package fi.metatavu.metaform.server.controllers
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.slugify.Slugify
+import fi.metatavu.metaform.server.exceptions.MalformedDraftDataException
 import fi.metatavu.metaform.server.persistence.dao.AdminThemeDAO
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import java.util.UUID
@@ -15,6 +18,9 @@ import org.apache.commons.lang3.StringUtils
 class AdminThemeController {
     @Inject
     lateinit var adminThemeDAO: AdminThemeDAO
+
+    @Inject
+    lateinit var objectMapper: ObjectMapper
 
     /**
      * Creates a new admin theme
@@ -33,16 +39,15 @@ class AdminThemeController {
         data: String,
         name: String,
         slug: String? = null,
-        creatorId: UUID,
-        lastModifierId: UUID
+        userId: UUID
     ): AdminTheme {
         return adminThemeDAO.create(
             id, 
             data, 
             name, 
             slug = slug ?: createSlug(name),
-            creatorId, 
-            lastModifierId
+            userId,
+            userId
         )
     }
 
@@ -118,16 +123,32 @@ class AdminThemeController {
      * @return updated admin theme
      */
     fun updateAdminTheme(
-        theme: AdminTheme,
+        adminTheme: AdminTheme,
         data: String,
         name: String,
-        slug: String,
+        slug: String?,
     ): AdminTheme { 
         return adminThemeDAO.update(
-            theme,
+            adminTheme,
             data,
             name,
-            slug
+            slug ?: adminTheme.slug
         )
+    }
+
+    /**
+     * Serializes data as string
+     *
+     * @param data data
+     * @return data as string
+     */
+    @Throws(MalformedDraftDataException::class)
+    fun serializeData(data: Map<String, Any>): String {
+        try {
+            val objectMapper = ObjectMapper()
+            return objectMapper.writeValueAsString(data)
+        } catch (e: JsonProcessingException) {
+            throw MalformedDraftDataException("Failed to serialize draft data", e)
+        }
     }
 }

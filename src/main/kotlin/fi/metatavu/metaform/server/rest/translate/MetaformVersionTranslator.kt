@@ -50,7 +50,7 @@ class MetaformVersionTranslator {
    * @param data data
    * @return version data
    */
-  private fun deserializeData(data: String): Any? {
+  private fun deserializeData(data: String): Map<String, Any>? {
     try {
       val typeRef: TypeReference<Map<String, Any>> = object : TypeReference<Map<String, Any>>() {}
       return objectMapper.readValue(data, typeRef)

@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.AdminTheme
 import fi.metatavu.metaform.server.controllers.AdminThemeController
+import fi.metatavu.metaform.server.exceptions.MalformedAdminThemeDataException
 import fi.metatavu.metaform.server.rest.translate.AdminThemeTranslator
 import java.util.UUID
 import javax.enterprise.context.RequestScoped
@@ -38,18 +39,28 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
                 return createConflict(createDuplicatedMessage(SLUG))
             }
         }
-                
+
+        val serializedDraftData = try {
+            adminThemeController.serializeData(adminTheme.data)
+        } catch (e: MalformedAdminThemeDataException) {
+            return createBadRequest(createInvalidMessage(DRAFT))
+        }
 
         val createdTheme = adminThemeController.create(
             UUID.randomUUID(),
-            adminTheme.data.toString(),
+            serializedDraftData,
             adminTheme.name,
             adminTheme.slug,
-            userId,
-            userId,
+            userId
         )
 
-        return createOk(adminThemeTranslator.translate(createdTheme))
+        val translatedTheme = try {
+            adminThemeTranslator.translate(createdTheme)
+        } catch (e: Exception) {
+            return createInternalServerError(e.message)
+        }
+
+        return createOk(translatedTheme)
     }
 
     /**
@@ -84,7 +95,13 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         }
 
         val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
-        return createOk(adminThemeTranslator.translate(theme))
+
+        val translatedTheme = try {
+            adminThemeTranslator.translate(theme)
+        } catch (e: Exception) {
+            return createInternalServerError(e.message)
+        }
+        return createOk(translatedTheme)
     }
 
     /**
@@ -98,7 +115,13 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        return createOk(adminThemeController.adminThemeDAO.listAll().map { adminThemeTranslator.translate(it) })
+        val translatedThemes = try {
+            adminThemeController.adminThemeDAO.listAll().map { adminThemeTranslator.translate(it) }
+        } catch (e: Exception) {
+            return createInternalServerError(e.message)
+        }
+
+        return createOk(translatedThemes)
     }
 
     /**
@@ -115,9 +138,35 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
-        val theme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
-        return adminTheme.run {
-            createOk(adminThemeTranslator.translate(adminThemeController.updateAdminTheme(theme, data.toString(), name, slug)))
+        val foundAdminTheme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
+
+        adminTheme.slug?.let{ slug ->
+            if (!adminThemeController.validateSlug(slug)) {
+                return createConflict(createInvalidMessage(SLUG))
+            } else if (!adminThemeController.isSlugUnique(themeId, slug)) {
+                return createConflict(createDuplicatedMessage(SLUG))
+            }
         }
+
+        val serializedDraftData = try {
+            adminThemeController.serializeData(adminTheme.data)
+        } catch (e: MalformedAdminThemeDataException) {
+            return createBadRequest(createInvalidMessage(DRAFT))
+        }
+
+        val updatedAdminTheme = adminThemeController.updateAdminTheme(
+            foundAdminTheme,
+            serializedDraftData,
+            adminTheme.name,
+            adminTheme.slug
+        )
+
+        val translatedTheme = try {
+            adminThemeTranslator.translate(updatedAdminTheme)
+        } catch (e: Exception) {
+            return createInternalServerError(e.message)
+        }
+
+        return createOk(translatedTheme)
     }
 }

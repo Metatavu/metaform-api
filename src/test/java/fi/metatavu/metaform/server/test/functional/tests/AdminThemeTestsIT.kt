@@ -27,16 +27,13 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createAdminThemeTest() {
         TestBuilder().use { builder ->
-            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-create",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-create"
-            )
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
+            val simpleTheme = builder.metaformAdmin.adminThemes.getSimpleTheme()
 
             Assertions.assertNotNull(adminTheme)
-            Assertions.assertEquals("Test admin theme", adminTheme.name)
-            Assertions.assertEquals("test-admin-theme-create", adminTheme.slug)
-            Assertions.assertEquals("data-create", adminTheme.data)
+            Assertions.assertEquals(simpleTheme.name, adminTheme.name)
+            Assertions.assertEquals(simpleTheme.name, adminTheme.slug)
+            Assertions.assertEquals(simpleTheme.data, adminTheme.data)
             
             val foundAdminTheme: AdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
             Assertions.assertNotNull(foundAdminTheme)
@@ -46,45 +43,48 @@ class AdminThemeTestsIT : AbstractTest() {
             
         }
     }
+    // TODO same name different slug test
+
+    @Test
+    @Throws(Exception::class)
+    fun createAdminThemeSameSlugTest() {
+        TestBuilder().use { builder ->
+            val simpleTheme: AdminTheme = builder.metaformAdmin.adminThemes.getSimpleTheme()
+
+            val adminTheme1: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
+            val adminTheme2: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
+
+            Assertions.assertEquals(simpleTheme.name, adminTheme1.slug)
+            Assertions.assertEquals(String.format("%s-%d", simpleTheme.name, 1), adminTheme2.slug)
+        }
+    }
 
     @Test
     @Throws(Exception::class)
     fun updateAdminThemeTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-update",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-update"
-            )
+            val adminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
+            val themeData = mapOf("formData" to "updated value")
             val secondAdminTheme = AdminTheme(
                     name = "Test admin theme updated",
                     slug = "test-admin-theme-updated",
-                    data = "data-updated"
+                    data = themeData
             )
 
             val updatedAdminTheme = builder.metaformAdmin.adminThemes.update(adminTheme.id!!, secondAdminTheme)
             Assertions.assertNotNull(updatedAdminTheme)
-            val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id!!)
+            val foundAdminTheme = builder.metaformAdmin.adminThemes.findById(adminTheme.id)
             Assertions.assertEquals(secondAdminTheme.data, foundAdminTheme.data)
             Assertions.assertEquals(secondAdminTheme.name, foundAdminTheme.name)
             Assertions.assertEquals(secondAdminTheme.slug, foundAdminTheme.slug)
         }
     }
-    
     @Test
     @Throws(Exception::class)
     fun listAdminThemesTest() {
         TestBuilder().use { builder ->
-            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-list",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-list"
-            )
-            val secondAdminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data2-list",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme2-list"
-            )
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
+            val secondAdminTheme: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
 
             Assertions.assertNotNull(adminTheme)
             Assertions.assertNotNull(secondAdminTheme)
@@ -98,11 +98,7 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun deleteAdminThemeTest() {
         TestBuilder().use { builder ->
-            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-delete",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-delete"
-            )
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
 
             Assertions.assertNotNull(adminTheme)
             builder.metaformAdmin.adminThemes.delete(adminTheme.id!!)
@@ -115,11 +111,7 @@ class AdminThemeTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createAdminThemeNotFoundTest() {
         TestBuilder().use { builder ->
-            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-create-not-found",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-create-not-found"
-            )
+            val adminTheme: AdminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
 
             Assertions.assertNotNull(adminTheme)
             builder.metaformAdmin.adminThemes.assertSearchFailStatus(404, randomUUID())
@@ -128,63 +120,82 @@ class AdminThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun updateAdminThemeDuplicatedSlugTest() {
+    fun createAdminThemeDuplicatedSlugTest() {
         TestBuilder().use { builder -> 
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-update-duplicated-slug",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-update-duplicated-slug"
-            )
-            val secondAdminTheme = AdminTheme(
-                    name = "Test admin theme updated",
-                    data = "data-updated",
-                    slug = "test-admin-theme-update-duplicated-slug"
-            )
+            val duplicatedSlug = "test-admin-theme-create-duplicated-slug"
+            val themeData = builder.metaformAdmin.adminThemes.exampleThemeData
 
-            builder.metaformAdmin.adminThemes.assertUpdateFailStatus(409, adminTheme.id!!, secondAdminTheme)
+            builder.metaformAdmin.adminThemes.create(AdminTheme(
+                    data = themeData,
+                    name = "Test admin theme",
+                    slug = duplicatedSlug
+            ))
+
+            builder.metaformAdmin.adminThemes.assertCreateFailStatus(
+                409,
+                AdminTheme(
+                    name = "Test admin theme created",
+                    data = themeData,
+                    slug = duplicatedSlug
+                )
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun createAdminThemePermissionDeniedTest() {
-        TestBuilder().use { builder -> builder.test1.adminThemes.assertCreateFailStatus(403, "data-create-permissiondenied", "Test admin permissiondenied", "test-admin-theme-permission-denied") }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun updateAdminThemePermissionDeniedTest() {
+    fun updateAdminThemeDuplicatedSlugTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-update-permissiondenied",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-update-permissiondenied"
-            )
-            val secondAdminTheme = AdminTheme(
-                    name = "Test admin theme updated",
-                    slug = "test-admin-theme-update-permissiondenied",
-                    data = "data-updated"
-            )
+            builder.metaformAdmin.adminThemes.createSimpleTheme()
 
-            builder.test1.adminThemes.assertUpdateFailStatus(403, adminTheme.id!!, secondAdminTheme)
+            val themeToBeUpdated = builder.metaformAdmin.adminThemes.createSimpleTheme()
+
+            builder.metaformAdmin.adminThemes.assertUpdateFailStatus(
+                409,
+                themeToBeUpdated.id!!,
+                builder.metaformAdmin.adminThemes.getSimpleTheme().copy(
+                    slug = "simple-theme"
+                )
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun listAdminThemesPermissionDeniedTest() {
+    fun createAdminThemeUnauthorizedTest() {
+        TestBuilder().use { builder ->
+            builder.test1.adminThemes.assertCreateFailStatus(
+                403,
+                builder.test1.adminThemes.getSimpleTheme()
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateAdminThemeUnauthorizedTest() {
+        TestBuilder().use { builder ->
+            val adminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
+
+            builder.test1.adminThemes.assertUpdateFailStatus(
+                403,
+                adminTheme.id!!,
+                builder.metaformAdmin.adminThemes.getSimpleTheme()
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listAdminThemesUnauthorizedTest() {
         TestBuilder().use { builder -> builder.test1.adminThemes.assertListFailStatus(403) }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findAdminThemePermissionDeniedTest() {
+    fun findAdminThemeUnauthorizedTest() {
         TestBuilder().use { builder ->
-            val adminTheme = builder.metaformAdmin.adminThemes.create(
-                    data = "data-find-permissiondenied",
-                    name = "Test admin theme",
-                    slug = "test-admin-theme-find-permissiondenied"
-            )
+            val adminTheme = builder.metaformAdmin.adminThemes.createSimpleTheme()
 
             builder.test1.adminThemes.assertFindFailStatus(403, adminTheme.id!!)
         }
