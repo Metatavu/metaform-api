@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.controllers
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.MetaformVersionType
+import fi.metatavu.metaform.server.exceptions.MalformedDraftDataException
 import fi.metatavu.metaform.server.exceptions.MalformedVersionJsonException
 import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
@@ -33,7 +34,7 @@ class MetaformVersionController {
     fun create(
             metaform: Metaform,
             type: MetaformVersionType,
-            data: Any?,
+            data: Map<String, Any>,
             userId: UUID
     ): MetaformVersion {
         val objectMapper = ObjectMapper()
@@ -43,7 +44,7 @@ class MetaformVersionController {
                     UUID.randomUUID(),
                     metaform,
                     type,
-                    formDataString,
+                    serializeData(data),
                     userId,
                     userId
             )
@@ -79,5 +80,21 @@ class MetaformVersionController {
      */
     fun deleteMetaformVersion(metaformVersion: MetaformVersion) {
         metaformVersionDAO.delete(metaformVersion)
+    }
+
+    /**
+     * Serializes data as string
+     *
+     * @param data data
+     * @return data as string
+     */
+    @Throws(MalformedDraftDataException::class)
+    fun serializeData(data: Map<String, Any>): String {
+        try {
+            val objectMapper = ObjectMapper()
+            return objectMapper.writeValueAsString(data)
+        } catch (e: JsonProcessingException) {
+            throw MalformedDraftDataException("Failed to serialize draft data", e)
+        }
     }
 }
