@@ -507,10 +507,39 @@
     </createTable>
   </changeSet>
 
-  <changeSet id="metaform-visibility" author="Tianxing">
-    <addColumn tableName="metaform">
-      <column name="visibility" type="varchar(16)"/>
-    </addColumn>
+  <changeSet id="admin-themes" author="Valio">
+    <createTable tableName="admintheme">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="slug" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
   </changeSet>
+
+    <changeSet id="metaform-visibility" author="Tianxing">
+      <addColumn tableName="metaform">
+        <column name="visibility" type="varchar(16)"/>
+      </addColumn>
+    </changeSet>
 
 </databaseChangeLog>

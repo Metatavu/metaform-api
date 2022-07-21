@@ -17,6 +17,7 @@ class TestBuilderAuthentication(
     private val testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider
 ) : AuthorizedTestBuilderAuthentication<ApiClient, AccessTokenProvider>(testBuilder, accessTokenProvider) {
+    val adminThemes: AdminThemeTestBuilderResource = AdminThemeTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val metaforms: MetaformTestBuilderResource = MetaformTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val metaformVersions: MetaformVersionTestBuilderResource = MetaformVersionTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val replies: ReplyTestBuilderResource = ReplyTestBuilderResource(testBuilder, accessTokenProvider, createClient())
