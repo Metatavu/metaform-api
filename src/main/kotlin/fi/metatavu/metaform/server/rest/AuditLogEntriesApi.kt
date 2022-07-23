@@ -37,14 +37,14 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
    */
   override suspend fun deleteAuditLogEntry(metaformId: UUID, auditLogEntryId: UUID): Response {
     if (!systemSettingController.inTestMode()) {
-      return createForbidden(createNotAllowedMessage(DELETE, LOGS))
+      return createForbidden(createNotAllowedMessage(DELETE, AUDIT_LOG_ENTRY))
     }
 
     metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val auditLogEntry: AuditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId)
-            ?: return createNotFound(createNotFoundMessage(LOGS, auditLogEntryId))
+            ?: return createNotFound(createNotFoundMessage(AUDIT_LOG_ENTRY, auditLogEntryId))
     auditLogEntryController.deleteAuditLogEntry(auditLogEntry)
     return createNoContent()
   }
@@ -66,8 +66,8 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
     createdBefore: String?,
     createdAfter: String?
   ): Response {
-    if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE)) {
-      return createForbidden(String.format("Only users with %s can access this view", VIEW_AUDIT_LOGS_ROLE))
+    if (!hasRealmRole(VIEW_AUDIT_LOGS_ROLE) && !isMetaformAdmin(metaformId)) {
+      return createForbidden(createNotAllowedMessage(LIST, AUDIT_LOG_ENTRY))
     }
 
     val createdBeforeTime = parseTime(createdBefore)

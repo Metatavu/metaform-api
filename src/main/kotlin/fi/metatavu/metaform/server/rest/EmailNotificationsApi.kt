@@ -34,7 +34,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
   override suspend fun listEmailNotifications(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmMetaformAdmin) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(LIST, EMAIL_NOTIFICATION))
     }
 
@@ -59,7 +59,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
   ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmMetaformAdmin) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(LIST, EMAIL_NOTIFICATION))
     }
 
@@ -95,7 +95,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
   ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmMetaformAdmin) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(UPDATE, EMAIL_NOTIFICATION))
     }
 
@@ -127,7 +127,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
   ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmMetaformAdmin) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(FIND, EMAIL_NOTIFICATION))
     }
 
@@ -158,7 +158,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
   ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmMetaformAdmin) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(FIND, EMAIL_NOTIFICATION))
     }
 

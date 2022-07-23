@@ -22,11 +22,11 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
   override suspend fun createMetaformMemberGroup(metaformId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
-    if (!isRealmMetaformAdmin && !keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM_MEMBER))
     }
+
+    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val createdGroup = keycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
       name = metaformMemberGroup.displayName
@@ -45,11 +45,11 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
   override suspend fun deleteMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
-    if (!isRealmMetaformAdmin && !keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM_MEMBER))
     }
+
+    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
@@ -62,11 +62,11 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
   override suspend fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
-    if (!isRealmMetaformAdmin && !keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM_MEMBER))
     }
+
+    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val foundMetaformMemberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
@@ -79,11 +79,11 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
   override suspend fun updateMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
-    if (!isRealmMetaformAdmin && !keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM_MEMBER))
     }
+
+    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val foundMetaformMemberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))

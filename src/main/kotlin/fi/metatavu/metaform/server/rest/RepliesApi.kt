@@ -5,6 +5,7 @@ import fi.metatavu.metaform.server.controllers.*
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformController
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
+import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import fi.metatavu.metaform.server.exceptions.XlsxException
 import fi.metatavu.metaform.server.persistence.model.Metaform
@@ -80,12 +81,11 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val metaform: Metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val anonymous: Boolean = isAnonymous
-    if (metaform.allowAnonymous != true && anonymous) {
-      return createForbidden(ANONYMOUS_USERS_MESSAGE)
+    if ((metaform.visibility != MetaformVisibility.PUBLIC || metaform.allowAnonymous != true) && isAnonymous) {
+      return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
     }
 
-    val replyUserId = if (!isRealmMetaformAdmin || reply.userId == null) loggedUserId!! else reply.userId
+    val replyUserId = if (!isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
     var replyMode = try {
       replyModeParam?.let { ReplyMode.valueOf(it) }
     } catch (ex: IllegalArgumentException) {
@@ -100,7 +100,11 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       replyMode = ReplyMode.UPDATE
     }
 
-    val metaformEntity = metaformTranslator.translate(metaform) ?: return createBadRequest(FAILED_TO_TRANSLATE_METAFORM)
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
+    }
 
     val permissionGroups = EnumMap<AuthorizationScope, MutableList<String>>(AuthorizationScope::class.java)
     AuthorizationScope.values().forEach { scope: AuthorizationScope -> permissionGroups[scope] = ArrayList() }
@@ -116,7 +120,15 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     // TODO: Support multiple
 
-    val createdReply: fi.metatavu.metaform.server.persistence.model.Reply = replyController.createReplyResolveReply(replyMode, metaform, anonymous, replyUserId, privateKey, userId)
+    val createdReply: fi.metatavu.metaform.server.persistence.model.Reply = replyController.createReplyResolveReply(
+      replyMode,
+      metaform,
+      isAnonymous,
+      replyUserId,
+      privateKey,
+      userId
+    )
+
     if (reply.data == null) {
       logger.warn("Received a reply with null data")
     } else {
@@ -195,15 +207,15 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   override suspend fun deleteReply(metaformId: UUID, replyId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    val metaform = metaformController.findMetaformById(metaformId)
-            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
     val reply = replyController.findReplyById(replyId)
             ?: return createNotFound(createNotFoundMessage(REPLY, metaformId))
 
-    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_EDIT)) {
+    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_EDIT) && !isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(DELETE, REPLY))
     }
+
+    val metaform = metaformController.findMetaformById(metaformId)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     if (reply.metaform.id != metaform.id) {
       return createNotFound(createNotBelongMessage(REPLY))
@@ -224,7 +236,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   override suspend fun export(metaformId: UUID, format: String): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmMetaformAdmin) {
+    if (!isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(EXPORT, REPLY))
     }
 
@@ -232,7 +244,11 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     return if ("XLSX" == format) {
-      val metaformEntity = metaformTranslator.translate(metaform) ?: return createInternalServerError(FAILED_TO_TRANSLATE_METAFORM)
+      val metaformEntity = try {
+        metaformTranslator.translate(metaform)
+      } catch (e: MalformedMetaformJsonException) {
+        return createInternalServerError(e.message)
+      }
 
       val replies = replyController.listReplies(metaform = metaform, includeRevisions = false)
       val replyEntities = replies.map { reply -> replyTranslator.translate(metaformEntity, reply, null) }
@@ -273,7 +289,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val reply = replyController.findReplyById(replyId)
             ?: return createNotFound(createNotFoundMessage(REPLY, replyId))
 
-    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_VIEW)) {
+    if (!isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_VIEW) && !isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(FIND, REPLY))
     }
 
@@ -281,7 +297,11 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createNotFound(createNotBelongMessage(REPLY))
     }
 
-    val metaformEntity = metaformTranslator.translate(metaform)!!
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
+    }
 
     auditLogEntryController.generateAuditLog(
           metaform = metaform,
@@ -336,38 +356,39 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val modifiedBefore = parseTime(modifiedBeforeParam)
     val modifiedAfter = parseTime(modifiedAfterParam)
 
-    if (!isRealmUser) {
-      return createForbidden(createAnonNotAllowedMessage(LIST, REPLY))
-    }
-
     val metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val metaformEntity = metaformTranslator.translate(metaform)
-            ?: return createInternalServerError("Metaform translation failed")
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
+    }
 
     val fieldFilters = fieldController.parseFilters(metaformEntity, fields)
 
     val replies = replyController.listReplies(
-            metaform,
-            userId,
-            createdBefore,
-            createdAfter,
-            modifiedBefore,
-            modifiedAfter,
-            includeRevisions != null && includeRevisions,
-            fieldFilters)
+      metaform = metaform,
+      userId = userId,
+      createdBefore = createdBefore,
+      createdAfter = createdAfter,
+      modifiedBefore = modifiedBefore,
+      modifiedAfter = modifiedAfter,
+      includeRevisions = includeRevisions != null && includeRevisions,
+      fieldFilters = fieldFilters
+    )
 
     replies.forEach { reply -> auditLogEntryController.generateAuditLog(
-            metaform = metaform,
-            userId = auditLogUser,
-            replyId = reply.id!!,
-            attachmentId = null,
-            action = null,
-            type = AuditLogEntryType.LIST_REPLY
-    ) }
+        metaform = metaform,
+        userId = auditLogUser,
+        replyId = reply.id!!,
+        attachmentId = null,
+        action = null,
+        type = AuditLogEntryType.LIST_REPLY
+      )
+    }
 
-    val result: List<Reply> = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW)
+    val result: List<Reply> = getPermittedReplies(metaformId, replies, AuthorizationScope.REPLY_VIEW)
             .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 
     return createOk(result)
@@ -376,12 +397,17 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   /**
    * Filters out replies without permission
    *
+   * @param metaformId metaform id
    * @param replies replies
    * @param authorizationScope scope
    * @return filtered list
    */
-  private fun getPermittedReplies(replies: List<fi.metatavu.metaform.server.persistence.model.Reply>, authorizationScope: AuthorizationScope): List<fi.metatavu.metaform.server.persistence.model.Reply> {
-    if (isRealmMetaformAdmin || isRealmMetaformSuper || hasRealmRole(VIEW_ALL_REPLIES_ROLE)) {
+  private fun getPermittedReplies(
+    metaformId: UUID,
+    replies: List<fi.metatavu.metaform.server.persistence.model.Reply>,
+    authorizationScope: AuthorizationScope
+  ): List<fi.metatavu.metaform.server.persistence.model.Reply> {
+    if (isMetaformAdmin(metaformId)) {
       return replies
     }
     val resourceIds = replies
@@ -395,30 +421,31 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   override suspend fun replyExport(metaformId: UUID, replyId: UUID, format: String): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmUser) {
-      return createForbidden(createAnonNotAllowedMessage(EXPORT, REPLY))
-    }
-
-    val metaform = metaformController.findMetaformById(metaformId)
-            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
     val reply = replyController.findReplyById(replyId)
             ?: return createNotFound(createNotFoundMessage(REPLY, replyId))
 
-    if (!isPermittedReply(reply, null, AuthorizationScope.REPLY_VIEW)) {
+    if (!isPermittedReply(reply, null, AuthorizationScope.REPLY_VIEW) && !isMetaformAdmin(metaformId)) {
       return createForbidden(createNotAllowedMessage(FIND, REPLY))
     }
+
+    val metaform = metaformController.findMetaformById(metaformId)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     if (reply.metaform.id != metaform.id) {
       return createNotFound(createNotBelongMessage(REPLY))
     }
 
-    val metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform = metaformTranslator.translate(metaform)!!
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
+    }
+
     if (metaform.exportTheme == null) {
       return createBadRequest("Metaform does not have an export theme")
     }
 
-    val replyEntity: Reply = replyTranslator.translate(metaformEntity, reply, null)!!
+    val replyEntity: Reply = replyTranslator.translate(metaformEntity, reply, null)
     val attachmentMap = getAttachmentMap(metaformEntity, replyEntity)
 
     return try {
@@ -448,21 +475,25 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   ): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    val metaform = metaformController.findMetaformById(metaformId)
-            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
     val foundReply = replyController.findReplyById(replyId)
             ?: return createNotFound(createNotFoundMessage(REPLY, replyId))
+
+    val metaform = metaformController.findMetaformById(metaformId)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     if (foundReply.metaform.id != metaform.id) {
       return createNotFound(createNotBelongMessage(REPLY))
     }
 
-    if (!isPermittedReply(foundReply, ownerKey, AuthorizationScope.REPLY_VIEW)) {
-      return createForbidden(createNotAllowedMessage(FIND, REPLY))
+    if (!isPermittedReply(foundReply, ownerKey, AuthorizationScope.REPLY_EDIT) && !isMetaformAdmin(metaformId)) {
+      return createForbidden(createNotAllowedMessage(UPDATE, REPLY))
     }
 
-    val metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform = metaformTranslator.translate(metaform)!!
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
+    }
 
     val newPermissionGroups = EnumMap<AuthorizationScope, MutableList<String>>(AuthorizationScope::class.java)
     AuthorizationScope.values().forEach { scope -> newPermissionGroups[scope] = mutableListOf() }
@@ -482,7 +513,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     replyController.deleteReplyFields(foundReply, fieldNames)
 
-    val replyEntity: Reply = replyTranslator.translate(metaformEntity, foundReply, null)!!
+    val replyEntity: Reply = replyTranslator.translate(metaformEntity, foundReply, null)
 
     if (metaformEntity.scripts?.afterUpdateReply != null) {
       setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)

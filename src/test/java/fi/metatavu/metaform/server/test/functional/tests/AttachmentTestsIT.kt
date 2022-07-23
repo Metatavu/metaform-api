@@ -49,7 +49,10 @@ class AttachmentTestsIT : AbstractTest() {
             Assertions.assertNotNull(foundReply.data)
             Assertions.assertEquals(listOf(fileUpload.fileRef.toString()), foundReply.data!!["files"])
             builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload)
-            Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.test1.token!!, fileUpload.fileRef)))
+            Assertions.assertEquals(
+                getResourceMd5("test-image-480-320.jpg"),
+                DigestUtils.md5Hex(getAttachmentData(builder.metaformAdmin.token, fileUpload.fileRef))
+            )
         }
     }
 
@@ -70,8 +73,8 @@ class AttachmentTestsIT : AbstractTest() {
             assertListsEqualInAnyOrder(fileRefs, reply1.data!!["files"])
             builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload1)
             builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload2)
-            Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.test1.token, fileUpload1.fileRef)))
-            Assertions.assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.test1.token, fileUpload2.fileRef)))
+            Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.metaformAdmin.token, fileUpload1.fileRef)))
+            Assertions.assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.metaformAdmin.token, fileUpload2.fileRef)))
         }
     }
 

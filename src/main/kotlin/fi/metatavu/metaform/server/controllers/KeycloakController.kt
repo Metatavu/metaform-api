@@ -7,6 +7,7 @@ import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
+import fi.metatavu.metaform.server.rest.AbstractApi
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.NameValuePair
@@ -597,6 +598,36 @@ class KeycloakController {
     }
 
     /**
+     * Gets user group
+     *
+     * @param userId user id
+     * @return list of group
+     */
+    fun getUserGroups(userId: String): List<GroupRepresentation> {
+        return adminClient.realm(realm).users()[userId].groups()
+    }
+
+    /**
+     * Adds a user to a group
+     *
+     * @param memberGroupId member group id
+     * @param memberId member id
+     */
+    fun userJoinGroup(memberGroupId: String, memberId: String) {
+        adminClient.realm(realm).users()[memberId].joinGroup(memberGroupId)
+    }
+
+    /**
+     * Pops a user from group
+     *
+     * @param memberGroupId member group id
+     * @param memberId member idp
+     */
+    fun userLeaveGroup(memberGroupId: String, memberId: String) {
+        adminClient.realm(realm).users()[memberId].leaveGroup(memberGroupId)
+    }
+
+    /**
      * Gets metaform admin group name
      *
      * @param metaformId metaform id
@@ -670,21 +701,73 @@ class KeycloakController {
      * @return boolean indicate is admin or not
      */
     fun isMetaformAdmin(metaformId: UUID, userId: UUID): Boolean {
-        return try {
-            getMetaformMemberRole(userId.toString(), metaformId) == MetaformMemberRole.ADMINISTRATOR
-        } catch (e: MetaformMemberRoleNotFoundException) {
-            false
-        }
+        return getUserGroups(userId.toString())
+            .map { group -> group.name }
+            .contains(getMetaformAdminGroupName(metaformId))
+    }
+
+    /**
+     * Check if a user is any metaform admin
+     *
+     * @param userId user id
+     * @return boolean indicate is admin or not
+     */
+    fun isMetaformAdminAny(userId: UUID): Boolean {
+        return getUserGroups(userId.toString())
+            .any { group -> group.name.contains(ADMIN_GROUP_NAME_SUFFIX) }
+    }
+
+    /**
+     * Check if a user is metaform admin
+     *
+     * @param metaformId metaform id
+     * @param userId user id
+     * @return boolean indicate is admin or not
+     */
+    fun isMetaformManager(metaformId: UUID, userId: UUID): Boolean {
+        return getUserGroups(userId.toString())
+            .map { group -> group.name }
+            .contains(getMetaformManagerGroupName(metaformId))
+    }
+
+    /**
+     * Check if a user is any metaform manager
+     *
+     * @param userId user id
+     * @return boolean indicate is manager or not
+     */
+    fun isMetaformManagerAny(userId: UUID): Boolean {
+        return getUserGroups(userId.toString())
+            .any { group -> group.name.contains(MANAGER_GROUP_NAME_SUFFIX) }
     }
 
     /**
      * Finds metaform member group
      *
+     * @param metaformId metaform id
+     * @param metaformMemberRole metaform member role
      * @param userRepresentation userRepresentation
      * @return found group or null
      */
-    fun createMetaformMember(userRepresentation: UserRepresentation): UserRepresentation {
-        val response = adminClient.realm(realm).users().create(userRepresentation)
+    fun createMetaformMember(
+        metaformId: UUID,
+        metaformMemberRole: MetaformMemberRole,
+        userRepresentation: UserRepresentation,
+    ): UserRepresentation {
+        val managementGroupNames = when (metaformMemberRole) {
+            MetaformMemberRole.ADMINISTRATOR ->
+                listOf(
+                    getMetaformAdminGroupName(metaformId),
+                    getMetaformManagerGroupName(metaformId)
+                )
+            MetaformMemberRole.MANAGER -> listOf(getMetaformManagerGroupName(metaformId))
+        }
+
+        val response = adminClient.realm(realm).users().create(userRepresentation.apply {
+            this.isEnabled = true
+            this.groups = managementGroupNames.map { groupName -> String.format("/%s", groupName) }
+            this.realmRoles = listOf(AbstractApi.METAFORM_USER_ROLE)
+        })
         val userId = getCreateResponseId(response)
         return findMetaformMember(userId!!)!! // TODO check null
     }
@@ -784,7 +867,7 @@ class KeycloakController {
     fun getMetaformMemberRole(userId: String, metaformId: UUID): MetaformMemberRole {
         val adminGroupName = getMetaformAdminGroupName(metaformId)
         val managerGroupName = getMetaformManagerGroupName(metaformId)
-        val userGroupNames = adminClient.realm(realm).users()[userId].groups().map { group -> group.name }
+        val userGroupNames = getUserGroups(userId).map { group -> group.name }
         with (userGroupNames) {
             when {
                 contains(adminGroupName) -> return MetaformMemberRole.ADMINISTRATOR
@@ -831,28 +914,10 @@ class KeycloakController {
         return findMetaformMemberGroup(metaformId, groupId!!)!! // TODO check null
     }
 
-    /**
-     * Adds a user to a group
-     *
-     * @param memberGroupId member group id
-     * @param memberId member id
-     */
-    fun userJoinGroup(memberGroupId: String, memberId: String) {
-        adminClient.realm(realm).users()[memberId].joinGroup(memberGroupId)
-    }
-
-    /**
-     * Pops a user from group
-     *
-     * @param memberGroupId member group id
-     * @param memberId member idp
-     */
-    fun userLeaveGroup(memberGroupId: String, memberId: String) {
-        adminClient.realm(realm).users()[memberId].leaveGroup(memberGroupId)
-    }
-
     companion object {
         private const val ADMIN_GROUP_NAME_TEMPLATE = "%s-admin"
         private const val MANAGER_GROUP_NAME_TEMPLATE = "%s-manager"
+        private const val ADMIN_GROUP_NAME_SUFFIX = "admin"
+        private const val MANAGER_GROUP_NAME_SUFFIX = "manager"
     }
 }

@@ -461,8 +461,8 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testExportReplyPdf() {
         TestBuilder().use { testBuilder ->
-            val exportTheme = testBuilder.metaformSuper.exportThemes.createSimpleExportTheme()
-            testBuilder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val exportTheme = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
             val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
@@ -477,8 +477,8 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testExportReplyPdfFilesEmpty() {
         TestBuilder().use { testBuilder ->
-            val exportTheme = testBuilder.metaformSuper.exportThemes.createSimpleExportTheme()
-            testBuilder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val exportTheme = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-files")
             val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,

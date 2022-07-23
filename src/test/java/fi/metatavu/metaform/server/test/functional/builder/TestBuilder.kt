@@ -37,12 +37,9 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
     private var anonymousTokenCached: TestBuilderAuthentication? = null
     private val serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String::class.java)
     var metaformAdmin = createTestBuilderAuthentication("metaform-admin", "test")
-    var metaformSuper = createTestBuilderAuthentication("metaform-super", "test")
     var test1 = createTestBuilderAuthentication("test1.realm1", "test")
     var test2 = createTestBuilderAuthentication("test2.realm1", "test")
     var test3 = createTestBuilderAuthentication("test3.realm1", "test")
-    var answerer1 = createTestBuilderAuthentication("answerer-1", "test")
-    var answerer2 = createTestBuilderAuthentication("answerer-2", "test")
     var anon = createTestBuilderAuthentication("anonymous", "anonymous")
 
     /**

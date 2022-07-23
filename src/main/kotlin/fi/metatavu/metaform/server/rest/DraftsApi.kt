@@ -5,6 +5,7 @@ import fi.metatavu.metaform.server.controllers.DraftController
 import fi.metatavu.metaform.server.controllers.MetaformController
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedDraftDataException
+import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.rest.translate.DraftTranslator
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
@@ -44,13 +45,13 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     val metaform: Metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaform = metaformTranslator.translate(metaform)
-    if (BooleanUtils.isNotTrue(foundMetaform?.allowDrafts)) {
+    val translatedMetaform = metaformTranslator.translate(metaform)
+    if (BooleanUtils.isNotTrue(translatedMetaform.allowDrafts)) {
       return createForbidden(createNotAllowedMessage(CREATE, DRAFT))
     }
 
     if (metaform.allowAnonymous != true && isAnonymous) {
-      return createForbidden(createAnonNotAllowedMessage(CREATE, DRAFT))
+      return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
     }
 
     val serializedDraftData = try {
@@ -81,12 +82,24 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val draft = draftController.findDraftById(draftId)
-            ?: return createNotFound(createNotFoundMessage(DRAFT, metaformId))
-
-    if (!isRealmMetaformAdmin) {
-      return createForbidden(createNotAllowedMessage(DELETE, DRAFT))
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
     }
+
+    if (metaform.allowAnonymous != true && isAnonymous) {
+      return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
+    }
+
+    if (BooleanUtils.isNotTrue(metaformEntity.allowDrafts)) {
+      return createForbidden(createNotAllowedMessage(UPDATE, DRAFT))
+    }
+
+
+    val draft = draftController.findDraftById(draftId)
+      ?: return createNotFound(createNotFoundMessage(DRAFT, metaformId))
+
 
     if (draft.metaform?.id != metaform.id) {
       return createNotFound(createNotBelongMessage(DRAFT))
@@ -109,11 +122,26 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
+    val translatedMetaform = metaformTranslator.translate(metaform)
+
+    if (metaform.allowAnonymous != true && isAnonymous) {
+      return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
+    }
+
+    if (BooleanUtils.isNotTrue(translatedMetaform.allowDrafts)) {
+      return createForbidden(createNotAllowedMessage(CREATE, DRAFT))
+    }
+
     val draft = draftController.findDraftById(draftId)
             ?: return createNotFound(createNotFoundMessage(DRAFT, draftId))
 
+
     if (draft.metaform?.id != metaform.id) {
       createNotFound(createNotBelongMessage(DRAFT))
+    }
+
+    if (draft.userId != loggedUserId) {
+      return createForbidden(createNotOwnedMessage(DRAFT))
     }
 
     return try {
@@ -136,13 +164,18 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val metaformEntity = metaformTranslator.translate(metaform)
-    if (BooleanUtils.isNotTrue(metaformEntity?.allowDrafts)) {
-      return createForbidden(createNotAllowedMessage(UPDATE, DRAFT))
+    val metaformEntity = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      return createInternalServerError(e.message)
     }
 
     if (metaform.allowAnonymous != true && isAnonymous) {
-      return createForbidden(createAnonNotAllowedMessage(UPDATE, DRAFT))
+      return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
+    }
+
+    if (BooleanUtils.isNotTrue(metaformEntity.allowDrafts)) {
+      return createForbidden(createNotAllowedMessage(UPDATE, DRAFT))
     }
 
     val foundDraft = draftController.findDraftById(draftId)
@@ -150,6 +183,10 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
 
     if (foundDraft.metaform?.id != metaform.id) {
       return createNotFound(createNotBelongMessage(DRAFT))
+    }
+
+    if (foundDraft.userId != loggedUserId) {
+      return createForbidden(createNotOwnedMessage(DRAFT))
     }
 
     val serializedDraftData = try {

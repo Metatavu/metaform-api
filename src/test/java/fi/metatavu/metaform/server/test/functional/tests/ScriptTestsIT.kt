@@ -64,8 +64,8 @@ class ScriptTestsIT : AbstractTest() {
       Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-pdf-script");
       Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      ExportTheme theme = testBuilder.metaformAdmin.exportThemes().createSimpleExportTheme();
+      testBuilder.metaformAdmin.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
 
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
@@ -99,8 +99,8 @@ class ScriptTestsIT : AbstractTest() {
       Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-pdf-base64-script");
       Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
 
-      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      ExportTheme theme = testBuilder.metaformAdmin.exportThemes().createSimpleExportTheme();
+      testBuilder.metaformAdmin.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
       testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);

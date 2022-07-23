@@ -145,8 +145,8 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun exportPermissionContextReplyPdf() {
         TestBuilder().use { builder ->
-            val exportTheme = builder.metaformSuper.exportThemes.createSimpleExportTheme("theme 1")
-            builder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val exportTheme = builder.metaformAdmin.exportThemes.createSimpleExportTheme("theme 1")
+            builder.metaformAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val updateData = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous, metaform.allowDrafts,
                     metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave, metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)

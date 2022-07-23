@@ -38,21 +38,7 @@
     "realm": [
       {
         "id": "5737df81-d139-478b-9cba-09dc402d827c",
-        "name": "user",
-        "composite": false,
-        "clientRole": false,
-        "containerId": "test-1"
-      },
-      {
-        "id": "d1954be1-cc17-4a45-948a-ad16e7002cec",
-        "name": "metaform-super",
-        "composite": false,
-        "clientRole": false,
-        "containerId": "test-1"
-      },
-      {
-        "id": "67bd196e-5832-4ffd-ac9a-ffd7d6398bb4",
-        "name": "metaform-view-all-replies",
+        "name": "metaform-user",
         "composite": false,
         "clientRole": false,
         "containerId": "test-1"
