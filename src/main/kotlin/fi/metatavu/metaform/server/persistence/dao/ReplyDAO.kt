@@ -122,7 +122,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
     createdAfter: OffsetDateTime?,
     modifiedBefore: OffsetDateTime?,
     modifiedAfter: OffsetDateTime?,
-    fieldFilters: FieldFilters?
+    fieldFilters: FieldFilters?,
+    firstResult: Int?,
+    maxResults: Int?
   ): List<Reply> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
@@ -188,7 +190,16 @@ class ReplyDAO : AbstractDAO<Reply>() {
     criteria.select(root)
     criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
     criteria.orderBy(criteriaBuilder.asc(root.get(Reply_.createdAt)))
-    val query: TypedQuery<Reply> = entityManager.createQuery(criteria)
+    val query = entityManager.createQuery(criteria)
+
+    if (firstResult != null) {
+      query.firstResult = firstResult
+    }
+
+    if (maxResults != null) {
+      query.maxResults = maxResults
+    }
+
     return query.resultList
   }
 
