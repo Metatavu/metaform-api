@@ -145,7 +145,8 @@ class AuditLogEntryTestsIT : AbstractTest() {
                         createdBefore = null,
                         createdAfter = null
                     )
-                }
+                },
+                metaformId = metaform.id
             )
         }
     }

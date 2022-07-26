@@ -36,7 +36,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   override suspend fun createMetaform(metaform: Metaform): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    // TODO remove deprecated roles from kc.json
     if (!isMetaformAdminAny) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM))
     }
