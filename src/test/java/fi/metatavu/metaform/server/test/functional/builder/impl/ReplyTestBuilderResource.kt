@@ -11,6 +11,7 @@ import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import org.json.JSONException
 import org.junit.Assert
+import java.io.File
 import java.io.IOException
 import java.util.*
 
@@ -68,6 +69,28 @@ class ReplyTestBuilderResource(
     @Throws(IOException::class)
     fun create(metaformId: UUID, replyMode: String?, payload: Reply): Reply {
         return create(metaformId, null, replyMode, payload)
+    }
+
+
+    /**
+     * Exports reply
+     *
+     * @param metaformId metaform id
+     * @param replyId reply id
+     * @return exported file
+     */
+    fun exportReply(metaformId: UUID, replyId: UUID): File {
+        return api.replyExport(metaformId, replyId, "PDF")
+    }
+
+    /**
+     * Export metaform
+     *
+     * @param metaformId metaform id
+     * @return exported metaform
+     */
+    fun export(metaformId: UUID) {
+        api.export(metaformId, "XLSX")
     }
 
     /**

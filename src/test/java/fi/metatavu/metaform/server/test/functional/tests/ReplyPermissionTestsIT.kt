@@ -38,7 +38,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun findOwnReply() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
             val foundReply: Reply = builder.test1.replies.findReply(metaform.id, reply.id!!, null)
@@ -53,7 +53,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun findOwnReplyAnonymous() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
             builder.anonymousToken.replies.assertFindFailStatus(403, metaform.id, reply1.id!!, null)
@@ -67,7 +67,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun findOthersReplyUser() {
         TestBuilder().use { builder ->
-            val metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
             builder.test2.replies.assertFindFailStatus(403, metaform.id, reply.id!!, null)
@@ -81,10 +81,10 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun findOthersReplyAdmin() {
         TestBuilder().use { builder ->
-            val metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
-            val foundReply: Reply = builder.metaformAdmin.replies.findReply(metaform.id, reply.id!!, null)
+            val foundReply: Reply = builder.systemAdmin.replies.findReply(metaform.id, reply.id!!, null)
             Assertions.assertNotNull(foundReply)
         }
     }
@@ -96,7 +96,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listOwnReplies() {
         TestBuilder().use { builder ->
-            val metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
             builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
@@ -116,7 +116,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listPermissionContextReplies() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
             val reply2 = builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
@@ -145,12 +145,12 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun exportPermissionContextReplyPdf() {
         TestBuilder().use { builder ->
-            val exportTheme = builder.metaformAdmin.exportThemes.createSimpleExportTheme("theme 1")
-            builder.metaformAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val exportTheme = builder.systemAdmin.exportThemes.createSimpleExportTheme("theme 1")
+            builder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val updateData = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous, metaform.allowDrafts,
                     metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave, metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
-            builder.metaformAdmin.metaforms.updateMetaform(metaform.id!!, updateData)
+            builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updateData)
             val reply1: Reply = builder.test1.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
             val reply2: Reply = builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
@@ -187,14 +187,14 @@ class ReplyPermissionTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesAdmin() {
         TestBuilder().use { builder ->
-            val metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
             builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
             builder.test3.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            val replies: Array<Reply> = builder.metaformAdmin.replies.listReplies(metaform.id)
+            val replies: Array<Reply> = builder.systemAdmin.replies.listReplies(metaform.id)
             Assertions.assertEquals(3, replies.size)
         }
     }
@@ -209,8 +209,8 @@ class ReplyPermissionTestsIT : AbstractTest() {
         val mailgunMocker: MailgunMocker = startMailgunMocker()
         try {
             TestBuilder().use { builder ->
-                val metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple-permission-context")
-                builder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Permission context subject", "Permission context content", emptyList())
+                val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
+                builder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Permission context subject", "Permission context content", emptyList())
                 val reply = builder.test3.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
                         builder.test3.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
                 builder.test3.replies.updateReply(metaform.id,

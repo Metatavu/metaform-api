@@ -6,7 +6,9 @@ import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
 import fi.metatavu.metaform.server.test.functional.FileUploadResponse
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -33,9 +35,9 @@ import java.util.*
 class AttachmentTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
-    fun findAttachmentTest() {
+    fun findAttachment() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("files")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("files")
             val fileUpload: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["files"] = fileUpload.fileRef
@@ -48,19 +50,19 @@ class AttachmentTestsIT : AbstractTest() {
             Assertions.assertNotNull(foundReply)
             Assertions.assertNotNull(foundReply.data)
             Assertions.assertEquals(listOf(fileUpload.fileRef.toString()), foundReply.data!!["files"])
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload)
             Assertions.assertEquals(
                 getResourceMd5("test-image-480-320.jpg"),
-                DigestUtils.md5Hex(getAttachmentData(builder.metaformAdmin.token, fileUpload.fileRef))
+                DigestUtils.md5Hex(getAttachmentData(builder.systemAdmin.token, fileUpload.fileRef))
             )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findMultipleAttachmentsTest() {
+    fun findMultipleAttachments() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("files")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("files")
             val fileUpload1: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
             val fileUpload2: FileUploadResponse = uploadResourceFile("test-image-667-1000.jpg")
             val fileRef1: String = fileUpload1.fileRef.toString()
@@ -71,18 +73,18 @@ class AttachmentTestsIT : AbstractTest() {
             val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply1 = builder.test1.replies.create(metaform.id!!, ReplyMode.REVISION.toString(), replyWithData)
             assertListsEqualInAnyOrder(fileRefs, reply1.data!!["files"])
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload1)
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload2)
-            Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.metaformAdmin.token, fileUpload1.fileRef)))
-            Assertions.assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.metaformAdmin.token, fileUpload2.fileRef)))
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload1)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)
+            Assertions.assertEquals(getResourceMd5("test-image-480-320.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.systemAdmin.token, fileUpload1.fileRef)))
+            Assertions.assertEquals(getResourceMd5("test-image-667-1000.jpg"), DigestUtils.md5Hex(getAttachmentData(builder.systemAdmin.token, fileUpload2.fileRef)))
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun updateAttachmentsTest() {
+    fun updateAttachments() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("files")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("files")
             val fileUpload1: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
             val fileUpload2: FileUploadResponse = uploadResourceFile("test-image-667-1000.jpg")
             val fileRef1: String = fileUpload1.fileRef.toString()
@@ -95,24 +97,24 @@ class AttachmentTestsIT : AbstractTest() {
             assertListsEqualInAnyOrder(fileRefs, reply1.data!!["files"])
             val foundReply1 = builder.test1.replies.findReply(metaform.id, reply1.id!!, null)
             assertListsEqualInAnyOrder(fileRefs, foundReply1.data!!["files"])
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload1)
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload2)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload1)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)
             val updateData: MutableMap<String, Any> = HashMap()
             updateData["files"] = listOf(fileRef2)
             val newReplyWithData: Reply = builder.test1.replies.createReplyWithData(updateData)
             builder.test1.replies.updateReply(metaform.id, reply1.id, newReplyWithData, null)
             val foundReply2 = builder.test1.replies.findReply(metaform.id, reply1.id, null)
             Assertions.assertEquals(listOf(fileRef2), foundReply2.data!!["files"])
-            builder.metaformAdmin.attachments.assertAttachmentNotFound(fileUpload1.fileRef)
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload2)
+            builder.systemAdmin.attachments.assertAttachmentNotFound(fileUpload1.fileRef)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun deleteAttachmentsTest() {
+    fun deleteAttachments() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("files")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("files")
             val fileUpload1: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
             val fileUpload2: FileUploadResponse = uploadResourceFile("test-image-667-1000.jpg")
             val fileRef1: String = fileUpload1.fileRef.toString()
@@ -125,11 +127,11 @@ class AttachmentTestsIT : AbstractTest() {
             assertListsEqualInAnyOrder(fileRefs, reply.data!!["files"])
             val foundReply = builder.test1.replies.findReply(metaform.id, reply.id!!, null)
             assertListsEqualInAnyOrder(fileRefs, foundReply.data!!["files"])
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload1)
-            builder.metaformAdmin.attachments.assertAttachmentExists(fileUpload2)
-            builder.metaformAdmin.replies.delete(metaform.id, reply.id, null)
-            builder.metaformAdmin.attachments.assertAttachmentNotFound(fileUpload1.fileRef)
-            builder.metaformAdmin.attachments.assertAttachmentNotFound(fileUpload2.fileRef)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload1)
+            builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)
+            builder.systemAdmin.replies.delete(metaform.id, reply.id, null)
+            builder.systemAdmin.attachments.assertAttachmentNotFound(fileUpload1.fileRef)
+            builder.systemAdmin.attachments.assertAttachmentNotFound(fileUpload2.fileRef)
         }
     }
 
@@ -141,5 +143,47 @@ class AttachmentTestsIT : AbstractTest() {
         connection.setRequestProperty("Content-Type", "application/json")
         connection.doOutput = true
         return IOUtils.toByteArray(connection.inputStream)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findAttachmentPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("files")
+
+            val fileUpload: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["files"] = fileUpload.fileRef
+            val replyWithData: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
+            testBuilder.test1.replies.create(metaform.id!!, ReplyMode.REVISION.toString(), replyWithData)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.attachments.find(fileUpload.fileRef)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findAttachmentDataPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("files")
+
+            val fileUpload: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["files"] = fileUpload.fileRef
+            val replyWithData: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
+            testBuilder.test1.replies.create(metaform.id!!, ReplyMode.REVISION.toString(), replyWithData)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.attachments.findData(fileUpload.fileRef)
+                }
+            )
+        }
     }
 }

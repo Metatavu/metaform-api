@@ -37,7 +37,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     // TODO remove deprecated roles from kc.json
-    // TODO check doc
     if (!isMetaformAdminAny) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM))
     }
@@ -142,30 +141,17 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   override suspend fun listMetaforms(visibility: MetaformVisibility?): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    // TODO check permission the doc says metaform admin and manager but not specified which metaform
-    return try {
-      when(visibility) {
-        MetaformVisibility.PUBLIC ->
-          createOk(metaformController.listMetaforms(visibility).map(metaformTranslator::translate))
-        MetaformVisibility.PRIVATE -> {
-          if (!isMetaformManagerAny) {
-            createForbidden(createNotAllowedMessage(LIST, METAFORM))
-          }
-          else {
-            createOk(metaformController.listMetaforms(visibility).map(metaformTranslator::translate))
-          }
+    try {
+      if (!isMetaformManagerAny) {
+        if (visibility == MetaformVisibility.PRIVATE) {
+          return createForbidden(createNotAllowedMessage(LIST, METAFORM))
         }
-        null -> {
-          if (isMetaformManagerAny) {
-            createOk(metaformController.listMetaforms().map(metaformTranslator::translate))
-          }
-          else {
-            createOk(metaformController.listMetaforms(MetaformVisibility.PUBLIC).map(metaformTranslator::translate))
-          }
-        }
+        return createOk(metaformController.listMetaforms(MetaformVisibility.PUBLIC).map(metaformTranslator::translate))
       }
+
+      return createOk(metaformController.listMetaforms(visibility).map(metaformTranslator::translate))
     } catch (e: MalformedMetaformJsonException) {
-      createInternalServerError(e.message)
+      return createInternalServerError(e.message)
     }
   }
 

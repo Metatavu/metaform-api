@@ -1,0 +1,17 @@
+{
+  "title": "Simple",
+  "allowDrafts": true,
+  "visibility": "PRIVATE",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        }
+      ]
+    }
+  ]
+}

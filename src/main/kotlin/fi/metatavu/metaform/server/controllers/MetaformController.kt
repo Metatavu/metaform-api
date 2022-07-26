@@ -144,6 +144,10 @@ class MetaformController {
         val replies = replyDAO.listByMetaform(metaform)
         replies.forEach { reply: Reply -> replyController.deleteReply(reply) }
 
+        val metaformMembers = keycloakController.listMetaformMemberAdmin(metaform.id!!) +
+                keycloakController.listMetaformMemberManager(metaform.id!!)
+        metaformMembers.forEach { keycloakController.deleteMetaformMember(UUID.fromString(it.id)) }
+
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
         metaformDAO.delete(metaform)

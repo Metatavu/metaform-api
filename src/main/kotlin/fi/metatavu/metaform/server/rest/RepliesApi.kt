@@ -388,6 +388,10 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       )
     }
 
+    if (isMetaformAdmin(metaformId)) {
+      return createOk(replies.map { replyTranslator.translate(metaformEntity, it, null) })
+    }
+
     val result: List<Reply> = getPermittedReplies(metaformId, replies, AuthorizationScope.REPLY_VIEW)
             .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 

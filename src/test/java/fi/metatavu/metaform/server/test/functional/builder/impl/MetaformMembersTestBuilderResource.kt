@@ -44,10 +44,11 @@ class MetaformMembersTestBuilderResource(
      * @return created metaform member
      */
     @Throws(IOException::class)
-    fun create(metaformId: UUID, payload: MetaformMember): MetaformMember {
+    fun create(metaformId: UUID, payload: MetaformMember, addClosable: Boolean = true): MetaformMember {
         val result = api.createMetaformMember(metaformId, payload)
         membersMetaforms[result.id] = metaformId
-        return addClosable(result)
+        if (addClosable) return addClosable(result)
+        return result
     }
 
     /**
@@ -81,6 +82,18 @@ class MetaformMembersTestBuilderResource(
         return api.findMetaformMember(metaformId, memberId)
     }
 
+
+    /**
+     * Lists metaform members
+     *
+     * @param metaformId metaform id
+     * @param role    metaform member role
+     * @return metaform members
+     */
+    @Throws(IOException::class)
+    fun list(metaformId: UUID, role: MetaformMemberRole?): Array<MetaformMember> {
+        return api.listMetaformMembers(metaformId, role)
+    }
     /**
      * Updates a metaform member
      *
@@ -180,4 +193,20 @@ class MetaformMembersTestBuilderResource(
         }
     }
 
+    /**
+     * Asserts delete status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param metaformId     metaform
+     * @param role      metaform member role
+     */
+    @Throws(IOException::class)
+    fun assertListFailStatus(expectedStatus: Int, metaformId: UUID, role: MetaformMemberRole?) {
+        try {
+            api.listMetaformMembers(metaformId, role)
+            Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
 }

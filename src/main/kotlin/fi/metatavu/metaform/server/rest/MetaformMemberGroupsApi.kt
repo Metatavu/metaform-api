@@ -28,15 +28,20 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val createdGroup = keycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
-      name = metaformMemberGroup.displayName
-    })
+    val createdGroup = try {
+      keycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
+        name = metaformMemberGroup.displayName
+      })
+    } catch (e: Exception) {
+      return createInternalServerError(e.message)
+    }
 
-//    TODO List functionality?? Include group info to metaform member??
-    // TODO is there a better way???
-//    TODO error handling? if successfully added, put into list otherwise skip??
-    metaformMemberGroup.memberIds.forEach {
-        memberId -> keycloakController.userJoinGroup(createdGroup.id, memberId.toString())
+    try {
+      metaformMemberGroup.memberIds.forEach {
+          memberId -> keycloakController.userJoinGroup(createdGroup.id, memberId.toString())
+      }
+    } catch (e: Exception) {
+      return createInternalServerError(e.message)
     }
 
     return createOk(metaformMemberGroupTranslator.translate(createdGroup, metaformMemberGroup.memberIds))
@@ -74,6 +79,23 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     val foundGroupMembers = keycloakController.findMetaformMemberGroupMembers(metaformMemberGroupId)
 
     return createOk(metaformMemberGroupTranslator.translate(foundMetaformMemberGroup, foundGroupMembers))
+  }
+
+  override suspend fun listMetaformMemberGroups(metaformId: UUID): Response {
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (!isMetaformAdmin(metaformId)) {
+      return createForbidden(createNotAllowedMessage(CREATE, METAFORM_MEMBER))
+    }
+
+    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+
+    val metaformMemberGroups = keycloakController.listMetaformMemberGroup(metaformId).map {
+      val metaformGroupMemberIds = keycloakController.findMetaformMemberGroupMembers(UUID.fromString(it.id))
+      metaformMemberGroupTranslator.translate(it, metaformGroupMemberIds)
+    }
+
+    return createOk(metaformMemberGroups)
   }
 
   override suspend fun updateMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {

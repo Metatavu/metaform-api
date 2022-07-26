@@ -50,6 +50,17 @@ class MetaformVersionTestBuilderResource(
     }
 
     /**
+     * Lists metaform versions
+     *
+     * @param metaformId metaform id
+     * @return metaform versions
+     */
+    @Throws(IOException::class)
+    fun list(metaformId: UUID): Array<MetaformVersion> {
+        return api.listMetaformVersions(metaformId)
+    }
+
+    /**
      * Finds a metaform version
      *
      * @param metaformId metaform id

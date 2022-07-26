@@ -18,7 +18,7 @@ import java.net.URISyntaxException
 class UploadTestsIT : AbstractTest() {
     @Test
     @Throws(IOException::class)
-    fun findUploadedTest() {
+    fun findUploaded() {
         val fileUpload: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
         Assertions.assertNotNull(fileUpload)
         assertUploadFound(fileUpload.fileRef.toString())
@@ -37,7 +37,7 @@ class UploadTestsIT : AbstractTest() {
 
     @Test
     @Throws(IOException::class, URISyntaxException::class)
-    fun deleteUploadedTest() {
+    fun deleteUploaded() {
         val fileUpload: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
         Assertions.assertNotNull(fileUpload)
         val fileRef: String = fileUpload.fileRef.toString()

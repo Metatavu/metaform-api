@@ -26,7 +26,7 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))
 
-    if (!isPermittedAttachment(attachment, ownerKey)) {
+    if (!isPermittedAttachment(attachment, ownerKey) && !isMetaformAdminAny) {
       return createForbidden(createAnonNotAllowedMessage(FIND, ATTACHMENT))
     }
 
@@ -50,7 +50,7 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))
 
-    if (!isPermittedAttachment(attachment, ownerKey)) {
+    if (!isPermittedAttachment(attachment, ownerKey) && !isMetaformAdminAny) {
       return createForbidden(createAnonNotAllowedMessage(FIND, ATTACHMENT))
     }
 

@@ -2,7 +2,9 @@ package fi.metatavu.metaform.server.test.functional.tests
 
 import fi.metatavu.metaform.api.client.models.*
 import fi.metatavu.metaform.server.test.functional.AbstractTest
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -24,12 +26,13 @@ import java.util.*
 @TestProfile(GeneralTestProfile::class)
 class MetaformMemberGroupsTestsIT : AbstractTest() {
     @Test
+    @Throws(Exception::class)
     fun createMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
 
-            val metaformMember = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaformMember = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -42,7 +45,7 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
             Assertions.assertEquals("Mikkeli", metaformMemberGroup.displayName)
             Assertions.assertEquals(metaformMember.id, metaformMemberGroup.memberIds[0])
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+            val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
             Assertions.assertNotNull(foundMemberGroup)
             Assertions.assertEquals(metaformMemberGroup.id, foundMemberGroup.id)
@@ -52,31 +55,23 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
     }
 
     @Test
-    fun createMetaformMemberGroupUnauthorized() {
-        TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            testBuilder.test1.metaformMemberGroups.assertCreateFailStatus(
-                403,
-                metaform.id!!,
-                MetaformMemberGroup(
-                    displayName = "Mikkeli",
-                    memberIds = emptyArray()
-                )
-            )
-        }
-    }
-
-    @Test
     @Throws(Exception::class)
-    fun createMetaformMemberGroupNotFound() {
+    fun createMetaformMemberGroupPermission() {
         TestBuilder().use { testBuilder ->
-            testBuilder.metaformAdmin.metaformMemberGroups.assertCreateFailStatus(
-                404,
-                UUID.randomUUID(),
-                MetaformMemberGroup(
-                    displayName = "Mikkeli",
-                    memberIds = emptyArray()
-                )
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                    authentication.metaformMemberGroups.create(
+                        metaform.id!!,
+                        MetaformMemberGroup(
+                            displayName = String.format("Mikkeli%d", index),
+                            memberIds = emptyArray()
+                        )
+                    )
+                },
+                metaformId = metaform.id
             )
         }
     }
@@ -85,8 +80,8 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun findMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -94,7 +89,7 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+            val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
             Assertions.assertNotNull(foundMemberGroup)
         }
@@ -102,10 +97,10 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun findMetaformMemberGroupUnauthorized() {
+    fun findMetaformMemberGroupPermission() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -113,7 +108,16 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            testBuilder.test1.metaformMemberGroups.assertFindFailStatus(403, metaform.id, metaformMemberGroup.id!!)
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                    authentication.metaformMemberGroups.find(
+                        metaform.id,
+                        metaformMemberGroup.id!!
+                    )
+                },
+                metaformId = metaform.id
+            )
         }
     }
 
@@ -121,8 +125,8 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun findMetaformMemberGroupNotFound() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -130,8 +134,59 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, UUID.randomUUID(), metaformMemberGroup.id!!)
-            testBuilder.metaformAdmin.metaformMembers.assertFindFailStatus(404, metaform.id, UUID.randomUUID())
+            testBuilder.systemAdmin.metaformMembers.assertFindFailStatus(404, UUID.randomUUID(), metaformMemberGroup.id!!)
+            testBuilder.systemAdmin.metaformMembers.assertFindFailStatus(404, metaform.id, UUID.randomUUID())
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listMetaformMemberGroup() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMember = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
+
+            testBuilder.systemAdmin.metaformMemberGroups.create(metaform.id,
+                MetaformMemberGroup(
+                displayName = "Mikkeli",
+                memberIds = arrayOf(metaformMember.id!!)
+            ))
+
+            val metaformMemberGroups = testBuilder.systemAdmin.metaformMemberGroups.list(metaform.id)
+
+            Assertions.assertEquals(metaformMemberGroups.size, 1)
+            Assertions.assertEquals(metaformMemberGroups[0].memberIds[0], metaformMember.id)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listMetaformMemberNotFound() {
+        TestBuilder().use { testBuilder ->
+            testBuilder.systemAdmin.metaformMemberGroups.assertListFailStatus(404, UUID.randomUUID())
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listMetaformMemberPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            testBuilder.systemAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Mikkeli",
+                    memberIds = emptyArray()
+                )
+            )
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.metaformMemberGroups.list(metaform.id)
+                },
+                metaformId = metaform.id
+            )
         }
     }
 
@@ -139,8 +194,8 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun deleteMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -148,12 +203,39 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+            val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
             Assertions.assertNotNull(foundMemberGroup)
-            testBuilder.metaformAdmin.metaformMemberGroups.delete(metaform.id, foundMemberGroup.id!!)
+            testBuilder.systemAdmin.metaformMemberGroups.delete(metaform.id, foundMemberGroup.id!!)
 
-            testBuilder.metaformAdmin.metaformMemberGroups.assertFindFailStatus(404, metaform.id, foundMemberGroup.id)
+            testBuilder.systemAdmin.metaformMemberGroups.assertFindFailStatus(404, metaform.id, foundMemberGroup.id)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteMetaformMemberGroupPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                    val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
+                        metaform.id!!,
+                        MetaformMemberGroup(
+                            displayName = String.format("Mikkeli%d", index),
+                            memberIds = emptyArray()
+                        )
+                    )
+
+                    authentication.metaformMemberGroups.find(
+                        metaform.id,
+                        metaformMemberGroup.id!!
+                    )
+                },
+                metaformId = metaform.id
+            )
         }
     }
 
@@ -161,8 +243,8 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun deleteMetaformMemberNotFound() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -170,39 +252,19 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+            val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
-            testBuilder.metaformAdmin.metaformMemberGroups.assertDeleteFailStatus(404, UUID.randomUUID(), foundMemberGroup.id!!)
-            testBuilder.metaformAdmin.metaformMemberGroups.assertDeleteFailStatus(404, metaform.id, UUID.randomUUID())
+            testBuilder.systemAdmin.metaformMemberGroups.assertDeleteFailStatus(404, UUID.randomUUID(), foundMemberGroup.id!!)
+            testBuilder.systemAdmin.metaformMemberGroups.assertDeleteFailStatus(404, metaform.id, UUID.randomUUID())
         }
     }
 
-    @Test
-    @Throws(Exception::class)
-    fun deleteMetaformMemberGroupUnauthorized() {
-        TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
-                metaform.id!!,
-                MetaformMemberGroup(
-                    displayName = "Mikkeli",
-                    memberIds = emptyArray()
-                )
-            )
-
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
-
-            testBuilder.test1.metaformMembers.assertDeleteFailStatus(403, metaform.id, foundMemberGroup.id!!)
-        }
-    }
-
-    // TODO find a way to integrate all the authentication related tests
     @Test
     @Throws(Exception::class)
     fun updateMetaformMemberGroup() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -210,15 +272,15 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+            val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
             Assertions.assertEquals(0, foundMemberGroup.memberIds.size)
             Assertions.assertEquals("Mikkeli", foundMemberGroup.displayName)
 
-            val metaformMember1 = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi")
-            val metaformMember2 = testBuilder.metaformAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi2")
+            val metaformMember1 = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi")
+            val metaformMember2 = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi2")
 
-            testBuilder.metaformAdmin.metaformMemberGroups.update(
+            testBuilder.systemAdmin.metaformMemberGroups.update(
                 metaform.id,
                 foundMemberGroup.id!!,
                 MetaformMemberGroup(
@@ -227,13 +289,13 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundUpdatedMember = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id)
+            val foundUpdatedMember = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id)
 
             Assertions.assertEquals(metaformMember1.id, foundUpdatedMember.memberIds[0])
             Assertions.assertEquals(metaformMember2.id, foundUpdatedMember.memberIds[1])
             Assertions.assertEquals("Mikkeli2", foundUpdatedMember.displayName)
 
-            testBuilder.metaformAdmin.metaformMemberGroups.update(
+            testBuilder.systemAdmin.metaformMemberGroups.update(
                 metaform.id,
                 foundMemberGroup.id,
                 MetaformMemberGroup(
@@ -241,7 +303,7 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                     memberIds = emptyArray()
                 )
             )
-            val foundUpdatedMember2 = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id)
+            val foundUpdatedMember2 = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id)
             Assertions.assertEquals(0, foundUpdatedMember2.memberIds.size)
 
         }
@@ -249,10 +311,10 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun updateMetaformMemberGroupNotFound() {
+    fun updateMetaformMemberGroupPermission() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -260,19 +322,26 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
-
-            testBuilder.metaformAdmin.metaformMemberGroups.assertUpdateFailStatus(404, UUID.randomUUID(), foundMemberGroup.id!!, foundMemberGroup)
-            testBuilder.metaformAdmin.metaformMemberGroups.assertUpdateFailStatus(404, metaform.id, UUID.randomUUID(), foundMemberGroup)
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                    authentication.metaformMemberGroups.update(
+                        metaform.id,
+                        metaformMemberGroup.id!!,
+                        metaformMemberGroup
+                    )
+                },
+                metaformId = metaform.id
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun updateMetaformMemberGroupUnauthorized() {
+    fun updateMetaformMemberGroupNotFound() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaformMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.create(
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaformMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.create(
                 metaform.id!!,
                 MetaformMemberGroup(
                     displayName = "Mikkeli",
@@ -280,9 +349,10 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundMemberGroup = testBuilder.metaformAdmin.metaformMemberGroups.findMemberGroup(metaform.id, metaformMemberGroup.id!!)
+            val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
-            testBuilder.test1.metaformMemberGroups.assertUpdateFailStatus(403, metaform.id, foundMemberGroup.id!!, foundMemberGroup)
+            testBuilder.systemAdmin.metaformMemberGroups.assertUpdateFailStatus(404, UUID.randomUUID(), foundMemberGroup.id!!, foundMemberGroup)
+            testBuilder.systemAdmin.metaformMemberGroups.assertUpdateFailStatus(404, metaform.id, UUID.randomUUID(), foundMemberGroup)
         }
     }
 }

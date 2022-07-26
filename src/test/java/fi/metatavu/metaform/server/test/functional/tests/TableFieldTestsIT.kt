@@ -28,7 +28,7 @@ class TableFieldTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createTableReply() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-table")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-table")
             val tableData: List<Map<String, Any>> = listOf(createSimpleTableRow("Text 1", 10.0), createSimpleTableRow("Text 2", 20.0))
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["table"] = tableData
@@ -45,7 +45,7 @@ class TableFieldTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun updateTableReply() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-table")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-table")
             val createReplyData: MutableMap<String, Any> = HashMap()
             createReplyData["table"] = listOf(createSimpleTableRow("Text 1", 10.0), createSimpleTableRow("Text 2", 20.0))
             val reply: Reply = testBuilder.test1.replies.createReplyWithData(createReplyData)
@@ -71,7 +71,7 @@ class TableFieldTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun nulledTableReply() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-table")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-table")
             val tableData: List<Map<String, Any>> = listOf(createSimpleTableRow(null, null))
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["table"] = tableData
@@ -88,7 +88,7 @@ class TableFieldTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun invalidTableReply() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-table")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-table")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["table"] = "table data"
             val reply: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
@@ -100,7 +100,7 @@ class TableFieldTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun deleteTableReply() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-table")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-table")
             val tableData: List<Map<String, Any>> = listOf(createSimpleTableRow("Text 1", 10.0), createSimpleTableRow("Text 2", 20.0))
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["table"] = tableData
@@ -108,7 +108,7 @@ class TableFieldTestsIT : AbstractTest() {
             val createdReply: Reply = testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
             val foundReply: Reply = testBuilder.test1.replies.findReply(metaform.id, createdReply.id!!, null)
             Assertions.assertNotNull(foundReply)
-            testBuilder.metaformAdmin.replies.delete(metaform.id, createdReply.id, null)
+            testBuilder.systemAdmin.replies.delete(metaform.id, createdReply.id, null)
             testBuilder.test1.replies.assertFindFailStatus(404, metaform.id, createdReply.id, null)
         }
     }

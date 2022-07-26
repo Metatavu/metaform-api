@@ -18,8 +18,8 @@ import java.io.IOException
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(KeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(KeycloakResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class ExportXlsxTestsIT : AbstractTest() {
@@ -81,8 +81,8 @@ class ExportXlsxTestsIT : AbstractTest() {
     @Throws(IOException::class)
     private fun getXlsxReport(metaform: Metaform, token: String): Workbook {
         return WorkbookFactory.create(RestAssured.given()
-                .baseUri(ApiTestSettings.apiBasePath)
-                .header("Authorization", String.format("Bearer %s", token))["/v1/metaforms/{metaformId}/export?format=XLSX", metaform.id.toString()]
-                .asInputStream())
+            .baseUri(ApiTestSettings.apiBasePath)
+            .header("Authorization", String.format("Bearer %s", token))["/v1/metaforms/{metaformId}/export?format=XLSX", metaform.id.toString()]
+            .asInputStream())
     }
 }

@@ -11,6 +11,7 @@ import fi.metatavu.metaform.server.test.functional.FileUploadResponse
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import org.junit.Assert
 import org.junit.jupiter.api.Assertions
+import java.io.File
 import java.io.IOException
 import java.util.*
 
@@ -29,6 +30,26 @@ class AttachmentTestBuilderResource(
     }
 
     override fun clean(attachment: Attachment) {}
+
+    /**
+     * Finds attachment
+     *
+     * @param attachmentId attachment id
+     */
+    @Throws(IOException::class)
+    fun find(attachmentId: UUID): Attachment {
+        return api.findAttachment(attachmentId, "")
+    }
+
+    /**
+     * Finds attachment data
+     *
+     * @param attachmentId attachment id
+     */
+    @Throws(IOException::class)
+    fun findData(attachmentId: UUID): File {
+        return api.findAttachmentData(attachmentId, "")
+    }
 
     /**
      * Asserts that attachment exists

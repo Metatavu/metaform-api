@@ -5,7 +5,6 @@ import fi.metatavu.metaform.api.client.apis.MetaformMemberGroupsApi
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
-import fi.metatavu.metaform.api.client.models.MetaformMember
 import fi.metatavu.metaform.api.client.models.MetaformMemberGroup
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
@@ -58,8 +57,19 @@ class MetaformMemberGroupsTestBuilderResource(
      * @return found metaform member group
      */
     @Throws(IOException::class)
-    fun findMemberGroup(metaformId: UUID, memberGroupId: UUID): MetaformMemberGroup {
+    fun find(metaformId: UUID, memberGroupId: UUID): MetaformMemberGroup {
         return api.findMetaformMemberGroup(metaformId, memberGroupId)
+    }
+
+    /**
+     * Lists a metaform member group
+     *
+     * @param metaformId metaform id
+     * @return metaform member group
+     */
+    @Throws(IOException::class)
+    fun list(metaformId: UUID): Array<MetaformMemberGroup> {
+        return api.listMetaformMemberGroups(metaformId)
     }
 
     /**
@@ -154,6 +164,22 @@ class MetaformMemberGroupsTestBuilderResource(
     fun assertDeleteFailStatus(expectedStatus: Int, metaformId: UUID, memberGroupId: UUID) {
         try {
             api.deleteMetaformMemberGroup(metaformId, memberGroupId)
+            Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts list status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param metaformId     metaform
+     */
+    @Throws(IOException::class)
+    fun assertListFailStatus(expectedStatus: Int, metaformId: UUID) {
+        try {
+            api.listMetaformMemberGroups(metaformId)
             Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())

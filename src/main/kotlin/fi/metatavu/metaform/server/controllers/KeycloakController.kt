@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
+import fi.metatavu.metaform.server.exceptions.KeycloakDuplicatedUserException
+import fi.metatavu.metaform.server.exceptions.KeycloakException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
@@ -742,6 +744,44 @@ class KeycloakController {
     }
 
     /**
+     * Finds metaform member
+     *
+     * @param metaformMemberId metaform member id
+     * @return found group or null
+     */
+    fun findMetaformMember(metaformMemberId: UUID): UserRepresentation? {
+        return try {
+            adminClient.realm(realm).users()[metaformMemberId.toString()].toRepresentation()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Lists manager metaform members
+     *
+     * @param metaformId metaform id
+     * @return listed users
+     */
+    fun listMetaformMemberManager(metaformId: UUID): List<UserRepresentation> {
+        return adminClient.realm(realm).groups()
+            .group(getMetaformManagerGroup(metaformId).id)
+            .members()
+    }
+
+    /**
+     * Lists admin metaform members
+     *
+     * @param metaformId metaform id
+     * @return listed users
+     */
+    fun listMetaformMemberAdmin(metaformId: UUID): List<UserRepresentation> {
+        return adminClient.realm(realm).groups()
+            .group(getMetaformAdminGroup(metaformId).id)
+            .members()
+    }
+
+    /**
      * Finds metaform member group
      *
      * @param metaformId metaform id
@@ -749,6 +789,7 @@ class KeycloakController {
      * @param userRepresentation userRepresentation
      * @return found group or null
      */
+    @Throws(KeycloakException::class, KeycloakDuplicatedUserException::class)
     fun createMetaformMember(
         metaformId: UUID,
         metaformMemberRole: MetaformMemberRole,
@@ -766,25 +807,19 @@ class KeycloakController {
         val response = adminClient.realm(realm).users().create(userRepresentation.apply {
             this.isEnabled = true
             this.groups = managementGroupNames.map { groupName -> String.format("/%s", groupName) }
-            this.realmRoles = listOf(AbstractApi.METAFORM_USER_ROLE)
         })
-        val userId = getCreateResponseId(response)
-        return findMetaformMember(userId!!)!! // TODO check null
-    }
 
-    /**
-     * Finds metaform member group
-     *
-     * @param metaformMemberId metaform member id
-     * @return found group or null
-     */
-    fun findMetaformMember(metaformMemberId: UUID): UserRepresentation? {
-        return try {
-            adminClient.realm(realm).users()[metaformMemberId.toString()].toRepresentation()
-        } catch (e: Exception) {
-            null
+        if (response.status == 409) {
+            throw KeycloakDuplicatedUserException("Duplicated user")
+        } else if (response.status != 201) {
+            throw KeycloakException(String.format("Request failed with %d", response.status))
         }
-//        TODO keycloak error handling
+
+        val userId = getCreateResponseId(response) ?: throw KeycloakException("Failed to get the userId")
+        val userRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_USER_ROLE).toRepresentation()
+        adminClient.realm(realm).users()[userId.toString()].roles().realmLevel().add(listOf(userRole))
+
+        return findMetaformMember(userId) ?: throw KeycloakException("Failed to find the created user")
     }
 
     /**
@@ -802,6 +837,21 @@ class KeycloakController {
             .toRepresentation()
             .subGroups
             .find{ group -> group.id == metaformMemberGroupId.toString() }
+    }
+
+    /**
+     * Lists metaform member group
+     *
+     * @param metaformId metaform id
+     * @return list of groups
+     */
+    fun listMetaformMemberGroup(metaformId: UUID): List<GroupRepresentation> {
+        val managerGroup = getMetaformManagerGroup(metaformId)
+
+        return adminClient.realm(realm).groups()
+            .group(managerGroup.id)
+            .toRepresentation()
+            .subGroups
     }
 
     /**
@@ -907,11 +957,17 @@ class KeycloakController {
      * @param memberGroup member group
      * @return created group
      */
+    @Throws(KeycloakException::class)
     fun createMetaformMemberGroup(metaformId: UUID, memberGroup: GroupRepresentation): GroupRepresentation {
         val managerGroup = getMetaformManagerGroup(metaformId)
         val response = adminClient.realm(realm).groups().group(managerGroup.id).subGroup(memberGroup)
-        val groupId = getCreateResponseId(response)
-        return findMetaformMemberGroup(metaformId, groupId!!)!! // TODO check null
+
+        if (response.status != 201) {
+            throw KeycloakException(String.format("Request failed with %d", response.status))
+        }
+
+        val groupId = getCreateResponseId(response) ?: throw KeycloakException("Failed to get created group id")
+        return findMetaformMemberGroup(metaformId, groupId) ?: throw KeycloakException("Failed to find the created group")
     }
 
     companion object {

@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest
 import fi.metatavu.metaform.api.spec.model.MetaformMember
 import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.exceptions.KeycloakDuplicatedUserException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.rest.translate.MetaformMemberTranslator
 import org.keycloak.representations.idm.UserRepresentation
@@ -31,17 +32,22 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    // TODO error handle
-    val createdMetaformMember = keycloakController.createMetaformMember(
-      metaformId,
-      metaformMember.role,
-      UserRepresentation().apply {
-        this.firstName = metaformMember.firstName
-        this.lastName = metaformMember.lastName
-        this.username = metaformMember.firstName
-        this.email = metaformMember.email
-      }
-    )
+    val createdMetaformMember = try {
+      keycloakController.createMetaformMember(
+        metaformId,
+        metaformMember.role,
+        UserRepresentation().apply {
+          this.firstName = metaformMember.firstName
+          this.lastName = metaformMember.lastName
+          this.username = metaformMember.firstName
+          this.email = metaformMember.email
+        }
+      )
+    } catch (e: KeycloakDuplicatedUserException) {
+      return createConflict(createDuplicatedMessage(METAFORM_MEMBER))
+    } catch (e: Exception) {
+      return createInternalServerError(e.message)
+    }
 
     return createOk(metaformMemberTranslator.translate(createdMetaformMember, metaformMember.role))
   }
@@ -88,6 +94,30 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
     }
 
     return createOk(metaformMemberTranslator.translate(foundMetaformMember, metaformMemberRole))
+  }
+
+  override suspend fun listMetaformMembers(metaformId: UUID, role: MetaformMemberRole?): Response {
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (!isMetaformAdmin(metaformId)) {
+      return createForbidden(createNotAllowedMessage(LIST, METAFORM_MEMBER))
+    }
+
+    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+
+    val allUsers = keycloakController.listMetaformMemberManager(metaformId)
+    val adminUsers = keycloakController.listMetaformMemberAdmin(metaformId)
+    val managerUsers = allUsers.toMutableList()
+    managerUsers.removeAll { adminUsers.any { adminUser -> adminUser.id == it.id } }
+
+    val metaformMembers = when (role) {
+      MetaformMemberRole.ADMINISTRATOR -> adminUsers.map { metaformMemberTranslator.translate(it, MetaformMemberRole.ADMINISTRATOR) }
+      MetaformMemberRole.MANAGER -> managerUsers.map { metaformMemberTranslator.translate(it, MetaformMemberRole.MANAGER) }
+      null -> adminUsers.map { metaformMemberTranslator.translate(it, MetaformMemberRole.ADMINISTRATOR) } +
+              managerUsers.map { metaformMemberTranslator.translate(it, MetaformMemberRole.MANAGER) }
+    }
+
+    return createOk(metaformMembers)
   }
 
   override suspend fun updateMetaformMember(metaformId: UUID, metaformMemberId: UUID, metaformMember: MetaformMember): Response {

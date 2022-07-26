@@ -8,6 +8,7 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthentication
 import fi.metatavu.jaxrs.test.functional.builder.auth.KeycloakAccessTokenProvider
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
+import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.MetaformMember
 import fi.metatavu.metaform.api.client.models.MetaformMemberRole
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
@@ -36,7 +37,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
     private val logger = LoggerFactory.getLogger(TestBuilder::class.java)
     private var anonymousTokenCached: TestBuilderAuthentication? = null
     private val serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String::class.java)
-    var metaformAdmin = createTestBuilderAuthentication("metaform-admin", "test")
+    var systemAdmin = createTestBuilderAuthentication("metaform-admin", "test")
     var test1 = createTestBuilderAuthentication("test1.realm1", "test")
     var test2 = createTestBuilderAuthentication("test2.realm1", "test")
     var test3 = createTestBuilderAuthentication("test3.realm1", "test")
@@ -125,17 +126,20 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
      * @param metaformId metaform id
      * @return metaform admin test builder authentication
      */
-    fun createMetaformAdminAuthentication(metaformId: UUID): TestBuilderAuthentication {
-        val metaformMember = metaformAdmin.metaformMembers.create(
+    fun createMetaformAdminAuthentication(metaformId: UUID, addClosable: Boolean = true): TestBuilderAuthentication {
+        val metaformAdminUserName = UUID.randomUUID().toString()
+        val metaformAdminPass = UUID.randomUUID().toString()
+
+        val metaformMember = systemAdmin.metaformMembers.create(
             metaformId,
             MetaformMember(
-                email = "tommi@example.com",
-                firstName = "tommi",
-                lastName = "tommi",
+                email = String.format("%s@example.com", metaformAdminUserName),
+                firstName = metaformAdminUserName,
+                lastName = metaformAdminUserName,
                 role = MetaformMemberRole.aDMINISTRATOR
-            )
+            ),
+            addClosable
         )
-        val metaformAdminPass = UUID.randomUUID().toString()
         resetMetaformMemberPassword(metaformMember.id!!, metaformAdminPass)
 
         return createTestBuilderAuthentication(metaformMember.firstName, metaformAdminPass)
@@ -147,20 +151,23 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
      * @param metaformId metaform id
      * @return metaform manager test builder authentication
      */
-    fun createMetaformManagerAuthentication(metaformId: UUID): TestBuilderAuthentication {
-        val metaformMember = metaformAdmin.metaformMembers.create(
+    fun createMetaformManagerAuthentication(metaformId: UUID, addClosable: Boolean = true): TestBuilderAuthentication {
+        val metaformManagerUserName = UUID.randomUUID().toString()
+        val metaformManagerPass = UUID.randomUUID().toString()
+
+        val metaformMember = systemAdmin.metaformMembers.create(
             metaformId,
             MetaformMember(
-                email = "manager@example.com",
-                firstName = "manager",
-                lastName = "manager",
+                email = String.format("%s@example.com", metaformManagerUserName) ,
+                firstName = metaformManagerUserName,
+                lastName = metaformManagerUserName,
                 role = MetaformMemberRole.mANAGER
-            )
+            ),
+            addClosable
         )
-        val metaformAdminPass = UUID.randomUUID().toString()
-        resetMetaformMemberPassword(metaformMember.id!!, metaformAdminPass)
+        resetMetaformMemberPassword(metaformMember.id!!, metaformManagerPass)
 
-        return createTestBuilderAuthentication(metaformMember.firstName, metaformAdminPass)
+        return createTestBuilderAuthentication(metaformMember.firstName, metaformManagerPass)
     }
 
     /**
@@ -176,6 +183,73 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
             TestBuilderAuthentication(this, accessTokenProvider)
         } catch (e: IOException) {
             throw RuntimeException(e)
+        }
+    }
+
+
+    /**
+     * Asserts that find returns fail with given status
+     *
+     * @param status expected status
+     * @param apiCaller api caller
+     */
+    @Throws(IOException::class)
+    fun assertApiCallFailStatus(status: Int, apiCaller: () -> Unit) {
+        try {
+            apiCaller()
+            if (status == 200 || status == 204) return
+            Assert.fail(String.format("Expected to fail with status %d", status))
+        } catch (e: ClientException) {
+            Assert.assertEquals(status.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Gets the expected api response status for a permission scope
+     *
+     * @param permittedScope permitted scope of an api
+     * @param scope used scope
+     * @param successStatus defined success status
+     */
+    private fun getScopeStatus(
+        permittedScope: PermissionScope,
+        scope: PermissionScope,
+        successStatus: Int
+    ): Int {
+        return if (permittedScope.level <= scope.level) successStatus else 403
+    }
+
+    /**
+     * Runs permission tests by scope definition
+     *
+     * @param scope allowed permission scope
+     * @param apiCaller api caller
+     * @param successStatus success status
+     * @param metaformId metaform id, if null, the permission scope is not bound with specific metaform
+     */
+    fun permissionTestByScopes(
+        scope: PermissionScope,
+        apiCaller: (authentication: TestBuilderAuthentication, index: Int) -> Unit,
+        successStatus: Int = 200,
+        metaformId: UUID? = null,
+        metaformName: String = "simple"
+    ) {
+        val testMetaformId = metaformId ?: systemAdmin.metaforms.createFromJsonFile(metaformName).id!!
+        val adminAuthentication = createMetaformAdminAuthentication(testMetaformId)
+        val managerAuthentication = createMetaformManagerAuthentication(testMetaformId)
+
+        assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.ANONYMOUS, successStatus)) { apiCaller(anon, 0) }
+        assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.USER, successStatus)) { apiCaller(test3, 1) }
+        assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.METAFORM_MANAGER, successStatus)) { apiCaller(managerAuthentication, 2) }
+        assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.METAFORM_ADMIN, successStatus)) { apiCaller(adminAuthentication, 3) }
+        assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.SYSTEM_ADMIN, successStatus)) { apiCaller(systemAdmin, 4) }
+
+        if (metaformId != null) {
+            val testMetaformForbidden = systemAdmin.metaforms.createFromJsonFile(metaformName).id!!
+            val adminAuthenticationForbidden = createMetaformAdminAuthentication(testMetaformForbidden)
+            val managerAuthenticationForbidden = createMetaformManagerAuthentication(testMetaformForbidden)
+            assertApiCallFailStatus(403) { apiCaller(adminAuthenticationForbidden, 5) }
+            assertApiCallFailStatus(403) { apiCaller(managerAuthenticationForbidden, 6) }
         }
     }
 

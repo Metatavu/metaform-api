@@ -3,7 +3,9 @@ package fi.metatavu.metaform.server.test.functional.tests
 import fi.metatavu.metaform.api.client.models.ExportTheme
 import fi.metatavu.metaform.api.client.models.ExportThemeFile
 import fi.metatavu.metaform.server.test.functional.AbstractTest
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -25,13 +27,13 @@ import java.util.*
 class ExportThemeTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
-    fun createExportThemeTest() {
+    fun createExportTheme() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
+            val metaform = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
             val childPayload = ExportTheme("child theme", null, metaform.id, "locales")
-            val childTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.createExportTheme(childPayload)
+            val childTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.createExportTheme(childPayload)
             Assertions.assertNotNull(childTheme)
-            val foundChildTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.findExportTheme(childTheme.id)
+            val foundChildTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.findExportTheme(childTheme.id)
             Assertions.assertNotNull(foundChildTheme)
             Assertions.assertEquals(childTheme.toString(), foundChildTheme.toString())
             Assertions.assertEquals("child theme", foundChildTheme.name)
@@ -42,12 +44,12 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun findExportThemeTest() {
+    fun findExportTheme() {
         TestBuilder().use { testBuilder ->
-            val exportTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
+            val exportTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
             Assertions.assertNotNull(exportTheme)
             Assertions.assertNotNull(exportTheme.name)
-            val foundExportTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.findExportTheme(exportTheme.id)
+            val foundExportTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.findExportTheme(exportTheme.id)
             Assertions.assertNotNull(foundExportTheme)
             Assertions.assertEquals(exportTheme.name, foundExportTheme.name)
         }
@@ -55,11 +57,11 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun listExportThemeTest() {
+    fun listExportTheme() {
         TestBuilder().use { testBuilder ->
-            val exportTheme1: ExportTheme = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme("theme 1")
-            val exportTheme2: ExportTheme = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme("theme 2")
-            val exportThemes: List<ExportTheme> = testBuilder.metaformAdmin.exportThemes.listExportThemes()
+            val exportTheme1: ExportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme("theme 1")
+            val exportTheme2: ExportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme("theme 2")
+            val exportThemes: List<ExportTheme> = testBuilder.systemAdmin.exportThemes.listExportThemes()
             Assertions.assertEquals(2, exportThemes.size)
             Assertions.assertEquals(exportTheme1.toString(), exportThemes[0].toString())
             Assertions.assertEquals(exportTheme2.toString(), exportThemes[1].toString())
@@ -68,16 +70,16 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun updateExportThemeTest() {
+    fun updateExportTheme() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            val exportTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme("not updated")
+            val metaform = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val exportTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme("not updated")
             Assertions.assertNotNull(exportTheme)
             Assertions.assertEquals("not updated", exportTheme.name)
             Assertions.assertNull(exportTheme.locales)
             Assertions.assertNull(exportTheme.parentId)
             val newExportTheme = ExportTheme("updated", null, metaform.id, "locales")
-            val updatedTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.updateExportTheme(exportTheme.id, newExportTheme)
+            val updatedTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.updateExportTheme(exportTheme.id, newExportTheme)
             Assertions.assertNotNull(updatedTheme)
             Assertions.assertEquals("updated", updatedTheme.name)
             Assertions.assertEquals("locales", updatedTheme.locales)
@@ -87,24 +89,24 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun deleteExportThemeTest() {
+    fun deleteExportTheme() {
         TestBuilder().use { testBuilder ->
             val payload = ExportTheme("to be deleted", null, null, null)
-            val exportTheme: ExportTheme = testBuilder.metaformAdmin.exportThemes.createExportTheme(payload)
-            Assertions.assertEquals(1, testBuilder.metaformAdmin.exportThemes.listExportThemes().size)
-            Assertions.assertEquals(testBuilder.metaformAdmin.exportThemes.findExportTheme(exportTheme.id).toString(), exportTheme.toString())
-            testBuilder.metaformAdmin.exportThemes.deleteExportTheme(exportTheme.id!!)
-            Assertions.assertEquals(0, testBuilder.metaformAdmin.exportThemes.listExportThemes().size)
-            testBuilder.metaformAdmin.exportThemes.assertSearchFailStatus(404, exportTheme.id)
+            val exportTheme: ExportTheme = testBuilder.systemAdmin.exportThemes.createExportTheme(payload)
+            Assertions.assertEquals(1, testBuilder.systemAdmin.exportThemes.listExportThemes().size)
+            Assertions.assertEquals(testBuilder.systemAdmin.exportThemes.findExportTheme(exportTheme.id).toString(), exportTheme.toString())
+            testBuilder.systemAdmin.exportThemes.deleteExportTheme(exportTheme.id!!)
+            Assertions.assertEquals(0, testBuilder.systemAdmin.exportThemes.listExportThemes().size)
+            testBuilder.systemAdmin.exportThemes.assertSearchFailStatus(404, exportTheme.id)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun createExportThemeFileTest() {
+    fun createExportThemeFile() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            val exportThemeFile: ExportThemeFile = testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(metaform.id!!, "path/to/file", "file content")
+            val metaform = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val exportThemeFile: ExportThemeFile = testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(metaform.id!!, "path/to/file", "file content")
             Assertions.assertNotNull(exportThemeFile)
             Assertions.assertEquals("path/to/file", exportThemeFile.path)
             Assertions.assertEquals("file content", exportThemeFile.content)
@@ -114,25 +116,25 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun findExportThemeFileTest() {
+    fun findExportThemeFile() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            val createThemeFile: ExportThemeFile = testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(metaform.id!!, "path/to/file", "file content 1")
+            val metaform = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val createThemeFile: ExportThemeFile = testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(metaform.id!!, "path/to/file", "file content 1")
             Assertions.assertNotNull(createThemeFile)
-            val foundFile: ExportThemeFile = testBuilder.metaformAdmin.exportFiles.findExportThemeFile(metaform.id, createThemeFile.id!!)
+            val foundFile: ExportThemeFile = testBuilder.systemAdmin.exportFiles.findExportThemeFile(metaform.id, createThemeFile.id!!)
             Assertions.assertEquals(createThemeFile.toString(), foundFile.toString())
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun listExportThemeFileTest() {
+    fun listExportThemeFile() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            Assertions.assertEquals(0, testBuilder.metaformAdmin.exportFiles.listExportThemeFiles(metaform.id!!).size)
-            val exportThemeFile1: ExportThemeFile = testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(metaform.id, "path/to/file1", "file content 1")
-            val exportThemeFile2: ExportThemeFile = testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(metaform.id, "path/to/file2", "file content 2")
-            val themeFiles: List<ExportThemeFile> = testBuilder.metaformAdmin.exportFiles.listExportThemeFiles(metaform.id)
+            val metaform = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            Assertions.assertEquals(0, testBuilder.systemAdmin.exportFiles.listExportThemeFiles(metaform.id!!).size)
+            val exportThemeFile1: ExportThemeFile = testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(metaform.id, "path/to/file1", "file content 1")
+            val exportThemeFile2: ExportThemeFile = testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(metaform.id, "path/to/file2", "file content 2")
+            val themeFiles: List<ExportThemeFile> = testBuilder.systemAdmin.exportFiles.listExportThemeFiles(metaform.id)
             Assertions.assertEquals(2, themeFiles.size)
             Assertions.assertEquals(exportThemeFile1.toString(), themeFiles[0].toString())
             Assertions.assertEquals(exportThemeFile2.toString(), themeFiles[1].toString())
@@ -141,16 +143,16 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun updateExportThemeFileTest() {
+    fun updateExportThemeFile() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            val exportTheme = testBuilder.metaformAdmin.exportFiles.createSimpleExportThemeFile(metaform.id!!, "not/updated", "not updated")
+            val metaform = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val exportTheme = testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(metaform.id!!, "not/updated", "not updated")
             Assertions.assertEquals("not/updated", exportTheme.path)
             Assertions.assertEquals("not updated", exportTheme.content)
             Assertions.assertEquals(metaform.id, exportTheme.themeId)
             val newThemeFile = ExportThemeFile(
                     "is/updated", exportTheme.themeId, "is updated", exportTheme.id)
-            val (path1, themeId1, content1) = testBuilder.metaformAdmin.exportFiles.updateExportThemeFile(metaform.id, exportTheme.id!!, newThemeFile)
+            val (path1, themeId1, content1) = testBuilder.systemAdmin.exportFiles.updateExportThemeFile(metaform.id, exportTheme.id!!, newThemeFile)
             Assertions.assertEquals("is/updated", path1)
             Assertions.assertEquals("is updated", content1)
             Assertions.assertEquals(metaform.id, themeId1)
@@ -159,99 +161,234 @@ class ExportThemeTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun deleteExportThemeFileTest() {
+    fun deleteExportThemeFile() {
         TestBuilder().use { testBuilder ->
-            val (_, id) = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
+            val (_, id) = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
 
-            //  try {
             val payload = ExportThemeFile(
                     "to/be/deleted", id!!, "to be deleted", null)
-            val exportThemeFile: ExportThemeFile = testBuilder.metaformAdmin.exportFiles.createExportThemeFile(id, payload)
-            Assertions.assertEquals(1, testBuilder.metaformAdmin.exportFiles.listExportThemeFiles(id).size)
-            Assertions.assertEquals(testBuilder.metaformAdmin.exportFiles.findExportThemeFile(id, exportThemeFile.id!!).toString(), exportThemeFile.toString())
-            testBuilder.metaformAdmin.exportFiles.deleteExportThemeFile(id, exportThemeFile.id)
-            Assertions.assertEquals(0, testBuilder.metaformAdmin.exportFiles.listExportThemeFiles(id).size)
-            testBuilder.metaformAdmin.exportFiles.assertFindFailStatus(404, id, exportThemeFile.id)
+            val exportThemeFile: ExportThemeFile = testBuilder.systemAdmin.exportFiles.createExportThemeFile(id, payload)
+            Assertions.assertEquals(1, testBuilder.systemAdmin.exportFiles.listExportThemeFiles(id).size)
+            Assertions.assertEquals(testBuilder.systemAdmin.exportFiles.findExportThemeFile(id, exportThemeFile.id!!).toString(), exportThemeFile.toString())
+            testBuilder.systemAdmin.exportFiles.deleteExportThemeFile(id, exportThemeFile.id)
+            Assertions.assertEquals(0, testBuilder.systemAdmin.exportFiles.listExportThemeFiles(id).size)
+            testBuilder.systemAdmin.exportFiles.assertFindFailStatus(404, id, exportThemeFile.id)
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun createExportThemePermissionDeniedTest() {
+    fun createExportThemePermission() {
         TestBuilder().use { testBuilder ->
-            val exportTheme = ExportTheme("name", null, null, null)
-            testBuilder.test1.exportThemes.assertCreateFailStatus(403, exportTheme)
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportThemes.createExportTheme(
+                        ExportTheme(
+                            name = "name",
+                            parentId = null,
+                            locales = null
+                        )
+                    )
+                },
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findExportThemePermissionDeniedTest() {
-        TestBuilder().use { testBuilder -> testBuilder.test1.exportThemes.assertSearchFailStatus(403, UUID.randomUUID()) }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun listExportThemePermissionDeniedTest() {
-        TestBuilder().use { testBuilder -> testBuilder.test1.exportThemes.assertListFailStatus(403) }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun updateExportThemePermissionDeniedTest() {
+    fun findExportThemePermission() {
         TestBuilder().use { testBuilder ->
-            val exportTheme = ExportTheme("name", null, null, null)
-            testBuilder.test1.exportThemes.assertUpdateFailStatus(403, UUID.randomUUID(), exportTheme)
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createExportTheme(
+                ExportTheme(
+                    name = "name",
+                    parentId = null,
+                    locales = null
+                )
+            )
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportThemes.findExportTheme(exportTheme.id!!)
+                },
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun deleteExportThemePermissionDeniedTest() {
-        TestBuilder().use { testBuilder -> testBuilder.test1.exportThemes.assertDeleteFailStatus(403, UUID.randomUUID()) }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun createExportThemeFilePermissionDeniedTest() {
+    fun listExportThemePermission() {
         TestBuilder().use { testBuilder ->
-            val (_, id) = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            val payload = ExportThemeFile("path", id!!, "content", null)
-            testBuilder.test1.exportFiles.assertCreateFailStatus(403, payload)
+            testBuilder.systemAdmin.exportThemes.createExportTheme(
+                ExportTheme(
+                    name = "name",
+                    parentId = null,
+                    locales = null
+                )
+            )
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportThemes.listExportThemes()
+                },
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun findExportThemeFilePermissionDeniedTest() {
+    fun updateExportThemePermission() {
         TestBuilder().use { testBuilder ->
-            val (_, id) = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            testBuilder.test1.exportFiles.assertFindExportThemeFileFailStatus(403, id, UUID.randomUUID())
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createExportTheme(
+                ExportTheme(
+                    name = "name",
+                    parentId = null,
+                    locales = null
+                )
+            )
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportThemes.updateExportTheme(exportTheme.id, exportTheme)
+                },
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun listExportThemeFilePermissionDeniedTest() {
+    fun deleteExportThemePermission() {
         TestBuilder().use { testBuilder ->
-            val (_, id) = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            testBuilder.test1.exportFiles.assertListFailStatus(403, id)
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                    val exportTheme = testBuilder.systemAdmin.exportThemes.createExportTheme(
+                        ExportTheme(
+                            name = String.format("name%d", index),
+                            parentId = null,
+                            locales = null
+                        )
+                    )
+                    authentication.exportThemes.deleteExportTheme(exportTheme.id!!,)
+                },
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun updateExportThemeFilePermissionDeniedTest() {
+    fun createExportThemeFilePermission() {
         TestBuilder().use { testBuilder ->
-            val (_, id) = testBuilder.metaformAdmin.exportThemes.createSimpleExportTheme()
-            val payload = ExportThemeFile("path", id!!, "content", null)
-            testBuilder.test1.exportFiles.assertUpdateFailStatus(403, id, UUID.randomUUID(), payload)
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportFiles.createExportThemeFile(
+                        exportTheme.id!!,
+                        ExportThemeFile(
+                            "path",
+                            exportTheme.id,
+                            "content",
+                            null
+                        )
+                    )
+                },
+            )
         }
     }
 
     @Test
     @Throws(Exception::class)
-    fun deleteExportThemeFilePermissionDeniedTest() {
-        TestBuilder().use { testBuilder -> testBuilder.test1.exportFiles.assertDeleteFailStatus(403, UUID.randomUUID(), UUID.randomUUID()) }
+    fun findExportThemeFilePermission() {
+        TestBuilder().use { testBuilder ->
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val exportThemeFile = testBuilder.systemAdmin.exportFiles.createExportThemeFile(
+                exportTheme.id!!,
+                ExportThemeFile(
+                    "path",
+                    exportTheme.id,
+                    "content",
+                    null
+                )
+            )
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportFiles.findExportThemeFile(exportTheme.id, exportThemeFile.id!!)
+                },
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listExportThemeFilePermission() {
+        TestBuilder().use { testBuilder ->
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.systemAdmin.exportFiles.createExportThemeFile(
+                exportTheme.id!!,
+                ExportThemeFile(
+                    "path",
+                    exportTheme.id,
+                    "content",
+                    null
+                )
+            )
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportFiles.listExportThemeFiles(exportTheme.id)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateExportThemeFilePermission() {
+        TestBuilder().use { testBuilder ->
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val exportThemeFile = testBuilder.systemAdmin.exportFiles.createExportThemeFile(
+                exportTheme.id!!,
+                ExportThemeFile(
+                    "path",
+                    exportTheme.id,
+                    "content",
+                    null
+                )
+            )
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.exportFiles.updateExportThemeFile(exportTheme.id, exportThemeFile.id!!, exportThemeFile)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteExportThemeFilePermission() {
+        TestBuilder().use { testBuilder ->
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.SYSTEM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                    val exportThemeFile = testBuilder.systemAdmin.exportFiles.createExportThemeFile(
+                        exportTheme.id!!,
+                        ExportThemeFile(
+                            path = String.format("path%d", index),
+                            themeId = exportTheme.id,
+                            content = "content"
+                        )
+                    )
+                    authentication.exportFiles.updateExportThemeFile(exportTheme.id, exportThemeFile.id!!, exportThemeFile)
+                }
+            )
+        }
     }
 }
