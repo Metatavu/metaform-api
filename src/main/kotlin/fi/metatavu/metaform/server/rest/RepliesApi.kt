@@ -323,14 +323,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   ): Response {
     val auditLogUser = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (firstResult != null) {
-      return createNotImplemented("firstResult is not supported yet")
-    }
-
-    if (maxResults != null) {
-      return createNotImplemented("maxResults is not supported yet")
-    }
-
     val createdBefore = parseTime(createdBeforeParam)
     val createdAfter = parseTime(createdAfterParam)
     val modifiedBefore = parseTime(modifiedBeforeParam)
@@ -356,7 +348,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             modifiedBefore,
             modifiedAfter,
             includeRevisions != null && includeRevisions,
-            fieldFilters)
+            fieldFilters,
+            firstResult,
+            maxResults)
 
     replies.forEach { reply -> auditLogEntryController.generateAuditLog(
             metaform = metaform,
@@ -370,7 +364,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val result: List<Reply> = getPermittedReplies(replies, AuthorizationScope.REPLY_VIEW)
             .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 
-    return createOk(result)
+    return createOk(result).also { it.headers.add("X-Total-Count", result.size) }
   }
 
   /**

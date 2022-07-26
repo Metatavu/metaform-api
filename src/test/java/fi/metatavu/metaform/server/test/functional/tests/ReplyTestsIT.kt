@@ -489,6 +489,37 @@ class ReplyTestsIT : AbstractTest() {
         }
     }
 
+    @Test
+    @Throws(Exception::class)
+    fun testReplyPagination() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            // dont need to save the replies to a variable
+            testBuilder.test1.replies.createSimpleReply(metaform.id!!, "pagination-test-1", ReplyMode.CUMULATIVE)
+            testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-2", ReplyMode.CUMULATIVE)
+            testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-3", ReplyMode.CUMULATIVE)
+
+            val allReplies = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null)
+            assertEquals(allReplies.size, 3)
+            assertEquals(allReplies[0].data!!["text"], "pagination-test-1")
+            assertEquals(allReplies[1].data!!["text"], "pagination-test-2")
+            assertEquals(allReplies[2].data!!["text"], "pagination-test-3")
+
+            val replies1To2 = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, 2)
+            assertEquals(replies1To2.size, 2)
+            assertEquals(replies1To2[0].data!!["text"], "pagination-test-1")
+            assertEquals(replies1To2[1].data!!["text"], "pagination-test-2")
+
+            val reply2 = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 1, 1)
+            assertEquals(reply2.size, 1)
+            assertEquals(reply2[0].data!!["text"], "pagination-test-2")
+
+            val reply3 = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 2, null)
+            assertEquals(reply3.size, 1)
+            assertEquals(reply3[0].data!!["text"], "pagination-test-3")
+        }
+    }
+
     companion object {
         private val TIMEZONE = ZoneId.of("Europe/Helsinki")
     }

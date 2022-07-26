@@ -359,7 +359,9 @@ class ReplyController {
             modifiedBefore: OffsetDateTime? = null,
             modifiedAfter: OffsetDateTime? = null,
             includeRevisions: Boolean,
-            fieldFilters: FieldFilters? = null
+            fieldFilters: FieldFilters? = null,
+            firstResult: Int? = null,
+            maxResults: Int? = null
     ): List<Reply> {
         return replyDAO.list(
                 metaform,
@@ -369,7 +371,9 @@ class ReplyController {
                 createdAfter,
                 modifiedBefore,
                 modifiedAfter,
-                fieldFilters
+                fieldFilters,
+                firstResult,
+                maxResults
         )
     }
 
