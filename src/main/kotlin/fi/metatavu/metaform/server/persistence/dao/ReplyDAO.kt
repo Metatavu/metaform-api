@@ -1,5 +1,7 @@
 package fi.metatavu.metaform.server.persistence.dao
 
+import fi.metatavu.metaform.api.spec.model.OrderRate
+import fi.metatavu.metaform.api.spec.model.ReplyOrderCriteria
 import fi.metatavu.metaform.server.metaform.FieldFilter
 import fi.metatavu.metaform.server.metaform.FieldFilterOperator
 import fi.metatavu.metaform.server.metaform.FieldFilters
@@ -122,7 +124,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
     createdAfter: OffsetDateTime?,
     modifiedBefore: OffsetDateTime?,
     modifiedAfter: OffsetDateTime?,
-    fieldFilters: FieldFilters?
+    fieldFilters: FieldFilters?,
+    orderBy: ReplyOrderCriteria?,
+    rate: OrderRate?
   ): List<Reply> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
@@ -168,6 +172,21 @@ class ReplyDAO : AbstractDAO<Reply>() {
         )
       )
     }
+
+    if (orderBy != null) {
+      val attr = root.get(when (orderBy) {
+        // for some reason swagger strips DATE_
+        ReplyOrderCriteria.CREATED -> Reply_.createdAt
+        ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
+      })
+
+      // we can trust that rate is also not null, because the API complains if orderBy is given when rate isn't
+      criteria.orderBy(when (rate!!) {
+        OrderRate.ASCENDING -> criteriaBuilder.asc(attr)
+        OrderRate.DESCENDING -> criteriaBuilder.desc(attr)
+      })
+    }
+
     fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
       val valuePredicate =
         getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
