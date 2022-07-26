@@ -686,7 +686,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testReplyPagination() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             // dont need to save the replies to a variable
             testBuilder.test1.replies.createSimpleReply(metaform.id!!, "pagination-test-1", ReplyMode.CUMULATIVE)
             testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-2", ReplyMode.CUMULATIVE)
