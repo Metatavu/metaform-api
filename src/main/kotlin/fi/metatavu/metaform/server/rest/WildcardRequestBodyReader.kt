@@ -38,14 +38,12 @@ class MyRequestBodyReader : MessageBodyReader<String?> {
         mediaType: MediaType,
         httpHeaders: MultivaluedMap<String, String>,
         entityStream: InputStream
-    ): String {
+    ): String? {
         logger.info("readFrom")
         logger.info(String.format("entityStream.toString(): %s", entityStream.toString()))
-//        logger.info(String.format("JAXB.unmarshal(entityStream, String::class.java): %s", JAXB.unmarshal(entityStream, String::class.java)))
 
         BufferedReader(InputStreamReader(entityStream)).use { br ->
             return br.readLine()
         }
-
     }
 }
