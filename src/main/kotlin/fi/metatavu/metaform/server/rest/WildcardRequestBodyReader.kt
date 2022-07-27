@@ -25,13 +25,7 @@ class MyRequestBodyReader : MessageBodyReader<String> {
         annotations: Array<Annotation>,
         mediaType: MediaType
     ): Boolean {
-        logger.info("is wildcard content type readable")
-        logger.info(String.format("type: %s", type.toString()))
-        logger.info(String.format("genericType: %s", genericType.typeName))
-        logger.info(String.format("annotations: %s", annotations.toString()))
-        logger.info(String.format("mediaType.type: %s", mediaType.type))
-        logger.info(String.format("mediaType.isWildcardType: %b", mediaType.isWildcardType))
-        return mediaType.isWildcardType
+        return true
     }
 
     @Throws(IOException::class, WebApplicationException::class)
