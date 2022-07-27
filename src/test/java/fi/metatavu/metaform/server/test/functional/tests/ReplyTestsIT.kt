@@ -1,7 +1,9 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
 import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.OrderRate
 import fi.metatavu.metaform.api.client.models.Reply
+import fi.metatavu.metaform.api.client.models.ReplyOrderCriteria
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
@@ -486,6 +488,27 @@ class ReplyTestsIT : AbstractTest() {
             testBuilder.metaformAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
             val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
             assertPdfDownloadStatus(200, testBuilder.metaformAdmin.token, metaform, reply)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testReplyOrdering() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val r1 = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "ordering-test-1", ReplyMode.CUMULATIVE)
+            val r2 = testBuilder.test1.replies.createSimpleReply(metaform.id, "ordering-test-2", ReplyMode.CUMULATIVE)
+            val r3 = testBuilder.test1.replies.createSimpleReply(metaform.id, "ordering-test-3", ReplyMode.CUMULATIVE)
+            println(metaform.id)
+            // reorder them by date [1, 2, 3] -> [2, 3, 1]
+            updateReplyCreated(r1, getOffsetDateTime(1978, 11, 12, TIMEZONE))
+            updateReplyCreated(r3, getOffsetDateTime(1867, 12, 8, TIMEZONE))
+            updateReplyCreated(r2, getOffsetDateTime(1582, 9, 2, TIMEZONE))
+
+            val replies = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null, ReplyOrderCriteria.cREATED, OrderRate.aSCENDING)
+            assertEquals(replies[0].data!!["text"], "ordering-test-2")
+            assertEquals(replies[1].data!!["text"], "ordering-test-3")
+            assertEquals(replies[2].data!!["text"], "ordering-test-1")
         }
     }
 
