@@ -720,11 +720,11 @@ class KeycloakController {
     }
 
     /**
-     * Check if a user is metaform admin
+     * Check if a user is metaform manager
      *
      * @param metaformId metaform id
      * @param userId user id
-     * @return boolean indicate is admin or not
+     * @return boolean indicate is manager or not
      */
     fun isMetaformManager(metaformId: UUID, userId: UUID): Boolean {
         return getUserGroups(userId.toString())
