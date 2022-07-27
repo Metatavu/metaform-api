@@ -37,7 +37,7 @@ class MyRequestBodyReader : MessageBodyReader<String> {
         httpHeaders: MultivaluedMap<String, String>,
         entityStream: InputStream?
     ): String {
-        println("unmarshalling")
+        logger.info(String.format("entityStream.toString(): %s", entityStream.toString()))
         return entityStream.toString()
     }
 }
