@@ -3,14 +3,15 @@ package fi.metatavu.metaform.server.rest
 import org.slf4j.Logger
 import java.io.IOException
 import java.io.InputStream
+import java.lang.reflect.Type
+import javax.inject.Inject
 import javax.ws.rs.Consumes
 import javax.ws.rs.WebApplicationException
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.ext.MessageBodyReader
 import javax.ws.rs.ext.Provider
-import java.lang.reflect.Type
-import javax.inject.Inject
+import javax.xml.bind.JAXB
 
 @Provider
 @Consumes("*/*")
@@ -37,7 +38,7 @@ class MyRequestBodyReader : MessageBodyReader<String> {
         httpHeaders: MultivaluedMap<String, String>,
         entityStream: InputStream?
     ): String {
-        logger.info(String.format("entityStream.toString(): %s", entityStream.toString()))
-        return entityStream.toString()
+        logger.info(String.format("JAXB.unmarshal(entityStream, String::class.java): %s", JAXB.unmarshal(entityStream, String::class.java)))
+        return JAXB.unmarshal(entityStream, String::class.java)
     }
 }
