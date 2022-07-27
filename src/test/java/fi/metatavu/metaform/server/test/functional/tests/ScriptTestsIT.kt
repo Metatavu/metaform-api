@@ -35,8 +35,8 @@ class ScriptTestsIT : AbstractTest() {
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-script");
-      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.systemAdmin.metaforms().readMetaform("simple-script");
+      Metaform metaform = testBuilder.systemAdmin.metaforms().create(parsedMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "Test text value");
@@ -61,15 +61,15 @@ class ScriptTestsIT : AbstractTest() {
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-pdf-script");
-      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.systemAdmin.metaforms().readMetaform("simple-pdf-script");
+      Metaform metaform = testBuilder.systemAdmin.metaforms().create(parsedMetaform);
 
-      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      ExportTheme theme = testBuilder.systemAdmin.exportThemes().createSimpleExportTheme();
+      testBuilder.systemAdmin.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
 
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
-      testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
+      testBuilder.systemAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "PDF text value");
@@ -96,14 +96,14 @@ class ScriptTestsIT : AbstractTest() {
     StubMapping externalStub = stubFor(post(externalMockURL).willReturn(aResponse().withStatus(200)));
 
     try (TestBuilder testBuilder = new TestBuilder()) {
-      Metaform parsedMetaform = testBuilder.metaformAdmin.metaforms().readMetaform("simple-pdf-base64-script");
-      Metaform metaform = testBuilder.metaformAdmin.metaforms().create(parsedMetaform);
+      Metaform parsedMetaform = testBuilder.systemAdmin.metaforms().readMetaform("simple-pdf-base64-script");
+      Metaform metaform = testBuilder.systemAdmin.metaforms().create(parsedMetaform);
 
-      ExportTheme theme = testBuilder.metaformSuper.exportThemes().createSimpleExportTheme();
-      testBuilder.metaformSuper.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
+      ExportTheme theme = testBuilder.systemAdmin.exportThemes().createSimpleExportTheme();
+      testBuilder.systemAdmin.exportfiles().createSimpleExportThemeFile(theme.getId(), "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>text: ${reply.getData()['text']!''}</body></html>");
       Metaform newMetaform = new Metaform(metaform.getId(), metaform.getReplyStrategy(), theme.getId(), metaform.getAllowAnonymous(), metaform.getAllowDrafts(), metaform.getAllowReplyOwnerKeys(), metaform.getAllowInvitations(),
         metaform.getAutosave(), metaform.getTitle(), metaform.getSections(), metaform.getFilters(), metaform.getScripts());
-      testBuilder.metaformAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
+      testBuilder.systemAdmin.metaforms().updateMetaform(newMetaform.getId(), newMetaform);
 
       Map<String, Object> replyData = new HashMap<>();
       replyData.put("text", "PDF text value");

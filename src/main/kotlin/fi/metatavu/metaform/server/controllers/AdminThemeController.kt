@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.slugify.Slugify
 import fi.metatavu.metaform.server.exceptions.MalformedDraftDataException
+import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.persistence.dao.AdminThemeDAO
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import java.util.UUID
@@ -81,35 +82,20 @@ class AdminThemeController {
     }
 
     /**
-     * Finds an admin theme by slug
-     * 
-     * @param slug the slug of the admin theme
-     * 
-     * @return the located admin theme or null
-     */
-    fun findBySlug(slug: String): AdminTheme? {
-        return adminThemeDAO.findById(slug)
-    }
-    
-    /**
-     * Unique check for metaform slug
-     *
-     * @param slug slug
-     * @return boolean result for unique check
-     */
-    fun isSlugUnique(themeId: UUID?, slug: String): Boolean {
-        val foundAdminTheme = adminThemeDAO.findBySlug(slug)
-        return foundAdminTheme == null || foundAdminTheme.id === themeId
-    }
-
-    /**
      * Validate a slug for Metaform
      *
      * @param slug slug
      * @return boolean result for validation
      */
-    fun validateSlug(slug: String): Boolean {
-        return slug.matches(Regex("^[a-z\\d]+(?:[-, _][a-z\\d]+)*$"))
+    fun validateSlug(adminThemeId: UUID?, slug: String): SlugValidation {
+        val foundAdminTheme = adminThemeDAO.findBySlug(slug)
+
+        if (!slug.matches(Regex("^[a-z\\d]+(?:[-, _][a-z\\d]+)*$"))) {
+            return SlugValidation.INVALID
+        } else if(foundAdminTheme != null && foundAdminTheme.id != adminThemeId) {
+            return SlugValidation.DUPLICATED
+        }
+        return SlugValidation.VALID
     }
 
     /**
@@ -126,13 +112,13 @@ class AdminThemeController {
         adminTheme: AdminTheme,
         data: String,
         name: String,
-        slug: String?,
+        slug: String,
     ): AdminTheme { 
         return adminThemeDAO.update(
             adminTheme,
             data,
             name,
-            slug ?: adminTheme.slug
+            slug
         )
     }
 

@@ -1,12 +1,17 @@
 package fi.metatavu.metaform.server.controllers
 
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.slugify.Slugify
 import fi.metatavu.metaform.api.spec.model.MetaformField
+import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
+import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.exceptions.ResourceNotFoundException
 import fi.metatavu.metaform.server.utils.MetaformUtils
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.keycloak.ResourceType
+import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO
@@ -24,6 +29,7 @@ import org.keycloak.representations.idm.authorization.DecisionStrategy
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
+import javax.ws.rs.core.Response
 
 /**
  * Metaform controller
@@ -66,17 +72,22 @@ class MetaformController {
     fun createMetaform(
             exportTheme: ExportTheme?,
             allowAnonymous: Boolean,
+            visibility: MetaformVisibility,
             title: String?,
             slug: String? = null,
             data: String
     ): Metaform {
         return metaformDAO.create(
-                id = UUID.randomUUID(),
-                slug = slug ?: createSlug(title),
-                exportTheme = exportTheme,
-                allowAnonymous = allowAnonymous,
-                data = data
-        )
+            id = UUID.randomUUID(),
+            slug = slug ?: createSlug(title),
+            exportTheme = exportTheme,
+            visibility = visibility,
+            allowAnonymous = allowAnonymous,
+            data = data
+        ).let {
+            keycloakController.createMetaformManagementGroup(it.id!!)
+            it
+        }
     }
 
     /**
@@ -94,8 +105,9 @@ class MetaformController {
      *
      * @return list of Metaforms
      */
-    fun listMetaforms(): List<Metaform> {
-        return metaformDAO.listAll()
+    fun listMetaforms(visibility: MetaformVisibility? = null): List<Metaform> {
+        visibility ?: return metaformDAO.listAll()
+        return metaformDAO.listByVisibility(visibility)
     }
 
     /**
@@ -110,14 +122,16 @@ class MetaformController {
     fun updateMetaform(
             metaform: Metaform,
             exportTheme: ExportTheme?,
+            visibility: MetaformVisibility,
             data: String,
             allowAnonymous: Boolean?,
-            slug: String
+            slug: String?
     ): Metaform {
         metaformDAO.updateData(metaform, data)
         metaformDAO.updateAllowAnonymous(metaform, allowAnonymous)
         metaformDAO.updateExportTheme(metaform, exportTheme)
-        metaformDAO.updateSlug(metaform, slug)
+        metaformDAO.updateSlug(metaform, slug ?: metaform.slug)
+        metaformDAO.updateVisibility(metaform, visibility)
         return metaform
     }
 
@@ -130,9 +144,30 @@ class MetaformController {
         val replies = replyDAO.listByMetaform(metaform)
         replies.forEach { reply: Reply -> replyController.deleteReply(reply) }
 
+        val metaformMembers = keycloakController.listMetaformMemberAdmin(metaform.id!!) +
+                keycloakController.listMetaformMemberManager(metaform.id!!)
+        metaformMembers.forEach { keycloakController.deleteMetaformMember(UUID.fromString(it.id)) }
+
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
         metaformDAO.delete(metaform)
+        keycloakController.deleteMetaformManagementGroup(metaform.id!!)
+    }
+
+    /**
+     * Serializes Metaform into JSON
+     *
+     * @param metaform Metaform
+     * @return serialized Metaform
+     */
+    @Throws(MalformedMetaformJsonException::class)
+    fun serializeMetaform(metaform: fi.metatavu.metaform.api.spec.model.Metaform): String {
+        val objectMapper = ObjectMapper()
+        try {
+            return objectMapper.writeValueAsString(metaform)
+        } catch (e: JsonProcessingException) {
+            throw MalformedMetaformJsonException("Failed to serialize draft data", e)
+        }
     }
 
     /**
@@ -156,22 +191,19 @@ class MetaformController {
     /**
      * Validate a slug for Metaform
      *
+     * @param metaformId metaform id
      * @param slug slug
-     * @return boolean result for validation
+     * @return validation result
      */
-    fun validateSlug(slug: String): Boolean {
-        return slug.matches(Regex("^[a-z\\d]+(?:[-, _][a-z\\d]+)*$"))
-    }
-
-    /**
-     * Unique check for metaform slug
-     *
-     * @param slug slug
-     * @return boolean result for unique check
-     */
-    fun isSlugUnique(metaformId: UUID?, slug: String): Boolean {
+    fun validateSlug(metaformId: UUID?, slug: String): SlugValidation {
         val foundMetaform = metaformDAO.findBySlug(slug)
-        return foundMetaform == null || foundMetaform.id === metaformId
+
+        if (!slug.matches(Regex("^[a-z\\d]+(?:[-, _][a-z\\d]+)*$"))) {
+            return SlugValidation.INVALID
+        } else if (foundMetaform != null && foundMetaform.id != metaformId) {
+            return SlugValidation.DUPLICATED
+        }
+        return SlugValidation.VALID
     }
 
     /**
@@ -232,7 +264,7 @@ class MetaformController {
             replyEntity: fi.metatavu.metaform.api.spec.model.Reply,
             newPermissionGroups: EnumMap<AuthorizationScope, MutableList<String>>
     ) {
-        val adminClient = keycloakController.getAdminClient()
+        val adminClient = keycloakController.adminClient
         val keycloakClient = try {
             keycloakController.getKeycloakClient(adminClient)
         } catch (e: KeycloakClientNotFoundException) {
@@ -375,7 +407,46 @@ class MetaformController {
         return resourceId
     }
 
+    /**
+     * Updates permission groups to match metaform
+     *
+     * @param formSlug form slug
+     * @param metaformEntity Metaform REST entity
+     */
+    @Throws(KeycloakClientNotFoundException::class)
+    fun updateMetaformPermissionGroups(formSlug: String, metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform) {
+        val adminClient = keycloakController.adminClient
+        val keycloakClient = try {
+            keycloakController.getKeycloakClient(adminClient)
+        } catch (e: KeycloakClientNotFoundException) {
+            throw e
+        }
+
+        val groupNames = getPermissionContextFields(metaformEntity)
+            .map { field -> field.options
+                ?.map { option -> getReplySecurityContextGroup(formSlug, field.name, option.name) } }
+            .flatMap { it?.toList() ?: emptyList() }
+        keycloakController.updatePermissionGroups(adminClient, keycloakClient, groupNames)
+    }
+
+    /**
+     * Validates incoming Metaform
+     *
+     * @param payload metaform data
+     * @return validation error or null if metaform is valid
+     */
+    fun validateMetaform(payload: fi.metatavu.metaform.api.spec.model.Metaform): Boolean {
+        val keys = MetaformUtils.getMetaformFields(payload).map(MetaformField::name)
+
+        val duplicates = keys
+            .filter { key: String? -> Collections.frequency(keys, key) > 1 }
+            .distinct()
+
+        return duplicates.isEmpty()
+    }
+
     companion object {
+
         private const val USER_POLICY_NAME = "user"
         private const val OWNER_POLICY_NAME = "owner"
         private const val METAFORM_ADMIN_POLICY_NAME = "metaform-admin"

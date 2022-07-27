@@ -20,20 +20,13 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
   @Inject
   lateinit var attachmentTranslator: AttachmentTranslator
 
-  /**
-   * Find attachment by id
-   * @param attachmentId attachment id
-   * @param ownerKey owner key
-   * 
-   * @return attachment
-   */
   override suspend fun findAttachment(attachmentId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))
 
-    if (!isPermittedAttachment(attachment, ownerKey)) {
+    if (!isPermittedAttachment(attachment, ownerKey) && !isMetaformAdminAny) {
       return createForbidden(createAnonNotAllowedMessage(FIND, ATTACHMENT))
     }
 
@@ -42,15 +35,8 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     return createOk(attachmentTranslator.translate(attachment))
   }
 
-  /**
-   * Returns whether given attachment is permitted
-   *
-   * @param attachment attachment
-   * @param ownerKey reply owner key
-   * @return whether given attachment is permitted
-   */
   private fun isPermittedAttachment(attachment: Attachment, ownerKey: String?): Boolean {
-    if (isRealmMetaformAdmin || isRealmMetaformSuper || isRealmUser) {
+    if (isMetaformAdminAny) {
       return true
     }
     val reply = attachmentController.findReplyByAttachment(attachment)
@@ -59,25 +45,17 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     } else replyController.isValidOwnerKey(reply, ownerKey)
   }
 
-  /**
-   * Find attachment data by id
-   * @param attachmentId attachment id
-   * @param ownerKey owner key
-   * 
-   * @return attachment data
-   */
   override suspend fun findAttachmentData(attachmentId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))
 
-    if (!isPermittedAttachment(attachment, ownerKey)) {
+    if (!isPermittedAttachment(attachment, ownerKey) && !isMetaformAdminAny) {
       return createForbidden(createAnonNotAllowedMessage(FIND, ATTACHMENT))
     }
 
     attachmentController.logAttachmentAccess(attachment, null, AuditLogEntryType.VIEW_REPLY_ATTACHMENT, userId)
 
     return streamResponse(attachment.content, attachment.contentType)
-
   }
 }

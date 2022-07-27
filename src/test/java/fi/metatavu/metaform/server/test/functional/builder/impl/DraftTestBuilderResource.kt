@@ -29,7 +29,7 @@ class DraftTestBuilderResource(
     @Throws(IOException::class)
     override fun clean(draft: Draft) {
         val testBuilder = TestBuilder()
-        val draftsAdminApi = testBuilder.metaformAdmin.drafts.api
+        val draftsAdminApi = testBuilder.systemAdmin.drafts.api
 
         metaformDraftMap.entries.stream()
                 .filter { it.value == draft }
@@ -55,6 +55,24 @@ class DraftTestBuilderResource(
         val createdDraft = api.createDraft(metaform.id!!, draft)
         metaformDraftMap[metaform] = createdDraft
         return addClosable(createdDraft)
+    }
+
+
+    /**
+     * Deletes a metaform member from the API
+     *
+     * @param metaformId      metaform id
+     * @param draftId draft id
+     */
+    @Throws(IOException::class)
+    fun deleteDraft(metaformId: UUID, draftId: UUID) {
+        api.deleteDraft(metaformId, draftId)
+        removeCloseable { closable ->
+            if (closable is Draft) {
+                return@removeCloseable draftId == closable.id
+            }
+            false
+        }
     }
 
     /**

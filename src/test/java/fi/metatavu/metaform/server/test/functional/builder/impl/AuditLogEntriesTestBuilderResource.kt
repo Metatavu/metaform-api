@@ -50,6 +50,17 @@ class AuditLogEntriesTestBuilderResource(
     }
 
     /**
+     * Deletes audit log entries
+     *
+     * @param metaformId    metaform id
+     * @param auditLogEntryId        audit log entry id
+     */
+    @Throws(IOException::class)
+    fun deleteAuditLogsEntries(metaformId: UUID, auditLogEntryId: UUID) {
+        api.deleteAuditLogEntry(metaformId, auditLogEntryId)
+    }
+
+    /**
      * Asserts that find returns fail with given status
      *
      * @param status        expected status

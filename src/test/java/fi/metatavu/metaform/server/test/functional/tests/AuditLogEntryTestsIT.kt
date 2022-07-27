@@ -5,7 +5,9 @@ import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.Reply
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -28,9 +30,9 @@ import org.junit.jupiter.api.Test
 class AuditLogEntryTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
-    fun basicActionsOnReplyTest() {
+    fun basicActionsOnReply() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val createdReply: Reply = builder.test1.replies.createReplyWithData(replyData)
@@ -51,9 +53,9 @@ class AuditLogEntryTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun queryByUserTest() {
+    fun queryByUser() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
@@ -70,10 +72,10 @@ class AuditLogEntryTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun queryByMetaformTest() {
+    fun queryByMetaform() {
         TestBuilder().use { builder ->
-            val metaform1: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val metaform2: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform1: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaform2: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
@@ -95,9 +97,9 @@ class AuditLogEntryTestsIT : AbstractTest() {
      */
     @Test
     @Throws(Exception::class)
-    fun queryByReplyIdTest() {
+    fun queryByReplyId() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val replyWithData1: Reply = builder.test1.replies.createReplyWithData(replyData)
@@ -114,9 +116,9 @@ class AuditLogEntryTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun accessRightsTest() {
+    fun accessRights() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val reply1: Reply = builder.test1.replies.createReplyWithData(replyData)
@@ -124,6 +126,56 @@ class AuditLogEntryTestsIT : AbstractTest() {
             val auditLogEntries: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null)
             Assertions.assertNotNull(auditLogEntries)
             builder.test2.auditLogs.assertListFailStatus(403, metaform.id, null, null, null, null)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listAuditLogEntryPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.auditLogs.listAuditLogEntries(
+                        metaformId = metaform.id!!,
+                        userId = null,
+                        replyId = null,
+                        createdBefore = null,
+                        createdAfter = null
+                    )
+                },
+                metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteAuditLogEntryPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.ANONYMOUS,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    val replyData: MutableMap<String, Any> = HashMap()
+                    replyData["text"] = "Test text value"
+                    val createdReply: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
+                    testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), createdReply)
+
+                    val auditLog = testBuilder.systemAdmin.auditLogs.listAuditLogEntries(
+                        metaformId = metaform.id,
+                        userId = null,
+                        replyId = null,
+                        createdBefore = null,
+                        createdAfter = null
+                    ).first()
+
+                    authentication.auditLogs.deleteAuditLogsEntries(metaform.id, auditLog.id!!)
+                }
+            )
         }
     }
 }

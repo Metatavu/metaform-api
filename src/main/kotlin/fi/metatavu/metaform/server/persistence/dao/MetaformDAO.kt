@@ -1,11 +1,11 @@
 package fi.metatavu.metaform.server.persistence.dao
 
+import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.persistence.model.ExportTheme
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.Metaform_
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
-import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 
@@ -31,12 +31,14 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     id: UUID,
     slug: String,
     exportTheme: ExportTheme?,
+    visibility: MetaformVisibility,
     allowAnonymous: Boolean?,
     data: String
   ): Metaform {
     val metaform = Metaform()
     metaform.id = id
     metaform.exportTheme = exportTheme
+    metaform.visibility = visibility
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
@@ -99,6 +101,18 @@ class MetaformDAO : AbstractDAO<Metaform>() {
   }
 
   /**
+   * Updates visibility
+   *
+   * @param metaform Metaform
+   * @param visibility visibility
+   * @return Updated Metaform
+   */
+  fun updateVisibility(metaform: Metaform, visibility: MetaformVisibility): Metaform {
+    metaform.visibility = visibility
+    return persist(metaform)
+  }
+
+  /**
    * Updates slug value
    *
    * @param metaform Metaform
@@ -108,5 +122,26 @@ class MetaformDAO : AbstractDAO<Metaform>() {
   fun updateSlug(metaform: Metaform, slug: String): Metaform {
     metaform.slug = slug
     return persist(metaform)
+  }
+
+  /**
+   * Lists metaform by visibility
+   *
+   * @param visibility visibility
+   * @return list of Metaforms
+   */
+  fun listByVisibility(visibility: MetaformVisibility): List<Metaform> {
+    val criteriaBuilder = entityManager.criteriaBuilder
+    val criteria = criteriaBuilder.createQuery(
+      Metaform::class.java
+    )
+    val root = criteria.from(
+      Metaform::class.java
+    )
+    criteria.select(root)
+    criteria.where(
+      criteriaBuilder.equal(root.get(Metaform_.visibility), visibility)
+    )
+    return entityManager.createQuery(criteria).resultList
   }
 }

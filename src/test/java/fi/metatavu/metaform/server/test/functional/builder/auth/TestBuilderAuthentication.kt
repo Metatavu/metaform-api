@@ -27,6 +27,8 @@ class TestBuilderAuthentication(
     val attachments: AttachmentTestBuilderResource = AttachmentTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val auditLogs: AuditLogEntriesTestBuilderResource = AuditLogEntriesTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val emailNotifications: EmailNotificationsTestBuilderResource = EmailNotificationsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
+    val metaformMembers: MetaformMembersTestBuilderResource = MetaformMembersTestBuilderResource(testBuilder, accessTokenProvider, createClient())
+    val metaformMemberGroups: MetaformMemberGroupsTestBuilderResource = MetaformMemberGroupsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
 
     val token: String
         get() {

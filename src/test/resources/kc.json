@@ -56,20 +56,6 @@
       "containerId" : "test-1",
       "attributes" : { }
     }, {
-      "id" : "7d6069ba-e6aa-46fc-a80c-da47398eb1da",
-      "name" : "answerer",
-      "composite" : false,
-      "clientRole" : false,
-      "containerId" : "test-1",
-      "attributes" : { }
-    }, {
-      "id" : "5df15086-d654-4f40-8d68-b2a5d9ccb9d8",
-      "name" : "metaform-super",
-      "composite" : false,
-      "clientRole" : false,
-      "containerId" : "test-1",
-      "attributes" : { }
-    }, {
       "id" : "9a5833f6-751f-414b-ad04-e7f4cbfb5ed4",
       "name" : "metaform-admin",
       "composite" : false,
@@ -429,31 +415,6 @@
     "notBefore" : 0,
     "groups" : [ ]
   }, {
-    "id" : "ceb4523a-2dda-4620-bc97-692291349b18",
-    "createdTimestamp" : 1635143260167,
-    "username" : "answerer-1",
-    "enabled" : true,
-    "totp" : false,
-    "emailVerified" : true,
-    "firstName" : "Answerer 1",
-    "lastName" : "User",
-    "email" : "answerer-1@example.com",
-    "credentials" : [ {
-      "id" : "7a0b27b0-2223-4517-92d2-1b111a9a1d47",
-      "type" : "password",
-      "createdDate" : 1635143266656,
-      "secretData" : "{\"value\":\"LSGH8GesAgZEx9rqkT8QB10eLh2K9Uu5jBJlkSxniXKRPaVfUTlRhHN8aWoHmVl6nFRNYlTqnnsbFR5hwazbgw==\",\"salt\":\"ttn6G3gJjYLi6HmNaN2YIA==\",\"additionalParameters\":{}}",
-      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "answerer", "offline_access", "uma_authorization" ],
-    "clientRoles" : {
-      "account" : [ "manage-account", "view-profile" ]
-    },
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
     "id" : "07a7ab0b-b0da-4171-8d11-5f4213631e32",
     "createdTimestamp" : 1635143294396,
     "username" : "answerer-2",
@@ -472,7 +433,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "answerer", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -497,29 +458,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "metaform-admin", "uma_authorization" ],
-    "clientRoles" : {
-      "account" : [ "manage-account", "view-profile" ]
-    },
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "7650eef3-0800-4f93-b634-d2e4e4b30e47",
-    "createdTimestamp" : 1535526140415,
-    "username" : "metaform-super",
-    "enabled" : true,
-    "totp" : false,
-    "emailVerified" : true,
-    "credentials" : [ {
-      "id" : "52f24dac-ad16-4696-9dfa-f3437b4bfe48",
-      "type" : "password",
-      "createdDate" : 1535526164965,
-      "secretData" : "{\"value\":\"BdJtL9cS9O/gHt4DRdBwpl7uzUZ4qSjEUzhjvVxntQFQLtMpjH/SYL5vZ3BhrnVSMxYcWlcL343ri87mmaCveQ==\",\"salt\":\"pxvc5JRJKad6F5dWJh9SJw==\"}",
-      "credentialData" : "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
-    } ],
-    "disableableCredentialTypes" : [ ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "user", "metaform-super", "offline_access", "metaform-admin", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "metaform-admin", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -544,7 +483,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "realm-management" : [ "realm-admin" ],
       "account" : [ "manage-account", "view-profile" ]
@@ -563,7 +502,7 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "metaform-api" : [ "uma_protection" ],
       "account" : [ "manage-account", "view-profile" ]
@@ -582,7 +521,7 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -607,7 +546,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "metaform-view-all-audit-logs", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "metaform-view-all-audit-logs", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -632,7 +571,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -657,7 +596,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },

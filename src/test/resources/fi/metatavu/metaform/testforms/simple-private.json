@@ -1,8 +1,7 @@
 {
   "title": "Simple",
   "allowDrafts": true,
-  "allowAnonymous": true,
-  "visibility": "PUBLIC",
+  "visibility": "PRIVATE",
   "sections": [
     {
       "title": "Simple form",

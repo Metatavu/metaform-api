@@ -7,7 +7,9 @@ import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.MailgunMocker
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MailgunResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
@@ -35,12 +37,12 @@ import java.util.*
 class EmailNotificationTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
-    fun singleEmailNotificationTest() {
+    fun singleEmailNotification() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user@example.com"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user@example.com"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content")
             } finally {
@@ -51,13 +53,13 @@ class EmailNotificationTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun notifyIfEqualsTest() {
+    fun notifyIfEquals() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "subject", "content", listOf("val1@example.com"), createFieldRule("text", "val 1", null))
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id, "subject", "content", listOf("val2@example.com"), createFieldRule("text", "val 2", null))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "subject", "content", listOf("val1@example.com"), createFieldRule("text", "val 1", null))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "subject", "content", listOf("val2@example.com"), createFieldRule("text", "val 2", null))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content")
@@ -70,13 +72,13 @@ class EmailNotificationTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun notifyIfNotEqualsTest() {
+    fun notifyIfNotEquals() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "subject", "content", listOf("val1@example.com"), createFieldRule("text", null, "val 1"))
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id, "subject", "content", listOf("val2@example.com"), createFieldRule("text", null, "val 2"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "subject", "content", listOf("val1@example.com"), createFieldRule("text", null, "val 1"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "subject", "content", listOf("val2@example.com"), createFieldRule("text", null, "val 2"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content")
@@ -89,12 +91,12 @@ class EmailNotificationTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun multipleEmailNotificationTest() {
+    fun multipleEmailNotification() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user-1@example.com", "user-2@example.com"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user-1@example.com", "user-2@example.com"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user-1@example.com", "Simple subject", "Simple content")
                 mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user-2@example.com", "Simple subject", "Simple content")
@@ -106,12 +108,12 @@ class EmailNotificationTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun replacedEmailNotificationTest() {
+    fun replacedEmailNotification() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Replaced \${data.text} subject", "Replaced \${data.text} content", listOf("user@example.com"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Replaced \${data.text} subject", "Replaced \${data.text} content", listOf("user@example.com"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Replaced val 1 subject", "Replaced val 1 content")
             } finally {
@@ -122,12 +124,12 @@ class EmailNotificationTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun multipleRepliesEmailNotificationTest() {
+    fun multipleRepliesEmailNotification() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content \${data.text}", listOf("user@example.com"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content \${data.text}", listOf("user@example.com"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 2", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content val 1")
@@ -140,12 +142,12 @@ class EmailNotificationTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun unicodeEmailNotificationTest() {
+    fun unicodeEmailNotification() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject \${data.text}", "Simple content \${data.text}", Arrays.asList("user@example.com"))
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject \${data.text}", "Simple content \${data.text}", Arrays.asList("user@example.com"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "ääkköset", ReplyMode.CUMULATIVE)
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "Правда.Ру", ReplyMode.CUMULATIVE)
                 mailgunMocker.verifyHtmlMessageSent("Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject ääkköset", "Simple content ääkköset")
@@ -160,11 +162,11 @@ class EmailNotificationTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testCreateEmailNotification() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                val createdEmailNotification: EmailNotification = testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject \${data.text}", "Simple content \${data.text}", Arrays.asList("user@example.com"), createFieldRule("field", "eq", "neq"))
-                val foundEmailNotification: EmailNotification = testBuilder.metaformAdmin.emailNotifications.findEmailNotification(metaform.id, createdEmailNotification.id!!)
+                val createdEmailNotification: EmailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject \${data.text}", "Simple content \${data.text}", Arrays.asList("user@example.com"), createFieldRule("field", "eq", "neq"))
+                val foundEmailNotification: EmailNotification = testBuilder.systemAdmin.emailNotifications.findEmailNotification(metaform.id, createdEmailNotification.id!!)
                 Assertions.assertEquals(createdEmailNotification.toString(), foundEmailNotification.toString())
             } finally {
                 stopMailgunMocker(mailgunMocker)
@@ -176,12 +178,12 @@ class EmailNotificationTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testListEmailNotifications() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                val notification1: EmailNotification = testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Subject 1", "Content 2", Arrays.asList("user@example.com"))
-                val notification2: EmailNotification = testBuilder.metaformAdmin.emailNotifications.createEmailNotification(metaform.id, "Subject 2", "Content 2", Arrays.asList("user@example.com"))
-                val list: List<EmailNotification> = testBuilder.metaformAdmin.emailNotifications.listEmailNotifications(metaform.id)
+                val notification1: EmailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Subject 1", "Content 2", Arrays.asList("user@example.com"))
+                val notification2: EmailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "Subject 2", "Content 2", Arrays.asList("user@example.com"))
+                val list: List<EmailNotification> = testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id)
                 Assertions.assertEquals(2, list.size)
                 val listNotification1 = list.firstOrNull { it.id == notification1.id }
                 val listNotification2 = list.firstOrNull { it.id == notification2.id }
@@ -193,6 +195,146 @@ class EmailNotificationTestsIT : AbstractTest() {
         }
     }
 
+
+    @Test
+    @Throws(Exception::class)
+    fun createEmailNotificationPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val mailgunMocker: MailgunMocker = startMailgunMocker()
+
+            try {
+                testBuilder.permissionTestByScopes(
+                    scope = PermissionScope.METAFORM_ADMIN,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.emailNotifications.createEmailNotification(
+                            metaformId = metaform.id!!,
+                            subjectTemplate = "Simple subject \${data.text}",
+                            contentTemplate ="Simple content \${data.text}",
+                            emails = listOf("user@example.com"),
+                            notifyIf = createFieldRule("field", "eq", "neq")
+                        )
+                    },
+                    metaformId = metaform.id
+                )
+            } finally {
+                stopMailgunMocker(mailgunMocker)
+            }
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findEmailNotificationPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val mailgunMocker: MailgunMocker = startMailgunMocker()
+
+            try {
+                val emailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(
+                    metaformId = metaform.id!!,
+                    subjectTemplate = "Simple subject \${data.text}",
+                    contentTemplate ="Simple content \${data.text}",
+                    emails = listOf("user@example.com"),
+                    notifyIf = createFieldRule("field", "eq", "neq")
+                )
+                testBuilder.permissionTestByScopes(
+                    scope = PermissionScope.METAFORM_ADMIN,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.emailNotifications.findEmailNotification(metaform.id, emailNotification.id!!)
+                    },
+                    metaformId = metaform.id
+                )
+            } finally {
+                stopMailgunMocker(mailgunMocker)
+            }
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun listEmailNotificationPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val mailgunMocker: MailgunMocker = startMailgunMocker()
+
+            try {
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(
+                    metaformId = metaform.id!!,
+                    subjectTemplate = "Simple subject \${data.text}",
+                    contentTemplate ="Simple content \${data.text}",
+                    emails = listOf("user@example.com"),
+                    notifyIf = createFieldRule("field", "eq", "neq")
+                )
+                testBuilder.permissionTestByScopes(
+                    scope = PermissionScope.METAFORM_ADMIN,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.emailNotifications.listEmailNotifications(metaform.id)
+                    },
+                    metaformId = metaform.id
+                )
+            } finally {
+                stopMailgunMocker(mailgunMocker)
+            }
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateEmailNotificationPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val mailgunMocker: MailgunMocker = startMailgunMocker()
+
+            try {
+                val emailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(
+                    metaformId = metaform.id!!,
+                    subjectTemplate = "Simple subject \${data.text}",
+                    contentTemplate ="Simple content \${data.text}",
+                    emails = listOf("user@example.com"),
+                    notifyIf = createFieldRule("field", "eq", "neq")
+                )
+                testBuilder.permissionTestByScopes(
+                    scope = PermissionScope.METAFORM_ADMIN,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.emailNotifications.updateEmailNotification(metaform.id, emailNotification.id!!, emailNotification)
+                    },
+                    metaformId = metaform.id
+                )
+            } finally {
+                stopMailgunMocker(mailgunMocker)
+            }
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteEmailNotificationPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val mailgunMocker: MailgunMocker = startMailgunMocker()
+
+            try {
+                testBuilder.permissionTestByScopes(
+                    scope = PermissionScope.METAFORM_ADMIN,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        val emailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(
+                            metaformId = metaform.id!!,
+                            subjectTemplate = "Simple subject \${data.text}",
+                            contentTemplate ="Simple content \${data.text}",
+                            emails = listOf("user@example.com"),
+                            notifyIf = createFieldRule("field", "eq", "neq")
+                        )
+                        authentication.emailNotifications.updateEmailNotification(metaform.id, emailNotification.id!!, emailNotification)
+                    },
+                    metaformId = metaform.id
+                )
+            } finally {
+                stopMailgunMocker(mailgunMocker)
+            }
+        }
+    }
+    
    /**
     * Creates a field rule
     *

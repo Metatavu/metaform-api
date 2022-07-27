@@ -37,7 +37,7 @@ class CreateRealmAuthorizations : AbstractAuthzCustomChange() {
     @Throws(CustomChangeException::class, KeycloakClientNotFoundException::class)
     private fun createRealmAuthorizations(realmName: String?) {
         try {
-            val adminClient = keycloakController.getAdminClient()
+            val adminClient = keycloakController.adminClient
             val keycloakClient = keycloakController.getKeycloakClient(adminClient)
             keycloakController.createAuthorizationScopes(adminClient, realmName, keycloakClient, AuthorizationScope.values().toList())
             val defaultPolicyId = keycloakController.getPolicyIdByName(adminClient, keycloakClient, "Default Policy")!!

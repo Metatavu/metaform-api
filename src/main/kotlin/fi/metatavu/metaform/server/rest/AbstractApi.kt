@@ -131,6 +131,16 @@ abstract class AbstractApi {
     }
 
     /**
+     * Creates user not own resource message
+     *
+     * @param target target
+     * @return not owned message
+     */
+    protected fun createNotOwnedMessage(target: String): String {
+        return "User do not own this $target"
+    }
+
+    /**
      * Creates not found message with given parameters
      *
      * @param target target of the find method
@@ -284,7 +294,7 @@ abstract class AbstractApi {
      * @param contentLength content length
      * @return Response
      */
-    fun streamResponse(type: String, inputStream: InputStream, contentLength: Int): Response {
+    private fun streamResponse(type: String, inputStream: InputStream, contentLength: Int): Response {
         return Response.ok(StreamingOutputImpl(inputStream), type)
                 .header("Content-Length", contentLength)
                 .build()
@@ -296,31 +306,67 @@ abstract class AbstractApi {
      * @return whether logged user is anonymous
      */
     protected val isAnonymous: Boolean
-        get() = !hasRealmRole(ANSWERER_ROLE, USER_ROLE, ADMIN_ROLE, SUPER_ROLE)
+        get() = !hasRealmRole(METAFORM_USER_ROLE, SYSTEM_ADMIN_ROLE)
 
     /**
-     * Returns whether logged user is realm user
+     * Returns whether logged user is realm user (system / metaform admins are all users)
      *
      * @return whether logged user is realm user
      */
-    protected val isRealmUser: Boolean
-        get() = hasRealmRole(USER_ROLE)
+    protected val isReamUser: Boolean
+        get() = hasRealmRole(METAFORM_USER_ROLE)
 
     /**
-     * Returns whether logged user is realm Metaform admin
+     * Returns whether logged user is realm system admin
      *
-     * @return whether logged user is realm Metaform admin
+     * @return whether logged user is system admin
      */
-    protected val isRealmMetaformAdmin: Boolean
-        get() = hasRealmRole(ADMIN_ROLE)
+    protected val isRealmSystemAdmin: Boolean
+        get() = hasRealmRole(SYSTEM_ADMIN_ROLE)
 
     /**
-     * Returns whether logged user is realm Metaform super
+     * Returns whether the logged user is metaform admin or with higher permission
      *
-     * @return whether logged user is realm Metaform super
+     * @return whether logged user is Metaform admin
      */
-    protected val isRealmMetaformSuper: Boolean
-        get() = hasRealmRole(SUPER_ROLE)
+    fun isMetaformAdmin(metaformId: UUID): Boolean {
+        if (isRealmSystemAdmin) return true
+        return keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)
+    }
+
+    /**
+     * Returns whether the logged user is any metaform admin or with higher permission
+     *
+     * @return whether logged user is any Metaform admin
+     */
+    val isMetaformAdminAny: Boolean
+        get() {
+            if (isRealmSystemAdmin) return true
+            return keycloakController.isMetaformAdminAny(loggedUserId!!)
+        }
+
+    /**
+     * Returns whether the logged user is metaform manager or with higher permission
+     *
+     * @return whether logged user is realm Metaform manager
+     */
+    fun isMetaformManager(metaformId: UUID): Boolean {
+        if (isRealmSystemAdmin) return true
+        if (keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) return true
+        return keycloakController.isMetaformManager(metaformId, loggedUserId!!)
+    }
+
+    /**
+     * Returns whether the logged user is any metaform manager or with higher permission
+     *
+     * @return whether logged user is any Metaform manager
+     */
+    val isMetaformManagerAny: Boolean
+        get() {
+            if (isRealmSystemAdmin) return true
+            if (keycloakController.isMetaformAdminAny(loggedUserId!!)) return true
+            return keycloakController.isMetaformManagerAny(loggedUserId!!)
+        }
 
     /**
      * Returns whether logged user has at least one of specified realm roles
@@ -353,7 +399,7 @@ abstract class AbstractApi {
      * @return whether given reply is permitted within given scope
      */
     fun isPermittedReply(reply: Reply?, ownerKey: String?, authorizationScope: AuthorizationScope): Boolean {
-        if (isRealmMetaformAdmin || isRealmMetaformSuper) {
+        if (isRealmSystemAdmin) {
             return true
         }
         if (reply?.resourceId == null) {
@@ -362,7 +408,7 @@ abstract class AbstractApi {
         if (replyController.isValidOwnerKey(reply, ownerKey)) {
             return true
         }
-        if (!isRealmUser) {
+        if (isAnonymous) {
             return false
         }
 
@@ -394,11 +440,8 @@ abstract class AbstractApi {
     }
 
     companion object {
-        const val USER_ROLE = "user"
-        const val ANSWERER_ROLE = "answerer"
-        const val ADMIN_ROLE = "metaform-admin"
-        const val SUPER_ROLE = "metaform-super"
-        const val VIEW_ALL_REPLIES_ROLE = "metaform-view-all-replies"
+        const val METAFORM_USER_ROLE = "metaform-user"
+        const val SYSTEM_ADMIN_ROLE = "metaform-admin"
         const val VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs"
         const val UNAUTHORIZED = "Unauthorized"
         const val LIST = "list"
@@ -411,16 +454,17 @@ abstract class AbstractApi {
         const val ADMIN_THEME = "admin theme"
         const val REPLY = "reply"
         const val SLUG = "slug"
-        const val LOGS = "logs"
         const val EXPORT_THEME = "export theme"
         const val EXPORT_THEME_FILE = "export theme file"
         const val ATTACHMENT = "attachment"
         const val REPLY_MODE = "reply mode"
         const val DRAFT = "draft"
+        const val AUDIT_LOG_ENTRY = "audit log entry"
+        const val METAFORM_MEMBER = "metaform member"
+        const val METAFORM_MEMBER_GROUP = "metaform member group"
         const val EMAIL_NOTIFICATION = "email notification"
         const val METAFORM_VERSION = "metaform version"
-        const val ANONYMOUS_USERS_MESSAGE = "Anonymous users are not allowed on this Metaform"
-        const val FAILED_TO_TRANSLATE_METAFORM = "Failed to translate metaform"
+        const val ANONYMOUS_USERS_METAFORM_MESSAGE = "Anonymous users are not allowed on this Metaform"
 
         private const val INTERNAL_SERVER_ERROR = "Internal Server Error"
     }

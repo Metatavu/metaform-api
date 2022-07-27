@@ -5,7 +5,9 @@ import fi.metatavu.metaform.api.client.models.Reply
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -42,7 +44,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createReplyNotLoggedIn() {
         TestBuilder().use { builder ->
-            val metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             RestAssured.given()
                     .baseUri(apiBasePath)
                     .header("Content-Type", "application/json")
@@ -57,12 +59,12 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createReply() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val reply: Reply = builder.test1.replies.createReplyWithData(replyData)
-            val reply1 = builder.metaformAdmin.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
-            val foundReply: Reply = builder.metaformAdmin.replies.findReply(metaform.id, reply1.id!!, null)
+            val reply1 = builder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
+            val foundReply: Reply = builder.systemAdmin.replies.findReply(metaform.id, reply1.id!!, null)
             Assertions.assertNotNull(foundReply)
             Assertions.assertNotNull(foundReply.id)
             Assertions.assertNotNull(foundReply.data)
@@ -74,30 +76,30 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createReplyUpdateExisting() {
         val builder = TestBuilder()
-        val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+        val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
         try {
             val replyData1: MutableMap<String, Any> = HashMap()
             replyData1["text"] = "Test text value"
-            val reply1: Reply = builder.metaformAdmin.replies.createReplyWithData(replyData1)
+            val reply1: Reply = builder.systemAdmin.replies.createReplyWithData(replyData1)
             val replyData2: MutableMap<String, Any> = HashMap()
             replyData2["text"] = "Updated text value"
-            val reply2: Reply = builder.metaformAdmin.replies.createReplyWithData(replyData2)
-            val createdReply1: Reply = builder.metaformAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
+            val reply2: Reply = builder.systemAdmin.replies.createReplyWithData(replyData2)
+            val createdReply1: Reply = builder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
             try {
                 Assertions.assertNotNull(createdReply1)
                 Assertions.assertNotNull(createdReply1.id)
                 Assertions.assertNotNull(createdReply1.data)
                 assertEquals("Test text value", createdReply1.data!!["text"])
-                val createdReply2: Reply = builder.metaformAdmin.replies.create(metaform.id, null, ReplyMode.UPDATE.toString(), reply2)
+                val createdReply2: Reply = builder.systemAdmin.replies.create(metaform.id, null, ReplyMode.UPDATE.toString(), reply2)
                 Assertions.assertNotNull(createdReply2)
                 assertEquals(createdReply1.id, createdReply2.id)
                 Assertions.assertNotNull(createdReply2.data)
                 assertEquals("Updated text value", createdReply2.data!!["text"])
             } finally {
-                builder.metaformAdmin.replies.delete(metaform.id, createdReply1.id!!, null)
+                builder.systemAdmin.replies.delete(metaform.id, createdReply1.id!!, null)
             }
         } finally {
-            builder.metaformAdmin.metaforms.delete(metaform.id!!)
+            builder.systemAdmin.metaforms.delete(metaform.id!!)
         }
     }
 
@@ -105,13 +107,13 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createReplyVersionExisting() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData1: MutableMap<String, Any> = HashMap()
             replyData1["text"] = "Test text value"
-            val reply1: Reply = builder.metaformAdmin.replies.createReplyWithData(replyData1)
+            val reply1: Reply = builder.systemAdmin.replies.createReplyWithData(replyData1)
             val replyData2: MutableMap<String, Any> = HashMap()
             replyData2["text"] = "Updated text value"
-            val reply2: Reply = builder.metaformAdmin.replies.createReplyWithData(replyData2)
+            val reply2: Reply = builder.systemAdmin.replies.createReplyWithData(replyData2)
             val createdReply1: Reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
             Assertions.assertNotNull(createdReply1)
             Assertions.assertNotNull(createdReply1.id)
@@ -135,7 +137,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createReplyCumulative() {
         TestBuilder().use { builder ->
-            val metaform: Metaform = builder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             Assertions.assertNotNull(metaform)
             builder.test1.replies.createSimpleReply(metaform.id!!, "val 1", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 2", ReplyMode.CUMULATIVE)
@@ -151,9 +153,57 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun testUpdateReply() {
+    fun createNotAllowAnonReplyPermission() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val reply: Reply = testBuilder.test2.replies.createReplyWithData(replyData)
+
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.USER,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
+                },
+                metaformName = "simple"
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun createAllowAnonReplyPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-allow-anonymous")
+
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val reply: Reply = testBuilder.test2.replies.createReplyWithData(replyData)
+
+            try {
+                testBuilder.permissionTestByScopes(
+                    scope = PermissionScope.ANONYMOUS,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
+                    },
+                    metaformName = "simple-allow-anonymous"
+                )
+            } finally {
+                val replies = testBuilder.systemAdmin.replies.listReplies(metaform.id!!)
+                replies.forEach {
+                    testBuilder.systemAdmin.replies.delete(metaform.id, it.id!!, null)
+                }
+            }
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateReply() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
             val updateData: MutableMap<String, Any> = HashMap()
             updateData["text"] = "Updated text value"
@@ -167,9 +217,30 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
+    fun updateReplyPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
+            val reply = testBuilder.test2.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.replies.updateReply(metaform.id, reply.id!!, reply, null)
+                },
+                metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun listRepliesByTextFields() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("tbnc")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
@@ -200,7 +271,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesByListFields() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("tbnc")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
@@ -231,7 +302,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesByNumberFields() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("tbnc")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
@@ -262,7 +333,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesByBooleanFields() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("tbnc")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
@@ -287,7 +358,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesByMultiFields() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("tbnc")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
@@ -336,7 +407,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesByCreatedBefore() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
             val reply3: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 3", ReplyMode.CUMULATIVE)
@@ -368,7 +439,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun listRepliesByModifiedBefore() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
             val reply3: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 3", ReplyMode.CUMULATIVE)
@@ -392,9 +463,30 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
+    fun listReplyPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
+            testBuilder.test2.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.ANONYMOUS,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.replies.listReplies(metaform.id)
+                },
+                metaformName = "simple"
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun testMetafields() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-meta")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-meta")
             val reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val parsedCreated = OffsetDateTime.parse(reply.createdAt)
             val parsedModified = OffsetDateTime.parse(reply.modifiedAt)
@@ -409,7 +501,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testFindReplyOwnerKeys() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-owner-keys")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
             Assertions.assertNotNull(reply1.ownerKey)
@@ -424,9 +516,30 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
+    fun findReplyPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
+            val reply = testBuilder.test2.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.replies.findReply(metaform.id, reply.id!!, null)
+                },
+                metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun testUpdateReplyOwnerKeys() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-owner-keys")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
             Assertions.assertNotNull(reply1.ownerKey)
@@ -443,7 +556,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testDeleteReplyOwnerKeys() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-owner-keys")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
             Assertions.assertNotNull(reply1.ownerKey)
@@ -459,17 +572,80 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
+    fun deleteReplyPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    val reply = testBuilder.test2.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+                    authentication.replies.findReply(metaform.id, reply.id!!, null)
+                },
+                metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun testExportReplyPdf() {
         TestBuilder().use { testBuilder ->
-            val exportTheme = testBuilder.metaformSuper.exportThemes.createSimpleExportTheme()
-            testBuilder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
-            val newMetaform = Metaform(metaform.id, metaform.replyStrategy, exportTheme.id, metaform.allowAnonymous,
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
                     metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
-            testBuilder.metaformAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
+            testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
             val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
-            assertPdfDownloadStatus(200, testBuilder.metaformAdmin.token, metaform, reply)
+            assertPdfDownloadStatus(200, testBuilder.systemAdmin.token, metaform, reply)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun exportReplyPermission() {
+        TestBuilder().use { testBuilder ->
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
+                metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
+                metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
+            testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
+            val replyData: MutableMap<String, Any> = HashMap()
+            replyData["text"] = "Test text value"
+            val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
+            val reply = testBuilder.test2.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.replies.exportReply(metaform.id, reply.id!!)
+                },
+                metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun exportPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.replies.export(metaform.id!!)
+                },
+                metaformId = metaform.id
+            )
         }
     }
 
@@ -477,15 +653,32 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testExportReplyPdfFilesEmpty() {
         TestBuilder().use { testBuilder ->
-            val exportTheme = testBuilder.metaformSuper.exportThemes.createSimpleExportTheme()
-            testBuilder.metaformSuper.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple-files")
-            val newMetaform = Metaform(metaform.id, metaform.replyStrategy, exportTheme.id, metaform.allowAnonymous,
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-files")
+            val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
                     metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
-            testBuilder.metaformAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
+            testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
             val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
-            assertPdfDownloadStatus(200, testBuilder.metaformAdmin.token, metaform, reply)
+            assertPdfDownloadStatus(200, testBuilder.systemAdmin.token, metaform, reply)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testAnonymousUpdateReplyOwnerKey() {
+        TestBuilder().use { testBuilder ->
+            val metaform1: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
+            val metaform2: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
+            val reply1: Reply = testBuilder.systemAdmin.replies.createSimpleReply(metaform1.id!!, "TEST", ReplyMode.REVISION)
+            val reply2: Reply = testBuilder.systemAdmin.replies.createSimpleReply(metaform1.id, "TEST", ReplyMode.REVISION)
+            testBuilder.anon.replies.updateReply(metaform1.id, reply1.id!!, reply1, reply1.ownerKey)
+            testBuilder.anon.replies.assertUpdateFailStatus(404, metaform2.id!!, reply1, reply1.ownerKey)
+            testBuilder.anon.replies.assertUpdateFailStatus(404, metaform2.id, reply1, null)
+            testBuilder.anon.replies.assertUpdateFailStatus(403, metaform1.id, reply2, reply1.ownerKey)
+            testBuilder.anon.replies.assertUpdateFailStatus(403, metaform1.id, reply1, reply2.ownerKey)
+            testBuilder.anon.replies.assertUpdateFailStatus(403, metaform1.id, reply1, null)
         }
     }
 
@@ -493,7 +686,7 @@ class ReplyTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testReplyPagination() {
         TestBuilder().use { testBuilder ->
-            val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             // dont need to save the replies to a variable
             testBuilder.test1.replies.createSimpleReply(metaform.id!!, "pagination-test-1", ReplyMode.CUMULATIVE)
             testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-2", ReplyMode.CUMULATIVE)

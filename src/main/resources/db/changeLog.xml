@@ -536,4 +536,10 @@
     </createTable>
   </changeSet>
 
+    <changeSet id="metaform-visibility" author="Tianxing">
+      <addColumn tableName="metaform">
+        <column name="visibility" type="varchar(16)"/>
+      </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

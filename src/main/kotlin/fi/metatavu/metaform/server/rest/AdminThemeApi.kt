@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest
 import fi.metatavu.metaform.api.spec.model.AdminTheme
 import fi.metatavu.metaform.server.controllers.AdminThemeController
 import fi.metatavu.metaform.server.exceptions.MalformedAdminThemeDataException
+import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.rest.translate.AdminThemeTranslator
 import java.util.UUID
 import javax.enterprise.context.RequestScoped
@@ -19,24 +20,17 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
     @Inject
     lateinit var adminThemeTranslator: AdminThemeTranslator
 
-    /***
-     * Creates a new admin theme
-     * 
-     * @param adminTheme admin theme to create
-     * 
-     * @return created admin theme
-     */
     override suspend fun createAdminTheme(adminTheme: AdminTheme): Response {
         val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmMetaformAdmin) {
+        if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
         adminTheme.slug?.let{ slug ->
-            if (!adminThemeController.validateSlug(slug)) {
-                return createConflict(createInvalidMessage(SLUG))
-              } else if (!adminThemeController.isSlugUnique(null, slug)) {
-                return createConflict(createDuplicatedMessage(SLUG))
+            when (adminThemeController.validateSlug(null, slug)) {
+                SlugValidation.INVALID -> return createConflict(createInvalidMessage(SLUG))
+                SlugValidation.DUPLICATED -> return createConflict(createDuplicatedMessage(SLUG))
+                else -> return@let
             }
         }
 
@@ -63,16 +57,9 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(translatedTheme)
     }
 
-    /**
-     * Deletes an admin theme
-     * 
-     * @param themeId admin theme id
-     * 
-     * @return deleted admin theme
-     */
     override suspend fun deleteAdminTheme(themeId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmMetaformAdmin) {
+        if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
@@ -81,16 +68,9 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createNoContent()
     }
 
-    /**
-     * Finds admin theme by id
-     * 
-     * @param themeId admin theme id
-     * 
-     * @return admin theme
-     */
     override suspend fun findAdminTheme(themeId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmMetaformAdmin) {
+        if (!isMetaformManagerAny) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
@@ -104,14 +84,9 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(translatedTheme)
     }
 
-    /**
-     * Lists admin themes
-     * 
-     * @return admin themes
-     */
     override suspend fun listAdminTheme(): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmMetaformAdmin) {
+        if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
@@ -124,27 +99,19 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(translatedThemes)
     }
 
-    /**
-     * Updates an admin theme
-     * 
-     * @param themeId admin theme id
-     * @param adminTheme data to update with
-     * 
-     * @return updated admin theme
-     */
     override suspend fun updateAdminTheme(themeId: UUID, adminTheme: AdminTheme): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmMetaformAdmin) {
+        if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
         val foundAdminTheme = adminThemeController.findById(themeId) ?: return createNotFound(createNotFoundMessage(ADMIN_THEME, themeId))
 
         adminTheme.slug?.let{ slug ->
-            if (!adminThemeController.validateSlug(slug)) {
-                return createConflict(createInvalidMessage(SLUG))
-            } else if (!adminThemeController.isSlugUnique(themeId, slug)) {
-                return createConflict(createDuplicatedMessage(SLUG))
+            when (adminThemeController.validateSlug(themeId, slug)) {
+                SlugValidation.INVALID -> return createConflict(createInvalidMessage(SLUG))
+                SlugValidation.DUPLICATED -> return createConflict(createDuplicatedMessage(SLUG))
+                else -> adminTheme.slug
             }
         }
 
@@ -158,7 +125,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
             foundAdminTheme,
             serializedDraftData,
             adminTheme.name,
-            adminTheme.slug
+            adminTheme.slug ?: foundAdminTheme.slug
         )
 
         val translatedTheme = try {

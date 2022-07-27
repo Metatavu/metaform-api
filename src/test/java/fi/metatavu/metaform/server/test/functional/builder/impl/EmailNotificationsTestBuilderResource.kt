@@ -8,7 +8,6 @@ import fi.metatavu.metaform.api.client.models.EmailNotification
 import fi.metatavu.metaform.api.client.models.FieldRule
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.metaform.server.test.functional.builder.impl.ApiTestBuilderResource
 import java.io.IOException
 import java.util.*
 
@@ -76,6 +75,19 @@ class EmailNotificationsTestBuilderResource(
     @Throws(IOException::class)
     fun findEmailNotification(metaformId: UUID, emailNotId: UUID): EmailNotification {
         return api.findEmailNotification(metaformId, emailNotId)
+    }
+
+    /**
+     * Updates email notification
+     *
+     * @param metaformId metaform id
+     * @param emailNotId notification id
+     * @param emailNotification email notification
+     * @return updated email notification
+     */
+    @Throws(IOException::class)
+    fun updateEmailNotification(metaformId: UUID, emailNotId: UUID, emailNotification: EmailNotification): EmailNotification {
+        return api.updateEmailNotification(metaformId, emailNotId, emailNotification)
     }
 
     /**

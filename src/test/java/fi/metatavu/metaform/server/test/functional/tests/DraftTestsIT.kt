@@ -3,7 +3,9 @@ package fi.metatavu.metaform.server.test.functional.tests
 import fi.metatavu.metaform.api.client.models.Draft
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.server.test.functional.AbstractTest
+import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -26,7 +28,7 @@ class DraftTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createDraft() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val draftData: MutableMap<String, Any> = HashMap()
             draftData["text"] = "draft value"
             val createdDraft: Draft = testBuilder.test1.drafts.createDraft(metaform, draftData)
@@ -44,7 +46,7 @@ class DraftTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun updateDraft() {
         TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val draftData: MutableMap<String, Any> = HashMap()
             draftData["text"] = "draft value"
             val createdDraft: Draft = testBuilder.test1.drafts.createDraft(metaform, draftData)
@@ -61,6 +63,78 @@ class DraftTestsIT : AbstractTest() {
             Assertions.assertNotNull(foundDraft)
             Assertions.assertEquals(updateDraft.id, foundDraft.id)
             Assertions.assertEquals(updateDraft.data["text"], foundDraft.data["text"])
+        }
+    }
+
+
+    @Test
+    @Throws(Exception::class)
+    fun createDraftPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.USER,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    val draftData: MutableMap<String, Any> = HashMap()
+                    draftData["text"] = "draft value"
+                    authentication.drafts.createDraft(metaform, draftData)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findDraftPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.USER,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    val draftData: MutableMap<String, Any> = HashMap()
+                    draftData["text"] = "draft value"
+                    val draft = authentication.drafts.createDraft(metaform, draftData)
+                    authentication.drafts.findDraft(metaform.id!!, draft.id!!)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateDraftPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.USER,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    val draftData: MutableMap<String, Any> = HashMap()
+                    draftData["text"] = "draft value"
+                    val draft = authentication.drafts.createDraft(metaform, draftData)
+                    authentication.drafts.updateDraft(metaform.id!!, draft.id!!, draft)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteDraftPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.USER,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    val draftData: MutableMap<String, Any> = HashMap()
+                    draftData["text"] = "draft value"
+                    val draft = authentication.drafts.createDraft(metaform, draftData)
+                    authentication.drafts.deleteDraft(metaform.id!!, draft.id!!)
+                }
+            )
         }
     }
 }
