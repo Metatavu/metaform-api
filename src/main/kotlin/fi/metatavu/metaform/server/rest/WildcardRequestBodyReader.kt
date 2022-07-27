@@ -1,12 +1,10 @@
 package fi.metatavu.metaform.server.rest
 
-import org.slf4j.Logger
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.lang.reflect.Type
-import javax.inject.Inject
 import javax.ws.rs.Consumes
 import javax.ws.rs.WebApplicationException
 import javax.ws.rs.core.MediaType
@@ -17,9 +15,6 @@ import javax.ws.rs.ext.Provider
 @Provider
 @Consumes("*/*")
 class MyRequestBodyReader : MessageBodyReader<String?> {
-
-    @Inject
-    lateinit var logger: Logger
 
     override fun isReadable(
         type: Class<*>,
@@ -39,9 +34,6 @@ class MyRequestBodyReader : MessageBodyReader<String?> {
         httpHeaders: MultivaluedMap<String, String>,
         entityStream: InputStream
     ): String? {
-        logger.info("readFrom")
-        logger.info(String.format("entityStream.toString(): %s", entityStream.toString()))
-
         BufferedReader(InputStreamReader(entityStream)).use { br ->
             return br.readLine()
         }
