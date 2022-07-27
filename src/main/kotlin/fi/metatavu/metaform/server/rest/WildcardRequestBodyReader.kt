@@ -14,7 +14,7 @@ import javax.ws.rs.ext.Provider
 
 @Provider
 @Consumes("*/*")
-class MyRequestBodyReader : MessageBodyReader<String?> {
+class WildcardRequestBodyReader : MessageBodyReader<String?> {
 
     override fun isReadable(
         type: Class<*>,
