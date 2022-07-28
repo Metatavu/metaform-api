@@ -159,7 +159,7 @@ abstract class AbstractApi {
      * @return not found message
      */
     protected fun createNotFoundMessage(target: String, slug: String): String {
-        return "$target with ID $slug could not be found"
+        return "$target with slug $slug could not be found"
     }
 
     /**
