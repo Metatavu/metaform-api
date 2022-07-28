@@ -17,10 +17,10 @@ import javax.ws.rs.ext.Provider
 class WildcardRequestBodyReader : MessageBodyReader<String?> {
 
     override fun isReadable(
-        type: Class<*>,
-        genericType: Type,
-        annotations: Array<Annotation>,
-        mediaType: MediaType
+        type: Class<*>?,
+        genericType: Type?,
+        annotations: Array<Annotation>?,
+        mediaType: MediaType?
     ): Boolean {
         return true
     }
@@ -28,14 +28,17 @@ class WildcardRequestBodyReader : MessageBodyReader<String?> {
     @Throws(IOException::class, WebApplicationException::class)
     override fun readFrom(
         type: Class<String?>,
-        genericType: Type,
-        annotations: Array<Annotation>,
-        mediaType: MediaType,
+        genericType: Type?,
+        annotations: Array<Annotation>?,
+        mediaType: MediaType?,
         httpHeaders: MultivaluedMap<String, String>,
-        entityStream: InputStream
+        entityStream: InputStream?
     ): String? {
-        BufferedReader(InputStreamReader(entityStream)).use { br ->
-            return br.readLine()
+        entityStream?.let { InputStreamReader(it) }?.let {
+            BufferedReader(it).use { br ->
+                return br.readLine()
+            }
         }
+        return null
     }
 }

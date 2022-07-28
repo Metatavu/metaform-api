@@ -198,6 +198,7 @@ class MetaformTestsIT : AbstractTest() {
 
             builder.systemAdmin.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
             builder.systemAdmin.metaforms.assertCount(1, MetaformVisibility.pRIVATE)
+            builder.anon.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
         }
     }
 
@@ -241,7 +242,7 @@ class MetaformTestsIT : AbstractTest() {
             val updatedMetaform = builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updatePayload!!)
 
             assertEquals(metaform.id, updatedMetaform.id)
-            assertEquals(MetaformVisibility.pUBLIC, updatedMetaform.visibility)
+            assertEquals(MetaformVisibility.pRIVATE, updatedMetaform.visibility)
             assertEquals(1, updatedMetaform.sections!!.size)
             assertEquals("Text, boolean, number, checklist form", updatedMetaform.sections[0].title)
             assertEquals(4, updatedMetaform.sections[0].fields!!.size)
