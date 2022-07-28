@@ -108,7 +108,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val metaform = metaformController.findMetaformBySlug(metaformSlug)
-      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformSlug))
+      ?: return createNotFound(createSlugNotFoundMessage(METAFORM, metaformSlug))
 
     val translatedMetaform = try {
       metaformTranslator.translate(metaform)
