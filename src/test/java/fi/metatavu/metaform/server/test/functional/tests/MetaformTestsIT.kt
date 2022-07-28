@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.util.*
 
 /**
  * Tests for Metaforms functionality
@@ -135,6 +136,25 @@ class MetaformTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
+    fun testFindMetaformBySlug() {
+        TestBuilder().use { builder ->
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val foundMetaform: Metaform = builder.systemAdmin.metaforms.findMetaformBySlug(metaform.slug!!)
+            assertEquals(metaform.toString(), foundMetaform.toString())
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testFindMetaformNotFound() {
+        TestBuilder().use { builder ->
+            builder.systemAdmin.metaforms.assertFindFailStatus(404, UUID.randomUUID())
+            builder.systemAdmin.metaforms.assertFindFailStatus(404, "")
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun findMetaformPublicPermission() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
@@ -144,6 +164,37 @@ class MetaformTestsIT : AbstractTest() {
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
                     authentication.metaforms.findMetaform(metaform.id!!, null, null)
                 },
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findMetaformBySlugPublicPermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.ANONYMOUS,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.metaforms.findMetaformBySlug(metaform.slug!!)
+                }
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun findMetaformBySlugPrivatePermission() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_MANAGER,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.metaforms.findMetaformBySlug(metaform.slug!!)
+                },
+                metaformId = metaform.id
             )
         }
     }

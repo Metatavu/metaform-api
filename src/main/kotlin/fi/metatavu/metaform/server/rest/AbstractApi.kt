@@ -152,6 +152,17 @@ abstract class AbstractApi {
     }
 
     /**
+     * Creates not found message with given parameters
+     *
+     * @param target target of the find method
+     * @param slug metaform slug
+     * @return not found message
+     */
+    protected fun createNotFoundMessage(target: String, slug: String): String {
+        return "$target with ID $slug could not be found"
+    }
+
+    /**
      * Creates invalid message with given parameters
      *
      * @param target target of the find method

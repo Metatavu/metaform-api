@@ -60,6 +60,17 @@ class MetaformTestBuilderResource(
     }
 
     /**
+     * Finds a metaform by slug
+     *
+     * @param metaformSlug metaform slug
+     * @return found metaform
+     */
+    @Throws(IOException::class)
+    fun findMetaformBySlug(metaformSlug: String): Metaform {
+        return api.findMetaformBySlug(metaformSlug)
+    }
+
+    /**
      * Updates a metaform into the API
      *
      * @param body body payload
@@ -118,6 +129,23 @@ class MetaformTestBuilderResource(
     fun assertFindFailStatus(expectedStatus: Int, metaformId: UUID, replyId: UUID? = null, ownerKey: String? = null) {
         try {
             api.findMetaform(metaformId, replyId, ownerKey)
+            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param slug       metaform slug
+     */
+    @JvmOverloads
+    @Throws(IOException::class)
+    fun assertFindFailStatus(expectedStatus: Int, slug: String) {
+        try {
+            api.findMetaformBySlug(slug)
             Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())

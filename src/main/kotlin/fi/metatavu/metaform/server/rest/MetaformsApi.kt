@@ -15,6 +15,10 @@ import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.Transactional
+import javax.ws.rs.GET
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
+import javax.ws.rs.Produces
 import javax.ws.rs.core.Response
 
 @RequestScoped
@@ -100,7 +104,38 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     return createNoContent()
   }
 
-  override suspend fun findMetaform(metaformId: UUID, replyId: UUID?, ownerKey: String?): Response {
+  override suspend fun findMetaformBySlug(metaformSlug: String): Response {
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    val metaform = metaformController.findMetaformBySlug(metaformSlug)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformSlug))
+
+    val translatedMetaform = try {
+      metaformTranslator.translate(metaform)
+    } catch (e: MalformedMetaformJsonException) {
+      createInternalServerError(e.message)
+    }
+
+    return when (metaform.visibility!!) {
+      MetaformVisibility.PUBLIC -> {
+        try {
+          createOk(translatedMetaform)
+        } catch (e: MalformedMetaformJsonException) {
+          createInternalServerError(e.message)
+        }
+      }
+      MetaformVisibility.PRIVATE -> {
+        if (isMetaformManager(metaform.id!!)) {
+          createOk(translatedMetaform)
+        }
+        else {
+          createForbidden(createNotAllowedMessage(FIND, METAFORM))
+        }
+      }
+    }
+  }
+
+   override suspend fun findMetaform(metaformId: UUID, replyId: UUID?, ownerKey: String?): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val reply: Reply? = if (replyId != null) replyController.findReplyById(replyId) else null
