@@ -101,6 +101,16 @@ class MetaformController {
     }
 
     /**
+     * Finds Metaform by slug
+     *
+     * @param slug Metaform id
+     * @return Metaform
+     */
+    fun findMetaformBySlug(slug: String): Metaform? {
+        return metaformDAO.findBySlug(slug)
+    }
+
+    /**
      * Lists Metaforms
      *
      * @return list of Metaforms

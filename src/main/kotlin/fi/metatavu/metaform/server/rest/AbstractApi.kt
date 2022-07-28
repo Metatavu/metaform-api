@@ -152,6 +152,17 @@ abstract class AbstractApi {
     }
 
     /**
+     * Creates slug not found message with given parameters
+     *
+     * @param target target of the find method
+     * @param slug slug
+     * @return not found message
+     */
+    protected fun createSlugNotFoundMessage(target: String, slug: String): String {
+        return "$target with slug $slug could not be found"
+    }
+
+    /**
      * Creates invalid message with given parameters
      *
      * @param target target of the find method
@@ -164,7 +175,7 @@ abstract class AbstractApi {
     /**
      * Constructs internal server error response
      *
-     * @param message message
+     * @param target target
      * @return not belong message
      */
     protected fun createNotBelongMessage(target: String): String {
