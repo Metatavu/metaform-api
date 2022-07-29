@@ -360,9 +360,13 @@ class ReplyController {
             modifiedAfter: OffsetDateTime? = null,
             includeRevisions: Boolean,
             fieldFilters: FieldFilters? = null,
-            orderBy: ReplyOrderCriteria? = null,
-            rate: OrderRate? = null
+            _orderBy: ReplyOrderCriteria? = null,
+            _latestFirst: Boolean? = null
     ): List<Reply> {
+        // mimic the original behavior if none is supplied
+        val orderBy = _orderBy ?: ReplyOrderCriteria.CREATED
+        val latestFirst = _latestFirst ?: false
+
         return replyDAO.list(
                 metaform,
                 userId,
@@ -373,7 +377,7 @@ class ReplyController {
                 modifiedAfter,
                 fieldFilters,
                 orderBy,
-                rate
+                latestFirst
         )
     }
 

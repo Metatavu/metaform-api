@@ -125,8 +125,8 @@ class ReplyDAO : AbstractDAO<Reply>() {
     modifiedBefore: OffsetDateTime?,
     modifiedAfter: OffsetDateTime?,
     fieldFilters: FieldFilters?,
-    orderBy: ReplyOrderCriteria?,
-    rate: OrderRate?
+    orderBy: ReplyOrderCriteria,
+    latestFirst: Boolean
   ): List<Reply> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
@@ -173,21 +173,18 @@ class ReplyDAO : AbstractDAO<Reply>() {
       )
     }
 
-    if (orderBy != null) {
-      val attr = root.get(when (orderBy) {
-        // for some reason swagger strips DATE_
-        ReplyOrderCriteria.CREATED -> Reply_.createdAt
-        ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
-      })
+    val attr = root.get(when (orderBy) {
+      ReplyOrderCriteria.CREATED -> Reply_.createdAt
+      ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
+    })
 
-      // we can trust that rate is also not null, because the API complains if orderBy is given when rate isn't
-      criteria.orderBy(when (rate!!) {
-        OrderRate.ASCENDING -> criteriaBuilder.asc(attr)
-        OrderRate.DESCENDING -> criteriaBuilder.desc(attr)
-      })
-    }
+    criteria.orderBy(if (!latestFirst) {
+      criteriaBuilder.asc(attr)
+    } else {
+      criteriaBuilder.desc(attr)
+    })
 
-    fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
+    fieldFilters?.filters?.stream()?.forEach { fieldFilter: FieldFilter ->
       val valuePredicate =
         getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
       if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
@@ -203,10 +200,10 @@ class ReplyDAO : AbstractDAO<Reply>() {
       } else {
         restrictions.add(valuePredicate)
       }
-    })
+    }
+
     criteria.select(root)
     criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
-    criteria.orderBy(criteriaBuilder.asc(root.get(Reply_.createdAt)))
     val query: TypedQuery<Reply> = entityManager.createQuery(criteria)
     return query.resultList
   }

@@ -100,9 +100,9 @@ class ReplyTestBuilderResource(
             firstResult: Int?,
             maxResults: Int?,
             orderBy: ReplyOrderCriteria?,
-            rate: OrderRate?
+            latestFirst: Boolean?
     ): Array<Reply> {
-        return api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, rate)
+        return api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, latestFirst)
     }
 
     /**
@@ -230,18 +230,18 @@ class ReplyTestBuilderResource(
      * @param firstResult      First index of results to be returned (optional)
      * @param maxResults       How many items to return at one time (optional)
      * @param orderBy          Criteria to order by
-     * @param rate             Rate to order criteria in
+     * @param latestFirst      Whether to show latest result first or not
      */
     @Throws(IOException::class)
-    fun assertCount(expected: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?, orderBy: ReplyOrderCriteria?, rate: OrderRate?) {
-        Assert.assertEquals(expected.toLong(), api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, rate).size.toLong())
+    fun assertCount(expected: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?, orderBy: ReplyOrderCriteria?, latestFirst: Boolean?) {
+        Assert.assertEquals(expected.toLong(), api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, latestFirst).size.toLong())
     }
 
     /**
      * Asserts create simple reply status fails with given status code
      *
      * @param expectedStatus expected status code
-     * @param metaform id       metaform id
+     * @param metaformId     metaform id
      * @param value          value
      * @param replyMode      replyMode
      */
@@ -343,12 +343,12 @@ class ReplyTestBuilderResource(
      * @param firstResult      First index of results to be returned (optional)
      * @param maxResults       How many items to return at one time (optional)
      * @param orderBy          Criteria to order by
-     * @param rate             Rate to order criteria in
+     * @param latestFirst      Whether to show latest result first or not
      */
     @Throws(IOException::class)
-    fun assertListFailStatus(expectedStatus: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?, orderBy: ReplyOrderCriteria?, rate: OrderRate?) {
+    fun assertListFailStatus(expectedStatus: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?, orderBy: ReplyOrderCriteria?, latestFirst: Boolean?) {
         try {
-            api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, rate)
+            api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, latestFirst)
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())

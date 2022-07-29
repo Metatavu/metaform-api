@@ -493,22 +493,37 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun testReplyOrdering() {
+    fun testReplyOrderingCreated() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.metaformAdmin.metaforms.createFromJsonFile("simple")
             val r1 = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "ordering-test-1", ReplyMode.CUMULATIVE)
             val r2 = testBuilder.test1.replies.createSimpleReply(metaform.id, "ordering-test-2", ReplyMode.CUMULATIVE)
             val r3 = testBuilder.test1.replies.createSimpleReply(metaform.id, "ordering-test-3", ReplyMode.CUMULATIVE)
-            println(metaform.id)
+
+            var replies = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null, ReplyOrderCriteria.cREATED, true)
+            println(replies.map { it.createdAt })
+            assertEquals(replies[0].data!!["text"], "ordering-test-3")
+            assertEquals(replies[1].data!!["text"], "ordering-test-2")
+            assertEquals(replies[2].data!!["text"], "ordering-test-1")
+
             // reorder them by date [1, 2, 3] -> [2, 3, 1]
             updateReplyCreated(r1, getOffsetDateTime(1978, 11, 12, TIMEZONE))
             updateReplyCreated(r3, getOffsetDateTime(1867, 12, 8, TIMEZONE))
             updateReplyCreated(r2, getOffsetDateTime(1582, 9, 2, TIMEZONE))
 
-            val replies = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null, ReplyOrderCriteria.cREATED, OrderRate.aSCENDING)
+            replies = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null, ReplyOrderCriteria.cREATED, false)
             assertEquals(replies[0].data!!["text"], "ordering-test-2")
             assertEquals(replies[1].data!!["text"], "ordering-test-3")
             assertEquals(replies[2].data!!["text"], "ordering-test-1")
+
+            updateReplyModified(r1, getOffsetDateTime(2024, 2, 2, TIMEZONE))
+            updateReplyModified(r2, getOffsetDateTime(2023, 2, 2, TIMEZONE))
+            updateReplyModified(r3, getOffsetDateTime(2022, 2, 2, TIMEZONE))
+
+            replies = testBuilder.test1.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null, ReplyOrderCriteria.mODIFIED, true)
+            assertEquals(replies[0].data!!["text"], "ordering-test-1")
+            assertEquals(replies[1].data!!["text"], "ordering-test-2")
+            assertEquals(replies[2].data!!["text"], "ordering-test-3")
         }
     }
 

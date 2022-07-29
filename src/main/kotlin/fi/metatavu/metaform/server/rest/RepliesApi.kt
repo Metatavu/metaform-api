@@ -321,14 +321,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     firstResult: Int?,
     maxResults: Int?,
     orderBy: ReplyOrderCriteria?,
-    rate: OrderRate?
+    latestFirst: Boolean?
   ): Response {
     val auditLogUser = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (orderBy != null) {
-      if (rate == null) {
-        return createBadRequest("Must provide a rate to order by")
-      }
+    if (orderBy != null && latestFirst == null) {
+      return createBadRequest("must supply both orderBy and latestFirst")
     }
 
     if (firstResult != null) {
@@ -366,7 +364,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             includeRevisions != null && includeRevisions,
             fieldFilters,
             orderBy,
-            rate)
+            latestFirst)
 
     replies.forEach { reply -> auditLogEntryController.generateAuditLog(
             metaform = metaform,
