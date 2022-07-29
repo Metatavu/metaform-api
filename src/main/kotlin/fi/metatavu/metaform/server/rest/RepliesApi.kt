@@ -339,7 +339,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     includeRevisions: Boolean?,
     fields: List<String>?,
     firstResult: Int?,
-    maxResults: Int?
+    maxResults: Int?,
+    orderBy: ReplyOrderCriteria?,
+    latestFirst: Boolean?
   ): Response {
     val auditLogUser = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -369,7 +371,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       includeRevisions = includeRevisions != null && includeRevisions,
       fieldFilters = fieldFilters,
       firstResult = firstResult,
-      maxResults = maxResults
+      maxResults = maxResults,
+      orderBy = orderBy,
+      latestFirst = latestFirst
     )
 
     replies.forEach { reply -> auditLogEntryController.generateAuditLog(

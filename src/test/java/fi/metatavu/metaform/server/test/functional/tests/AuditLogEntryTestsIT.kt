@@ -38,7 +38,7 @@ class AuditLogEntryTestsIT : AbstractTest() {
             val createdReply: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply: Reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), createdReply)
             builder.test1.replies.findReply(metaform.id, reply.id!!, null)
-            builder.test1.replies.listReplies(metaform.id, null, null, null, null, null, true, null, null, null)
+            builder.test1.replies.listReplies(metaform.id, null, null, null, null, null, true, null, null, null, null, null)
             builder.test1.replies.updateReply(metaform.id, reply.id, reply, reply.ownerKey)
             builder.test1.replies.delete(metaform.id, reply.id, reply.ownerKey)
             val auditLogEntries: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, reply.id, null, null)
