@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.persistence.dao
 
+import fi.metatavu.metaform.api.spec.model.ReplyOrderCriteria
 import fi.metatavu.metaform.server.metaform.FieldFilter
 import fi.metatavu.metaform.server.metaform.FieldFilterOperator
 import fi.metatavu.metaform.server.metaform.FieldFilters
@@ -112,6 +113,8 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param modifiedBefore filter results by modified before specified time.
    * @param modifiedAfter filter results by modified after specified time.
    * @param fieldFilters field filters
+   * @param orderBy criteria to order by
+   * @param latestFirst return the latest result first according to the criteria in orderBy
    * @return replies list of replies
    */
   fun list(
@@ -124,7 +127,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
     modifiedAfter: OffsetDateTime?,
     fieldFilters: FieldFilters?,
     firstResult: Int?,
-    maxResults: Int?
+    maxResults: Int?,
+    orderBy: ReplyOrderCriteria,
+    latestFirst: Boolean
   ): List<Reply> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
@@ -170,6 +175,18 @@ class ReplyDAO : AbstractDAO<Reply>() {
         )
       )
     }
+
+    val attr = root.get(when (orderBy) {
+      ReplyOrderCriteria.CREATED -> Reply_.createdAt
+      ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
+    })
+
+    criteria.orderBy(if (latestFirst) {
+      criteriaBuilder.desc(attr)
+    } else {
+      criteriaBuilder.asc(attr)
+    })
+
     fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
       val valuePredicate =
         getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
@@ -189,7 +206,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
     })
     criteria.select(root)
     criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
-    criteria.orderBy(criteriaBuilder.asc(root.get(Reply_.createdAt)))
     val query = entityManager.createQuery(criteria)
 
     if (firstResult != null) {

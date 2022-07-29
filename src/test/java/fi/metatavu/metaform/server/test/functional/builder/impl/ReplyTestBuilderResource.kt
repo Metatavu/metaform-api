@@ -6,6 +6,7 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.Reply
+import fi.metatavu.metaform.api.client.models.ReplyOrderCriteria
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
@@ -119,9 +120,11 @@ class ReplyTestBuilderResource(
             includeRevisions: Boolean?,
             fields: Array<String>?,
             firstResult: Int?,
-            maxResults: Int?
+            maxResults: Int?,
+            orderBy: ReplyOrderCriteria?,
+            latestFirst: Boolean?
     ): Array<Reply> {
-        return api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults)
+        return api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, orderBy, latestFirst)
     }
 
     /**
@@ -132,7 +135,7 @@ class ReplyTestBuilderResource(
      */
     @Throws(IOException::class)
     fun listReplies(metaformId: UUID): Array<Reply> {
-        return api.listReplies(metaformId, null, null, null, null, null, null, null, null, null)
+        return api.listReplies(metaformId, null, null, null, null, null, null, null, null, null, null, null)
     }
 
     /**
@@ -251,7 +254,7 @@ class ReplyTestBuilderResource(
      */
     @Throws(IOException::class)
     fun assertCount(expected: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?) {
-        Assert.assertEquals(expected.toLong(), api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults).size.toLong())
+        Assert.assertEquals(expected.toLong(), api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, null, null).size.toLong())
     }
 
     /**
@@ -359,11 +362,13 @@ class ReplyTestBuilderResource(
      * @param fields           Filter results by field values. Format is field:value, multiple values can be added by using comma separator. E.g. field1&#x3D;value,field2&#x3D;another (optional)
      * @param firstResult      First index of results to be returned (optional)
      * @param maxResults       How many items to return at one time (optional)
+     * @param orderBy criteria to order by
+     * @param latestFirst return the latest result first according to the criteria in orderBy
      */
     @Throws(IOException::class)
     fun assertListFailStatus(expectedStatus: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?) {
         try {
-            api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults)
+            api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, null, null)
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
