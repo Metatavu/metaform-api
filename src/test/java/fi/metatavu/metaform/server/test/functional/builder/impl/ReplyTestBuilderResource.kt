@@ -362,6 +362,8 @@ class ReplyTestBuilderResource(
      * @param fields           Filter results by field values. Format is field:value, multiple values can be added by using comma separator. E.g. field1&#x3D;value,field2&#x3D;another (optional)
      * @param firstResult      First index of results to be returned (optional)
      * @param maxResults       How many items to return at one time (optional)
+     * @param orderBy criteria to order by
+     * @param latestFirst return the latest result first according to the criteria in orderBy
      */
     @Throws(IOException::class)
     fun assertListFailStatus(expectedStatus: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?) {

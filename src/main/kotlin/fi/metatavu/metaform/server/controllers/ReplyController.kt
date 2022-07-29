@@ -349,6 +349,8 @@ class ReplyController {
      * @param modifiedBefore filter results by modified before specified time.
      * @param modifiedAfter filter results by modified after specified time.
      * @param includeRevisions
+     * @param orderBy criteria to order by
+     * @param latestFirst return the latest result first according to the criteria in orderBy
      * @return replies list of replies
      */
     fun listReplies(
@@ -366,8 +368,8 @@ class ReplyController {
             latestFirst: Boolean? = null
     ): List<Reply> {
         // mimic the original behavior
-        val _orderBy = orderBy ?: ReplyOrderCriteria.CREATED
-        val _latestFirst = latestFirst ?: false
+        val orderByReal = orderBy ?: ReplyOrderCriteria.CREATED
+        val latestFirstReal = latestFirst ?: false
 
         return replyDAO.list(
                 metaform,
@@ -380,8 +382,8 @@ class ReplyController {
                 fieldFilters,
                 firstResult,
                 maxResults,
-                _orderBy,
-                _latestFirst
+                orderByReal,
+                latestFirstReal
         )
     }
 

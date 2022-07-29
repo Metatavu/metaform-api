@@ -113,6 +113,8 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param modifiedBefore filter results by modified before specified time.
    * @param modifiedAfter filter results by modified after specified time.
    * @param fieldFilters field filters
+   * @param orderBy criteria to order by
+   * @param latestFirst return the latest result first according to the criteria in orderBy
    * @return replies list of replies
    */
   fun list(
