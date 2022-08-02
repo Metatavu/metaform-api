@@ -898,12 +898,14 @@ class KeycloakController {
     }
 
     /**
-     * Updates metaform member group
+     * Updates user group
      *
-     * @param metaformMemberGroup metaform member group
+     * @param userGroup user group
+     * @return updated user group
      */
-    fun updateMetaformMemberGroup(metaformMemberGroup: GroupRepresentation) {
-        adminClient.realm(realm).groups().group(metaformMemberGroup.id).update(metaformMemberGroup)
+    fun updateUserGroup(userGroup: GroupRepresentation): GroupRepresentation {
+        adminClient.realm(realm).groups().group(userGroup.id).update(userGroup)
+        return userGroup
     }
 
     /**

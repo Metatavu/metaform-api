@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
+@Suppress("unused")
 class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroupsApi, AbstractApi() {
 
   @Inject
@@ -119,12 +120,13 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     addedMembers.forEach { keycloakController.userJoinGroup(metaformMemberGroupId.toString(), it.toString()) }
     removedMembers.forEach { keycloakController.userLeaveGroup(metaformMemberGroupId.toString(), it.toString()) }
 
-    keycloakController.updateMetaformMemberGroup(
+    val updatedGroup = keycloakController.updateUserGroup(
       foundMetaformMemberGroup.apply {
         name = metaformMemberGroup.displayName
       }
     )
 
-    return createOk(metaformMemberGroup)
+    return createOk(metaformMemberGroupTranslator.translate(updatedGroup, updatedGroupMembers.toList()))
   }
+
 }
