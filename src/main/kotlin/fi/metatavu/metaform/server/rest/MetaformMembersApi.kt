@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
+@Suppress ("unused")
 class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, AbstractApi() {
 
   @Inject
@@ -70,7 +71,13 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
       return createNotFound(createNotBelongMessage(METAFORM_MEMBER))
     }
 
-    keycloakController.deleteMetaformMember(metaformMemberId)
+    val managerBaseGroup = keycloakController.getMetaformManagerGroup(metaformId = metaformId)
+    val adminGroup = keycloakController.getMetaformAdminGroup(metaformId = metaformId)
+    val managerGroups = keycloakController.listMetaformMemberGroups(metaformId = metaformId)
+
+    managerGroups.plus(listOf(managerBaseGroup, adminGroup)).forEach {
+      keycloakController.userLeaveGroup(it.id, foundMetaformMember.id)
+    }
 
     return createNoContent()
   }
