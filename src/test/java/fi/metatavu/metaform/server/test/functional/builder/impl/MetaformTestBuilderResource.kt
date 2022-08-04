@@ -6,11 +6,12 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.MetaformMemberRole
 import fi.metatavu.metaform.api.client.models.MetaformVisibility
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import org.json.JSONException
-import org.junit.Assert
+import org.junit.Assert.*
 import java.io.IOException
 import java.util.*
 
@@ -81,13 +82,20 @@ class MetaformTestBuilderResource(
     }
 
     /**
-     * Lists all metaforms
+     * Lists metaforms
      *
-     * @return all metaforms
+     * @param visibility filter by form visibility
+     * @param memberRole filter by member role
+     * @return metaforms
      */
-    @Throws(IOException::class)
-    fun list(visibility: MetaformVisibility? = null): Array<Metaform> {
-        return api.listMetaforms(visibility)
+    fun list(
+        visibility: MetaformVisibility? = null,
+        memberRole: MetaformMemberRole? = null
+    ): Array<Metaform> {
+        return api.listMetaforms(
+            visibility = visibility,
+            memberRole = memberRole
+        )
     }
 
     /**
@@ -110,10 +118,16 @@ class MetaformTestBuilderResource(
      * Asserts metaform count within the system
      *
      * @param expected expected count
+     * @param visibility filter by form visibility
+     * @param memberRole filter by member role
      */
     @Throws(IOException::class)
-    fun assertCount(expected: Int, visibility: MetaformVisibility? = null) {
-        Assert.assertEquals(expected.toLong(), api.listMetaforms(visibility).size.toLong())
+    fun assertCount(
+        expected: Int,
+        visibility: MetaformVisibility? = null,
+        memberRole: MetaformMemberRole? = null
+    ) {
+        assertEquals(expected, api.listMetaforms(visibility = visibility, memberRole = memberRole).size)
     }
 
     /**
@@ -129,9 +143,9 @@ class MetaformTestBuilderResource(
     fun assertFindFailStatus(expectedStatus: Int, metaformId: UUID, replyId: UUID? = null, ownerKey: String? = null) {
         try {
             api.findMetaform(metaformId, replyId, ownerKey)
-            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
+            fail(String.format("Expected find to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
     }
 
@@ -141,14 +155,12 @@ class MetaformTestBuilderResource(
      * @param expectedStatus expected status code
      * @param slug       metaform slug
      */
-    @JvmOverloads
-    @Throws(IOException::class)
     fun assertFindFailStatus(expectedStatus: Int, slug: String) {
         try {
             api.findMetaformBySlug(slug)
-            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
+            fail(String.format("Expected find to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
     }
 
@@ -162,9 +174,9 @@ class MetaformTestBuilderResource(
     fun assertCreateFailStatus(expectedStatus: Int, payload: Metaform) {
         try {
             api.createMetaform(payload)
-            Assert.fail(String.format("Expected create to fail with status %d", expectedStatus))
+            fail(String.format("Expected create to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
     }
 
@@ -179,9 +191,9 @@ class MetaformTestBuilderResource(
     fun assertUpdateFailStatus(expectedStatus: Int, metaformId: UUID, metaform: Metaform) {
         try {
             api.updateMetaform(metaformId, metaform)
-            Assert.fail(String.format("Expected update to fail with status %d", expectedStatus))
+            fail(String.format("Expected update to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
     }
 
@@ -195,9 +207,9 @@ class MetaformTestBuilderResource(
     fun assertDeleteFailStatus(expectedStatus: Int, metaformId: UUID) {
         try {
             api.deleteMetaform(metaformId)
-            Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
+            fail(String.format("Expected delete to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
     }
 
@@ -205,14 +217,20 @@ class MetaformTestBuilderResource(
      * Asserts list status fails with given status code
      *
      * @param expectedStatus expected status code
+     * @param visibility filter by form visibility
+     * @param memberRole filter by member role
      */
     @Throws(IOException::class)
-    fun assertListFailStatus(expectedStatus: Int) {
+    fun assertListFailStatus(
+        expectedStatus: Int,
+        visibility: MetaformVisibility? = null,
+        memberRole: MetaformMemberRole? = null
+    ) {
         try {
-            api.listMetaforms(null)
-            Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
+            api.listMetaforms(visibility = visibility, memberRole = memberRole)
+            fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
     }
 

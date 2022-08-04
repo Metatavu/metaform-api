@@ -1,6 +1,8 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
 import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.MetaformMember
+import fi.metatavu.metaform.api.client.models.MetaformMemberRole
 import fi.metatavu.metaform.api.client.models.MetaformVisibility
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
@@ -12,7 +14,6 @@ import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResour
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -93,11 +94,11 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals(2, metaform.scripts.afterCreateReply!!.size)
             assertEquals("create-test", metaform.scripts.afterCreateReply[0].name)
             assertEquals("js", metaform.scripts.afterCreateReply[0].language)
-            assertEquals("form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));", metaform.scripts.afterCreateReply!![0].content)
+            assertEquals("form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));", metaform.scripts.afterCreateReply[0].content)
             assertNotNull(metaform.scripts.afterUpdateReply)
             assertEquals("update-test", metaform.scripts.afterUpdateReply!![0].name)
             assertEquals("js", metaform.scripts.afterUpdateReply[0].language)
-            assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.scripts.afterUpdateReply!![0].content)
+            assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.scripts.afterUpdateReply[0].content)
         }
     }
 
@@ -393,7 +394,58 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, testReply3.id, testReply3.ownerKey)
             testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, null, testReply1.ownerKey)
             testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, testReply1.id, null)
-            Assertions.assertNotNull(testBuilder.anon.metaforms.findMetaform(metaform1.id, testReply1.id!!, testReply1.ownerKey))
+            assertNotNull(testBuilder.anon.metaforms.findMetaform(metaform1.id, testReply1.id!!, testReply1.ownerKey))
+        }
+    }
+
+    @Test
+    fun testListMetaformByRole() {
+        TestBuilder().use { builder ->
+            val forms = (0..3).map {
+                builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            }
+
+            val publicForms = forms.subList(0, 1).map {
+                builder.systemAdmin.metaforms.updateMetaform(it.id!!, it.copy(visibility = MetaformVisibility.pUBLIC))
+            }
+
+            val privateForms = forms.subList(2, 3).map {
+                builder.systemAdmin.metaforms.updateMetaform(it.id!!, it.copy(visibility = MetaformVisibility.pRIVATE))
+            }
+
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+
+            val member1 = builder.systemAdmin.metaformMembers.create(publicForms[0].id!!, MetaformMember(
+                email = "user1@example.com",
+                firstName = "Test",
+                lastName = "User",
+                role = MetaformMemberRole.aDMINISTRATOR
+            )
+            )
+
+            val member2 = builder.systemAdmin.metaformMembers.create(privateForms[0].id!!, MetaformMember(
+                email = "user2@example.com",
+                firstName = "Test",
+                lastName = "User",
+                role = MetaformMemberRole.mANAGER
+            )
+            )
+
+            builder.test1.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
+            builder.test1.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
+            builder.test2.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+
+            builder.systemAdmin.metaformMembers.delete(metaformId = publicForms[0].id!!, metaformMemberId = member1.id!!)
+            builder.systemAdmin.metaformMembers.delete(metaformId = privateForms[0].id!!, metaformMemberId = member2.id!!)
+
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
         }
     }
 }
