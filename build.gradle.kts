@@ -49,6 +49,7 @@ dependencies {
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
     testImplementation("io.rest-assured:rest-assured:5.1.1")
     testImplementation("io.quarkus:quarkus-junit5")
@@ -62,7 +63,6 @@ dependencies {
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
     testImplementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
     testImplementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
-    testImplementation("com.squareup.okhttp3:okhttp:4.10.0")
 
     kapt("org.hibernate:hibernate-jpamodelgen:5.5.7.Final")
 
@@ -78,6 +78,7 @@ java {
 
 sourceSets["main"].java {
     srcDir("build/generated/api-spec/src/main/kotlin")
+    srcDir("build/generated/keycloak-client/src/main/kotlin")
 }
 
 sourceSets["test"].java {
@@ -124,12 +125,22 @@ val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
     this.configOptions.put("collectionType", "array")
 }
 
+val generateKeycloackClient = tasks.register("generateKeycloackClient",GenerateTask::class){
+    setProperty("generatorName", "kotlin")
+    setProperty("library", "jvm-okhttp3")
+    setProperty("inputSpec",  "$rootDir/keycloak-openapi/OpenApiDefinitions/keycloak-19.0.0.yml")
+    setProperty("outputDir", "$buildDir/generated/keycloak-client")
+    setProperty("packageName", "fi.metatavu.metaform.keycloak.client")
+    this.configOptions.put("dateLibrary", "java8")
+    this.configOptions.put("serializationLibrary", "jackson")
+}
+
 tasks.named("compileKotlin") {
     dependsOn(generateApiSpec)
 }
 
 tasks.named("compileTestKotlin") {
-    dependsOn(generateApiClient)
+    dependsOn(generateApiClient, generateKeycloackClient)
 }
 
 tasks.named("clean") {
