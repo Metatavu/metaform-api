@@ -2,7 +2,7 @@ package fi.metatavu.metaform.server.rest.translate
 
 import fi.metatavu.metaform.api.spec.model.MetaformMember
 import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
-import org.keycloak.representations.idm.UserRepresentation
+import fi.metatavu.metaform.keycloak.client.models.UserRepresentation
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
@@ -23,9 +23,9 @@ class MetaformMemberTranslator {
   fun translate(entity: UserRepresentation, role: MetaformMemberRole): MetaformMember {
       return MetaformMember(
         id = UUID.fromString(entity.id),
-        firstName = entity.firstName,
-        lastName = entity.lastName,
-        email = entity.email,
+        firstName = entity.firstName ?: "",
+        lastName = entity.lastName ?: "",
+        email = entity.email ?: "",
         role = role
       )
   }

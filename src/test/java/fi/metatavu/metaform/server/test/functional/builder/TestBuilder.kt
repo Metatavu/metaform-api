@@ -23,7 +23,6 @@ import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.ClientBuilderWrapper
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.representations.idm.CredentialRepresentation
-import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.UUID
@@ -34,7 +33,7 @@ import java.util.UUID
  * @author Antti Leppä
  */
 class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
-    private val logger = LoggerFactory.getLogger(TestBuilder::class.java)
+
     private var anonymousTokenCached: TestBuilderAuthentication? = null
     private val serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String::class.java)
     var systemAdmin = createTestBuilderAuthentication("metaform-admin", "test")
@@ -140,9 +139,10 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
             ),
             addClosable
         )
+
         resetMetaformMemberPassword(metaformMember.id!!, metaformAdminPass)
 
-        return createTestBuilderAuthentication(metaformMember.firstName, metaformAdminPass)
+        return createTestBuilderAuthentication(metaformMember.email, metaformAdminPass)
     }
 
     /**
@@ -167,7 +167,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
         )
         resetMetaformMemberPassword(metaformMember.id!!, metaformManagerPass)
 
-        return createTestBuilderAuthentication(metaformMember.firstName, metaformManagerPass)
+        return createTestBuilderAuthentication(metaformMember.email, metaformManagerPass)
     }
 
     /**

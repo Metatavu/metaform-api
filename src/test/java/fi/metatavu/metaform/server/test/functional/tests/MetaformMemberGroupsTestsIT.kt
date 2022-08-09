@@ -10,7 +10,7 @@ import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResour
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -40,17 +40,17 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            Assertions.assertNotNull(metaformMemberGroup)
-            Assertions.assertNotNull(metaformMemberGroup.id)
-            Assertions.assertEquals("Mikkeli", metaformMemberGroup.displayName)
-            Assertions.assertEquals(metaformMember.id, metaformMemberGroup.memberIds[0])
+            assertNotNull(metaformMemberGroup)
+            assertNotNull(metaformMemberGroup.id)
+            assertEquals("Mikkeli", metaformMemberGroup.displayName)
+            assertEquals(metaformMember.id, metaformMemberGroup.memberIds[0])
 
             val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
-            Assertions.assertNotNull(foundMemberGroup)
-            Assertions.assertEquals(metaformMemberGroup.id, foundMemberGroup.id)
-            Assertions.assertEquals(metaformMemberGroup.displayName, foundMemberGroup.displayName)
-            Assertions.assertEquals(metaformMemberGroup.memberIds[0], foundMemberGroup.memberIds[0])
+            assertNotNull(foundMemberGroup)
+            assertEquals(metaformMemberGroup.id, foundMemberGroup.id)
+            assertEquals(metaformMemberGroup.displayName, foundMemberGroup.displayName)
+            assertEquals(metaformMemberGroup.memberIds[0], foundMemberGroup.memberIds[0])
         }
     }
 
@@ -91,7 +91,7 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
 
             val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
-            Assertions.assertNotNull(foundMemberGroup)
+            assertNotNull(foundMemberGroup)
         }
     }
 
@@ -154,8 +154,8 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
 
             val metaformMemberGroups = testBuilder.systemAdmin.metaformMemberGroups.list(metaform.id)
 
-            Assertions.assertEquals(metaformMemberGroups.size, 1)
-            Assertions.assertEquals(metaformMemberGroups[0].memberIds[0], metaformMember.id)
+            assertEquals(metaformMemberGroups.size, 1)
+            assertEquals(metaformMemberGroups[0].memberIds[0], metaformMember.id)
         }
     }
 
@@ -205,7 +205,7 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
 
             val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
-            Assertions.assertNotNull(foundMemberGroup)
+            assertNotNull(foundMemberGroup)
             testBuilder.systemAdmin.metaformMemberGroups.delete(metaform.id, foundMemberGroup.id!!)
 
             testBuilder.systemAdmin.metaformMemberGroups.assertFindFailStatus(404, metaform.id, foundMemberGroup.id)
@@ -274,8 +274,8 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
 
             val foundMemberGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id!!)
 
-            Assertions.assertEquals(0, foundMemberGroup.memberIds.size)
-            Assertions.assertEquals("Mikkeli", foundMemberGroup.displayName)
+            assertEquals(0, foundMemberGroup.memberIds.size)
+            assertEquals("Mikkeli", foundMemberGroup.displayName)
 
             val metaformMember1 = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi")
             val metaformMember2 = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "tommi2")
@@ -289,11 +289,10 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
 
-            val foundUpdatedMember = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id)
-
-            Assertions.assertEquals(metaformMember1.id, foundUpdatedMember.memberIds[0])
-            Assertions.assertEquals(metaformMember2.id, foundUpdatedMember.memberIds[1])
-            Assertions.assertEquals("Mikkeli2", foundUpdatedMember.displayName)
+            val foundUpdatedGroup = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id)
+            assertTrue(foundUpdatedGroup.memberIds.contains(metaformMember1.id))
+            assertTrue(foundUpdatedGroup.memberIds.contains(metaformMember2.id))
+            assertEquals("Mikkeli2", foundUpdatedGroup.displayName)
 
             testBuilder.systemAdmin.metaformMemberGroups.update(
                 metaform.id,
@@ -304,7 +303,7 @@ class MetaformMemberGroupsTestsIT : AbstractTest() {
                 )
             )
             val foundUpdatedMember2 = testBuilder.systemAdmin.metaformMemberGroups.find(metaform.id, metaformMemberGroup.id)
-            Assertions.assertEquals(0, foundUpdatedMember2.memberIds.size)
+            assertEquals(0, foundUpdatedMember2.memberIds.size)
 
         }
     }
