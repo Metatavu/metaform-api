@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
-@Suppress("unused")
+@Suppress ("unused")
 class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroupsApi, AbstractApi() {
 
   @Inject
@@ -20,6 +20,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
   @Inject
   lateinit var metaformController: MetaformController
+
   override suspend fun createMetaformMemberGroup(metaformId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -91,7 +92,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val metaformMemberGroups = keycloakController.listMetaformMemberGroup(metaformId).map {
+    val metaformMemberGroups = keycloakController.listMetaformMemberGroups(metaformId).map {
       val metaformGroupMemberIds = keycloakController.findMetaformMemberGroupMembers(UUID.fromString(it.id))
       metaformMemberGroupTranslator.translate(it, metaformGroupMemberIds)
     }

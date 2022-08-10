@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.Metaform
+import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.controllers.ExportThemeController
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
@@ -15,14 +16,11 @@ import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.Transactional
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
-import javax.ws.rs.Produces
 import javax.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
+@Suppress("unused")
 class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
   @Inject
@@ -61,7 +59,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       }
     }
 
-    val metaformData =  try {
+    val metaformData = try {
       metaformController.serializeMetaform(metaform)
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
@@ -135,7 +133,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     }
   }
 
-   override suspend fun findMetaform(metaformId: UUID, replyId: UUID?, ownerKey: String?): Response {
+  override suspend fun findMetaform(metaformId: UUID, replyId: UUID?, ownerKey: String?): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val reply: Reply? = if (replyId != null) replyController.findReplyById(replyId) else null
@@ -172,21 +170,28 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     }
   }
 
-  override suspend fun listMetaforms(visibility: MetaformVisibility?): Response {
+  override suspend fun listMetaforms(visibility: MetaformVisibility?, memberRole: MetaformMemberRole?): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    try {
-      if (!isMetaformManagerAny) {
-        if (visibility == MetaformVisibility.PRIVATE) {
-          return createForbidden(createNotAllowedMessage(LIST, METAFORM))
+    if (!isMetaformManagerAny && visibility == MetaformVisibility.PRIVATE) {
+      return createForbidden(createNotAllowedMessage(LIST, METAFORM))
+    }
+
+    val metaforms = metaformController.listMetaforms(visibility = visibility)
+      .filter { metaform ->
+        val metaformId = metaform.id!!
+        metaform.visibility == MetaformVisibility.PUBLIC || isMetaformManager(metaformId)
+      }
+      .filter { metaform ->
+        val metaformId = metaform.id!!
+        when (memberRole) {
+          MetaformMemberRole.ADMINISTRATOR -> isMetaformAdmin(metaformId)
+          MetaformMemberRole.MANAGER -> isMetaformManager(metaformId)
+          else -> true
         }
-        return createOk(metaformController.listMetaforms(MetaformVisibility.PUBLIC).map(metaformTranslator::translate))
       }
 
-      return createOk(metaformController.listMetaforms(visibility).map(metaformTranslator::translate))
-    } catch (e: MalformedMetaformJsonException) {
-      return createInternalServerError(e.message)
-    }
+    return createOk(metaforms.map(metaformTranslator::translate))
   }
 
   override suspend fun updateMetaform(metaformId: UUID, metaform: Metaform): Response {
