@@ -136,11 +136,11 @@ val generateKeycloackClient = tasks.register("generateKeycloackClient",GenerateT
 }
 
 tasks.named("compileKotlin") {
-    dependsOn(generateApiSpec)
+    dependsOn(generateApiSpec, generateKeycloackClient)
 }
 
 tasks.named("compileTestKotlin") {
-    dependsOn(generateApiClient, generateKeycloackClient)
+    dependsOn(generateApiClient)
 }
 
 tasks.named("clean") {
