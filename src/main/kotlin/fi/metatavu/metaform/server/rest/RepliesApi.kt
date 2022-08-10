@@ -133,13 +133,20 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       logger.warn("Received a reply with null data")
     } else {
       val fieldMap: Map<String, MetaformField> = fieldController.getFieldMap(metaformEntity)
-      reply.data.forEach{ (fieldName, fieldValue) ->
-        val field = fieldMap[fieldName] ?: return createBadRequest(String.format("Invalid field %s", fieldName))
-        if (!replyController.isValidFieldValue(field, fieldValue)) {
-          return createBadRequest(String.format("Invalid field value for field %s", fieldName))
+
+      reply.data
+        .filter { (fieldName, fieldValue) ->
+          @Suppress("SENSELESS_COMPARISON")
+          fieldName != null && fieldValue != null
         }
-        replyController.setReplyField(field, createdReply, fieldName, fieldValue)
-        metaformController.addPermissionContextGroups(permissionGroups, metaform.slug, field, fieldValue)
+        .forEach{ (fieldName, fieldValue) ->
+          val field = fieldMap[fieldName] ?: return createBadRequest(String.format("Invalid field %s", fieldName))
+          if (!replyController.isValidFieldValue(field, fieldValue)) {
+            return createBadRequest(String.format("Invalid field value for field %s", fieldName))
+          }
+
+          replyController.setReplyField(field, createdReply, fieldName, fieldValue)
+          metaformController.addPermissionContextGroups(permissionGroups, metaform.slug, field, fieldValue)
       }
     }
 
