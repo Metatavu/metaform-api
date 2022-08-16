@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.liquibase.changes
 
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.KeycloakController
+import fi.metatavu.metaform.server.permissions.AuthzController
 import liquibase.database.Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
@@ -19,10 +20,14 @@ import javax.inject.Inject
  * @author Antti Leppä
  */
 @ApplicationScoped
+@Suppress ("UNUSED")
 class CreateReplyAuthzResources : AbstractAuthzCustomChange() {
 
     @Inject
     lateinit var keycloakController: KeycloakController
+
+    @Inject
+    lateinit var authzController: AuthzController
 
     @Throws(CustomChangeException::class)
     override fun execute(database: Database) {
@@ -61,8 +66,16 @@ class CreateReplyAuthzResources : AbstractAuthzCustomChange() {
                         val name = getReplyResourceName(replyId)
                         val uri = getReplyResourceUri(metaformId, replyId)
                         try {
-                            val resource = keycloakController.createProtectedResource(userId, name, uri, RESOURCE_TYPE, SCOPES)
-                            updateReplyResourceId(connection, replyId, resource.id)
+                            val resource = authzController.createProtectedResource(
+                                keycloak = keycloakController.adminClient,
+                                ownerId = userId,
+                                name = name,
+                                uri = uri,
+                                type = RESOURCE_TYPE,
+                                scopes = SCOPES
+                            )
+
+                            updateReplyResourceId(connection, replyId, resource.toString())
                             count++
                         } catch (e: Exception) {
                             val keycloakErrorMessage = getKeycloakErrorMessage(e)
@@ -110,10 +123,8 @@ class CreateReplyAuthzResources : AbstractAuthzCustomChange() {
      * @param replyId replyId
      * @return resource name
      */
-    private fun getReplyResourceName(replyId: String?): String? {
-        return if (replyId == null) {
-            null
-        } else String.format(REPLY_RESOURCE_NAME_TEMPLATE, replyId)
+    private fun getReplyResourceName(replyId: String): String {
+        return String.format(REPLY_RESOURCE_NAME_TEMPLATE, replyId)
     }
 
     /**
