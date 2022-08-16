@@ -616,7 +616,7 @@ class KeycloakController {
             .group(managerGroup.id)
             .toRepresentation()
             .subGroups
-            .find{ group -> group.id == metaformMemberGroupId.toString() }
+            .find { group -> group.id == metaformMemberGroupId.toString() }
     }
 
     /**
@@ -654,18 +654,6 @@ class KeycloakController {
      */
     fun deleteMetaformMember(metaformMemberId: UUID) {
         adminClient.realm(realm).users().delete(metaformMemberId.toString())
-    }
-
-
-    /**
-     * Deletes metaform member group
-     *
-     * @param metaformMemberGroupId metaform member group id
-     */
-    fun deleteMetaformMemberGroupMembers(metaformMemberGroupId: UUID) {
-        return adminClient.realm(realm).groups()
-            .group(metaformMemberGroupId.toString())
-            .remove()
     }
 
     /**

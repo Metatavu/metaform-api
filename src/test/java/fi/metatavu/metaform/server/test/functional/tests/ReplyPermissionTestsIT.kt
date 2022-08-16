@@ -2,6 +2,8 @@ package fi.metatavu.metaform.server.test.functional.tests
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.MetaformMemberGroup
+import fi.metatavu.metaform.api.client.models.PermissionGroups
 import fi.metatavu.metaform.api.client.models.Reply
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
@@ -142,21 +144,57 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that user in permission context group may see replies targeted to that group
      */
     @Test
-    @Throws(Exception::class)
     fun exportPermissionContextReplyPdf() {
         TestBuilder().use { builder ->
             val exportTheme = builder.systemAdmin.exportThemes.createSimpleExportTheme("theme 1")
             builder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
-            val updateData = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous, metaform.allowDrafts,
-                    metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave, metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
-            builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updateData)
-            val reply1: Reply = builder.test1.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            val reply2: Reply = builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            val reply3: Reply = builder.test3.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
+            val metaformId = metaform.id!!
+
+            val permittedGroup = builder.systemAdmin.metaformMemberGroups.create(
+                metaformId = metaformId,
+                payload = MetaformMemberGroup(
+                    displayName = "Permitted group",
+                    memberIds = arrayOf(REALM1_USER_2_ID)
+                )
+            )
+
+            val permittedGroupId = permittedGroup.id!!
+
+            val updatedForm = setOptionGroupPermission(
+                metaform = metaform,
+                fieldName = "group-2",
+                viewGroupIds = arrayOf(permittedGroupId),
+                editGroupIds = arrayOf(permittedGroupId)
+            )
+
+            builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = updatedForm.copy(
+                exportThemeId = exportTheme.id
+            ))
+
+            builder.test1.replies.assertCount(0, metaformId = metaformId)
+            builder.test2.replies.assertCount(0, metaformId = metaformId)
+
+            val reply1: Reply = builder.test1.replies.create(
+                metaformId = metaform.id,
+                updateExisting = null,
+                replyMode = ReplyMode.REVISION.toString(),
+                payload = builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+            )
+
+            val reply2: Reply = builder.test2.replies.create(
+                metaformId = metaform.id,
+                updateExisting = null,
+                replyMode = ReplyMode.REVISION.toString(),
+                payload = builder.test2.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+            )
+
+            val reply3: Reply = builder.test3.replies.create(
+                metaformId = metaform.id,
+                updateExisting = null,
+                replyMode = ReplyMode.REVISION.toString(),
+                payload = builder.test3.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+            )
 
             // test1.realm1 may download only own reply
             assertPdfDownloadStatus(200, builder.test1.token, metaform, reply1)
@@ -236,6 +274,51 @@ class ReplyPermissionTestsIT : AbstractTest() {
         val replyData: MutableMap<String, Any> = HashMap()
         replyData["permission-select"] = value
         return replyData
+    }
+
+    /**
+     * Returns updated metaform where given groups has been added to field permission groups
+     *
+     * @param metaform metaform
+     * @param fieldName option field name
+     * @param viewGroupIds view group ids
+     * @param editGroupIds edit group ids
+     * @return updated metaform
+     */
+    private fun setOptionGroupPermission(
+        metaform: Metaform,
+        fieldName: String,
+        viewGroupIds: Array<UUID>,
+        editGroupIds: Array<UUID>
+    ): Metaform {
+        val sections = metaform.sections!!
+        val fields = sections[0].fields!!
+        val options = fields[0].options!!
+
+        val updatedOptions = options.map {
+            if (it.name == fieldName) {
+                it.copy(
+                    permissionGroups = PermissionGroups(
+                        viewGroupIds = viewGroupIds,
+                        editGroupIds = editGroupIds
+                    )
+                )
+            } else {
+                it
+            }
+        }.toTypedArray()
+
+        val updatedFields = arrayOf(fields[0].copy(
+            options = updatedOptions
+        ))
+
+        val updatedSections = arrayOf(sections[0].copy(
+            fields = updatedFields
+        ))
+
+        return metaform.copy(
+            sections = updatedSections
+        )
     }
 
     @BeforeAll

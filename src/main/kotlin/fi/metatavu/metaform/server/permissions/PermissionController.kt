@@ -123,22 +123,6 @@ class PermissionController {
     }
 
     /**
-     * Delete member group policy from Keycloak
-     *
-     * @param group group
-     */
-    fun deleteMemberGroupPolicy(group: GroupRepresentation) {
-        val policyName = getGroupPolicyName(
-            groupId = UUID.fromString(group.id)
-        )
-
-        authzController.deleteGroupPolicy(
-            keycloak = keycloakController.adminClient,
-            policyName = policyName
-        )
-    }
-
-    /**
      * Updates reply permissions
      *
      * @param reply reply

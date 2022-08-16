@@ -155,26 +155,6 @@ class AuthzController {
     }
 
     /**
-     * Deletes group policy
-     *
-     * @param keycloak Keycloak admin client
-     * @param policyName policy's name
-     */
-    fun deleteGroupPolicy(
-        keycloak: Keycloak,
-        policyName: String
-    ) {
-        val policyId = getPolicyIdByName(
-            keycloak = keycloak,
-            name = policyName
-        )
-
-        val client = getClient(keycloak = keycloak)
-
-        keycloak.realm(realm).clients()[client.id].authorization().policies().policy(policyId.toString()).remove()
-    }
-
-    /**
      * Find policy id by name
      *
      * @param keycloak Keycloak admin client

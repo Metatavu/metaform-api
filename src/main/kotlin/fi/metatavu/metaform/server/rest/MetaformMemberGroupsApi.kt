@@ -72,8 +72,6 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     val memberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
 
-    keycloakController.deleteMetaformMemberGroupMembers(metaformMemberGroupId = metaformMemberGroupId)
-    permissionController.deleteMemberGroupPolicy(group = memberGroup)
     keycloakController.deleteGroup(id = UUID.fromString(memberGroup.id))
 
     return createNoContent()
