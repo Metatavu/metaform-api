@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.test.functional.builder.resources
 
 import dasniko.testcontainers.keycloak.KeycloakContainer
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager
-import java.util.*
 import kotlin.collections.HashMap
 
 /**
@@ -28,8 +27,8 @@ class KeycloakResource : QuarkusTestResourceLifecycleManager {
     }
 
     companion object {
-        val serverAdminUser = UUID.randomUUID().toString()
-        val serverAdminPass = UUID.randomUUID().toString()
+        val serverAdminUser = "admin"
+        val serverAdminPass = "admin"
         val keycloak: KeycloakContainer = KeycloakContainer()
                 .withAdminUsername(serverAdminUser)
                 .withAdminPassword(serverAdminPass)
