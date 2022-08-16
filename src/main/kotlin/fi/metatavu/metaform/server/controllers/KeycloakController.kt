@@ -1,22 +1,20 @@
 package fi.metatavu.metaform.server.controllers
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.keycloak.client.apis.GroupApi
 import fi.metatavu.metaform.keycloak.client.apis.UserApi
 import fi.metatavu.metaform.keycloak.client.apis.UsersApi
 import fi.metatavu.metaform.keycloak.client.infrastructure.ApiClient
-import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
+import fi.metatavu.metaform.server.exceptions.AuthzException
 import fi.metatavu.metaform.server.exceptions.KeycloakDuplicatedUserException
 import fi.metatavu.metaform.server.exceptions.KeycloakException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
+import fi.metatavu.metaform.server.keycloak.KeycloakClientUtils
 import fi.metatavu.metaform.server.keycloak.KeycloakControllerToken
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
 import fi.metatavu.metaform.server.rest.AbstractApi
-import org.apache.commons.io.IOUtils
-import org.apache.commons.lang3.StringUtils
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
 import org.keycloak.OAuth2Constants
@@ -31,15 +29,10 @@ import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.keycloak.representations.idm.authorization.*
 import org.slf4j.Logger
-import java.io.IOException
-import java.io.InputStream
 import java.util.*
-import java.util.regex.Pattern
-import java.util.stream.Collectors
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 import javax.ws.rs.InternalServerErrorException
-import javax.ws.rs.core.Response
 
 /**
  * Controller for Keycloak related operations.
@@ -51,32 +44,41 @@ import javax.ws.rs.core.Response
 @ApplicationScoped
 class KeycloakController {
 
+    @Inject
     @ConfigProperty(name = "metaforms.keycloak.admin.realm")
-    private lateinit var realm: String
-
-    @ConfigProperty(name = "metaforms.keycloak.admin.admin_client_id")
-    private lateinit var clientId: String
-
-    @ConfigProperty(name = "metaforms.keycloak.admin.secret")
-    private lateinit var clientSecret: String
-
-    @ConfigProperty(name = "metaforms.keycloak.admin.user")
-    private lateinit var apiAdminUser: String
-
-    @ConfigProperty(name = "metaforms.keycloak.admin.password")
-    private lateinit var apiAdminPassword: String
-
-    @ConfigProperty(name = "metaforms.keycloak.admin.host")
-    private lateinit var authServerUrl: String
+    lateinit var realm: String
 
     @Inject
-    private lateinit var logger: Logger
+    @ConfigProperty(name = "metaforms.keycloak.admin.admin_client_id")
+    lateinit var clientId: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.secret")
+    lateinit var clientSecret: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.user")
+    lateinit var apiAdminUser: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.password")
+    lateinit var apiAdminPassword: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.host")
+    lateinit var authServerUrl: String
+
+    @Inject
+    lateinit var logger: Logger
 
     @Inject
     lateinit var objectMapper: ObjectMapper
 
     @Inject
     lateinit var keycloakControllerToken: KeycloakControllerToken
+
+    @Inject
+    lateinit var keycloakClientUtils: KeycloakClientUtils
 
     private val apiBasePath: String
         get() {
@@ -203,137 +205,9 @@ class KeycloakController {
      * @param keycloak admin client
      * @return Keycloak client
      */
-    @Throws(KeycloakClientNotFoundException::class)
+    @Throws(AuthzException::class)
     fun getKeycloakClient(keycloak: Keycloak): ClientRepresentation {
-        return findClient(keycloak, configuration.resource) ?: throw KeycloakClientNotFoundException("Keycloak client not found")
-    }
-
-    /**
-     * Creates protected resource into Keycloak
-     *
-     * @param keycloak Keycloak instance
-     * @param keycloakClient Keycloak client representation
-     * @param ownerId resource owner id
-     * @param name resource's human-readable name
-     * @param uri resource's uri
-     * @param type resource's type
-     * @param scopes resource's scopes
-     * @return created resource
-     */
-    fun createProtectedResource(keycloak: Keycloak, keycloakClient: ClientRepresentation, ownerId: UUID?, name: String, uri: String, type: String, scopes: List<AuthorizationScope>): UUID? {
-        val realmName: String = configuration.realm
-        val resources = keycloak.realm(realmName).clients()[keycloakClient.id].authorization().resources()
-        val scopeRepresentations = scopes
-                .map(AuthorizationScope::scopeName)
-                .map { ScopeRepresentation(it) }
-                .toSet()
-        val resource = ResourceRepresentation(name, scopeRepresentations, uri, type)
-        if (ownerId != null) {
-            resource.setOwner(ownerId.toString())
-            resource.ownerManagedAccess = true
-        }
-        val resourceId = getCreateResponseId(resources.create(resource))
-        if (resourceId != null) {
-            return resourceId
-        }
-        val foundResources = resources.findByName(name, ownerId?.toString())
-        if (foundResources.isEmpty()) {
-            return null
-        }
-        if (foundResources.size > 1) {
-            logger.warn("Found more than one resource with name {}", name)
-        }
-        return UUID.fromString(foundResources[0].id)
-    }
-
-    /**
-     * Creates new scope permission for resource
-     *
-     * @param keycloak keycloak admin client
-     * @param client client
-     * @param resourceId resource id
-     * @param scopes authorization scopes
-     * @param name name
-     * @param policyIds policies
-     * @param decisionStrategy
-     * @return created permission
-     */
-    fun upsertScopePermission(
-            keycloak: Keycloak,
-            client: ClientRepresentation,
-            resourceId: UUID,
-            scopes: Collection<AuthorizationScope>,
-            name: String?,
-            decisionStrategy: DecisionStrategy?,
-            policyIds: Collection<UUID>
-    ) {
-        val realmName: String = configuration.realm
-        val realm = keycloak.realm(realmName)
-        val scopeResource = realm.clients()[client.id].authorization().permissions().scope()
-        val existingPermission = scopeResource.findByName(name)
-        val representation = ScopePermissionRepresentation()
-        representation.decisionStrategy = decisionStrategy
-        representation.logic = Logic.POSITIVE
-        representation.name = name
-        representation.type = "scope"
-        representation.resources = setOf(resourceId.toString())
-        representation.scopes = scopes
-                .map(AuthorizationScope::scopeName)
-                .toSet()
-        representation.policies = policyIds.stream().map { obj: UUID -> obj.toString() }.collect(Collectors.toSet())
-        val response = scopeResource.create(representation)
-        try {
-            if (existingPermission == null) {
-                val status = response.status
-                if (status != 201) {
-                    var message: String? = "Unknown error"
-                    try {
-                        message = IOUtils.toString(response.entity as InputStream, "UTF-8")
-                    } catch (e: IOException) {
-                        logger.warn("Failed read error message", e)
-                    }
-                    logger.warn("Failed to create scope permission for resource {} with message {}", resourceId, message)
-                }
-            } else {
-                realm.clients()[client.id].authorization().permissions().scope()
-                        .findById(existingPermission.id)
-                        .update(representation)
-            }
-        } finally {
-            response.close()
-        }
-    }
-
-    /**
-     * Updates groups and group policies into Keycloak
-     *
-     * @param keycloak admin client
-     * @param client client
-     * @param groupNames groups names
-     */
-    fun updatePermissionGroups(keycloak: Keycloak, client: ClientRepresentation, groupNames: List<String>) {
-        val keycloakRealm = keycloak.realm(realm)
-        val groups = keycloakRealm.groups()
-        val groupPolicies = keycloakRealm.clients()[client.id].authorization().policies().group()
-        val existingGroups = groups.groups()
-                .associate { group -> group.name to UUID.fromString(group.id) }
-        for (groupName in groupNames) {
-            var groupId = existingGroups[groupName]
-            if (groupId == null) {
-                val groupRepresentation = GroupRepresentation()
-                groupRepresentation.name = groupName
-                groupId = getCreateResponseId(groups.add(groupRepresentation))
-            }
-            var policyRepresentation = groupPolicies.findByName(groupName)
-            if (policyRepresentation == null && groupId != null) {
-                groupPolicies.create(policyRepresentation)
-                policyRepresentation = GroupPolicyRepresentation()
-                policyRepresentation.name = groupName
-                policyRepresentation.decisionStrategy = DecisionStrategy.UNANIMOUS
-                policyRepresentation.addGroup(groupId.toString(), true)
-                groupPolicies.create(policyRepresentation)
-            }
-        }
+        return findClient(keycloak, configuration.resource) ?: throw AuthzException("Keycloak client not found")
     }
 
     /**
@@ -351,40 +225,6 @@ class KeycloakController {
     }
 
     /**
-     * Find policy id by name
-     *
-     * @param keycloak Keycloak admin client
-     * @param client client
-     * @param name group name
-     * @return list of group policy ids
-     */
-    fun getPolicyIdByName(keycloak: Keycloak, client: ClientRepresentation, name: String): UUID? {
-        val ids = getPolicyIdsByNames(keycloak, client, mutableListOf(name))
-        return if (ids.isEmpty()) {
-            null
-        } else ids.iterator().next()
-    }
-
-    /**
-     * Lists policy ids by names
-     *
-     * @param keycloak Keycloak admin client
-     * @param client client
-     * @param names group names
-     * @return list of group policy ids
-     */
-    fun getPolicyIdsByNames(keycloak: Keycloak, client: ClientRepresentation, names: MutableList<String>): Set<UUID> {
-        val keycloakRealm = keycloak.realm(realm)
-        val policies = keycloakRealm.clients()[client.id].authorization().policies()
-        return names.stream()
-                .map { name: String? -> policies.findByName(name) }
-                .filter { obj: PolicyRepresentation? -> Objects.nonNull(obj) }
-                .map { obj: PolicyRepresentation -> obj.id }
-                .map { name: String? -> UUID.fromString(name) }
-                .collect(Collectors.toSet())
-    }
-
-    /**
      * Creates authorization scopes into Keycloak
      *
      * @param keycloak Keycloak admin client
@@ -399,33 +239,7 @@ class KeycloakController {
                 .map(AuthorizationScope::scopeName)
                 .map { ScopeRepresentation(it) }
                 .map { scope -> scopesResource.create(scope) }
-                .mapNotNull { getCreateResponseId(it) }
-    }
-
-    fun createProtectedResource(ownerId: UUID, name: String?, uri: String?, type: String, scopes: List<AuthorizationScope>): ResourceRepresentation {
-        val authzClient = getAuthzClient()
-        val scopeRepresentations: Set<ScopeRepresentation> = scopes
-                .map(AuthorizationScope::scopeName)
-                .map { ScopeRepresentation(it) }
-                .toSet()
-        val resource = ResourceRepresentation(name, scopeRepresentations, uri, type)
-        resource.setOwner(ownerId.toString())
-        resource.ownerManagedAccess = true
-        return authzClient.protection().resource().create(resource)
-    }
-
-
-    /**
-     * Reads JSON src into Map
-     *
-     * @param src input
-     * @return map
-     * @throws IOException throws IOException when there is error when reading the input
-     */
-    @Throws(IOException::class)
-    private fun readJsonMap(src: InputStream): Map<String, Any?> {
-        val objectMapper = ObjectMapper()
-        return objectMapper.readValue(src, object : TypeReference<Map<String, Any?>>() {})
+                .mapNotNull { keycloakClientUtils.getCreateResponseId(it) }
     }
 
     /**
@@ -515,72 +329,6 @@ class KeycloakController {
         evaluationRequest.resources = listOf(resource)
         evaluationRequest.userId = userId
         return evaluationRequest
-    }
-
-    /**
-     * Finds a id from Keycloak create response
-     *
-     * @param response response object
-     * @return id
-     */
-    private fun getCreateResponseId(response: Response): UUID? {
-        if (response.status != 201) {
-            try {
-                if (logger.isErrorEnabled) {
-                    logger.error("Failed to execute create: {}", IOUtils.toString(response.entity as InputStream, "UTF-8"))
-                }
-            } catch (e: IOException) {
-                logger.error("Failed to extract error message", e)
-            }
-            return null
-        }
-        val locationId = getCreateResponseLocationId(response)
-        return locationId ?: getCreateResponseBodyId(response)
-    }
-
-    /**
-     * Attempts to locate id from create location response
-     *
-     * @param response response
-     * @return id or null if not found
-     */
-    private fun getCreateResponseLocationId(response: Response): UUID? {
-        val location = response.getHeaderString("location")
-        if (StringUtils.isNotBlank(location)) {
-            val pattern = Pattern.compile(".*/(.*)$")
-            val matcher = pattern.matcher(location)
-            if (matcher.find()) {
-                return UUID.fromString(matcher.group(1))
-            }
-        }
-        return null
-    }
-
-    /**
-     * Attempts to locate id from create response body
-     *
-     * @param response response object
-     * @return id or null if not found
-     */
-    private fun getCreateResponseBodyId(response: Response): UUID? {
-        if (response.entity is InputStream) {
-            try {
-                (response.entity as InputStream).use { inputStream ->
-                    val result = readJsonMap(inputStream)
-                    if (result["_id"] is String) {
-                        return UUID.fromString(result["_id"] as String?)
-                    }
-                    if (result["id"] is String) {
-                        return UUID.fromString(result["id"] as String?)
-                    }
-                }
-            } catch (e: IOException) {
-                if (logger.isDebugEnabled) {
-                    logger.debug("Failed to locate id from response", e)
-                }
-            }
-        }
-        return null
     }
 
     /**
@@ -788,6 +536,25 @@ class KeycloakController {
     }
 
     /**
+     * Finds group by id from Keycloak
+     *
+     * @param id group id
+     * @return found group or null if not found
+     */
+    fun findGroup(id: UUID): fi.metatavu.metaform.keycloak.client.models.GroupRepresentation? {
+        return groupApi.realmGroupsIdGet(realm = realm, id = id.toString())
+    }
+
+    /**
+     * Delete group from Keycloak
+     *
+     * @param id group id
+     */
+    fun deleteGroup(id: UUID) {
+        groupApi.realmGroupsIdDelete(realm = realm, id = id.toString())
+    }
+
+    /**
      * Finds metaform member group
      *
      * @param metaformId metaform id
@@ -820,7 +587,7 @@ class KeycloakController {
                 throw KeycloakException(String.format("Request failed with %d", response.status))
             }
 
-            val userId = getCreateResponseId(response) ?: throw KeycloakException("Failed to get the userId")
+            val userId = keycloakClientUtils.getCreateResponseId(response) ?: throw KeycloakException("Failed to get the userId")
             val userRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_USER_ROLE).toRepresentation()
             adminClient.realm(realm).users()[userId.toString()].roles().realmLevel().add(listOf(userRole))
 
@@ -988,7 +755,7 @@ class KeycloakController {
             throw KeycloakException(String.format("Request failed with %d", response.status))
         }
 
-        val groupId = getCreateResponseId(response) ?: throw KeycloakException("Failed to get created group id")
+        val groupId = keycloakClientUtils.getCreateResponseId(response) ?: throw KeycloakException("Failed to get created group id")
         return findMetaformMemberGroup(metaformId, groupId) ?: throw KeycloakException("Failed to find the created group")
     }
 
