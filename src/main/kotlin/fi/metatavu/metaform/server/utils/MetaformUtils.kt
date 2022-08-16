@@ -1,8 +1,6 @@
 package fi.metatavu.metaform.server.utils
 
-import fi.metatavu.metaform.api.spec.model.Metaform
-import fi.metatavu.metaform.api.spec.model.MetaformField
-import fi.metatavu.metaform.api.spec.model.MetaformSection
+import fi.metatavu.metaform.api.spec.model.*
 
 /**
  * Metaform utilities
@@ -20,4 +18,25 @@ object MetaformUtils {
                 ?.mapNotNull(MetaformSection::fields)
                 ?.flatMap { it.toList() } ?: emptyList()
     }
+
+    /**
+     * Returns all defined permission groups from given metaform
+     *
+     * @param metaform metaform
+     * @return permission groups from metaform
+     */
+    fun getPermissionGroups(metaform: Metaform): List<PermissionGroups> {
+        val result = getMetaformFields(metaform = metaform)
+            .mapNotNull(MetaformField::options)
+            .flatMap { it.toList() }
+            .mapNotNull(MetaformFieldOption::permissionGroups)
+            .toMutableList()
+
+        metaform.defaultPermissionGroups?.let {
+            result.add(it)
+        }
+
+        return result
+    }
+
 }
