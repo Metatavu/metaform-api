@@ -253,7 +253,19 @@ class ReplyTestBuilderResource(
      * @param maxResults       How many items to return at one time (optional)
      */
     @Throws(IOException::class)
-    fun assertCount(expected: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?) {
+    fun assertCount(
+        expected: Int,
+        metaformId: UUID,
+        userId: UUID? = null,
+        createdBefore: String? = null,
+        createdAfter: String? = null,
+        modifiedBefore: String? = null,
+        modifiedAfter: String? = null,
+        includeRevisions: Boolean? = null,
+        fields: Array<String>? = null,
+        firstResult: Int? = null,
+        maxResults: Int? = null
+    ) {
         Assert.assertEquals(expected.toLong(), api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, null, null).size.toLong())
     }
 
@@ -261,7 +273,6 @@ class ReplyTestBuilderResource(
      * Asserts create simple reply status fails with given status code
      *
      * @param expectedStatus expected status code
-     * @param metaform id       metaform id
      * @param value          value
      * @param replyMode      replyMode
      */
