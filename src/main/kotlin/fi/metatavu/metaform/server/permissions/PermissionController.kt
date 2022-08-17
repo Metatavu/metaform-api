@@ -131,7 +131,7 @@ class PermissionController {
     fun updateReplyPermissions(
         reply: Reply,
         groupMemberPermissions: Set<GroupMemberPermission>
-    ) {
+    ): UUID {
         val keycloak = keycloakController.adminClient
         val metaform = reply.metaform
         val resourceId = reply.resourceId ?: createReplyProtectedResource(
@@ -148,10 +148,14 @@ class PermissionController {
             val groupIds = groupMemberPermissions.filter { it.scope == scope }.map { it.memberGroupId }
             val policyNames = groupIds.map(this::getGroupPolicyName)
 
-            val policyIds = authzController.getPolicyIdsByNames(
+            var policyIds = authzController.getPolicyIdsByNames(
                 keycloak = keycloak,
                 policyNames = policyNames
             )
+
+            if (scope != AuthorizationScope.REPLY_NOTIFY) {
+                policyIds = policyIds.plus(commonPolicyIds)
+            }
 
             authzController.upsertScopePermission(
                 keycloak = keycloak,
@@ -159,7 +163,7 @@ class PermissionController {
                 scopes = setOf(scope),
                 name = getReplyPermissionName(reply, scope.scopeName.lowercase(Locale.getDefault())),
                 decisionStrategy = DecisionStrategy.AFFIRMATIVE,
-                policyIds = policyIds.plus(commonPolicyIds)
+                policyIds = policyIds
             )
         }
 
@@ -177,6 +181,8 @@ class PermissionController {
                 resourceId = resourceId
             )
         }
+
+        return resourceId
     }
 
     /**

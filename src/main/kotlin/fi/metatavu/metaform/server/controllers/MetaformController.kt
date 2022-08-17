@@ -12,6 +12,8 @@ import fi.metatavu.metaform.server.exceptions.ResourceNotFoundException
 import fi.metatavu.metaform.server.utils.MetaformUtils
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.metaform.SlugValidation
+import fi.metatavu.metaform.server.permissions.GroupMemberPermission
+import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO
@@ -56,6 +58,9 @@ class MetaformController {
 
     @Inject
     lateinit var keycloakController: KeycloakController
+
+    @Inject
+    lateinit var permissionController: PermissionController
 
     /**
      * Creates new Metaform
@@ -220,13 +225,16 @@ class MetaformController {
      * @param metaform metaform
      * @param reply reply
      * @param replyEntity reply entity
+     * param loggedUserId logged user id
      */
     @Throws(AuthzException::class)
     fun handleReplyPostPersist(
             replyCreated: Boolean,
             metaform: Metaform,
             reply: Reply,
-            replyEntity: fi.metatavu.metaform.api.spec.model.Reply
+            replyEntity: fi.metatavu.metaform.api.spec.model.Reply,
+            groupMemberPermissions: Set<GroupMemberPermission>,
+            loggedUserId: UUID
     ) {
         val adminClient = keycloakController.adminClient
         val keycloakClient = try {
@@ -235,25 +243,33 @@ class MetaformController {
             throw e
         }
 
-        val resourceId = reply.resourceId
         val resourceName = replyController.getReplyResourceName(reply)
         val notifiedUserIds =
                 if (replyCreated) emptySet()
                 else keycloakController.getResourcePermittedUsers(
                         adminClient,
                         keycloakClient,
-                        resourceId ?: throw ResourceNotFoundException("Resource not found"),
+                    reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
                         resourceName,
                         listOf(AuthorizationScope.REPLY_NOTIFY)
                 )
 
-        val notifyUserIds = keycloakController.getResourcePermittedUsers(
+        val resourceId =  permissionController.updateReplyPermissions(
+            reply = reply,
+            groupMemberPermissions = groupMemberPermissions
+        )
+
+        val notifyUserIds = keycloakController
+            .getResourcePermittedUsers(
                 adminClient,
                 keycloakClient,
-                resourceId ?: throw ResourceNotFoundException("Resource not found"),
+                resourceId,
                 resourceName,
                 listOf(AuthorizationScope.REPLY_NOTIFY)
-        ).filter { notifyUserId: UUID -> !notifiedUserIds.contains(notifyUserId) }.toSet()
+            )
+            .filter { notifyUserId: UUID -> !notifiedUserIds.contains(notifyUserId) }
+            .minus(loggedUserId)
+            .toSet()
 
         emailNotificationController.listEmailNotificationByMetaform(metaform)
             .forEach{ emailNotification: EmailNotification ->
@@ -323,7 +339,11 @@ class MetaformController {
             val groupIds = editGroupIds.plus(viewGroupIds).plus(notifyGroupIds)
 
             for (groupId in groupIds) {
-                if (keycloakController.findGroup(id = groupId) == null) {
+                try {
+                    if (keycloakController.findGroup(id = groupId) == null) {
+                        return false
+                    }
+                } catch (e: Exception) {
                     return false
                 }
             }

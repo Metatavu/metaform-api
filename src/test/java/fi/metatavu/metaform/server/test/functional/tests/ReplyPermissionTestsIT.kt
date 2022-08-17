@@ -231,7 +231,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that admin may list all replies
      */
     @Test
-    @Throws(Exception::class)
     fun listRepliesAdmin() {
         TestBuilder().use { builder ->
             val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
@@ -251,23 +250,65 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * another user receives when reply is updated
      */
     @Test
-    @Throws(Exception::class)
     fun notifyPermissionContextReply() {
         val mailgunMocker: MailgunMocker = startMailgunMocker()
         try {
             TestBuilder().use { builder ->
                 val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
-                builder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Permission context subject", "Permission context content", emptyList())
-                val reply = builder.test3.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                        builder.test3.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-                builder.test3.replies.updateReply(metaform.id,
-                        reply.id!!,
-                        builder.test3.replies.createPermissionSelectReply("group-1"), null as String?)
-                builder.test3.replies.updateReply(metaform.id,
-                        reply.id,
-                        builder.test3.replies.createPermissionSelectReply("group-1"), null as String?)
-                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content")
+                val metaformId = metaform.id!!
+
+                builder.systemAdmin.emailNotifications.createEmailNotification(metaformId, "Permission context subject", "Permission context content", emptyList())
+
+                val group1 = builder.systemAdmin.metaformMemberGroups.create(
+                    metaformId = metaformId,
+                    payload = MetaformMemberGroup(
+                        displayName = "Group 1",
+                        memberIds = arrayOf(REALM1_USER_1_ID)
+                    )
+                )
+
+                val group2 = builder.systemAdmin.metaformMemberGroups.create(
+                    metaformId = metaformId,
+                    payload = MetaformMemberGroup(
+                        displayName = "Group 2",
+                        memberIds = arrayOf(REALM1_USER_2_ID)
+                    )
+                )
+
+                var updatedForm = setOptionGroupPermission(
+                    metaform = metaform,
+                    fieldName = "group-1",
+                    notifyGroupIds = arrayOf(group1.id!!)
+                )
+
+                updatedForm = setOptionGroupPermission(
+                    metaform = updatedForm,
+                    fieldName = "group-2",
+                    notifyGroupIds = arrayOf(group2.id!!)
+                )
+
+                builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = updatedForm)
+
+                val reply = builder.test3.replies.create(
+                    metaformId = metaformId,
+                    replyMode = ReplyMode.REVISION.toString(),
+                    payload = builder.test3.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+                )
+
+                builder.test3.replies.updateReply(
+                    metaformId = metaformId,
+                    replyId = reply.id!!,
+                    body = builder.test3.replies.createPermissionSelectReply("group-1")
+                )
+
+                builder.test3.replies.updateReply(
+                    metaformId = metaformId,
+                    replyId = reply.id,
+                    body = builder.test3.replies.createPermissionSelectReply("group-1")
+                )
+
                 mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content")
+                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content")
             }
         } finally {
             stopMailgunMocker(mailgunMocker)
@@ -292,13 +333,15 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * @param fieldName option field name
      * @param viewGroupIds view group ids
      * @param editGroupIds edit group ids
+     * @param notifyGroupIds notify group ids
      * @return updated metaform
      */
     private fun setOptionGroupPermission(
         metaform: Metaform,
         fieldName: String,
-        viewGroupIds: Array<UUID>,
-        editGroupIds: Array<UUID>
+        viewGroupIds: Array<UUID>? = null,
+        editGroupIds: Array<UUID>? = null,
+        notifyGroupIds: Array<UUID>? = null
     ): Metaform {
         val sections = metaform.sections!!
         val fields = sections[0].fields!!
@@ -309,7 +352,8 @@ class ReplyPermissionTestsIT : AbstractTest() {
                 it.copy(
                     permissionGroups = PermissionGroups(
                         viewGroupIds = viewGroupIds,
-                        editGroupIds = editGroupIds
+                        editGroupIds = editGroupIds,
+                        notifyGroupIds = notifyGroupIds
                     )
                 )
             } else {

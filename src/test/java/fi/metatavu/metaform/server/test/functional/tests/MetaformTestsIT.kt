@@ -29,8 +29,8 @@ import java.util.*
 )
 @TestProfile(GeneralTestProfile::class)
 class MetaformTestsIT : AbstractTest() {
+
     @Test
-    @Throws(Exception::class)
     fun testCreateMetaform() {
         TestBuilder().use { builder ->
             val metaform1: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
@@ -59,6 +59,15 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals("text", metaform2.sections[0].fields!![0].type.toString())
             assertEquals("Text field", metaform2.sections[0].fields!![0].title)
             assertEquals(true, metaform2.allowDrafts)
+        }
+    }
+
+    @Test
+    fun testCreateMetaformInvalidPermissionGroups() {
+        TestBuilder().use { builder ->
+            val form = builder.systemAdmin.metaforms.readMetaform("simple-invalid-permission-groups")
+            assertNotNull(form)
+            builder.systemAdmin.metaforms.assertCreateFailStatus(400, form!!)
         }
     }
 
@@ -306,6 +315,18 @@ class MetaformTestsIT : AbstractTest() {
             val updatedMetaformModified = updatedMetaform.copy(visibility = MetaformVisibility.pUBLIC)
             val updatedMetaform2 = builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
             assertEquals(MetaformVisibility.pUBLIC, updatedMetaform2.visibility)
+        }
+    }
+
+    @Test
+    fun testUpdateMetaformInvalidPermissionGroups() {
+        TestBuilder().use { builder ->
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val invalidForm = builder.systemAdmin.metaforms.readMetaform("simple-invalid-permission-groups")
+
+            builder.systemAdmin.metaforms.assertUpdateFailStatus(400, metaform.id!!, metaform.copy(
+                sections = invalidForm?.sections
+            ))
         }
     }
 

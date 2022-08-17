@@ -214,7 +214,7 @@ class ReplyTestBuilderResource(
      * @param ownerKey   owner key
      */
     @Throws(IOException::class)
-    fun updateReply(metaformId: UUID, replyId: UUID, body: Reply, ownerKey: String?) {
+    fun updateReply(metaformId: UUID, replyId: UUID, body: Reply, ownerKey: String? = null) {
         api.updateReply(metaformId, replyId, body, ownerKey)
     }
 
@@ -267,23 +267,6 @@ class ReplyTestBuilderResource(
         maxResults: Int? = null
     ) {
         Assert.assertEquals(expected.toLong(), api.listReplies(metaformId, userId, createdBefore, createdAfter, modifiedBefore, modifiedAfter, includeRevisions, fields, firstResult, maxResults, null, null).size.toLong())
-    }
-
-    /**
-     * Asserts create simple reply status fails with given status code
-     *
-     * @param expectedStatus expected status code
-     * @param value          value
-     * @param replyMode      replyMode
-     */
-    @Throws(IOException::class)
-    fun assertCreateSimpleReplyFail(expectedStatus: Int, metaformId: UUID, value: String, replyMode: ReplyMode) {
-        try {
-            createSimpleReply(metaformId, value, replyMode)
-            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
-        } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
-        }
     }
 
     /**
@@ -373,8 +356,6 @@ class ReplyTestBuilderResource(
      * @param fields           Filter results by field values. Format is field:value, multiple values can be added by using comma separator. E.g. field1&#x3D;value,field2&#x3D;another (optional)
      * @param firstResult      First index of results to be returned (optional)
      * @param maxResults       How many items to return at one time (optional)
-     * @param orderBy criteria to order by
-     * @param latestFirst return the latest result first according to the criteria in orderBy
      */
     @Throws(IOException::class)
     fun assertListFailStatus(expectedStatus: Int, metaformId: UUID, userId: UUID?, createdBefore: String?, createdAfter: String?, modifiedBefore: String?, modifiedAfter: String?, includeRevisions: Boolean?, fields: Array<String>?, firstResult: Int?, maxResults: Int?) {
@@ -384,19 +365,6 @@ class ReplyTestBuilderResource(
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
-    }
-
-    /**
-     * Asserts that actual reply equals expected reply when both are serialized into JSON
-     *
-     * @param expected expected reply
-     * @param actual   actual reply
-     * @throws JSONException thrown when JSON serialization error occurs
-     * @throws IOException   thrown when IO Exception occurs
-     */
-    @Throws(IOException::class, JSONException::class)
-    fun assertRepliesEqual(expected: Reply?, actual: Reply?) {
-        assertJsonsEqual(expected, actual)
     }
 
     /**

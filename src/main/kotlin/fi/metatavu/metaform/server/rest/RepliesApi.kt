@@ -161,16 +161,13 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         fieldMap = fieldMap
       )
 
-      permissionController.updateReplyPermissions(
-        reply = createdReply,
-        groupMemberPermissions = groupMemberPermissions
-      )
-
       metaformController.handleReplyPostPersist(
         replyCreated = true,
         metaform = metaform,
         reply = createdReply,
-        replyEntity = replyEntity
+        replyEntity = replyEntity,
+        loggedUserId = userId,
+        groupMemberPermissions = groupMemberPermissions
       )
 
     } catch (e: AuthzException) {
@@ -552,16 +549,13 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         fieldMap = fieldMap
       )
 
-      permissionController.updateReplyPermissions(
-        reply = foundReply,
-        groupMemberPermissions = groupMemberPermissions
-      )
-
       metaformController.handleReplyPostPersist(
         replyCreated = false,
         metaform = metaform,
         reply = foundReply,
-        replyEntity = replyEntity
+        replyEntity = replyEntity,
+        loggedUserId = userId,
+        groupMemberPermissions = groupMemberPermissions
       )
     } catch (e: AuthzException) {
       return createInternalServerError(e.message!!)
