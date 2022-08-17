@@ -33,11 +33,11 @@ import java.util.stream.Collectors
 )
 @TestProfile(GeneralTestProfile::class)
 class ReplyPermissionTestsIT : AbstractTest() {
+
     /**
      * Test that asserts that user may find his / her own reply
      */
     @Test
-    @Throws(Exception::class)
     fun findOwnReply() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
@@ -52,7 +52,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that anonymous users may not find their "own" replies
      */
     @Test
-    @Throws(Exception::class)
     fun findOwnReplyAnonymous() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
@@ -66,7 +65,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that other users may not find their replies
      */
     @Test
-    @Throws(Exception::class)
     fun findOthersReplyUser() {
         TestBuilder().use { builder ->
             val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
@@ -80,7 +78,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that metaform-admin may find replies created by others
      */
     @Test
-    @Throws(Exception::class)
     fun findOthersReplyAdmin() {
         TestBuilder().use { builder ->
             val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
@@ -95,7 +92,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that user may list only his / her own replies
      */
     @Test
-    @Throws(Exception::class)
     fun listOwnReplies() {
         TestBuilder().use { builder ->
             val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
@@ -115,28 +111,53 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Test that asserts that user in permission context group may see replies targeted to that group
      */
     @Test
-    @Throws(Exception::class)
     fun listPermissionContextReplies() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
-            val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            val reply2 = builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            val reply3 = builder.test3.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            val replies1: Array<Reply> = builder.test1.replies.listReplies(metaform.id)
-            val replies2: Array<Reply> = builder.test2.replies.listReplies(metaform.id)
-            val replies3: Array<Reply> = builder.test3.replies.listReplies(metaform.id)
+            val metaformId = metaform.id!!
+
+            val permittedGroup = builder.systemAdmin.metaformMemberGroups.create(
+                metaformId = metaformId,
+                payload = MetaformMemberGroup(
+                    displayName = "Permitted group",
+                    memberIds = arrayOf(REALM1_USER_2_ID)
+                )
+            )
+
+            val permittedGroupId = permittedGroup.id!!
+
+            val updatedForm = setOptionGroupPermission(
+                metaform = metaform,
+                fieldName = "group-2",
+                viewGroupIds = arrayOf(permittedGroupId),
+                editGroupIds = arrayOf(permittedGroupId)
+            )
+
+            builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = updatedForm)
+
+            val replies = arrayOf(builder.test1, builder.test2, builder.test3).map { user ->
+                user.replies.create(
+                    metaformId = metaformId,
+                    updateExisting = null,
+                    replyMode = ReplyMode.REVISION.toString(),
+                    payload = user.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+                )
+            }
+
+            val replies1: Array<Reply> = builder.test1.replies.listReplies(metaformId)
+            val replies2: Array<Reply> = builder.test2.replies.listReplies(metaformId)
+            val replies3: Array<Reply> = builder.test3.replies.listReplies(metaformId)
+
             Assertions.assertEquals(1, replies1.size)
-            Assertions.assertEquals(reply1.id, replies1[0].id)
+            Assertions.assertEquals(replies[0].id, replies1[0].id)
             Assertions.assertEquals(3, replies2.size)
+
             val reply2Ids = Arrays.stream(replies2).map(Reply::id).collect(Collectors.toSet())
-            Assertions.assertTrue(reply2Ids.contains(reply1.id))
-            Assertions.assertTrue(reply2Ids.contains(reply2.id))
-            Assertions.assertTrue(reply2Ids.contains(reply3.id))
+
+            Assertions.assertTrue(reply2Ids.containsAll(replies.map(Reply::id)))
+
             Assertions.assertEquals(1, replies3.size)
-            Assertions.assertEquals(reply3.id, replies3[0].id)
+            Assertions.assertEquals(replies[2].id, replies3[0].id)
         }
     }
 
@@ -175,46 +196,34 @@ class ReplyPermissionTestsIT : AbstractTest() {
             builder.test1.replies.assertCount(0, metaformId = metaformId)
             builder.test2.replies.assertCount(0, metaformId = metaformId)
 
-            val reply1: Reply = builder.test1.replies.create(
-                metaformId = metaform.id,
-                updateExisting = null,
-                replyMode = ReplyMode.REVISION.toString(),
-                payload = builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
-            )
-
-            val reply2: Reply = builder.test2.replies.create(
-                metaformId = metaform.id,
-                updateExisting = null,
-                replyMode = ReplyMode.REVISION.toString(),
-                payload = builder.test2.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
-            )
-
-            val reply3: Reply = builder.test3.replies.create(
-                metaformId = metaform.id,
-                updateExisting = null,
-                replyMode = ReplyMode.REVISION.toString(),
-                payload = builder.test3.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
-            )
+            val replies = arrayOf(builder.test1, builder.test2, builder.test3).map { user ->
+                user.replies.create(
+                    metaformId = metaform.id,
+                    updateExisting = null,
+                    replyMode = ReplyMode.REVISION.toString(),
+                    payload = user.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+                )
+            }
 
             // test1.realm1 may download only own reply
-            assertPdfDownloadStatus(200, builder.test1.token, metaform, reply1)
-            assertPdfDownloadStatus(403, builder.test1.token, metaform, reply2)
-            assertPdfDownloadStatus(403, builder.test1.token, metaform, reply3)
+            assertPdfDownloadStatus(200, builder.test1.token, metaform, replies[0])
+            assertPdfDownloadStatus(403, builder.test1.token, metaform, replies[1])
+            assertPdfDownloadStatus(403, builder.test1.token, metaform, replies[2])
 
             // test2.realm1 may download all the replies
-            assertPdfDownloadStatus(200, builder.test2.token, metaform, reply1)
-            assertPdfDownloadStatus(200, builder.test2.token, metaform, reply2)
-            assertPdfDownloadStatus(200, builder.test2.token, metaform, reply3)
+            assertPdfDownloadStatus(200, builder.test2.token, metaform, replies[0])
+            assertPdfDownloadStatus(200, builder.test2.token, metaform, replies[1])
+            assertPdfDownloadStatus(200, builder.test2.token, metaform, replies[2])
 
             // test3.realm1 may download only own reply
-            assertPdfDownloadStatus(403, builder.test3.token, metaform, reply1)
-            assertPdfDownloadStatus(403, builder.test3.token, metaform, reply2)
-            assertPdfDownloadStatus(200, builder.test3.token, metaform, reply3)
+            assertPdfDownloadStatus(403, builder.test3.token, metaform, replies[0])
+            assertPdfDownloadStatus(403, builder.test3.token, metaform, replies[1])
+            assertPdfDownloadStatus(200, builder.test3.token, metaform, replies[2])
 
             // anonymous may not download any replies
-            assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, reply1)
-            assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, reply2)
-            assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, reply3)
+            assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, replies[0])
+            assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, replies[1])
+            assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, replies[2])
         }
     }
 
