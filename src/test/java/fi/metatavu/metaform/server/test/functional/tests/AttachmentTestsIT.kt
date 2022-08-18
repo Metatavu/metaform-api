@@ -33,8 +33,8 @@ import java.util.*
 )
 @TestProfile(GeneralTestProfile::class)
 class AttachmentTestsIT : AbstractTest() {
+
     @Test
-    @Throws(Exception::class)
     fun findAttachment() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("files")

@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.MetaformMemberGroup
 import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.rest.translate.MetaformMemberGroupTranslator
 import org.keycloak.representations.idm.GroupRepresentation
 import java.util.UUID
@@ -21,6 +22,9 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
   @Inject
   lateinit var metaformController: MetaformController
 
+  @Inject
+  lateinit var permissionController: PermissionController
+
   override suspend fun createMetaformMemberGroup(metaformId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -31,9 +35,15 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val createdGroup = try {
-      keycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
+      val group = keycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
         name = metaformMemberGroup.displayName
       })
+
+      permissionController.createMemberGroupPolicy(
+        group = group
+      )
+
+      group
     } catch (e: Exception) {
       return createInternalServerError(e.message)
     }
@@ -56,12 +66,13 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM_MEMBER))
     }
 
-    metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+    metaformController.findMetaformById(metaformId)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
+    val memberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
 
-    keycloakController.deleteMetaformMemberGroupMembers(metaformMemberGroupId)
+    keycloakController.deleteGroup(id = UUID.fromString(memberGroup.id))
 
     return createNoContent()
   }
