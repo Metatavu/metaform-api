@@ -102,44 +102,26 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     return createNoContent()
   }
 
-  override suspend fun findMetaformBySlug(metaformSlug: String): Response {
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
-
-    val metaform = metaformController.findMetaformBySlug(metaformSlug)
-      ?: return createNotFound(createSlugNotFoundMessage(METAFORM, metaformSlug))
-
-    val translatedMetaform = try {
-      metaformTranslator.translate(metaform)
-    } catch (e: MalformedMetaformJsonException) {
-      createInternalServerError(e.message)
-    }
-
-    return when (metaform.visibility!!) {
-      MetaformVisibility.PUBLIC -> {
-        try {
-          createOk(translatedMetaform)
-        } catch (e: MalformedMetaformJsonException) {
-          createInternalServerError(e.message)
-        }
-      }
-      MetaformVisibility.PRIVATE -> {
-        if (isMetaformManager(metaform.id!!)) {
-          createOk(translatedMetaform)
-        }
-        else {
-          createForbidden(createNotAllowedMessage(FIND, METAFORM))
-        }
-      }
-    }
-  }
-
-  override suspend fun findMetaform(metaformId: UUID, replyId: UUID?, ownerKey: String?): Response {
+  override suspend fun findMetaform(
+    metaformSlug: String?,
+    metaformId: UUID?,
+    replyId: UUID?,
+    ownerKey: String?
+  ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val reply: Reply? = if (replyId != null) replyController.findReplyById(replyId) else null
+    val metaform: fi.metatavu.metaform.server.persistence.model.Metaform
 
-    val metaform = metaformController.findMetaformById(metaformId)
-      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+    metaform = if (metaformSlug != null) {
+      metaformController.findMetaformBySlug(metaformSlug)
+        ?: return createNotFound(createSlugNotFoundMessage(METAFORM, metaformSlug))
+    } else if (metaformId != null) {
+      metaformController.findMetaformById(metaformId)
+        ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+    } else {
+      return createBadRequest("Invalid request")
+    }
 
     val translatedMetaform = try {
       metaformTranslator.translate(metaform)
@@ -153,17 +135,12 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
     return when (metaform.visibility!!) {
       MetaformVisibility.PUBLIC -> {
-        try {
           createOk(translatedMetaform)
-        } catch (e: MalformedMetaformJsonException) {
-          createInternalServerError(e.message)
-        }
       }
       MetaformVisibility.PRIVATE -> {
-        if (isMetaformManager(metaformId)) {
+        if (isMetaformManager(metaform.id!!)) {
           createOk(translatedMetaform)
-        }
-        else {
+        } else {
           createForbidden(createNotAllowedMessage(FIND, METAFORM))
         }
       }
