@@ -111,9 +111,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val reply: Reply? = if (replyId != null) replyController.findReplyById(replyId) else null
-    val metaform: fi.metatavu.metaform.server.persistence.model.Metaform
 
-    metaform = if (metaformSlug != null) {
+    val metaform = if (metaformSlug != null) {
       metaformController.findMetaformBySlug(metaformSlug)
         ?: return createNotFound(createSlugNotFoundMessage(METAFORM, metaformSlug))
     } else if (metaformId != null) {

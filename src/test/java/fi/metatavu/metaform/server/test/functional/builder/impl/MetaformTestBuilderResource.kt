@@ -48,27 +48,22 @@ class MetaformTestBuilderResource(
     }
 
     /**
-     * Finds a metaform
+     * Finds a metaform by slug or id
      *
-     * @param metaformId metaform id
-     * @param replyId    Id of reply the form is loaded for. Reply id needs to be defined when unanonymous form is authenticated with owner key  (optional)
-     * @param ownerKey   Reply owner key (optional)
+     * @param metaformSlug  metaform slug
+     * @param metaformId    metaform id
+     * @param replyId       Id of reply the form is loaded for. Reply id needs to be defined when unanonymous form is authenticated with owner key  (optional)
+     * @param ownerKey      Reply owner key (optional)
      * @return found metaform
      */
     @Throws(IOException::class)
-    fun findMetaform(metaformId: UUID, replyId: UUID?, ownerKey: String?): Metaform {
-        return api.findMetaform(metaformId, replyId, ownerKey)
-    }
-
-    /**
-     * Finds a metaform by slug
-     *
-     * @param metaformSlug metaform slug
-     * @return found metaform
-     */
-    @Throws(IOException::class)
-    fun findMetaformBySlug(metaformSlug: String): Metaform {
-        return api.findMetaformBySlug(metaformSlug)
+    fun findMetaform(metaformSlug: String?, metaformId: UUID?, replyId: UUID?, ownerKey: String?): Metaform {
+        return api.findMetaform(
+            metaformSlug = metaformSlug,
+            metaformId = metaformId,
+            replyId = replyId,
+            ownerKey = ownerKey
+        )
     }
 
     /**
@@ -134,30 +129,21 @@ class MetaformTestBuilderResource(
      * Asserts find status fails with given status code
      *
      * @param expectedStatus expected status code
+     * @param metaformSlug   metaform slug
      * @param metaformId     metaform id
      * @param replyId        Id of reply the form is loaded for. Reply id needs to be defined when anonymous form is authenticated with owner key  (optional)
      * @param ownerKey       Reply owner key (optional)
      */
     @JvmOverloads
     @Throws(IOException::class)
-    fun assertFindFailStatus(expectedStatus: Int, metaformId: UUID, replyId: UUID? = null, ownerKey: String? = null) {
+    fun assertFindFailStatus(expectedStatus: Int, metaformSlug: String? = null, metaformId: UUID? = null, replyId: UUID? = null, ownerKey: String? = null) {
         try {
-            api.findMetaform(metaformId, replyId, ownerKey)
-            fail(String.format("Expected find to fail with status %d", expectedStatus))
-        } catch (e: ClientException) {
-            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
-        }
-    }
-
-    /**
-     * Asserts find status fails with given status code
-     *
-     * @param expectedStatus expected status code
-     * @param slug       metaform slug
-     */
-    fun assertFindFailStatus(expectedStatus: Int, slug: String) {
-        try {
-            api.findMetaformBySlug(slug)
+            api.findMetaform(
+                metaformSlug = metaformSlug,
+                metaformId = metaformId,
+                replyId = replyId,
+                ownerKey = ownerKey
+            )
             fail(String.format("Expected find to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
