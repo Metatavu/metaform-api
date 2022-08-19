@@ -4,10 +4,12 @@ import fi.metatavu.metaform.api.spec.model.*
 import fi.metatavu.metaform.server.controllers.*
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformController
-import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
+import fi.metatavu.metaform.server.exceptions.AuthzException
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import fi.metatavu.metaform.server.exceptions.XlsxException
+import fi.metatavu.metaform.server.permissions.GroupMemberPermission
+import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
@@ -25,8 +27,8 @@ import javax.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
+@Suppress ("UNUSED")
 class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
-
 
   @Inject
   lateinit var logger: Logger
@@ -39,6 +41,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
   @Inject
   lateinit var cryptoController: CryptoController
+
+  @Inject
+  lateinit var permissionController: PermissionController
 
   @Inject
   lateinit var metaformTranslator: MetaformTranslator
@@ -106,9 +111,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createInternalServerError(e.message)
     }
 
-    val permissionGroups = EnumMap<AuthorizationScope, MutableList<String>>(AuthorizationScope::class.java)
-    AuthorizationScope.values().forEach { scope: AuthorizationScope -> permissionGroups[scope] = ArrayList() }
-
     var privateKey: PrivateKey? = null
     var publicKey: PublicKey? = null
 
@@ -129,25 +131,20 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       userId
     )
 
-    if (reply.data == null) {
-      logger.warn("Received a reply with null data")
-    } else {
-      val fieldMap: Map<String, MetaformField> = fieldController.getFieldMap(metaformEntity)
+    val replyData = reply.data?.filter { (fieldName, fieldValue) ->
+      @Suppress("SENSELESS_COMPARISON")
+      fieldName != null && fieldValue != null
+    } ?: return createBadRequest("Received a reply with null data")
 
-      reply.data
-        .filter { (fieldName, fieldValue) ->
-          @Suppress("SENSELESS_COMPARISON")
-          fieldName != null && fieldValue != null
-        }
-        .forEach{ (fieldName, fieldValue) ->
-          val field = fieldMap[fieldName] ?: return createBadRequest(String.format("Invalid field %s", fieldName))
-          if (!replyController.isValidFieldValue(field, fieldValue)) {
-            return createBadRequest(String.format("Invalid field value for field %s", fieldName))
-          }
+    val fieldMap: Map<String, MetaformField> = fieldController.getFieldMap(metaformEntity)
 
-          replyController.setReplyField(field, createdReply, fieldName, fieldValue)
-          metaformController.addPermissionContextGroups(permissionGroups, metaform.slug, field, fieldValue)
+    replyData.forEach { (fieldName, fieldValue) ->
+      val field = fieldMap[fieldName] ?: return createBadRequest(String.format("Invalid field %s", fieldName))
+      if (!replyController.isValidFieldValue(field, fieldValue)) {
+        return createBadRequest(String.format("Invalid field value for field %s", fieldName))
       }
+
+      replyController.setReplyField(field, createdReply, fieldName, fieldValue)
     }
 
     val replyEntity = replyTranslator.translate(metaformEntity, createdReply, publicKey)
@@ -158,8 +155,22 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     try {
-      metaformController.handleReplyPostPersist(true, metaform, createdReply, replyEntity, permissionGroups)
-    } catch (e: KeycloakClientNotFoundException) {
+      val groupMemberPermissions = getGroupPermissions(
+        metaformEntity = metaformEntity,
+        replyData = replyData,
+        fieldMap = fieldMap
+      )
+
+      metaformController.handleReplyPostPersist(
+        replyCreated = true,
+        metaform = metaform,
+        reply = createdReply,
+        replyEntity = replyEntity,
+        loggedUserId = userId,
+        groupMemberPermissions = groupMemberPermissions
+      )
+
+    } catch (e: AuthzException) {
       return createInternalServerError(e.message!!)
     }
 
@@ -359,9 +370,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val modifiedBefore = parseTime(modifiedBeforeParam)
     val modifiedAfter = parseTime(modifiedAfterParam)
 
-    val metaform = metaformController.findMetaformById(metaformId)
-            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-
+    val metaform = metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
     val metaformEntity = try {
       metaformTranslator.translate(metaform)
     } catch (e: MalformedMetaformJsonException) {
@@ -511,14 +520,15 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     val fieldNames = replyController.listFieldNames(foundReply).toMutableList()
     val fieldMap = fieldController.getFieldMap(metaformEntity)
+    val replyData = reply.data ?: return createBadRequest("Received reply without data")
 
-    reply.data?.forEach { (fieldName, fieldValue) ->
+    replyData.forEach { (fieldName, fieldValue) ->
       val field = fieldMap[fieldName]
       if (!replyController.isValidFieldValue(field!!, fieldValue)) {
         return createBadRequest(String.format("Invalid field value for field %s", fieldName))
       }
+
       replyController.setReplyField(fieldMap[fieldName]!!, foundReply, fieldName, fieldValue)
-      metaformController.addPermissionContextGroups(newPermissionGroups, metaform.slug, field, fieldValue)
       fieldNames.remove(fieldName)
     }
 
@@ -533,11 +543,60 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     auditLogEntryController.generateAuditLog(metaform, userId, foundReply.id!!, null, null, AuditLogEntryType.MODIFY_REPLY)
     try {
-      metaformController.handleReplyPostPersist(false, metaform, foundReply, replyEntity, newPermissionGroups)
-    } catch (e: KeycloakClientNotFoundException) {
+      val groupMemberPermissions = getGroupPermissions(
+        metaformEntity = metaformEntity,
+        replyData = replyData,
+        fieldMap = fieldMap
+      )
+
+      metaformController.handleReplyPostPersist(
+        replyCreated = false,
+        metaform = metaform,
+        reply = foundReply,
+        replyEntity = replyEntity,
+        loggedUserId = userId,
+        groupMemberPermissions = groupMemberPermissions
+      )
+    } catch (e: AuthzException) {
       return createInternalServerError(e.message!!)
     }
 
     return createNoContent()
   }
+
+  /**
+   * Returns group permissions based on metaform and reply data
+   *
+   * @param metaformEntity metaform
+   * @param fieldMap field map
+   * @param replyData reply data
+   * @return group permissions based on metaform and reply data
+   */
+  private fun getGroupPermissions(
+    metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform,
+    fieldMap: Map<String, MetaformField>,
+    replyData: Map<String, Any>
+  ): Set<GroupMemberPermission> {
+    val result = mutableSetOf<GroupMemberPermission>()
+
+    replyData.forEach { (fieldName, fieldValue) ->
+      val field = fieldMap[fieldName] ?: return@forEach
+
+      result.addAll(permissionController.getFieldGroupMemberPermissions(
+        field = field,
+        fieldValue = fieldValue
+      ))
+    }
+
+    if (result.isEmpty()) {
+      result.addAll(
+        permissionController.getDefaultGroupMemberPermissions(
+          metaform = metaformEntity
+        )
+      )
+    }
+
+    return result
+  }
+
 }

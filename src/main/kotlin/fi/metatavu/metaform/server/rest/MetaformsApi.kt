@@ -6,11 +6,11 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.controllers.ExportThemeController
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformController
-import fi.metatavu.metaform.server.exceptions.KeycloakClientNotFoundException
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.persistence.model.Reply
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
+import fi.metatavu.metaform.server.utils.MetaformUtils
 import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.RequestScoped
@@ -43,7 +43,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     }
 
     if (!metaformController.validateMetaform(metaform)) {
-      createBadRequest("Duplicate field names")
+      return createBadRequest("Duplicate field names")
     }
 
     val exportTheme = if (metaform.exportThemeId != null) {
@@ -59,26 +59,24 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       }
     }
 
+    if (!metaformController.validatePermissionGroups(MetaformUtils.getPermissionGroups(metaform = metaform))) {
+      return createBadRequest("Invalid permission groups")
+    }
+
     val metaformData = try {
       metaformController.serializeMetaform(metaform)
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
     }
 
-    val createdMetaform =
-      metaformController.createMetaform(
-        exportTheme = exportTheme,
-        allowAnonymous = metaform.allowAnonymous ?: false,
-        visibility = metaform.visibility ?: MetaformVisibility.PRIVATE,
-        title = metaform.title,
-        slug = metaform.slug,
-        data = metaformData
-      )
-    try {
-      metaformController.updateMetaformPermissionGroups(createdMetaform.slug, metaform)
-    } catch (e: KeycloakClientNotFoundException) {
-      createInternalServerError(e.message)
-    }
+    val createdMetaform = metaformController.createMetaform(
+      exportTheme = exportTheme,
+      allowAnonymous = metaform.allowAnonymous ?: false,
+      visibility = metaform.visibility ?: MetaformVisibility.PRIVATE,
+      title = metaform.title,
+      slug = metaform.slug,
+      data = metaformData
+    )
 
     return try {
       createOk(metaformTranslator.translate(createdMetaform))
@@ -180,14 +178,18 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createForbidden(createNotAllowedMessage(UPDATE, METAFORM))
     }
 
-    val data =  try {
+    val data = try {
       metaformController.serializeMetaform(metaform)
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
     }
 
     if (!metaformController.validateMetaform(metaform)) {
-      createBadRequest("Duplicate field names")
+      return createBadRequest("Duplicate field names")
+    }
+
+    if (!metaformController.validatePermissionGroups(MetaformUtils.getPermissionGroups(metaform = metaform))) {
+      return createBadRequest("Invalid permission groups")
     }
 
     val formSlug = metaform.slug?.let{ slug ->
@@ -202,12 +204,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       exportThemeController.findExportTheme(metaform.exportThemeId)
         ?: return createBadRequest(createNotFoundMessage(EXPORT_THEME, metaform.exportThemeId))
     } else null
-
-    try {
-      metaformController.updateMetaformPermissionGroups(formSlug, metaform)
-    } catch (e: KeycloakClientNotFoundException) {
-      return createInternalServerError(e.message)
-    }
 
     val updatedMetaform = metaformController.updateMetaform(
       metaform = foundMetaform,
