@@ -172,7 +172,20 @@ class MetaformTestsIT : AbstractTest() {
                 expectedStatus = 404,
                 metaformId = UUID.randomUUID()
             )
-            builder.systemAdmin.metaforms.assertFindFailStatus(404, "")
+            builder.systemAdmin.metaforms.assertFindFailStatus(
+                expectedStatus = 404,
+                metaformSlug = ""
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testFindMetaformBadRequest() {
+        TestBuilder().use { builder ->
+            builder.systemAdmin.metaforms.assertFindFailStatus(
+                expectedStatus = 400
+            )
         }
     }
 
