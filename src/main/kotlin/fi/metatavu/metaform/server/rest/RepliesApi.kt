@@ -520,7 +520,11 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     val fieldNames = replyController.listFieldNames(foundReply).toMutableList()
     val fieldMap = fieldController.getFieldMap(metaformEntity)
-    val replyData = reply.data ?: return createBadRequest("Received reply without data")
+
+    val replyData = reply.data?.filter { (fieldName, fieldValue) ->
+      @Suppress("SENSELESS_COMPARISON")
+      fieldName != null && fieldValue != null
+    } ?: return createBadRequest("Received a reply with null data")
 
     replyData.forEach { (fieldName, fieldValue) ->
       val field = fieldMap[fieldName]
