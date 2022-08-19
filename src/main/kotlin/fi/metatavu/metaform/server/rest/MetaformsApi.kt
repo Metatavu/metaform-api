@@ -108,8 +108,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    val reply: Reply? = if (replyId != null) replyController.findReplyById(replyId) else null
-
     val metaform = if (metaformSlug != null) {
       metaformController.findMetaformBySlug(metaformSlug)
         ?: return createNotFound(createSlugNotFoundMessage(METAFORM, metaformSlug))
@@ -125,6 +123,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     } catch (e: MalformedMetaformJsonException) {
       createInternalServerError(e.message)
     }
+
+    val reply: Reply? = if (replyId != null) replyController.findReplyById(replyId) else null
 
     if (isPermittedReply(reply, ownerKey, AuthorizationScope.REPLY_VIEW) && metaform.id == reply?.metaform?.id) {
       return createOk(translatedMetaform)

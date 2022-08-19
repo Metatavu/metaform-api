@@ -139,28 +139,21 @@ class MetaformTestsIT : AbstractTest() {
     fun testFindMetaform() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val foundMetaform: Metaform = builder.systemAdmin.metaforms.findMetaform(
+            val foundMetaformById: Metaform = builder.systemAdmin.metaforms.findMetaform(
                 metaformSlug = null,
                 metaformId = metaform.id!!,
                 replyId = null,
                 ownerKey = null
             )
-            assertEquals(metaform.toString(), foundMetaform.toString())
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun testFindMetaformBySlug() {
-        TestBuilder().use { builder ->
-            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val foundMetaform: Metaform = builder.systemAdmin.metaforms.findMetaform(
+            val foundMetaformBySlug: Metaform = builder.systemAdmin.metaforms.findMetaform(
                 metaformSlug = metaform.slug!!,
                 metaformId = null,
                 replyId = null,
                 ownerKey = null
             )
-            assertEquals(metaform.toString(), foundMetaform.toString())
+
+            assertEquals(metaform.toString(), foundMetaformById.toString())
+            assertEquals(metaform.toString(), foundMetaformBySlug.toString())
         }
     }
 
