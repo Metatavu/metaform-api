@@ -139,18 +139,21 @@ class MetaformTestsIT : AbstractTest() {
     fun testFindMetaform() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val foundMetaform: Metaform = builder.systemAdmin.metaforms.findMetaform(metaform.id!!, null, null)
-            assertEquals(metaform.toString(), foundMetaform.toString())
-        }
-    }
+            val foundMetaformById: Metaform = builder.systemAdmin.metaforms.findMetaform(
+                metaformSlug = null,
+                metaformId = metaform.id!!,
+                replyId = null,
+                ownerKey = null
+            )
+            val foundMetaformBySlug: Metaform = builder.systemAdmin.metaforms.findMetaform(
+                metaformSlug = metaform.slug!!,
+                metaformId = null,
+                replyId = null,
+                ownerKey = null
+            )
 
-    @Test
-    @Throws(Exception::class)
-    fun testFindMetaformBySlug() {
-        TestBuilder().use { builder ->
-            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val foundMetaform: Metaform = builder.systemAdmin.metaforms.findMetaformBySlug(metaform.slug!!)
-            assertEquals(metaform.toString(), foundMetaform.toString())
+            assertEquals(metaform.toString(), foundMetaformById.toString())
+            assertEquals(metaform.toString(), foundMetaformBySlug.toString())
         }
     }
 
@@ -158,8 +161,24 @@ class MetaformTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testFindMetaformNotFound() {
         TestBuilder().use { builder ->
-            builder.systemAdmin.metaforms.assertFindFailStatus(404, UUID.randomUUID())
-            builder.systemAdmin.metaforms.assertFindFailStatus(404, "")
+            builder.systemAdmin.metaforms.assertFindFailStatus(
+                expectedStatus = 404,
+                metaformId = UUID.randomUUID()
+            )
+            builder.systemAdmin.metaforms.assertFindFailStatus(
+                expectedStatus = 404,
+                metaformSlug = ""
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testFindMetaformBadRequest() {
+        TestBuilder().use { builder ->
+            builder.systemAdmin.metaforms.assertFindFailStatus(
+                expectedStatus = 400
+            )
         }
     }
 
@@ -172,7 +191,12 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.ANONYMOUS,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaform(metaform.id!!, null, null)
+                    authentication.metaforms.findMetaform(
+                        metaformSlug = null,
+                        metaformId = metaform.id!!,
+                        replyId = null,
+                        ownerKey = null
+                    )
                 },
             )
         }
@@ -187,7 +211,12 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.ANONYMOUS,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaformBySlug(metaform.slug!!)
+                    authentication.metaforms.findMetaform(
+                        metaformSlug = metaform.slug!!,
+                        metaformId = null,
+                        replyId = null,
+                        ownerKey = null
+                    )
                 }
             )
         }
@@ -202,7 +231,12 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.METAFORM_MANAGER,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaformBySlug(metaform.slug!!)
+                    authentication.metaforms.findMetaform(
+                        metaformSlug = metaform.slug!!,
+                        metaformId = null,
+                        replyId = null,
+                        ownerKey = null
+                    )
                 },
                 metaformId = metaform.id
             )
@@ -218,7 +252,12 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.METAFORM_MANAGER,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaform(metaform.id!!, null, null)
+                    authentication.metaforms.findMetaform(
+                        metaformSlug = null,
+                        metaformId = metaform.id!!,
+                        replyId = null,
+                        ownerKey = null
+                    )
                 },
                 metaformId = metaform.id
             )
@@ -406,16 +445,49 @@ class MetaformTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val metaform1: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val metaform2: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
-            testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id!!)
+            testBuilder.anon.metaforms.assertFindFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform1.id!!
+            )
             val testReply1 = testBuilder.systemAdmin.replies.createSimpleReply(metaform1.id, "TEST", ReplyMode.REVISION)
             val testReply2 = testBuilder.systemAdmin.replies.createSimpleReply(metaform1.id, "TEST", ReplyMode.REVISION)
             val testReply3 = testBuilder.systemAdmin.replies.createSimpleReply(metaform2.id!!, "TEST", ReplyMode.REVISION)
-            testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, testReply1.id, testReply2.ownerKey)
-            testBuilder.anon.metaforms.assertFindFailStatus(403, metaform2.id, testReply1.id, testReply1.ownerKey)
-            testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, testReply3.id, testReply3.ownerKey)
-            testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, null, testReply1.ownerKey)
-            testBuilder.anon.metaforms.assertFindFailStatus(403, metaform1.id, testReply1.id, null)
-            assertNotNull(testBuilder.anon.metaforms.findMetaform(metaform1.id, testReply1.id!!, testReply1.ownerKey))
+            testBuilder.anon.metaforms.assertFindFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform1.id,
+                replyId = testReply1.id,
+                ownerKey = testReply2.ownerKey
+            )
+            testBuilder.anon.metaforms.assertFindFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform2.id,
+                replyId = testReply1.id,
+                ownerKey = testReply1.ownerKey
+            )
+            testBuilder.anon.metaforms.assertFindFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform1.id,
+                replyId = testReply3.id,
+                ownerKey = testReply3.ownerKey
+            )
+            testBuilder.anon.metaforms.assertFindFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform1.id,
+                replyId = null,
+                ownerKey = testReply1.ownerKey
+            )
+            testBuilder.anon.metaforms.assertFindFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform1.id,
+                replyId = testReply1.id,
+                ownerKey = null
+            )
+            assertNotNull(testBuilder.anon.metaforms.findMetaform(
+                metaformSlug = null,
+                metaformId = metaform1.id,
+                replyId = testReply1.id!!,
+                ownerKey = testReply1.ownerKey
+            ))
         }
     }
 
