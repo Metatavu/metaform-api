@@ -36,7 +36,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   lateinit var exportThemeController: ExportThemeController
 
   override suspend fun createMetaform(metaform: Metaform): Response {
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+    val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdminAny) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM))
@@ -75,7 +75,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       visibility = metaform.visibility ?: MetaformVisibility.PRIVATE,
       title = metaform.title,
       slug = metaform.slug,
-      data = metaformData
+      data = metaformData,
+      creatorId = userId
     )
 
     return try {
@@ -169,7 +170,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   }
 
   override suspend fun updateMetaform(metaformId: UUID, metaform: Metaform): Response {
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+    val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val foundMetaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
@@ -211,7 +212,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       visibility = metaform.visibility ?: foundMetaform.visibility!!,
       data = data,
       allowAnonymous = metaform.allowAnonymous ?: false,
-      slug = formSlug
+      slug = formSlug,
+      lastModifierId = userId
     )
 
     return try {

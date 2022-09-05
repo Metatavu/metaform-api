@@ -17,7 +17,7 @@ import javax.validation.constraints.NotNull
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["slug"])])
-class Metaform {
+class Metaform: Metadata() {
   @Id
   var id: UUID? = null
 
@@ -42,4 +42,10 @@ class Metaform {
 
   @ManyToOne
   var exportTheme: ExportTheme? = null
+
+  @Column(nullable = false)
+  lateinit var creatorId: UUID
+
+  @Column(nullable = false)
+  lateinit var lastModifierId: UUID
 }

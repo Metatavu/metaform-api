@@ -69,6 +69,7 @@ class MetaformController {
      * @param allowAnonymous allow anonymous
      * @param title title
      * @param data form JSON
+     * @param creatorId creator id
      * @return Metaform
      */
     fun createMetaform(
@@ -77,7 +78,8 @@ class MetaformController {
             visibility: MetaformVisibility,
             title: String?,
             slug: String? = null,
-            data: String
+            data: String,
+            creatorId: UUID
     ): Metaform {
         return metaformDAO.create(
             id = UUID.randomUUID(),
@@ -85,7 +87,9 @@ class MetaformController {
             exportTheme = exportTheme,
             visibility = visibility,
             allowAnonymous = allowAnonymous,
-            data = data
+            data = data,
+            creatorId = creatorId,
+            lastModifierId = creatorId
         ).let {
             keycloakController.createMetaformManagementGroup(it.id!!)
             it
@@ -129,6 +133,7 @@ class MetaformController {
      * @param data form JSON
      * @param allowAnonymous allow anonymous
      * @param slug slug
+     * @param lastModifierId last modifier id
      * @return Updated Metaform
      */
     fun updateMetaform(
@@ -137,13 +142,14 @@ class MetaformController {
             visibility: MetaformVisibility,
             data: String,
             allowAnonymous: Boolean?,
-            slug: String?
+            slug: String?,
+            lastModifierId: UUID
     ): Metaform {
-        metaformDAO.updateData(metaform, data)
-        metaformDAO.updateAllowAnonymous(metaform, allowAnonymous)
-        metaformDAO.updateExportTheme(metaform, exportTheme)
-        metaformDAO.updateSlug(metaform, slug ?: metaform.slug)
-        metaformDAO.updateVisibility(metaform, visibility)
+        metaformDAO.updateData(metaform, data, lastModifierId)
+        metaformDAO.updateAllowAnonymous(metaform, allowAnonymous, lastModifierId)
+        metaformDAO.updateExportTheme(metaform, exportTheme, lastModifierId)
+        metaformDAO.updateSlug(metaform, slug ?: metaform.slug, lastModifierId)
+        metaformDAO.updateVisibility(metaform, visibility, lastModifierId)
         return metaform
     }
 
