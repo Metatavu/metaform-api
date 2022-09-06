@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.rest.translate
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import java.io.IOException
@@ -23,6 +24,7 @@ class MetaformTranslator {
   @Throws(MalformedMetaformJsonException::class)
   fun translate(entity: Metaform): fi.metatavu.metaform.api.spec.model.Metaform {
     val objectMapper = ObjectMapper()
+    objectMapper.registerModule(JavaTimeModule())
 
     val result = try {
        objectMapper.readValue(entity.data, fi.metatavu.metaform.api.spec.model.Metaform::class.java)
@@ -34,7 +36,11 @@ class MetaformTranslator {
       id = entity.id,
       slug = entity.slug,
       exportThemeId = entity.exportTheme?.id,
-      visibility = entity.visibility
+      visibility = entity.visibility,
+      createdAt = entity.createdAt,
+      modifiedAt = entity.modifiedAt,
+      creatorId = entity.creatorId,
+      lastModifierId = entity.lastModifierId
     )
   }
 }

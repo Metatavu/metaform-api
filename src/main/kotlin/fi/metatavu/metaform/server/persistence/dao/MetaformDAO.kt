@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.persistence.model.ExportTheme
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.Metaform_
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.persistence.criteria.CriteriaBuilder
@@ -26,7 +27,6 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    * @param allowAnonymous whether to allow anonymous repliers
    * @param data form JSON
    * @param creatorId creator id
-   * @param lastModifierId last modifier id
    * @return created Metaform
    */
   fun create(
@@ -36,9 +36,9 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     visibility: MetaformVisibility,
     allowAnonymous: Boolean?,
     data: String,
-    creatorId: UUID,
-    lastModifierId: UUID
+    creatorId: UUID
   ): Metaform {
+    val odtNow = OffsetDateTime.now()
     val metaform = Metaform()
     metaform.id = id
     metaform.exportTheme = exportTheme
@@ -46,7 +46,10 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
+    metaform.createdAt = odtNow
+    metaform.modifiedAt = odtNow
     metaform.creatorId = creatorId
+    metaform.lastModifierId = creatorId
     return persist(metaform)
   }
 

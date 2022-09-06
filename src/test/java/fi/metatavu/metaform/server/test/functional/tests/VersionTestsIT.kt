@@ -42,6 +42,7 @@ class VersionTestsIT : AbstractTest() {
             Assertions.assertNotNull(createdVersion.id)
             Assertions.assertEquals(MetaformVersionType.aRCHIVED, createdVersion.type)
             Assertions.assertEquals(versionData, createdVersion.data)
+            println(version)
 
             val foundVersion = testBuilder.systemAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
             Assertions.assertNotNull(foundVersion)

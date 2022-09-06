@@ -50,12 +50,18 @@ class DraftTestsIT : AbstractTest() {
             val draftData: MutableMap<String, Any> = HashMap()
             draftData["text"] = "draft value"
             val createdDraft: Draft = testBuilder.test1.drafts.createDraft(metaform, draftData)
+            println("createdDraft createdAt: ${createdDraft.createdAt}")
+            println("createdDraft modifiedAt: ${createdDraft.modifiedAt}")
+            println(createdDraft)
             Assertions.assertNotNull(createdDraft)
             Assertions.assertNotNull(createdDraft.id)
             Assertions.assertEquals("draft value", createdDraft.data["text"])
             draftData["text"] = "updated value"
             val updatePayload = Draft(draftData, createdDraft.id, createdDraft.createdAt, createdDraft.modifiedAt)
             val updateDraft: Draft = testBuilder.test1.drafts.updateDraft(metaform.id!!, createdDraft.id!!, updatePayload)
+            println("updateDraft createdAt: ${updateDraft.createdAt}")
+            println("updateDraft modifiedAt: ${updateDraft.modifiedAt}")
+            println(updateDraft)
             Assertions.assertNotNull(updateDraft)
             Assertions.assertEquals(createdDraft.id, updateDraft.id)
             Assertions.assertEquals("updated value", updateDraft.data["text"])

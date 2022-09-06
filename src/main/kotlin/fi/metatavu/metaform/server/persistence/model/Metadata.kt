@@ -24,8 +24,9 @@ abstract class Metadata {
    */
   @PrePersist
   fun onCreate() {
-    createdAt = OffsetDateTime.now()
-    modifiedAt = OffsetDateTime.now()
+    val odtNow = OffsetDateTime.now()
+    createdAt = odtNow
+    modifiedAt = odtNow
   }
 
   /**
@@ -33,6 +34,7 @@ abstract class Metadata {
    */
   @PreUpdate
   fun onUpdate() {
+    println("preUpdate called")
     modifiedAt = OffsetDateTime.now()
   }
 

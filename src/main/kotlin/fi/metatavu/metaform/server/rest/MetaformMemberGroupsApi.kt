@@ -25,7 +25,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
   @Inject
   lateinit var permissionController: PermissionController
 
-  override suspend fun createMetaformMemberGroup(metaformId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
+  override fun createMetaformMemberGroup(metaformId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -59,7 +59,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     return createOk(metaformMemberGroupTranslator.translate(createdGroup, metaformMemberGroup.memberIds))
   }
 
-  override suspend fun deleteMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): Response {
+  override fun deleteMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -77,7 +77,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     return createNoContent()
   }
 
-  override suspend fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): Response {
+  override fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -94,7 +94,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     return createOk(metaformMemberGroupTranslator.translate(foundMetaformMemberGroup, foundGroupMembers))
   }
 
-  override suspend fun listMetaformMemberGroups(metaformId: UUID): Response {
+  override fun listMetaformMemberGroups(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -111,7 +111,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     return createOk(metaformMemberGroups)
   }
 
-  override suspend fun updateMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
+  override fun updateMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID, metaformMemberGroup: MetaformMemberGroup): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {

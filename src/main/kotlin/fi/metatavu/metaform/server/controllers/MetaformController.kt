@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.controllers
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.github.slugify.Slugify
 import fi.metatavu.metaform.api.spec.model.MetaformField
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
@@ -88,8 +89,7 @@ class MetaformController {
             visibility = visibility,
             allowAnonymous = allowAnonymous,
             data = data,
-            creatorId = creatorId,
-            lastModifierId = creatorId
+            creatorId = creatorId
         ).let {
             keycloakController.createMetaformManagementGroup(it.id!!)
             it
@@ -181,6 +181,8 @@ class MetaformController {
     @Throws(MalformedMetaformJsonException::class)
     fun serializeMetaform(metaform: fi.metatavu.metaform.api.spec.model.Metaform): String {
         val objectMapper = ObjectMapper()
+        objectMapper.registerModule(JavaTimeModule())
+
         try {
             return objectMapper.writeValueAsString(metaform)
         } catch (e: JsonProcessingException) {

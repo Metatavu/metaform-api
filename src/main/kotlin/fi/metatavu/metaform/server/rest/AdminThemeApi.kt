@@ -20,7 +20,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
     @Inject
     lateinit var adminThemeTranslator: AdminThemeTranslator
 
-    override suspend fun createAdminTheme(adminTheme: AdminTheme): Response {
+    override fun createAdminTheme(adminTheme: AdminTheme): Response {
         val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
@@ -57,7 +57,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(translatedTheme)
     }
 
-    override suspend fun deleteAdminTheme(themeId: UUID): Response {
+    override fun deleteAdminTheme(themeId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
@@ -68,7 +68,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createNoContent()
     }
 
-    override suspend fun findAdminTheme(themeId: UUID): Response {
+    override fun findAdminTheme(themeId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isMetaformManagerAny) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
@@ -84,7 +84,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(translatedTheme)
     }
 
-    override suspend fun listAdminTheme(): Response {
+    override fun listAdminTheme(): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
@@ -99,7 +99,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
         return createOk(translatedThemes)
     }
 
-    override suspend fun updateAdminTheme(themeId: UUID, adminTheme: AdminTheme): Response {
+    override fun updateAdminTheme(themeId: UUID, adminTheme: AdminTheme): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
         if (!isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))

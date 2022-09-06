@@ -19,7 +19,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   @Inject
   lateinit var exportThemeTranslator: ExportThemeTranslator
 
-  override suspend fun createExportTheme(exportTheme: ExportTheme): Response {
+  override fun createExportTheme(exportTheme: ExportTheme): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isRealmSystemAdmin) {
@@ -41,7 +41,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
     return createOk(exportThemeTranslator.translateExportTheme(createdExportTheme))
   }
 
-  override suspend fun deleteExportTheme(exportThemeId: UUID): Response {
+  override fun deleteExportTheme(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isRealmSystemAdmin) {
@@ -56,7 +56,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
     return createNoContent()
   }
 
-  override suspend fun findExportTheme(exportThemeId: UUID): Response {
+  override fun findExportTheme(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isRealmSystemAdmin) {
@@ -69,7 +69,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
     return createOk(exportThemeTranslator.translateExportTheme(exportTheme))
   }
 
-  override suspend fun listExportThemes(): Response {
+  override fun listExportThemes(): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     return if (!isRealmSystemAdmin) {
@@ -78,7 +78,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
             .map(exportThemeTranslator::translateExportTheme))
   }
 
-  override suspend fun updateExportTheme(exportThemeId: UUID, exportTheme: ExportTheme): Response {
+  override fun updateExportTheme(exportThemeId: UUID, exportTheme: ExportTheme): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isRealmSystemAdmin) {
