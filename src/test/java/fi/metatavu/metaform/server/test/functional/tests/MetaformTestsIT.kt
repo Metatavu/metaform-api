@@ -308,9 +308,15 @@ class MetaformTestsIT : AbstractTest() {
             val list: MutableList<Metaform> = builder.systemAdmin.metaforms.list().clone().toMutableList()
             val sortedList = list.sortedBy { it.title }
 
-//            assertEquals(metaform1Modified.toString(), sortedList[0].toString())
-//            assertEquals(metaform2Modified.toString(), sortedList[1].toString())
-//            assertEquals(metaform3Modified.toString(), sortedList[2].toString())
+            assertEquals(metaform1Modified.title, sortedList[0].title)
+            assertEquals(metaform1Modified.slug, sortedList[0].slug)
+            assertEquals(metaform1Modified.visibility, sortedList[0].visibility)
+            assertEquals(metaform2Modified.title, sortedList[1].title)
+            assertEquals(metaform2Modified.slug, sortedList[1].slug)
+            assertEquals(metaform2Modified.visibility, sortedList[1].visibility)
+            assertEquals(metaform3Modified.title, sortedList[2].title)
+            assertEquals(metaform3Modified.slug, sortedList[2].slug)
+            assertEquals(metaform3Modified.visibility, sortedList[2].visibility)
 
             builder.systemAdmin.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
             builder.systemAdmin.metaforms.assertCount(1, MetaformVisibility.pRIVATE)
@@ -353,13 +359,11 @@ class MetaformTestsIT : AbstractTest() {
     fun testUpdateMetaform() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            println("metaform createdAt: ${metaform.createdAt}")
-            println("metaform modifiedAt: ${metaform.modifiedAt}")
-            Thread.sleep(10000)
+
             val updatePayload = builder.systemAdmin.metaforms.readMetaform("tbnc")
-            val updatedMetaform = builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updatePayload!!)
-            println("updatedMetaform createdAt: ${updatedMetaform.createdAt}")
-            println("updatedMetaform modifiedAt: ${updatedMetaform.modifiedAt}")
+            builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updatePayload!!)
+            val updatedMetaform = builder.systemAdmin.metaforms.findMetaform(null, metaform.id, null, null)
+
             assertEquals(metaform.id, updatedMetaform.id)
             assertEquals(MetaformVisibility.pRIVATE, updatedMetaform.visibility)
             assertEquals(1, updatedMetaform.sections!!.size)
@@ -375,7 +379,9 @@ class MetaformTestsIT : AbstractTest() {
             assertNotEquals(updatedMetaform.createdAt, updatedMetaform.modifiedAt)
 
             val updatedMetaformModified = updatedMetaform.copy(visibility = MetaformVisibility.pUBLIC)
-            val updatedMetaform2 = builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
+            builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
+            val updatedMetaform2 = builder.systemAdmin.metaforms.findMetaform(null, metaform.id, null, null)
+
             assertEquals(MetaformVisibility.pUBLIC, updatedMetaform2.visibility)
             assertEquals(updatedMetaform2.createdAt, updatedMetaform.createdAt)
             assertNotEquals(updatedMetaform2.modifiedAt, updatedMetaform.modifiedAt)

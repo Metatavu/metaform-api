@@ -137,13 +137,13 @@ class MetaformController {
      * @return Updated Metaform
      */
     fun updateMetaform(
-            metaform: Metaform,
-            exportTheme: ExportTheme?,
-            visibility: MetaformVisibility,
-            data: String,
-            allowAnonymous: Boolean?,
-            slug: String?,
-            lastModifierId: UUID
+        metaform: Metaform,
+        exportTheme: ExportTheme?,
+        visibility: MetaformVisibility,
+        data: String,
+        allowAnonymous: Boolean?,
+        slug: String?,
+        lastModifierId: UUID
     ): Metaform {
         metaformDAO.updateData(metaform, data, lastModifierId)
         metaformDAO.updateAllowAnonymous(metaform, allowAnonymous, lastModifierId)

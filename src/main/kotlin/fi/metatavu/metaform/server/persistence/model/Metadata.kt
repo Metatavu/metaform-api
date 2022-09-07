@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.persistence.model
 
 import java.time.OffsetDateTime
-import java.util.*
 import javax.persistence.Column
 import javax.persistence.MappedSuperclass
 import javax.persistence.PrePersist
@@ -14,10 +13,10 @@ import javax.persistence.PreUpdate
 abstract class Metadata {
 
   @Column(nullable = false)
-  open var createdAt: OffsetDateTime? = null
+  var createdAt: OffsetDateTime? = null
 
   @Column(nullable = false)
-  open var modifiedAt: OffsetDateTime? = null
+  var modifiedAt: OffsetDateTime? = null
 
   /**
    * JPA pre-persist event handler
@@ -34,7 +33,6 @@ abstract class Metadata {
    */
   @PreUpdate
   fun onUpdate() {
-    println("preUpdate called")
     modifiedAt = OffsetDateTime.now()
   }
 
