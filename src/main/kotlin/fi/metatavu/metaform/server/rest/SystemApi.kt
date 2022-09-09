@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response
 @RequestScoped
 @Transactional
 class SystemApi: fi.metatavu.metaform.api.spec.SystemApi, AbstractApi() {
-  override suspend fun ping(): Response {
+  override fun ping(): Response {
     return createOk("pong")
   }
 }

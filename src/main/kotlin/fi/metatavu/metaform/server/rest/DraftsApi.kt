@@ -39,7 +39,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
    * @param draft Draft to create
    * @return Created draft
    */
-  override suspend fun createDraft(metaformId: UUID, draft: Draft): Response {
+  override fun createDraft(metaformId: UUID, draft: Draft): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val metaform: Metaform = metaformController.findMetaformById(metaformId)
@@ -76,7 +76,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
    * @param metaformId Metaform id
    * @param draftId Draft id
    */
-  override suspend fun deleteDraft(metaformId: UUID, draftId: UUID): Response {
+  override fun deleteDraft(metaformId: UUID, draftId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val metaform = metaformController.findMetaformById(metaformId)
@@ -116,7 +116,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
    * @param metaformId Metaform id
    * @param draftId Draft id
    */
-  override suspend fun findDraft(metaformId: UUID, draftId: UUID): Response {
+  override fun findDraft(metaformId: UUID, draftId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val metaform = metaformController.findMetaformById(metaformId)
@@ -158,7 +158,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
    * @param draftId Draft id
    * @param draft Draft data
    */
-  override suspend fun updateDraft(metaformId: UUID, draftId: UUID, draft: Draft): Response {
+  override fun updateDraft(metaformId: UUID, draftId: UUID, draft: Draft): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val metaform = metaformController.findMetaformById(metaformId)

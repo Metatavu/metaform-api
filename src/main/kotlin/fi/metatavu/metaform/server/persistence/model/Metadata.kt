@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.persistence.model
 
 import java.time.OffsetDateTime
-import java.util.*
 import javax.persistence.Column
 import javax.persistence.MappedSuperclass
 import javax.persistence.PrePersist
@@ -24,8 +23,9 @@ abstract class Metadata {
    */
   @PrePersist
   fun onCreate() {
-    createdAt = OffsetDateTime.now()
-    modifiedAt = OffsetDateTime.now()
+    val odtNow = OffsetDateTime.now()
+    createdAt = odtNow
+    modifiedAt = odtNow
   }
 
   /**

@@ -108,7 +108,7 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     this.configOptions.put("library", "jaxrs-spec")
     this.configOptions.put("dateLibrary", "java8")
     this.configOptions.put("interfaceOnly", "true")
-    this.configOptions.put("useCoroutines", "true")
+    this.configOptions.put("useCoroutines", "false")
     this.configOptions.put("enumPropertyNaming", "UPPERCASE")
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")

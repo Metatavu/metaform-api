@@ -61,7 +61,7 @@ class VersionTestsIT : AbstractTest() {
                     data = versionData
             )
 
-            testBuilder.systemAdmin.metaformVersions.assertCreateFailStatus(404, UUID.randomUUID(), version);
+            testBuilder.systemAdmin.metaformVersions.assertCreateFailStatus(404, UUID.randomUUID(), version)
         }
     }
 
@@ -76,7 +76,7 @@ class VersionTestsIT : AbstractTest() {
                     data = versionData
             )
 
-            testBuilder.test1.metaformVersions.assertCreateFailStatus(403, metaform.id!!, version);
+            testBuilder.test1.metaformVersions.assertCreateFailStatus(403, metaform.id!!, version)
         }
     }
 

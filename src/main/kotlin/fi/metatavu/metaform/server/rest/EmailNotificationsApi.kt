@@ -31,7 +31,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
    * @param metaformId Metaform id
    * @return List of email notifications
    */
-  override suspend fun listEmailNotifications(metaformId: UUID): Response {
+  override fun listEmailNotifications(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -53,7 +53,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
    * @param emailNotification email notification
    * @return created email notification
    */
-  override suspend fun createEmailNotification(
+  override fun createEmailNotification(
     metaformId: UUID,
     emailNotification: EmailNotification
   ): Response {
@@ -89,7 +89,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
    * @param emailNotificationId email notification id
    * @return deleted email notification
    */
-  override suspend fun deleteEmailNotification(
+  override fun deleteEmailNotification(
     metaformId: UUID,
     emailNotificationId: UUID
   ): Response {
@@ -121,7 +121,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
    * @param emailNotificationId email notification id
    * @return email notification
    */
-  override suspend fun findEmailNotification(
+  override fun findEmailNotification(
     metaformId: UUID,
     emailNotificationId: UUID
   ): Response {
@@ -151,7 +151,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
    * @param emailNotification email data
    * @return updated email notification
    */
-  override suspend fun updateEmailNotification(
+  override fun updateEmailNotification(
     metaformId: UUID,
     emailNotificationId: UUID,
     emailNotification: EmailNotification

@@ -20,7 +20,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   @Inject
   lateinit var exportThemeTranslator: ExportThemeTranslator
 
-  override suspend fun createExportThemeFile(
+  override fun createExportThemeFile(
     exportThemeId: UUID,
     exportThemeFile: ExportThemeFile
   ): Response {
@@ -44,7 +44,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
-  override suspend fun deleteExportThemeFile(
+  override fun deleteExportThemeFile(
     exportThemeId: UUID,
     exportThemeFileId: UUID
   ): Response {
@@ -70,7 +70,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
-  override suspend fun findExportThemeFile(exportThemeId: UUID, exportThemeFileId: UUID): Response {
+  override fun findExportThemeFile(exportThemeId: UUID, exportThemeFileId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isRealmSystemAdmin) {
@@ -89,7 +89,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
-  override suspend fun listExportThemeFiles(exportThemeId: UUID): Response {
+  override fun listExportThemeFiles(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isRealmSystemAdmin) {
@@ -104,7 +104,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
 
   }
 
-  override suspend fun updateExportThemeFile(
+  override fun updateExportThemeFile(
     exportThemeId: UUID,
     exportThemeFileId: UUID,
     exportThemeFile: ExportThemeFile

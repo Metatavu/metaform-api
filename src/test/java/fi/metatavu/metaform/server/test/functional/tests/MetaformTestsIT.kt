@@ -14,9 +14,10 @@ import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResour
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -34,9 +35,13 @@ class MetaformTestsIT : AbstractTest() {
     fun testCreateMetaform() {
         TestBuilder().use { builder ->
             val metaform1: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaform1CreatedAtDate = OffsetDateTime.parse(metaform1.createdAt).toLocalDate()
+            val metaform1ModifiedAtDate = OffsetDateTime.parse(metaform1.modifiedAt).toLocalDate()
             assertNotNull(metaform1)
             assertNotNull(metaform1.id)
             assertNotNull(metaform1.slug)
+            assertNotNull(metaform1.creatorId)
+            assertNotNull(metaform1.lastModifierId)
             assertEquals("Simple", metaform1.title)
             assertEquals(MetaformVisibility.pUBLIC, metaform1.visibility)
             assertEquals(1, metaform1.sections!!.size)
@@ -46,9 +51,16 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals("text", metaform1.sections[0].fields!![0].type.toString())
             assertEquals("Text field", metaform1.sections[0].fields!![0].title)
             assertEquals(true, metaform1.allowDrafts)
+            assertEquals(LocalDate.now(), metaform1CreatedAtDate)
+            assertEquals(LocalDate.now(), metaform1ModifiedAtDate)
+            assertEquals(metaform1.creatorId, metaform1.lastModifierId)
             val metaform2: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-slug")
+            val metaform2CreatedAtDate = OffsetDateTime.parse(metaform2.createdAt).toLocalDate()
+            val metaform2ModifiedAtDate = OffsetDateTime.parse(metaform2.modifiedAt).toLocalDate()
             assertNotNull(metaform2)
             assertNotNull(metaform2.id)
+            assertNotNull(metaform2.creatorId)
+            assertNotNull(metaform2.lastModifierId)
             assertEquals("Simple", metaform2.title)
             assertEquals(MetaformVisibility.pRIVATE, metaform2.visibility)
             assertEquals("simple-slug-0", metaform2.slug)
@@ -59,6 +71,9 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals("text", metaform2.sections[0].fields!![0].type.toString())
             assertEquals("Text field", metaform2.sections[0].fields!![0].title)
             assertEquals(true, metaform2.allowDrafts)
+            assertEquals(LocalDate.now(), metaform2CreatedAtDate)
+            assertEquals(LocalDate.now(), metaform2ModifiedAtDate)
+            assertEquals(metaform2.creatorId, metaform2.lastModifierId)
         }
     }
 
@@ -292,9 +307,16 @@ class MetaformTestsIT : AbstractTest() {
             builder.systemAdmin.metaforms.updateMetaform(metaform3.id!!, metaform3Modified)
             val list: MutableList<Metaform> = builder.systemAdmin.metaforms.list().clone().toMutableList()
             val sortedList = list.sortedBy { it.title }
-            assertEquals(metaform1Modified.toString(), sortedList[0].toString())
-            assertEquals(metaform2Modified.toString(), sortedList[1].toString())
-            assertEquals(metaform3Modified.toString(), sortedList[2].toString())
+
+            assertEquals(metaform1Modified.title, sortedList[0].title)
+            assertEquals(metaform1Modified.slug, sortedList[0].slug)
+            assertEquals(metaform1Modified.visibility, sortedList[0].visibility)
+            assertEquals(metaform2Modified.title, sortedList[1].title)
+            assertEquals(metaform2Modified.slug, sortedList[1].slug)
+            assertEquals(metaform2Modified.visibility, sortedList[1].visibility)
+            assertEquals(metaform3Modified.title, sortedList[2].title)
+            assertEquals(metaform3Modified.slug, sortedList[2].slug)
+            assertEquals(metaform3Modified.visibility, sortedList[2].visibility)
 
             builder.systemAdmin.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
             builder.systemAdmin.metaforms.assertCount(1, MetaformVisibility.pRIVATE)
@@ -339,7 +361,8 @@ class MetaformTestsIT : AbstractTest() {
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
 
             val updatePayload = builder.systemAdmin.metaforms.readMetaform("tbnc")
-            val updatedMetaform = builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updatePayload!!)
+            builder.systemAdmin.metaforms.updateMetaform(metaform.id!!, updatePayload!!)
+            val updatedMetaform = builder.systemAdmin.metaforms.findMetaform(null, metaform.id, null, null)
 
             assertEquals(metaform.id, updatedMetaform.id)
             assertEquals(MetaformVisibility.pRIVATE, updatedMetaform.visibility)
@@ -350,10 +373,18 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals("boolean", updatedMetaform.sections[0].fields!![1].name)
             assertEquals("number", updatedMetaform.sections[0].fields!![2].name)
             assertEquals("checklist", updatedMetaform.sections[0].fields!![3].name)
+            assertEquals(metaform.createdAt, updatedMetaform.createdAt)
+            assertEquals(metaform.createdAt, updatedMetaform.createdAt)
+            assertNotEquals(metaform.modifiedAt, updatedMetaform.modifiedAt)
+            assertNotEquals(updatedMetaform.createdAt, updatedMetaform.modifiedAt)
 
             val updatedMetaformModified = updatedMetaform.copy(visibility = MetaformVisibility.pUBLIC)
-            val updatedMetaform2 = builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
+            builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
+            val updatedMetaform2 = builder.systemAdmin.metaforms.findMetaform(null, metaform.id, null, null)
+
             assertEquals(MetaformVisibility.pUBLIC, updatedMetaform2.visibility)
+            assertEquals(updatedMetaform2.createdAt, updatedMetaform.createdAt)
+            assertNotEquals(updatedMetaform2.modifiedAt, updatedMetaform.modifiedAt)
         }
     }
 

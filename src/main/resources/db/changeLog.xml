@@ -541,5 +541,26 @@
         <column name="visibility" type="varchar(16)"/>
       </addColumn>
     </changeSet>
+  
+  <changeSet id="metaform-metadata" author="Ville Juutila">
+    <addColumn tableName="metaform">
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifierid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <sql>UPDATE metaform SET creatorId = uuid()</sql>
+    <sql>UPDATE metaform SET lastModifierId = uuid()</sql>
+    <sql>UPDATE metaform SET createdAt = now()</sql>
+    <sql>UPDATE metaform SET modifiedAt = now()</sql>
+  </changeSet>
 
 </databaseChangeLog>

@@ -25,6 +25,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    * @param exportTheme export theme
    * @param allowAnonymous whether to allow anonymous repliers
    * @param data form JSON
+   * @param creatorId creator id
    * @return created Metaform
    */
   fun create(
@@ -33,7 +34,8 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     exportTheme: ExportTheme?,
     visibility: MetaformVisibility,
     allowAnonymous: Boolean?,
-    data: String
+    data: String,
+    creatorId: UUID
   ): Metaform {
     val metaform = Metaform()
     metaform.id = id
@@ -42,6 +44,8 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
+    metaform.creatorId = creatorId
+    metaform.lastModifierId = creatorId
     return persist(metaform)
   }
 
@@ -69,10 +73,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    *
    * @param metaform Metaform
    * @param data form JSON
+   * @param lastModifierId last modifier id
    * @return Updated Metaform
    */
-  fun updateData(metaform: Metaform, data: String): Metaform {
+  fun updateData(metaform: Metaform, data: String, lastModifierId: UUID): Metaform {
     metaform.data = data
+    metaform.lastModifierId = lastModifierId
     return persist(metaform)
   }
 
@@ -81,10 +87,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    *
    * @param metaform Metaform
    * @param allowAnonymous allow anonymous
+   * @param lastModifierId last modifier id
    * @return Updated Metaform
    */
-  fun updateAllowAnonymous(metaform: Metaform, allowAnonymous: Boolean?): Metaform {
+  fun updateAllowAnonymous(metaform: Metaform, allowAnonymous: Boolean?, lastModifierId: UUID): Metaform {
     metaform.allowAnonymous = allowAnonymous
+    metaform.lastModifierId = lastModifierId
     return persist(metaform)
   }
 
@@ -93,10 +101,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    *
    * @param metaform Metaform
    * @param exportTheme export theme
+   * @param lastModifierId last modifier id
    * @return Updated Metaform
    */
-  fun updateExportTheme(metaform: Metaform, exportTheme: ExportTheme?): Metaform {
+  fun updateExportTheme(metaform: Metaform, exportTheme: ExportTheme?, lastModifierId: UUID): Metaform {
     metaform.exportTheme = exportTheme
+    metaform.lastModifierId = lastModifierId
     return persist(metaform)
   }
 
@@ -105,10 +115,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    *
    * @param metaform Metaform
    * @param visibility visibility
+   * @param lastModifierId last modifier id
    * @return Updated Metaform
    */
-  fun updateVisibility(metaform: Metaform, visibility: MetaformVisibility): Metaform {
+  fun updateVisibility(metaform: Metaform, visibility: MetaformVisibility, lastModifierId: UUID): Metaform {
     metaform.visibility = visibility
+    metaform.lastModifierId = lastModifierId
     return persist(metaform)
   }
 
@@ -117,10 +129,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    *
    * @param metaform Metaform
    * @param slug slug
+   * @param lastModifierId last modifier id
    * @return Updated Metaform
    */
-  fun updateSlug(metaform: Metaform, slug: String): Metaform {
+  fun updateSlug(metaform: Metaform, slug: String, lastModifierId: UUID): Metaform {
     metaform.slug = slug
+    metaform.lastModifierId = lastModifierId
     return persist(metaform)
   }
 

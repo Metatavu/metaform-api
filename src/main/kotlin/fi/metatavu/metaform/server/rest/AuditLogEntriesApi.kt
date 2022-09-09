@@ -35,7 +35,7 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
    * 
    * @return deleted audit log entry
    */
-  override suspend fun deleteAuditLogEntry(metaformId: UUID, auditLogEntryId: UUID): Response {
+  override fun deleteAuditLogEntry(metaformId: UUID, auditLogEntryId: UUID): Response {
     if (!systemSettingController.inTestMode()) {
       return createForbidden(createNotAllowedMessage(DELETE, AUDIT_LOG_ENTRY))
     }
@@ -59,7 +59,7 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
    * @param createdAfter filter results created after this date
    * @return list of audit log entries
    */
-  override suspend fun listAuditLogEntries(
+  override fun listAuditLogEntries(
     metaformId: UUID,
     userId: UUID?,
     replyId: UUID?,

@@ -20,7 +20,7 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
   @Inject
   lateinit var attachmentTranslator: AttachmentTranslator
 
-  override suspend fun findAttachment(attachmentId: UUID, ownerKey: String?): Response {
+  override fun findAttachment(attachmentId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
@@ -45,7 +45,7 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     } else replyController.isValidOwnerKey(reply, ownerKey)
   }
 
-  override suspend fun findAttachmentData(attachmentId: UUID, ownerKey: String?): Response {
+  override fun findAttachmentData(attachmentId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))

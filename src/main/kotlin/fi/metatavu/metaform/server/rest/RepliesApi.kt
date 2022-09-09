@@ -75,7 +75,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @param replyModeParam Reply mode
    * @return Created reply
    */
-  override suspend fun createReply(
+  override fun createReply(
     metaformId: UUID,
     reply: Reply,
     updateExisting: Boolean?,
@@ -222,7 +222,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             .associateBy { attachment -> attachment.id.toString() }
   }
 
-  override suspend fun deleteReply(metaformId: UUID, replyId: UUID, ownerKey: String?): Response {
+  override fun deleteReply(metaformId: UUID, replyId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val reply = replyController.findReplyById(replyId)
@@ -251,7 +251,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @param metaformId metaform id
    * @param format format
    */
-  override suspend fun export(metaformId: UUID, format: String): Response {
+  override fun export(metaformId: UUID, format: String): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -298,7 +298,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @param replyId reply id
    * @param ownerKey owner key
    */
-  override suspend fun findReply(metaformId: UUID, replyId: UUID, ownerKey: String?): Response {
+  override fun findReply(metaformId: UUID, replyId: UUID, ownerKey: String?): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val metaform = metaformController.findMetaformById(metaformId)
@@ -349,7 +349,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @param latestFirst return the latest result first according to the criteria in orderBy
    * @return list of replies
    */
-  override suspend fun listReplies(
+  override fun listReplies(
     metaformId: UUID,
     userId: UUID?,
     createdBeforeParam: String?,
@@ -438,7 +438,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             .filter { reply -> permittedResourceIds.contains(reply.resourceId) }
   }
 
-  override suspend fun replyExport(metaformId: UUID, replyId: UUID, format: String): Response {
+  override fun replyExport(metaformId: UUID, replyId: UUID, format: String): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     val reply = replyController.findReplyById(replyId)
@@ -487,7 +487,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @param ownerKey owner key
    * @return updated reply
    */
-  override suspend fun updateReply(
+  override fun updateReply(
     metaformId: UUID,
     replyId: UUID,
     reply: Reply,

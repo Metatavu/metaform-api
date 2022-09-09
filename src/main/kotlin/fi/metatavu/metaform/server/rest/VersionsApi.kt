@@ -26,7 +26,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
   @Inject
   lateinit var metaformVersionTranslator: MetaformVersionTranslator
 
-  override suspend fun createMetaformVersion(
+  override fun createMetaformVersion(
     metaformId: UUID,
     metaformVersion: MetaformVersion
   ): Response {
@@ -57,7 +57,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     }
   }
 
-  override suspend fun deleteMetaformVersion(metaformId: UUID, versionId: UUID): Response {
+  override fun deleteMetaformVersion(metaformId: UUID, versionId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -79,7 +79,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     return createNoContent()
   }
 
-  override suspend fun findMetaformVersion(metaformId: UUID, versionId: UUID): Response {
+  override fun findMetaformVersion(metaformId: UUID, versionId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
@@ -103,7 +103,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
     }
   }
 
-  override suspend fun listMetaformVersions(metaformId: UUID): Response {
+  override fun listMetaformVersions(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
     if (!isMetaformAdmin(metaformId)) {
