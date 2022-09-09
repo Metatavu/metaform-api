@@ -13,10 +13,10 @@ import javax.persistence.PreUpdate
 abstract class Metadata {
 
   @Column(nullable = false)
-  var createdAt: OffsetDateTime? = null
+  open var createdAt: OffsetDateTime? = null
 
   @Column(nullable = false)
-  var modifiedAt: OffsetDateTime? = null
+  open var modifiedAt: OffsetDateTime? = null
 
   /**
    * JPA pre-persist event handler
