@@ -6,7 +6,6 @@ import fi.metatavu.metaform.server.persistence.model.MetaformVersion
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion_
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
-import javax.persistence.EntityManager
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.CriteriaQuery
 
@@ -69,5 +68,41 @@ class MetaformVersionDAO : AbstractDAO<MetaformVersion>() {
       criteriaBuilder.equal(root.get(MetaformVersion_.metaform), metaform)
     )
     return entityManager.createQuery(criteria).resultList
+  }
+
+  /**
+   * Updates Metaform version type
+   *
+   * @param metaformVersion Metaform Version
+   * @param type Metaform Version type
+   * @param lastModifierId last modifier id
+   * @return Updated MetaformVersion
+   */
+  fun updateType(
+    metaformVersion: MetaformVersion,
+    type: MetaformVersionType,
+    lastModifierId: UUID
+  ): MetaformVersion {
+    metaformVersion.type = type
+    metaformVersion.lastModifierId = lastModifierId
+    return persist(metaformVersion)
+  }
+
+  /**
+   * Updates Metaform version data
+   *
+   * @param metaformVersion Metaform Version
+   * @param data Metaform Version data
+   * @param lastModifierId last modifier id
+   * @return Updated MetaformVision
+   */
+  fun updateData(
+    metaformVersion: MetaformVersion,
+    data: String,
+    lastModifierId: UUID
+  ): MetaformVersion {
+    metaformVersion.data = data
+    metaformVersion.lastModifierId = lastModifierId
+    return persist(metaformVersion)
   }
 }

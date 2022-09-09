@@ -50,6 +50,22 @@ class MetaformVersionTestBuilderResource(
     }
 
     /**
+     * Updates a metaform version into the API
+     *
+     * @param metaformId metaform id
+     * @param versionId metaform version id
+     * @param body body payload
+     */
+    @Throws(IOException::class)
+    fun updateMetaformVersion(metaformId: UUID, versionId: UUID, body: MetaformVersion): MetaformVersion {
+        return api.updateMetaformVersion(
+            metaformId = metaformId,
+            versionId = versionId,
+            metaformVersion = body
+        )
+    }
+
+    /**
      * Lists metaform versions
      *
      * @param metaformId metaform id

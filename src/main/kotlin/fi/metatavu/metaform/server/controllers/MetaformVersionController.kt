@@ -37,9 +37,7 @@ class MetaformVersionController {
             data: Map<String, Any>,
             userId: UUID
     ): MetaformVersion {
-        val objectMapper = ObjectMapper()
         return try {
-            val formDataString = objectMapper.writeValueAsString(data)
             metaformVersionDAO.create(
                     UUID.randomUUID(),
                     metaform,
@@ -80,6 +78,25 @@ class MetaformVersionController {
      */
     fun deleteMetaformVersion(metaformVersion: MetaformVersion) {
         metaformVersionDAO.delete(metaformVersion)
+    }
+
+    /**
+     * Updates Metaform version
+     *
+     * @param metaformVersion Metaform version
+     * @param type Metaform version type
+     * @param data form JSON
+     * @param lastModifierId last modifier id
+     */
+    fun updateMetaformVersion(
+        metaformVersion: MetaformVersion,
+        type: MetaformVersionType,
+        data: Map<String, Any>,
+        lastModifierId: UUID
+    ): MetaformVersion {
+        metaformVersionDAO.updateType(metaformVersion, type, lastModifierId)
+        metaformVersionDAO.updateData(metaformVersion, serializeData(data), lastModifierId)
+        return metaformVersion
     }
 
     /**

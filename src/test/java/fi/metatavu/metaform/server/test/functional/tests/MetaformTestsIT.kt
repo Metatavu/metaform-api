@@ -43,7 +43,7 @@ class MetaformTestsIT : AbstractTest() {
             assertNotNull(metaform1.creatorId)
             assertNotNull(metaform1.lastModifierId)
             assertEquals("Simple", metaform1.title)
-            assertEquals(MetaformVisibility.pUBLIC, metaform1.visibility)
+            assertEquals(MetaformVisibility.PUBLIC, metaform1.visibility)
             assertEquals(1, metaform1.sections!!.size)
             assertEquals("Simple form", metaform1.sections[0].title)
             assertEquals(1, metaform1.sections[0].fields!!.size)
@@ -62,7 +62,7 @@ class MetaformTestsIT : AbstractTest() {
             assertNotNull(metaform2.creatorId)
             assertNotNull(metaform2.lastModifierId)
             assertEquals("Simple", metaform2.title)
-            assertEquals(MetaformVisibility.pRIVATE, metaform2.visibility)
+            assertEquals(MetaformVisibility.PRIVATE, metaform2.visibility)
             assertEquals("simple-slug-0", metaform2.slug)
             assertEquals(1, metaform2.sections!!.size)
             assertEquals("Simple form", metaform2.sections[0].title)
@@ -290,17 +290,17 @@ class MetaformTestsIT : AbstractTest() {
             val metaform1Modified = metaform1.copy(
                     title="first",
                     slug="first-slug-0",
-                    visibility = MetaformVisibility.pRIVATE
+                    visibility = MetaformVisibility.PRIVATE
             )
             val metaform2Modified = metaform2.copy(
                     title="second",
                     slug="second-slug-0",
-                    visibility = MetaformVisibility.pUBLIC
+                    visibility = MetaformVisibility.PUBLIC
             )
             val metaform3Modified = metaform3.copy(
                 title="third",
                 slug="third-slug-0",
-                visibility = MetaformVisibility.pUBLIC
+                visibility = MetaformVisibility.PUBLIC
             )
             builder.systemAdmin.metaforms.updateMetaform(metaform1.id!!, metaform1Modified)
             builder.systemAdmin.metaforms.updateMetaform(metaform2.id!!, metaform2Modified)
@@ -318,9 +318,9 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals(metaform3Modified.slug, sortedList[2].slug)
             assertEquals(metaform3Modified.visibility, sortedList[2].visibility)
 
-            builder.systemAdmin.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
-            builder.systemAdmin.metaforms.assertCount(1, MetaformVisibility.pRIVATE)
-            builder.anon.metaforms.assertCount(2, MetaformVisibility.pUBLIC)
+            builder.systemAdmin.metaforms.assertCount(2, MetaformVisibility.PUBLIC)
+            builder.systemAdmin.metaforms.assertCount(1, MetaformVisibility.PRIVATE)
+            builder.anon.metaforms.assertCount(2, MetaformVisibility.PUBLIC)
         }
     }
 
@@ -333,7 +333,7 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.METAFORM_MANAGER,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.list(MetaformVisibility.pRIVATE)
+                    authentication.metaforms.list(MetaformVisibility.PRIVATE)
                 },
             )
         }
@@ -348,7 +348,7 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.ANONYMOUS,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.list(MetaformVisibility.pUBLIC)
+                    authentication.metaforms.list(MetaformVisibility.PUBLIC)
                 },
             )
         }
@@ -365,7 +365,7 @@ class MetaformTestsIT : AbstractTest() {
             val updatedMetaform = builder.systemAdmin.metaforms.findMetaform(null, metaform.id, null, null)
 
             assertEquals(metaform.id, updatedMetaform.id)
-            assertEquals(MetaformVisibility.pRIVATE, updatedMetaform.visibility)
+            assertEquals(MetaformVisibility.PRIVATE, updatedMetaform.visibility)
             assertEquals(1, updatedMetaform.sections!!.size)
             assertEquals("Text, boolean, number, checklist form", updatedMetaform.sections[0].title)
             assertEquals(4, updatedMetaform.sections[0].fields!!.size)
@@ -378,11 +378,11 @@ class MetaformTestsIT : AbstractTest() {
             assertNotEquals(metaform.modifiedAt, updatedMetaform.modifiedAt)
             assertNotEquals(updatedMetaform.createdAt, updatedMetaform.modifiedAt)
 
-            val updatedMetaformModified = updatedMetaform.copy(visibility = MetaformVisibility.pUBLIC)
+            val updatedMetaformModified = updatedMetaform.copy(visibility = MetaformVisibility.PUBLIC)
             builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaformModified)
             val updatedMetaform2 = builder.systemAdmin.metaforms.findMetaform(null, metaform.id, null, null)
 
-            assertEquals(MetaformVisibility.pUBLIC, updatedMetaform2.visibility)
+            assertEquals(MetaformVisibility.PUBLIC, updatedMetaform2.visibility)
             assertEquals(updatedMetaform2.createdAt, updatedMetaform.createdAt)
             assertNotEquals(updatedMetaform2.modifiedAt, updatedMetaform.modifiedAt)
         }
@@ -530,23 +530,23 @@ class MetaformTestsIT : AbstractTest() {
             }
 
             val publicForms = forms.subList(0, 1).map {
-                builder.systemAdmin.metaforms.updateMetaform(it.id!!, it.copy(visibility = MetaformVisibility.pUBLIC))
+                builder.systemAdmin.metaforms.updateMetaform(it.id!!, it.copy(visibility = MetaformVisibility.PUBLIC))
             }
 
             val privateForms = forms.subList(2, 3).map {
-                builder.systemAdmin.metaforms.updateMetaform(it.id!!, it.copy(visibility = MetaformVisibility.pRIVATE))
+                builder.systemAdmin.metaforms.updateMetaform(it.id!!, it.copy(visibility = MetaformVisibility.PRIVATE))
             }
 
-            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
-            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
-            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
-            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.ADMINISTRATOR)
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.MANAGER)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.ADMINISTRATOR)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.MANAGER)
 
             val member1 = builder.systemAdmin.metaformMembers.create(publicForms[0].id!!, MetaformMember(
                 email = "user1@example.com",
                 firstName = "Test",
                 lastName = "User",
-                role = MetaformMemberRole.aDMINISTRATOR
+                role = MetaformMemberRole.ADMINISTRATOR
             )
             )
 
@@ -554,22 +554,22 @@ class MetaformTestsIT : AbstractTest() {
                 email = "user2@example.com",
                 firstName = "Test",
                 lastName = "User",
-                role = MetaformMemberRole.mANAGER
+                role = MetaformMemberRole.MANAGER
             )
             )
 
-            builder.test1.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
-            builder.test1.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.mANAGER)
-            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
-            builder.test2.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+            builder.test1.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.ADMINISTRATOR)
+            builder.test1.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.MANAGER)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.ADMINISTRATOR)
+            builder.test2.metaforms.assertCount(1, visibility = null, memberRole = MetaformMemberRole.MANAGER)
 
             builder.systemAdmin.metaformMembers.delete(metaformId = publicForms[0].id!!, metaformMemberId = member1.id!!)
             builder.systemAdmin.metaformMembers.delete(metaformId = privateForms[0].id!!, metaformMemberId = member2.id!!)
 
-            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
-            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
-            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.aDMINISTRATOR)
-            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.mANAGER)
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.ADMINISTRATOR)
+            builder.test1.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.MANAGER)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.ADMINISTRATOR)
+            builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.MANAGER)
         }
     }
 }
