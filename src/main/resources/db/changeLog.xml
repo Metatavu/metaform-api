@@ -557,10 +557,10 @@
         <constraints nullable="false"/>
       </column>
     </addColumn>
-    <sql>UPDATE metaform SET creatorId = uuid()</sql>
-    <sql>UPDATE metaform SET lastModifierId = uuid()</sql>
-    <sql>UPDATE metaform SET createdAt = now()</sql>
-    <sql>UPDATE metaform SET modifiedAt = now()</sql>
+    <sql>UPDATE metaform SET creatorid = uuid()</sql>
+    <sql>UPDATE metaform SET lastmodifierid = uuid()</sql>
+    <sql>UPDATE metaform SET createdat = now()</sql>
+    <sql>UPDATE metaform SET modifiedat = now()</sql>
   </changeSet>
 
 </databaseChangeLog>
