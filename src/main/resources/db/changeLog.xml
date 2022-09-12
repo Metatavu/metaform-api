@@ -550,10 +550,10 @@
       <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="creatorid" type="binary(16)">
+      <column name="creatorid" type="binary(24)">
         <constraints nullable="false"/>
       </column>
-      <column name="lastmodifierid" type="binary(16)">
+      <column name="lastmodifierid" type="binary(24)">
         <constraints nullable="false"/>
       </column>
     </addColumn>
