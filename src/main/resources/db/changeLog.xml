@@ -550,15 +550,15 @@
       <column name="modifiedat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
-      <column name="creatorid" type="binary(24)">
+      <column name="creatorid" type="binary(16)">
         <constraints nullable="false"/>
       </column>
-      <column name="lastmodifierid" type="binary(24)">
+      <column name="lastmodifierid" type="binary(16)">
         <constraints nullable="false"/>
       </column>
     </addColumn>
-    <sql>UPDATE metaform SET creatorid = uuid()</sql>
-    <sql>UPDATE metaform SET lastmodifierid = uuid()</sql>
+    <sql>UPDATE metaform SET creatorid = (UNHEX(REPLACE(UUID(), “-”,“”)))</sql>
+    <sql>UPDATE metaform SET lastmodifierid = (UNHEX(REPLACE(UUID(), “-”,“”)))</sql>
     <sql>UPDATE metaform SET createdat = now()</sql>
     <sql>UPDATE metaform SET modifiedat = now()</sql>
   </changeSet>
