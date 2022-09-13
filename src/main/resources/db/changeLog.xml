@@ -557,8 +557,8 @@
         <constraints nullable="false"/>
       </column>
     </addColumn>
-    <sql>UPDATE metaform SET creatorid = (UNHEX(REPLACE(UUID(), “-”,“”)))</sql>
-    <sql>UPDATE metaform SET lastmodifierid = (UNHEX(REPLACE(UUID(), “-”,“”)))</sql>
+    <sql>UPDATE metaform SET creatorid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
+    <sql>UPDATE metaform SET lastmodifierid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
     <sql>UPDATE metaform SET createdat = now()</sql>
     <sql>UPDATE metaform SET modifiedat = now()</sql>
   </changeSet>
