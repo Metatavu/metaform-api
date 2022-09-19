@@ -185,6 +185,23 @@ class MetaformVersionTestBuilderResource(
     }
 
     /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus    expected status code
+     * @param metaformId        metaform id
+     * @param versionId         version id
+     * @param metaformVersion   metaform version
+     */
+    @Throws(IOException::class)
+    fun assertUpdateFailStatus(expectedStatus: Int, metaformId: UUID, versionId: UUID, metaformVersion: MetaformVersion) {
+        try {
+            api.updateMetaformVersion(metaformId, versionId, metaformVersion)
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
      * Gets example version data
      *
      * @return example version data

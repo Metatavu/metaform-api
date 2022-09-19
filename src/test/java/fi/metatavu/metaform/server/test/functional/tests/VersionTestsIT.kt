@@ -336,4 +336,52 @@ class VersionTestsIT : AbstractTest() {
             Assertions.assertNotEquals(createdVersion.modifiedAt, updatedVersion.modifiedAt)
         }
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateVersionUnAuthorized() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
+            val version = MetaformVersion(
+                type = MetaformVersionType.ARCHIVED,
+                data = versionData
+            )
+            val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
+
+            testBuilder.test1.metaformVersions.assertUpdateFailStatus(
+                expectedStatus = 403,
+                metaformId = metaform.id,
+                versionId = createdVersion.id!!,
+                metaformVersion = createdVersion
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateVersionNotFound() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
+            val version = MetaformVersion(
+                type = MetaformVersionType.ARCHIVED,
+                data = versionData
+            )
+            val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
+
+            testBuilder.systemAdmin.metaformVersions.assertUpdateFailStatus(
+                expectedStatus = 404,
+                metaformId = UUID.randomUUID(),
+                versionId = createdVersion.id!!,
+                metaformVersion = createdVersion
+            )
+            testBuilder.systemAdmin.metaformVersions.assertUpdateFailStatus(
+                expectedStatus = 404,
+                metaformId = metaform.id,
+                versionId = UUID.randomUUID(),
+                metaformVersion = createdVersion
+            )
+        }
+    }
 }
