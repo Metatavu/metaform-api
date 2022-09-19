@@ -6,7 +6,6 @@ import fi.metatavu.metaform.server.controllers.MetaformVersionController
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedVersionJsonException
 import fi.metatavu.metaform.server.persistence.model.Metaform
-import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import fi.metatavu.metaform.server.rest.translate.MetaformVersionTranslator
 import java.util.*
 import javax.enterprise.context.RequestScoped
