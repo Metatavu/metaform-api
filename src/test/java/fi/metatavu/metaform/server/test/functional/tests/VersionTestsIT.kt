@@ -317,7 +317,7 @@ class VersionTestsIT : AbstractTest() {
             val versionModified = createdVersion.copy(
                 type = MetaformVersionType.ARCHIVED
             )
-            println(createdVersion.toString())
+
             testBuilder.systemAdmin.metaformVersions.updateMetaformVersion(
                 metaformId = metaform.id,
                 versionId = createdVersion.id!!,
@@ -331,6 +331,7 @@ class VersionTestsIT : AbstractTest() {
             Assertions.assertEquals(createdVersion.createdAt, updatedVersion.createdAt)
             Assertions.assertEquals(createdVersion.creatorId, updatedVersion.creatorId)
             Assertions.assertEquals(createdVersion.lastModifierId, updatedVersion.lastModifierId)
+            Assertions.assertEquals(createdVersion.data, updatedVersion.data)
             Assertions.assertNotEquals(createdVersion.type, updatedVersion.type)
             Assertions.assertNotEquals(createdVersion.modifiedAt, updatedVersion.modifiedAt)
         }
