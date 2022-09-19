@@ -544,7 +544,7 @@
   
   <changeSet id="metaform-metadata" author="Ville Juutila">
     <addColumn tableName="metaform">
-      <column name="createdAt" type="datetime(6)">
+      <column name="createdat" type="datetime(6)">
         <constraints nullable="false"/>
       </column>
       <column name="modifiedat" type="datetime(6)">
@@ -557,10 +557,10 @@
         <constraints nullable="false"/>
       </column>
     </addColumn>
-    <sql>UPDATE metaform SET creatorId = uuid()</sql>
-    <sql>UPDATE metaform SET lastModifierId = uuid()</sql>
-    <sql>UPDATE metaform SET createdAt = now()</sql>
-    <sql>UPDATE metaform SET modifiedAt = now()</sql>
+    <sql>UPDATE metaform SET creatorid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
+    <sql>UPDATE metaform SET lastmodifierid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
+    <sql>UPDATE metaform SET createdat = now()</sql>
+    <sql>UPDATE metaform SET modifiedat = now()</sql>
   </changeSet>
 
 </databaseChangeLog>
