@@ -36,7 +36,7 @@ class MetaformMembersTestsIT : AbstractTest() {
 
             assertNotNull(metaformMember)
             assertNotNull(metaformMember.id)
-            assertEquals(MetaformMemberRole.mANAGER, metaformMember.role)
+            assertEquals(MetaformMemberRole.MANAGER, metaformMember.role)
             assertEquals("create-test@example.com", metaformMember.email)
             assertEquals("create-test", metaformMember.firstName)
             assertEquals("create-test", metaformMember.lastName)
@@ -67,7 +67,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                             email = String.format("create-permission-test-%d@example.com", index) ,
                             firstName = String.format("create-permission-test-%d", index),
                             lastName = String.format("create-permission-test-%d", index),
-                            role = MetaformMemberRole.aDMINISTRATOR
+                            role = MetaformMemberRole.ADMINISTRATOR
                         )
                     )
                 },
@@ -87,7 +87,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                     email = "tommi@example.com",
                     firstName = "tommi",
                     lastName = "tommi",
-                    role = MetaformMemberRole.aDMINISTRATOR
+                    role = MetaformMemberRole.ADMINISTRATOR
                 )
             )
         }
@@ -132,14 +132,14 @@ class MetaformMembersTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id!!, "manager")
             testBuilder.systemAdmin.metaformMembers.create(metaform.id, MetaformMember(
-                role = MetaformMemberRole.aDMINISTRATOR,
+                role = MetaformMemberRole.ADMINISTRATOR,
                 email = "admin@examplel.fi",
                 lastName = "admin",
                 firstName = "admin"
             ))
 
-            val listedAdminMember = testBuilder.systemAdmin.metaformMembers.list(metaform.id, MetaformMemberRole.aDMINISTRATOR)
-            val listedManagerMember = testBuilder.systemAdmin.metaformMembers.list(metaform.id, MetaformMemberRole.mANAGER)
+            val listedAdminMember = testBuilder.systemAdmin.metaformMembers.list(metaform.id, MetaformMemberRole.ADMINISTRATOR)
+            val listedManagerMember = testBuilder.systemAdmin.metaformMembers.list(metaform.id, MetaformMemberRole.MANAGER)
             val listedAllMember = testBuilder.systemAdmin.metaformMembers.list(metaform.id, null)
 
             assertEquals(listedAdminMember.size, 1)
@@ -155,7 +155,7 @@ class MetaformMembersTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
-            testBuilder.systemAdmin.metaformMembers.assertListFailStatus(404, UUID.randomUUID(), MetaformMemberRole.mANAGER)
+            testBuilder.systemAdmin.metaformMembers.assertListFailStatus(404, UUID.randomUUID(), MetaformMemberRole.MANAGER)
         }
     }
 
@@ -253,7 +253,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                     email = "update-test-user-updated@example.com",
                     firstName = "updated first name",
                     lastName = "updated last name",
-                    role = MetaformMemberRole.mANAGER
+                    role = MetaformMemberRole.MANAGER
                 )
             )
 
@@ -296,7 +296,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                             email = String.format("tommi%d@example.com", index) ,
                             firstName = String.format("tommi%d", index),
                             lastName = String.format("tommi%d", index),
-                            role = MetaformMemberRole.aDMINISTRATOR
+                            role = MetaformMemberRole.ADMINISTRATOR
                         )
                     )
                 },
@@ -326,7 +326,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                     email = "tommi@example.com",
                     firstName = "tommi",
                     lastName = "tommi",
-                    role = MetaformMemberRole.aDMINISTRATOR
+                    role = MetaformMemberRole.ADMINISTRATOR
                 )
             )
 
@@ -348,7 +348,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                     email = "tommi@example.com",
                     firstName = "tommi",
                     lastName = "tommi",
-                    role = MetaformMemberRole.aDMINISTRATOR
+                    role = MetaformMemberRole.ADMINISTRATOR
                 )
             )
 
@@ -366,7 +366,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                     email = "tommi@example.com",
                     firstName = "tommi",
                     lastName = "tommi",
-                    role = MetaformMemberRole.mANAGER
+                    role = MetaformMemberRole.MANAGER
                 )
             )
 

@@ -33,14 +33,14 @@ class VersionTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
             val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
             Assertions.assertNotNull(createdVersion)
             Assertions.assertNotNull(createdVersion.id)
-            Assertions.assertEquals(MetaformVersionType.aRCHIVED, createdVersion.type)
+            Assertions.assertEquals(MetaformVersionType.ARCHIVED, createdVersion.type)
             Assertions.assertEquals(versionData, createdVersion.data)
 
             val foundVersion = testBuilder.systemAdmin.metaformVersions.findVersion(metaform.id, createdVersion.id!!)
@@ -57,7 +57,7 @@ class VersionTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
@@ -72,7 +72,7 @@ class VersionTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
@@ -92,7 +92,7 @@ class VersionTestsIT : AbstractTest() {
                     authentication.metaformVersions.create(
                         metaform.id!!,
                         MetaformVersion(
-                            type = MetaformVersionType.aRCHIVED,
+                            type = MetaformVersionType.ARCHIVED,
                             data = testBuilder.systemAdmin.metaformVersions.exampleVersionData
                         )
                     )
@@ -112,7 +112,7 @@ class VersionTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaformVersions.create(
                 metaform.id!!,
                 MetaformVersion(
-                        type = MetaformVersionType.aRCHIVED,
+                        type = MetaformVersionType.ARCHIVED,
                         data = versionData
                 )
             )
@@ -122,7 +122,7 @@ class VersionTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaformVersions.create(
                     metaform.id,
                     MetaformVersion(
-                            type = MetaformVersionType.dRAFT,
+                            type = MetaformVersionType.DRAFT,
                             data = versionData
                     )
             )
@@ -140,7 +140,7 @@ class VersionTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaformVersions.create(
                     metaform.id!!,
                     MetaformVersion(
-                            type = MetaformVersionType.aRCHIVED,
+                            type = MetaformVersionType.ARCHIVED,
                             data = versionData
                     )
             )
@@ -156,7 +156,7 @@ class VersionTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaformVersions.create(
                 metaform.id!!,
                 MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = testBuilder.systemAdmin.metaformVersions.exampleVersionData
                 )
             )
@@ -179,7 +179,7 @@ class VersionTestsIT : AbstractTest() {
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
 
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
@@ -188,7 +188,7 @@ class VersionTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaformVersions.assertCount(metaform.id, 1)
 
             Assertions.assertNotNull(foundVersion)
-            Assertions.assertEquals(MetaformVersionType.aRCHIVED, foundVersion.type)
+            Assertions.assertEquals(MetaformVersionType.ARCHIVED, foundVersion.type)
             Assertions.assertEquals(versionData, foundVersion.data)
         }
     }
@@ -201,7 +201,7 @@ class VersionTestsIT : AbstractTest() {
             val metaformVersion = testBuilder.systemAdmin.metaformVersions.create(
                 metaform.id!!,
                 MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = testBuilder.systemAdmin.metaformVersions.exampleVersionData
                 )
             )
@@ -224,7 +224,7 @@ class VersionTestsIT : AbstractTest() {
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
 
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
@@ -241,7 +241,7 @@ class VersionTestsIT : AbstractTest() {
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
 
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
@@ -250,7 +250,7 @@ class VersionTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaformVersions.assertCount(metaform.id, 1)
 
             Assertions.assertNotNull(foundVersion)
-            Assertions.assertEquals(MetaformVersionType.aRCHIVED, foundVersion.type)
+            Assertions.assertEquals(MetaformVersionType.ARCHIVED, foundVersion.type)
             Assertions.assertEquals(versionData, foundVersion.data)
             testBuilder.systemAdmin.metaformVersions.delete(metaform.id, foundVersion.id!!)
 
@@ -266,7 +266,7 @@ class VersionTestsIT : AbstractTest() {
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
 
             val version = MetaformVersion(
-                    type = MetaformVersionType.aRCHIVED,
+                    type = MetaformVersionType.ARCHIVED,
                     data = versionData
             )
 
@@ -290,13 +290,98 @@ class VersionTestsIT : AbstractTest() {
                     val metaformVersion = testBuilder.systemAdmin.metaformVersions.create(
                         metaform.id!!,
                         MetaformVersion(
-                            type = MetaformVersionType.aRCHIVED,
+                            type = MetaformVersionType.ARCHIVED,
                             data = testBuilder.systemAdmin.metaformVersions.exampleVersionData
                         )
                     )
                     authentication.metaformVersions.delete(metaform.id, metaformVersion.id!!)
                 },
                 metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateVersion() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val version = MetaformVersion(
+                type = MetaformVersionType.DRAFT,
+                data = readJsonMap(objectMapper.writeValueAsString(metaform))
+            )
+            val createdVersion = testBuilder.systemAdmin.metaformVersions.create(
+                metaformId = metaform.id!!,
+                payload = version
+            )
+            val versionModified = createdVersion.copy(
+                type = MetaformVersionType.ARCHIVED
+            )
+
+            testBuilder.systemAdmin.metaformVersions.updateMetaformVersion(
+                metaformId = metaform.id,
+                versionId = createdVersion.id!!,
+                body = versionModified
+            )
+            val updatedVersion = testBuilder.systemAdmin.metaformVersions.findVersion(
+                metaformId = metaform.id,
+                versionId = createdVersion.id
+            )
+
+            Assertions.assertEquals(createdVersion.createdAt, updatedVersion.createdAt)
+            Assertions.assertEquals(createdVersion.creatorId, updatedVersion.creatorId)
+            Assertions.assertEquals(createdVersion.lastModifierId, updatedVersion.lastModifierId)
+            Assertions.assertEquals(createdVersion.data, updatedVersion.data)
+            Assertions.assertNotEquals(createdVersion.type, updatedVersion.type)
+            Assertions.assertNotEquals(createdVersion.modifiedAt, updatedVersion.modifiedAt)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateVersionUnAuthorized() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
+            val version = MetaformVersion(
+                type = MetaformVersionType.ARCHIVED,
+                data = versionData
+            )
+            val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
+
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.metaformVersions.updateMetaformVersion(metaform.id, createdVersion.id!!, createdVersion)
+                },
+                metaformId = metaform.id
+            )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateVersionNotFound() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
+            val version = MetaformVersion(
+                type = MetaformVersionType.ARCHIVED,
+                data = versionData
+            )
+            val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
+
+            testBuilder.systemAdmin.metaformVersions.assertUpdateFailStatus(
+                expectedStatus = 404,
+                metaformId = UUID.randomUUID(),
+                versionId = createdVersion.id!!,
+                metaformVersion = createdVersion
+            )
+            testBuilder.systemAdmin.metaformVersions.assertUpdateFailStatus(
+                expectedStatus = 404,
+                metaformId = metaform.id,
+                versionId = UUID.randomUUID(),
+                metaformVersion = createdVersion
             )
         }
     }

@@ -123,6 +123,7 @@ val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
     setProperty("packageName", "fi.metatavu.metaform.api.client")
     this.configOptions.put("dateLibrary", "string")
     this.configOptions.put("collectionType", "array")
+    this.configOptions.put("enumPropertyNaming", "UPPERCASE")
 }
 
 val generateKeycloackClient = tasks.register("generateKeycloackClient",GenerateTask::class){

@@ -135,7 +135,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
                 email = String.format("%s@example.com", metaformAdminUserName),
                 firstName = metaformAdminUserName,
                 lastName = metaformAdminUserName,
-                role = MetaformMemberRole.aDMINISTRATOR
+                role = MetaformMemberRole.ADMINISTRATOR
             ),
             addClosable
         )
@@ -161,7 +161,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
                 email = String.format("%s@example.com", metaformManagerUserName) ,
                 firstName = metaformManagerUserName,
                 lastName = metaformManagerUserName,
-                role = MetaformMemberRole.mANAGER
+                role = MetaformMemberRole.MANAGER
             ),
             addClosable
         )

@@ -64,7 +64,7 @@ class MetaformMembersTestBuilderResource(
             firstName = name,
             lastName  = name,
             email = String.format("%s@example.com", name),
-            role = MetaformMemberRole.mANAGER
+            role = MetaformMemberRole.MANAGER
         ))
         membersMetaforms[result.id] = metaformId
         return addClosable(result)
