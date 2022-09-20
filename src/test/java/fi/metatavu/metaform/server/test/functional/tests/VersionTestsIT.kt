@@ -349,11 +349,12 @@ class VersionTestsIT : AbstractTest() {
             )
             val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
 
-            testBuilder.test1.metaformVersions.assertUpdateFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform.id,
-                versionId = createdVersion.id!!,
-                metaformVersion = createdVersion
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                    authentication.metaformVersions.updateMetaformVersion(metaform.id, createdVersion.id!!, createdVersion)
+                },
+                metaformId = metaform.id
             )
         }
     }
