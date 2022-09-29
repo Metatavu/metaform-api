@@ -57,7 +57,7 @@
       "attributes" : { }
     }, {
       "id" : "9a5833f6-751f-414b-ad04-e7f4cbfb5ed4",
-      "name" : "metaform-admin",
+      "name" : "system-admin",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "test-1",
@@ -442,7 +442,7 @@
   }, {
     "id" : "83543c6b-1324-42c6-a4ca-c164a3ade516",
     "createdTimestamp" : 1526144277240,
-    "username" : "metaform-admin",
+    "username" : "system-admin",
     "enabled" : true,
     "totp" : false,
     "emailVerified" : true,
@@ -458,7 +458,7 @@
     } ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "metaform-user", "offline_access", "metaform-admin", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "system-admin", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -1168,13 +1168,13 @@
         }
       }, {
         "id" : "65a1664f-fc6e-4b56-9880-3fe9e2dcff7f",
-        "name" : "metaform-admin",
-        "description" : "metaform-admin",
+        "name" : "system-admin",
+        "description" : "system-admin",
         "type" : "role",
         "logic" : "POSITIVE",
         "decisionStrategy" : "UNANIMOUS",
         "config" : {
-          "roles" : "[{\"id\":\"metaform-admin\",\"required\":true}]"
+          "roles" : "[{\"id\":\"system-admin\",\"required\":true}]"
         }
       }, {
         "id" : "0bd939ad-53c2-4474-9c25-52fde39e1d44",
