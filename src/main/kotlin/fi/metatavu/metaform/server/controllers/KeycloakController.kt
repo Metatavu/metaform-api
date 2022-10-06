@@ -651,6 +651,7 @@ class KeycloakController {
      * Deletes metaform member (Only removes groups)
      *
      * @param metaformMemberId metaform member id
+     * @param metaformId metaform id
      */
     fun deleteMetaformMember(metaformMemberId: UUID, metaformId: UUID) {
         val managerBaseGroup = getMetaformManagerGroup(metaformId = metaformId)
