@@ -17,11 +17,7 @@ import fi.metatavu.metaform.server.permissions.GroupMemberPermission
 import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
-import fi.metatavu.metaform.server.persistence.dao.ReplyDAO
-import fi.metatavu.metaform.server.persistence.model.AuditLogEntry
-import fi.metatavu.metaform.server.persistence.model.ExportTheme
-import fi.metatavu.metaform.server.persistence.model.Metaform
-import fi.metatavu.metaform.server.persistence.model.Reply
+import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import org.apache.commons.lang3.StringUtils
 import org.keycloak.admin.client.Keycloak
@@ -49,7 +45,7 @@ class MetaformController {
     lateinit var metaformDAO: MetaformDAO
 
     @Inject
-    lateinit var replyDAO: ReplyDAO
+    lateinit var draftController: DraftController
 
     @Inject
     lateinit var auditLogEntryDAO: AuditLogEntryDAO
@@ -159,8 +155,11 @@ class MetaformController {
      * @param metaform Metaform
      */
     fun deleteMetaform(metaform: Metaform) {
-        val replies = replyDAO.listByMetaform(metaform)
+        val replies = replyController.listReplies(metaform = metaform, includeRevisions = true)
         replies.forEach { reply: Reply -> replyController.deleteReply(reply) }
+
+        val drafts = draftController.listByMetaform(metaform)
+        drafts.forEach { draft: Draft -> draftController.deleteDraft(draft) }
 
         val metaformMembers = keycloakController.listMetaformMemberAdmin(metaform.id!!) +
                 keycloakController.listMetaformMemberManager(metaform.id!!)

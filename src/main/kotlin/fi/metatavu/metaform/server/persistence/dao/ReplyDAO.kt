@@ -6,14 +6,11 @@ import fi.metatavu.metaform.server.metaform.FieldFilterOperator
 import fi.metatavu.metaform.server.metaform.FieldFilters
 import fi.metatavu.metaform.server.metaform.StoreDataType
 import fi.metatavu.metaform.server.persistence.model.*
-import org.slf4j.Logger
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
 import java.util.function.Function
 import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
-import javax.persistence.EntityManager
 import javax.persistence.TypedQuery
 import javax.persistence.criteria.*
 

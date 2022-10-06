@@ -4,10 +4,12 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.metaform.api.client.apis.DraftsApi
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
+import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.Draft
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import org.junit.Assert
 import java.io.IOException
 import java.util.*
 
@@ -50,11 +52,12 @@ class DraftTestBuilderResource(
      * @return created draft
      */
     @Throws(IOException::class)
-    fun createDraft(metaform: Metaform, draftData: Map<String, Any>): Draft {
+    fun createDraft(metaform: Metaform, draftData: Map<String, Any>, addClosable: Boolean = true): Draft {
         val draft = Draft(draftData, null, null, null)
         val createdDraft = api.createDraft(metaform.id!!, draft)
         metaformDraftMap[metaform] = createdDraft
-        return addClosable(createdDraft)
+        if (addClosable) addClosable(createdDraft)
+        return createdDraft
     }
 
 
@@ -98,5 +101,26 @@ class DraftTestBuilderResource(
     @Throws(IOException::class)
     fun findDraft(metaformId: UUID, draftId: UUID): Draft {
         return api.findDraft(metaformId, draftId)
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param metaformId     metaform id
+     * @param draftId     draft id
+     */
+    @JvmOverloads
+    @Throws(IOException::class)
+    fun assertFindFailStatus(expectedStatus: Int, metaformId: UUID, draftId: UUID) {
+        try {
+            api.findDraft(
+                metaformId = metaformId,
+                draftId = draftId
+            )
+            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
     }
 }
