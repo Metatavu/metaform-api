@@ -6,7 +6,7 @@ import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
-import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(KeycloakResource::class)
+        QuarkusTestResource(MetaformKeycloakResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class DraftTestsIT : AbstractTest() {

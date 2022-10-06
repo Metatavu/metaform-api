@@ -58,7 +58,7 @@ class MetaformController {
     lateinit var auditLogEntryController: AuditLogEntryController
 
     @Inject
-    lateinit var keycloakController: KeycloakController
+    lateinit var metaformKeycloakController: MetaformKeycloakController
 
     @Inject
     lateinit var permissionController: PermissionController
@@ -91,7 +91,7 @@ class MetaformController {
             data = data,
             creatorId = creatorId
         ).let {
-            keycloakController.createMetaformManagementGroup(it.id!!)
+            metaformKeycloakController.createMetaformManagementGroup(it.id!!)
             it
         }
     }
@@ -162,14 +162,14 @@ class MetaformController {
         val replies = replyDAO.listByMetaform(metaform)
         replies.forEach { reply: Reply -> replyController.deleteReply(reply) }
 
-        val metaformMembers = keycloakController.listMetaformMemberAdmin(metaform.id!!) +
-                keycloakController.listMetaformMemberManager(metaform.id!!)
-        metaformMembers.forEach { keycloakController.deleteMetaformMember(UUID.fromString(it.id)) }
+        val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(metaform.id!!) +
+                metaformKeycloakController.listMetaformMemberManager(metaform.id!!)
+        metaformMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id)) }
 
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
         metaformDAO.delete(metaform)
-        keycloakController.deleteMetaformManagementGroup(metaform.id!!)
+        metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)
     }
 
     /**
@@ -244,9 +244,9 @@ class MetaformController {
             groupMemberPermissions: Set<GroupMemberPermission>,
             loggedUserId: UUID
     ) {
-        val adminClient = keycloakController.adminClient
+        val adminClient = metaformKeycloakController.adminClient
         val keycloakClient = try {
-            keycloakController.getKeycloakClient(adminClient)
+            metaformKeycloakController.getKeycloakClient(adminClient)
         } catch (e: AuthzException) {
             throw e
         }
@@ -254,7 +254,7 @@ class MetaformController {
         val resourceName = replyController.getReplyResourceName(reply)
         val notifiedUserIds =
                 if (replyCreated) emptySet()
-                else keycloakController.getResourcePermittedUsers(
+                else metaformKeycloakController.getResourcePermittedUsers(
                         adminClient,
                         keycloakClient,
                     reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
@@ -267,7 +267,7 @@ class MetaformController {
             groupMemberPermissions = groupMemberPermissions
         )
 
-        val notifyUserIds = keycloakController
+        val notifyUserIds = metaformKeycloakController
             .getResourcePermittedUsers(
                 adminClient,
                 keycloakClient,
@@ -304,7 +304,7 @@ class MetaformController {
             return
         }
         val directEmails = if (replyCreated) emailNotificationController.getEmailNotificationEmails(emailNotification) else emptyList()
-        val usersResource = keycloak.realm(keycloakController.configuration.realm).users()
+        val usersResource = keycloak.realm(metaformKeycloakController.configuration.realm).users()
         val groupEmails = notifyUserIds
                 .asSequence()
                 .map { obj: UUID -> obj.toString() }
@@ -348,7 +348,7 @@ class MetaformController {
 
             for (groupId in groupIds) {
                 try {
-                    if (keycloakController.findGroup(id = groupId) == null) {
+                    if (metaformKeycloakController.findGroup(id = groupId) == null) {
                         return false
                     }
                 } catch (e: Exception) {

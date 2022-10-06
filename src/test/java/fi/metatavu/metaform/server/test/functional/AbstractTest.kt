@@ -415,5 +415,7 @@ class AbstractTest {
         private val logger = LoggerFactory.getLogger(AbstractTest::class.java.name)
         val REALM1_USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63")
         val REALM1_USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5")
+        val USER_WITHOUT_IDP_ID = UUID.fromString("f88927f4-4b79-4f81-b507-d4adf8ac1f69")
+        val USER_WITH_IDP_ID = UUID.fromString("ea61792a-b546-44bf-b64b-5e745e404bd7")
     }
 }

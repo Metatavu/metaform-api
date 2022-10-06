@@ -2,7 +2,7 @@ package fi.metatavu.metaform.server.liquibase.changes
 
 import fi.metatavu.metaform.server.exceptions.AuthzException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
-import fi.metatavu.metaform.server.controllers.KeycloakController
+import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.keycloak.ResourceType
 import fi.metatavu.metaform.server.permissions.AuthzController
 import liquibase.database.Database
@@ -21,14 +21,14 @@ import javax.inject.Inject
 class CreateRealmAuthorizations : AbstractAuthzCustomChange() {
 
     @Inject
-    lateinit var keycloakController: KeycloakController
+    lateinit var metaformKeycloakController: MetaformKeycloakController
 
     @Inject
     lateinit var authzController: AuthzController
 
     @Throws(CustomChangeException::class)
     override fun execute(database: Database) {
-        for (realmName in keycloakController.getConfiguredRealms()) {
+        for (realmName in metaformKeycloakController.getConfiguredRealms()) {
             createRealmAuthorizations(realmName)
         }
     }
@@ -42,9 +42,9 @@ class CreateRealmAuthorizations : AbstractAuthzCustomChange() {
     @Throws(CustomChangeException::class, AuthzException::class)
     private fun createRealmAuthorizations(realmName: String?) {
         try {
-            val adminClient = keycloakController.adminClient
-            val keycloakClient = keycloakController.getKeycloakClient(adminClient)
-            keycloakController.createAuthorizationScopes(adminClient, realmName, keycloakClient, AuthorizationScope.values().toList())
+            val adminClient = metaformKeycloakController.adminClient
+            val keycloakClient = metaformKeycloakController.getKeycloakClient(adminClient)
+            metaformKeycloakController.createAuthorizationScopes(adminClient, realmName, keycloakClient, AuthorizationScope.values().toList())
             val defaultPolicyId = authzController.getPolicyIdByName(
                 keycloak = adminClient,
                 name = "Default Policy"

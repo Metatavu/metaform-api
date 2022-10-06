@@ -5,9 +5,9 @@ import io.quarkus.test.common.QuarkusTestResourceLifecycleManager
 import kotlin.collections.HashMap
 
 /**
- * Starts test container for keycloak
+ * Starts test container for Metaform Keycloak
  */
-class KeycloakResource : QuarkusTestResourceLifecycleManager {
+class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
     override fun start(): Map<String, String> {
         keycloak.start()
         val config: MutableMap<String, String> = HashMap()
@@ -30,9 +30,10 @@ class KeycloakResource : QuarkusTestResourceLifecycleManager {
         val serverAdminUser = "admin"
         val serverAdminPass = "admin"
         val keycloak: KeycloakContainer = KeycloakContainer()
-                .withAdminUsername(serverAdminUser)
-                .withAdminPassword(serverAdminPass)
-                .withRealmImportFile("kc.json")
-                .withFeaturesEnabled("upload-scripts")
+            .withAdminUsername(serverAdminUser)
+            .withAdminPassword(serverAdminPass)
+            .withRealmImportFile("exported-metaform-kc.json")
+            .withFeaturesEnabled("upload-scripts")
+//            .withCreateContainerCmdModifier { it.withName("metaform-kc") }
     }
 }

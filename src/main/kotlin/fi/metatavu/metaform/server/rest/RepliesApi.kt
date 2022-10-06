@@ -433,7 +433,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val resourceIds = replies
             .mapNotNull(fi.metatavu.metaform.server.persistence.model.Reply::resourceId).toSet()
 
-    val permittedResourceIds = keycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
+    val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
     return replies
             .filter { reply -> permittedResourceIds.contains(reply.resourceId) }
   }

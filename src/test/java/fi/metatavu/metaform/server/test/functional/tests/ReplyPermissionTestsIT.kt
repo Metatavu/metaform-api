@@ -9,7 +9,7 @@ import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.MailgunMocker
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
@@ -29,7 +29,7 @@ import java.util.stream.Collectors
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(KeycloakResource::class)
+        QuarkusTestResource(MetaformKeycloakResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class ReplyPermissionTestsIT : AbstractTest() {
