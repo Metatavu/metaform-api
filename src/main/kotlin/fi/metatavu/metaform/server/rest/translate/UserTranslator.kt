@@ -14,7 +14,7 @@ import javax.enterprise.context.ApplicationScoped
 class UserTranslator {
 
     /**
-     * Translates user representation into REST User
+     * Translates Metaform KC user representation into REST User
      *
      * @param entity User Representation
      * @return REST User

@@ -82,9 +82,9 @@ class CardAuthKeycloakController {
      * @return List of found users
      */
     fun findUsersBySearchParam(
-        search: String?,
-        firstResult: Int?,
-        maxResults: Int?
+        search: String? = "",
+        firstResult: Int? = 0,
+        maxResults: Int? = 10
     ): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return usersApi.realmUsersGet(
             realm = realm,
@@ -96,8 +96,8 @@ class CardAuthKeycloakController {
             emailVerified = null,
             idpAlias = null,
             idpUserId = null,
-            first = firstResult ?: 0,
-            max = maxResults ?: 10,
+            first = firstResult,
+            max = maxResults,
             enabled = null,
             briefRepresentation = false,
             exact = false,

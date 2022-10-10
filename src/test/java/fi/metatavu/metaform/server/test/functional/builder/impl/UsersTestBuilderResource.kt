@@ -65,7 +65,7 @@ class UsersTestBuilderResource(
      * @return List of Users
      */
     @Throws(IOException::class)
-    fun listUsers(search: String?, firstResult: Int?, maxResults: Int?): Array<User> {
+    fun listUsers(search: String? = null, firstResult: Int? = null, maxResults: Int? = null): Array<User> {
         return api.listUsers(
             search = search,
             firstResult = firstResult,
@@ -170,6 +170,21 @@ class UsersTestBuilderResource(
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
         }
+    }
+
+    /**
+     * Creates user from parameters without IDP link
+     *
+     * @param firstName
+     * @return User
+     */
+    fun createUserWithoutIDP(firstName: String): User {
+        return User(
+            email = String.format("%s.testi@example.com", firstName),
+            firstName = firstName,
+            lastName = "Testi",
+            displayName = String.format("testi %s", firstName)
+        )
     }
 
     /**

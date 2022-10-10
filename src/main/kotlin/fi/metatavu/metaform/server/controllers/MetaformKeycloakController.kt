@@ -773,16 +773,20 @@ class MetaformKeycloakController {
 
             val createdUser = findUserByEmail(user.email) ?: throw KeycloakException("Failed to get created user")
 
-            userApi.realmUsersIdFederatedIdentityProviderPost(
-                realm = realm,
-                id = createdUser.id!!,
-                provider = "oidc",
-                federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
-                    identityProvider = "oidc",
-                    userId = user.federatedIdentities!![0].userId,
-                    userName = user.displayName
+            if (!user.federatedIdentities.isNullOrEmpty()){
+                userApi.realmUsersIdFederatedIdentityProviderPost(
+                    realm = realm,
+                    id = createdUser.id!!,
+                    provider = "oidc",
+                    federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
+                        identityProvider = "oidc",
+                        userId = user.federatedIdentities[0].userId,
+                        userName = user.displayName
+                    )
                 )
-            )
+
+                return findUserById(UUID.fromString(createdUser.id))!!
+            }
 
             return findUserById(UUID.fromString(createdUser.id))!!
         } catch (e: Exception) {
@@ -820,18 +824,28 @@ class MetaformKeycloakController {
 
             findUserById(userId) ?: throw KeycloakException("Failed to get updated user")
 
-            userApi.realmUsersIdFederatedIdentityProviderPost(
-                realm = realm,
-                id = userId.toString(),
-                provider = "oidc",
-                federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
-                    identityProvider = "oidc",
-                    userId = user.federatedIdentities!![0].userId,
-                    userName = user.displayName
+            if (!user.federatedIdentities.isNullOrEmpty()){
+                userApi.realmUsersIdFederatedIdentityProviderPost(
+                    realm = realm,
+                    id = userId.toString(),
+                    provider = "oidc",
+                    federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
+                        identityProvider = "oidc",
+                        userId = user.federatedIdentities[0].userId,
+                        userName = user.displayName
+                    )
                 )
-            )
 
-            return findUserById(userId)!!
+                return findUserById(userId)!!
+            } else {
+                userApi.realmUsersIdFederatedIdentityProviderDelete(
+                    realm = realm,
+                    id = userId.toString(),
+                    provider = "oidc"
+                )
+
+                return findUserById(userId)!!
+            }
         } catch (e: Exception) {
             logger.error("Error updating User", e)
             throw KeycloakException("Failed to update user ${user.id}")
@@ -864,13 +878,13 @@ class MetaformKeycloakController {
      * @return List of found users
      */
     fun findUsersBySearchParam(
-        search: String?,
-        firstResult: Int?,
-        maxResults: Int?
+        search: String? = "",
+        firstResult: Int? = 0,
+        maxResults: Int? = 10
     ): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return usersApi.realmUsersGet(
             realm = realm,
-            search = search ?: "",
+            search = search,
             lastName = null,
             firstName = null,
             email = null,
@@ -878,8 +892,8 @@ class MetaformKeycloakController {
             emailVerified = null,
             idpAlias = null,
             idpUserId = null,
-            first = firstResult ?: 0,
-            max = maxResults ?: 10,
+            first = firstResult,
+            max = maxResults,
             enabled = null,
             briefRepresentation = false,
             exact = false,

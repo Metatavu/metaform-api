@@ -83,6 +83,22 @@ abstract class AbstractApi {
     }
 
     /**
+     * Constructs ok response with x-total-count header
+     *
+     * @param entity payload
+     * @param count x-total-count value
+     * @return response
+     */
+    protected fun createOk(entity: Any?, count: Int): Response {
+        return Response
+            .status(Response.Status.OK)
+            .entity(entity)
+            .header("X-Total-Count", count.toString())
+            .header("Access-Control-Expose-Headers", "X-Total-Count")
+            .build()
+    }
+
+    /**
      * Constructs no content response
      *
      * @return response

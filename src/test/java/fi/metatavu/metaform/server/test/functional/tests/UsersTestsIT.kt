@@ -4,7 +4,6 @@ import fi.metatavu.metaform.api.client.models.UserFederationSource
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.CardAuthKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
@@ -31,17 +30,17 @@ class UsersTestsIT: AbstractTest() {
     @Throws(Exception::class)
     fun listUsers() {
         TestBuilder().use { testBuilder ->
-            val foundUsers = testBuilder.systemAdmin.users.listUsers(
-                search = null,
-                firstResult = null,
-                maxResults = null
-            )
-            val metaformKeycloakUsers = foundUsers.filter { it.id != null}
+            val foundUsers1 = testBuilder.systemAdmin.users.listUsers()
+            val foundMetaformKeycloakFiveUsers = testBuilder.systemAdmin.users.listUsers(maxResults = 5).filter { it.id != null }
+            val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "Tommi")
+            val metaformKeycloakUsers = foundUsers1.filter { it.id != null}
             val metaformKeycloakFederatedUsers = metaformKeycloakUsers.filter { !it.federatedIdentities.isNullOrEmpty() }
-            val cardAuthKeycloakUsers = foundUsers.filter { it.id == null }
 
+            Assertions.assertTrue(metaformKeycloakFederatedUsers.isNotEmpty())
             Assertions.assertTrue(metaformKeycloakUsers.size != metaformKeycloakFederatedUsers.size)
-            Assertions.assertTrue(cardAuthKeycloakUsers.size == 8)
+            Assertions.assertTrue(foundMetaformKeycloakFiveUsers.size == 5)
+            Assertions.assertTrue(foundUserWithSearchParam.size == 2)
+            Assertions.assertEquals(foundUserWithSearchParam[0].firstName, "Tommi")
         }
     }
 
@@ -52,11 +51,7 @@ class UsersTestsIT: AbstractTest() {
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.METAFORM_ADMIN,
                 apiCaller = { authentication, _: Int ->
-                    authentication.users.listUsers(
-                        search = null,
-                        firstResult = null,
-                        maxResults = null
-                    )
+                    authentication.users.listUsers()
                 }
             )
         }
@@ -142,7 +137,7 @@ class UsersTestsIT: AbstractTest() {
         TestBuilder().use { testBuilder ->
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.METAFORM_ADMIN,
-                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                apiCaller = { authentication, index: Int ->
                     val userToCreate = testBuilder.systemAdmin.users.createUserWithIDP(
                         firstName = String.format("create-permission-test%d", index)
                     )
@@ -178,7 +173,7 @@ class UsersTestsIT: AbstractTest() {
         TestBuilder().use { testBuilder ->
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.SYSTEM_ADMIN,
-                apiCaller = { authentication: TestBuilderAuthentication, index: Int ->
+                apiCaller = { authentication, index: Int ->
                     val userToCreate = testBuilder.systemAdmin.users.createUserWithIDP(
                         firstName = String.format("delete-permission-test%d", index)
                     )
@@ -195,6 +190,61 @@ class UsersTestsIT: AbstractTest() {
     fun deleteUserNotFound() {
         TestBuilder().use { testBuilder ->
             testBuilder.systemAdmin.users.assertDeleteFailStatus(404, UUID.randomUUID())
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateUser() {
+        TestBuilder().use { testBuilder ->
+            val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test")
+            val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
+            val userToUpdate = createdUser.copy(displayName = userToCreate.displayName.plus(" 78912345601"))
+            val updatedUser1 = testBuilder.systemAdmin.users.updateUser(
+                userId = userToUpdate.id!!,
+                user = userToUpdate
+            )
+            val updatedUser2 = testBuilder.systemAdmin.users.updateUser(
+                userId = userToUpdate.id,
+                user = userToUpdate.copy(
+                    displayName = "testi update-test",
+                    federatedIdentities = emptyArray()
+                )
+            )
+
+            Assertions.assertNotEquals(createdUser.displayName, updatedUser1.displayName)
+            Assertions.assertEquals(createdUser.id, updatedUser1.id)
+            Assertions.assertNotNull(updatedUser1.federatedIdentities)
+            Assertions.assertNull(updatedUser2.federatedIdentities)
+            Assertions.assertEquals(updatedUser2.displayName, "testi update-test")
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateUserNotFound() {
+        TestBuilder().use { testBuilder ->
+            val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test")
+            val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
+            testBuilder.systemAdmin.users.assertUpdateFailStatus(404, UUID.randomUUID(), createdUser)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateUserPermission() {
+        TestBuilder().use { testBuilder ->
+            val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test-permission")
+            val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
+            testBuilder.permissionTestByScopes(
+                scope = PermissionScope.METAFORM_ADMIN,
+                apiCaller = { authentication, index: Int ->
+                    authentication.users.updateUser(
+                        userId = createdUser.id!!,
+                        user = createdUser.copy(displayName = userToCreate.displayName.plus(String.format( "7891234560%d", index)))
+                    )
+                }
+            )
         }
     }
 }
