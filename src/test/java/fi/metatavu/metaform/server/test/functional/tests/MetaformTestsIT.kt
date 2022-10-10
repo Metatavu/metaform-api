@@ -1,9 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
-import fi.metatavu.metaform.api.client.models.Metaform
-import fi.metatavu.metaform.api.client.models.MetaformMember
-import fi.metatavu.metaform.api.client.models.MetaformMemberRole
-import fi.metatavu.metaform.api.client.models.MetaformVisibility
+import fi.metatavu.metaform.api.client.models.*
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
@@ -435,6 +432,41 @@ class MetaformTestsIT : AbstractTest() {
                 },
                 metaformId = metaform.id
             )
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDeleteMetaform() {
+        TestBuilder().use { testBuilder ->
+            try {
+                val testMetaform1 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+                testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+                val draftData: MutableMap<String, Any> = HashMap()
+                draftData["text"] = "draft value"
+                val createdDraft: Draft = testBuilder.systemAdmin.drafts.createDraft(testMetaform1, draftData, false)
+
+                val foundMetaform = testBuilder.systemAdmin.metaforms.findMetaform(
+                    metaformId=testMetaform1.id!!,
+                    replyId = null,
+                    ownerKey = null,
+                    metaformSlug = null
+                )
+                val foundDraft = testBuilder.systemAdmin.drafts.findDraft(testMetaform1.id, createdDraft.id!!)
+                assertNotNull(foundMetaform)
+                assertNotNull(foundMetaform.id)
+                assertNotNull(foundDraft)
+                assertNotNull(foundDraft.id)
+                testBuilder.systemAdmin.metaforms.delete(foundMetaform.id!!)
+                testBuilder.systemAdmin.metaforms.assertFindFailStatus(404, metaformId = foundMetaform.id)
+                testBuilder.systemAdmin.drafts.assertFindFailStatus(404, metaformId = foundMetaform.id, draftId = createdDraft.id)
+            } finally {
+                val metaforms = testBuilder.systemAdmin.metaforms.list()
+                metaforms.forEach { metaform ->
+                    testBuilder.systemAdmin.metaforms.delete(metaform.id!!)
+                }
+            }
         }
     }
 
