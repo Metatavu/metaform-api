@@ -30,15 +30,16 @@ class UsersTestsIT: AbstractTest() {
     @Throws(Exception::class)
     fun listUsers() {
         TestBuilder().use { testBuilder ->
-            val foundUsers1 = testBuilder.systemAdmin.users.listUsers()
-            val foundMetaformKeycloakFiveUsers = testBuilder.systemAdmin.users.listUsers(maxResults = 5).filter { it.id != null }
+            val foundUsers = testBuilder.systemAdmin.users.listUsers()
+            val foundFiveUsers = testBuilder.systemAdmin.users.listUsers(maxResults = 5).filter { it.id != null }
             val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "Tommi")
-            val metaformKeycloakUsers = foundUsers1.filter { it.id != null}
-            val metaformKeycloakFederatedUsers = metaformKeycloakUsers.filter { !it.federatedIdentities.isNullOrEmpty() }
+            val metaformKeycloakFederatedUsers = testBuilder.systemAdmin.users.listUsers(
+                search = "Käyttäjä1"
+            ).filter { it.federatedIdentities != null }
 
-            Assertions.assertTrue(metaformKeycloakFederatedUsers.isNotEmpty())
-            Assertions.assertTrue(metaformKeycloakUsers.size != metaformKeycloakFederatedUsers.size)
-            Assertions.assertTrue(foundMetaformKeycloakFiveUsers.size == 5)
+            Assertions.assertTrue(foundUsers.size == 10)
+            Assertions.assertTrue(metaformKeycloakFederatedUsers.size == 1)
+            Assertions.assertTrue(foundFiveUsers.size == 5)
             Assertions.assertTrue(foundUserWithSearchParam.size == 2)
             Assertions.assertEquals(foundUserWithSearchParam[0].firstName, "Tommi")
         }
@@ -142,6 +143,7 @@ class UsersTestsIT: AbstractTest() {
                         firstName = String.format("create-permission-test%d", index)
                     )
                     authentication.users.create(userToCreate)
+
                 }
             )
         }
@@ -234,11 +236,11 @@ class UsersTestsIT: AbstractTest() {
     @Throws(Exception::class)
     fun updateUserPermission() {
         TestBuilder().use { testBuilder ->
-            val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test-permission")
-            val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.METAFORM_ADMIN,
                 apiCaller = { authentication, index: Int ->
+                    val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = String.format("update-test-permission%d", index))
+                    val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
                     authentication.users.updateUser(
                         userId = createdUser.id!!,
                         user = createdUser.copy(displayName = userToCreate.displayName.plus(String.format( "7891234560%d", index)))

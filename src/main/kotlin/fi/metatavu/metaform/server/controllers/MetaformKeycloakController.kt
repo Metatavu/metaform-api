@@ -68,6 +68,10 @@ class MetaformKeycloakController {
     lateinit var authServerUrl: String
 
     @Inject
+    @ConfigProperty(name = "metaforms.keycloak.oidc.provider")
+    lateinit var oidcProvider: String
+
+    @Inject
     lateinit var logger: Logger
 
     @Inject
@@ -777,9 +781,9 @@ class MetaformKeycloakController {
                 userApi.realmUsersIdFederatedIdentityProviderPost(
                     realm = realm,
                     id = createdUser.id!!,
-                    provider = "oidc",
+                    provider = oidcProvider,
                     federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
-                        identityProvider = "oidc",
+                        identityProvider = oidcProvider,
                         userId = user.federatedIdentities[0].userId,
                         userName = user.displayName
                     )
@@ -828,9 +832,9 @@ class MetaformKeycloakController {
                 userApi.realmUsersIdFederatedIdentityProviderPost(
                     realm = realm,
                     id = userId.toString(),
-                    provider = "oidc",
+                    provider = oidcProvider,
                     federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
-                        identityProvider = "oidc",
+                        identityProvider = oidcProvider,
                         userId = user.federatedIdentities[0].userId,
                         userName = user.displayName
                     )
@@ -838,11 +842,18 @@ class MetaformKeycloakController {
 
                 return findUserById(userId)!!
             } else {
-                userApi.realmUsersIdFederatedIdentityProviderDelete(
+                val userFederatedIdentity = userApi.realmUsersIdFederatedIdentityGet(
                     realm = realm,
-                    id = userId.toString(),
-                    provider = "oidc"
+                    id = userId.toString()
                 )
+
+                if (userFederatedIdentity.isNotEmpty()) {
+                    userApi.realmUsersIdFederatedIdentityProviderDelete(
+                        realm = realm,
+                        id = userId.toString(),
+                        provider = oidcProvider
+                    )
+                }
 
                 return findUserById(userId)!!
             }
@@ -880,11 +891,11 @@ class MetaformKeycloakController {
     fun findUsersBySearchParam(
         search: String? = "",
         firstResult: Int? = 0,
-        maxResults: Int? = 10
+        maxResults: Int? = 5
     ): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return usersApi.realmUsersGet(
             realm = realm,
-            search = search,
+            search = search ?: "",
             lastName = null,
             firstName = null,
             email = null,
@@ -892,8 +903,8 @@ class MetaformKeycloakController {
             emailVerified = null,
             idpAlias = null,
             idpUserId = null,
-            first = firstResult,
-            max = maxResults,
+            first = firstResult ?: 0,
+            max = maxResults ?: 5,
             enabled = null,
             briefRepresentation = false,
             exact = false,

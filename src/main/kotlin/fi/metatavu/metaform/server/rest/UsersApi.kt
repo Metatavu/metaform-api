@@ -31,7 +31,7 @@ class UsersApi: UsersApi, AbstractApi() {
             val existingUsers = metaformKeycloakController.findUsersBySearchParam(
                 search = null,
                 firstResult = null,
-                maxResults = null
+                maxResults = 1000
             )
             val upnNumber = user.displayName!!.split(" ")
 
@@ -98,7 +98,34 @@ class UsersApi: UsersApi, AbstractApi() {
             ).map { userTranslator.translateCardAuthUserRepresentation(it) }
         )
 
-        return createOk(foundUsers)
+        var totalUsers = metaformKeycloakController.findUsersBySearchParam(
+            search = search,
+            maxResults = 1000
+        ).size
+
+        totalUsers += cardAuthKeycloakController.findUsersBySearchParam(
+            search,
+            maxResults = 1000
+        ).size
+
+        if (maxResults == null && foundUsers.size <= 9) {
+            return createOk(
+                entity = foundUsers.subList(firstResult ?: 0, foundUsers.size),
+                count = totalUsers
+            )
+        }
+
+        if (maxResults == null) {
+            return createOk(
+                entity = foundUsers.subList(firstResult ?: 0, firstResult?.plus(10) ?: 10),
+                count = totalUsers
+            )
+        }
+
+        return createOk(
+            entity = foundUsers.subList(firstResult ?: 0, maxResults),
+            count = totalUsers
+        )
     }
 
     override fun updateUser(userId: UUID, user: User): Response {
