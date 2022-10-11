@@ -31,8 +31,8 @@ class UsersTestsIT: AbstractTest() {
     fun listUsers() {
         TestBuilder().use { testBuilder ->
             val foundUsers = testBuilder.systemAdmin.users.listUsers()
-            val foundFiveUsers = testBuilder.systemAdmin.users.listUsers(maxResults = 5).filter { it.id != null }
-            val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "Tommi")
+            val foundFiveUsers = testBuilder.systemAdmin.users.listUsers(maxResults = 5)
+            val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "test-Tommi", maxResults = 1000)
             val metaformKeycloakFederatedUsers = testBuilder.systemAdmin.users.listUsers(
                 search = "Käyttäjä1"
             ).filter { it.federatedIdentities != null }
@@ -41,7 +41,7 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertTrue(metaformKeycloakFederatedUsers.size == 1)
             Assertions.assertTrue(foundFiveUsers.size == 5)
             Assertions.assertTrue(foundUserWithSearchParam.size == 2)
-            Assertions.assertEquals(foundUserWithSearchParam[0].firstName, "Tommi")
+            Assertions.assertEquals(foundUserWithSearchParam[0].firstName, "test-Tommi")
         }
     }
 
@@ -69,7 +69,7 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertTrue(!foundUserWithIDPLink.federatedIdentities.isNullOrEmpty())
             Assertions.assertTrue(foundUserWithoutIDPLink.displayName!!.all { !it.isDigit() })
             Assertions.assertEquals(foundUserWithoutIDPLink.id, USER_WITHOUT_IDP_ID)
-            Assertions.assertEquals(foundUserWithoutIDPLink.displayName, "turmiola tommi")
+            Assertions.assertEquals(foundUserWithoutIDPLink.displayName, "turmiola test-tommi")
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.source , UserFederationSource.CARD)
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.userId, "915e2fae-f702-4c49-ab84-4bf3802ab18e")
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.userName, foundUserWithIDPLink.displayName)

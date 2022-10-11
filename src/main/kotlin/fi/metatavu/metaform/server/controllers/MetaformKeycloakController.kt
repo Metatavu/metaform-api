@@ -13,6 +13,7 @@ import fi.metatavu.metaform.server.exceptions.KeycloakDuplicatedUserException
 import fi.metatavu.metaform.server.exceptions.KeycloakException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.*
+import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
 import org.keycloak.OAuth2Constants
@@ -581,17 +582,39 @@ class MetaformKeycloakController {
         metaformId: UUID,
         metaformMemberRole: MetaformMemberRole,
         userRepresentation: UserRepresentation,
-    ): fi.metatavu.metaform.keycloak.client.models.UserRepresentation? {
-        val existingUser = findUserByUsername(username = userRepresentation.username)
-            ?: findUserByEmail(email = userRepresentation.email)
-            ?: return null
+    ): fi.metatavu.metaform.keycloak.client.models.UserRepresentation {
+        val existingUser = findUserByUsername(username = userRepresentation.username) ?: findUserByEmail(email = userRepresentation.email)
 
-        when (metaformMemberRole) {
-            MetaformMemberRole.ADMINISTRATOR -> userJoinGroup(getMetaformAdminGroup(metaformId).id, existingUser.id!!)
-            MetaformMemberRole.MANAGER -> userJoinGroup(getMetaformManagerGroup(metaformId).id, existingUser.id!!)
+        if (existingUser == null) {
+            val groupName = when (metaformMemberRole) {
+                MetaformMemberRole.ADMINISTRATOR -> getMetaformAdminGroupName(metaformId)
+                MetaformMemberRole.MANAGER -> getMetaformManagerGroupName(metaformId)
+            }
+
+            val response = adminClient.realm(realm).users().create(userRepresentation.apply {
+                this.isEnabled = true
+                this.groups = listOf(groupName)
+            })
+
+            if (response.status == 409) {
+                throw KeycloakDuplicatedUserException("Duplicated user")
+            } else if (response.status != 201) {
+                throw KeycloakException(String.format("Request failed with %d", response.status))
+            }
+
+            val userId = keycloakClientUtils.getCreateResponseId(response) ?: throw KeycloakException("Failed to get the userId")
+            val userRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_USER_ROLE).toRepresentation()
+            adminClient.realm(realm).users()[userId.toString()].roles().realmLevel().add(listOf(userRole))
+
+            return findMetaformMember(userId) ?: throw KeycloakException("Failed to find the created user")
+        } else {
+            when (metaformMemberRole) {
+                MetaformMemberRole.ADMINISTRATOR -> userJoinGroup(getMetaformAdminGroup(metaformId).id, existingUser.id!!)
+                MetaformMemberRole.MANAGER -> userJoinGroup(getMetaformManagerGroup(metaformId).id, existingUser.id!!)
+            }
+
+            return existingUser
         }
-
-        return existingUser
     }
 
     /**

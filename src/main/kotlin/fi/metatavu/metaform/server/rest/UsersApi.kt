@@ -108,7 +108,7 @@ class UsersApi: UsersApi, AbstractApi() {
             maxResults = 1000
         ).size
 
-        if (maxResults == null && foundUsers.size <= 9) {
+        if (maxResults == null && foundUsers.size <= 10) {
             return createOk(
                 entity = foundUsers.subList(firstResult ?: 0, foundUsers.size),
                 count = totalUsers
@@ -118,6 +118,13 @@ class UsersApi: UsersApi, AbstractApi() {
         if (maxResults == null) {
             return createOk(
                 entity = foundUsers.subList(firstResult ?: 0, firstResult?.plus(10) ?: 10),
+                count = totalUsers
+            )
+        }
+
+        if (maxResults > foundUsers.size) {
+            return createOk(
+                entity = foundUsers.subList(firstResult ?: 0, foundUsers.size),
                 count = totalUsers
             )
         }
