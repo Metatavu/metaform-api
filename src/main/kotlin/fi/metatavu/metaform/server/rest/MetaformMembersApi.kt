@@ -47,7 +47,7 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
           this.username = metaformMember.email
           this.email = metaformMember.email
         }
-      )
+      ) ?: return createNotFound(createNotFoundMessage(USER, metaformMember.id!!))
     } catch (e: KeycloakDuplicatedUserException) {
       logger.warn("failed to create user ${metaformMember.email}: ${e.message}")
       return createConflict(createDuplicatedMessage(METAFORM_MEMBER))

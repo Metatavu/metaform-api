@@ -37,7 +37,7 @@ class UsersApi: UsersApi, AbstractApi() {
 
             if (upnNumber.size == 3) {
                 if (existingUsers.any { it.username!!.contains(upnNumber[2]) }) {
-                    return createConflict("User with same UPN number already exists!")
+                    return createConflict(createDuplicatedMessage(UPN_NUMBER))
                 }
             }
 
@@ -57,7 +57,7 @@ class UsersApi: UsersApi, AbstractApi() {
         }
 
         metaformKeycloakController.findUserById(userId)
-            ?: return createNotFound("User not found")
+            ?: return createNotFound(createNotFoundMessage(USER, userId))
 
         metaformKeycloakController.deleteUser(userId)
 
@@ -72,7 +72,7 @@ class UsersApi: UsersApi, AbstractApi() {
         }
 
         val foundUser = metaformKeycloakController.findUserById(userId)
-            ?: return createNotFound("User with $userId not found")
+            ?: return createNotFound(createNotFoundMessage(USER, userId))
 
         return createOk(userTranslator.translate(foundUser))
     }
@@ -137,12 +137,12 @@ class UsersApi: UsersApi, AbstractApi() {
             }
 
             metaformKeycloakController.findUserById(userId)
-                ?: return createNotFound("User not found")
+                ?: return createNotFound(createNotFoundMessage(USER, userId))
 
             val updatedUser = usersController.updateUser(
                 userId = userId,
                 user = user
-            ) ?: return createBadRequest("Invalid User")
+            ) ?: return createBadRequest(createNotFoundMessage(USER, userId))
 
             return createOk(userTranslator.translate(updatedUser))
         } catch (e: Exception) {
