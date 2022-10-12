@@ -22,7 +22,7 @@ import javax.inject.Inject
 class PermissionController {
 
     @Inject
-    lateinit var keycloakController: KeycloakController
+    lateinit var metaformKeycloakController: MetaformKeycloakController
 
     @Inject
     lateinit var authzController: AuthzController
@@ -116,7 +116,7 @@ class PermissionController {
         )
 
         authzController.createGroupPolicy(
-            keycloak = keycloakController.adminClient,
+            keycloak = metaformKeycloakController.adminClient,
             policyName = policyName,
             groupId = UUID.fromString(group.id)
         )
@@ -132,7 +132,7 @@ class PermissionController {
         reply: Reply,
         groupMemberPermissions: Set<GroupMemberPermission>
     ): UUID {
-        val keycloak = keycloakController.adminClient
+        val keycloak = metaformKeycloakController.adminClient
         val metaform = reply.metaform
         val resourceId = reply.resourceId ?: createReplyProtectedResource(
             keycloak = keycloak,

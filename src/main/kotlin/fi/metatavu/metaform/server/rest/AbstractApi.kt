@@ -1,9 +1,10 @@
 package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.BadRequest
+import fi.metatavu.metaform.server.controllers.CardAuthKeycloakController
 import fi.metatavu.metaform.server.controllers.ReplyController
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
-import fi.metatavu.metaform.server.controllers.KeycloakController
+import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.persistence.model.Reply
 import org.apache.commons.lang3.StringUtils
 import org.eclipse.microprofile.jwt.JsonWebToken
@@ -38,7 +39,10 @@ abstract class AbstractApi {
     lateinit var securityContext: SecurityContext
 
     @Inject
-    lateinit var keycloakController: KeycloakController
+    lateinit var metaformKeycloakController: MetaformKeycloakController
+
+    @Inject
+    lateinit var cardAuthKeycloakController: CardAuthKeycloakController
 
     @Inject
     lateinit var replyController: ReplyController
@@ -342,7 +346,7 @@ abstract class AbstractApi {
      */
     fun isMetaformAdmin(metaformId: UUID): Boolean {
         if (isRealmSystemAdmin) return true
-        return keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)
+        return metaformKeycloakController.isMetaformAdmin(metaformId, loggedUserId!!)
     }
 
     /**
@@ -353,7 +357,7 @@ abstract class AbstractApi {
     val isMetaformAdminAny: Boolean
         get() {
             if (isRealmSystemAdmin) return true
-            return keycloakController.isMetaformAdminAny(loggedUserId!!)
+            return metaformKeycloakController.isMetaformAdminAny(loggedUserId!!)
         }
 
     /**
@@ -363,8 +367,8 @@ abstract class AbstractApi {
      */
     fun isMetaformManager(metaformId: UUID): Boolean {
         if (isRealmSystemAdmin) return true
-        if (keycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) return true
-        return keycloakController.isMetaformManager(metaformId, loggedUserId!!)
+        if (metaformKeycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) return true
+        return metaformKeycloakController.isMetaformManager(metaformId, loggedUserId!!)
     }
 
     /**
@@ -375,8 +379,8 @@ abstract class AbstractApi {
     val isMetaformManagerAny: Boolean
         get() {
             if (isRealmSystemAdmin) return true
-            if (keycloakController.isMetaformAdminAny(loggedUserId!!)) return true
-            return keycloakController.isMetaformManagerAny(loggedUserId!!)
+            if (metaformKeycloakController.isMetaformAdminAny(loggedUserId!!)) return true
+            return metaformKeycloakController.isMetaformManagerAny(loggedUserId!!)
         }
 
     /**
@@ -434,7 +438,7 @@ abstract class AbstractApi {
      * @return whether given resource id is permitted within given scope
      */
     private fun isPermittedResourceId(resourceId: UUID, authorizationScope: AuthorizationScope): Boolean {
-        val permittedResourceIds = keycloakController.getPermittedResourceIds(tokenString, setOf(resourceId), authorizationScope)
+        val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, setOf(resourceId), authorizationScope)
         return permittedResourceIds.size == 1 && resourceId == permittedResourceIds.iterator().next()
     }
 
@@ -476,6 +480,7 @@ abstract class AbstractApi {
         const val EMAIL_NOTIFICATION = "email notification"
         const val METAFORM_VERSION = "metaform version"
         const val ANONYMOUS_USERS_METAFORM_MESSAGE = "Anonymous users are not allowed on this Metaform"
+        const val USER = "user"
 
         private const val INTERNAL_SERVER_ERROR = "Internal Server Error"
     }

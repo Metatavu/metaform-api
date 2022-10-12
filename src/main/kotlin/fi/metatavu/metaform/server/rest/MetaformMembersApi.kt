@@ -38,7 +38,7 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val createdMetaformMember = try {
-      keycloakController.createMetaformMember(
+      metaformKeycloakController.createMetaformMember(
         metaformId,
         metaformMember.role,
         UserRepresentation().apply {
@@ -67,10 +67,10 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaformMember = keycloakController.findMetaformMember(metaformMemberId)
+    val foundMetaformMember = metaformKeycloakController.findMetaformMember(metaformMemberId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER, metaformMemberId))
 
-    keycloakController.deleteMetaformMember(UUID.fromString(foundMetaformMember.id!!), metaformId)
+    metaformKeycloakController.deleteMetaformMember(UUID.fromString(foundMetaformMember.id!!), metaformId)
 
     return createNoContent()
   }
@@ -84,11 +84,11 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaformMember = keycloakController.findMetaformMember(metaformMemberId)
+    val foundMetaformMember = metaformKeycloakController.findMetaformMember(metaformMemberId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER, metaformMemberId))
 
     val metaformMemberRole = try {
-      keycloakController.getMetaformMemberRole(foundMetaformMember.id!!, metaformId)
+      metaformKeycloakController.getMetaformMemberRole(foundMetaformMember.id!!, metaformId)
     } catch (e: MetaformMemberRoleNotFoundException) {
       return createNotFound(createNotBelongMessage(METAFORM_MEMBER))
     }
@@ -105,8 +105,8 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val allUsers = keycloakController.listMetaformMemberManager(metaformId)
-    val adminUsers = keycloakController.listMetaformMemberAdmin(metaformId)
+    val allUsers = metaformKeycloakController.listMetaformMemberManager(metaformId)
+    val adminUsers = metaformKeycloakController.listMetaformMemberAdmin(metaformId)
     val managerUsers = allUsers.toMutableList()
     managerUsers.removeAll { adminUsers.any { adminUser -> adminUser.id == it.id } }
 
@@ -129,11 +129,11 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaformMember = keycloakController.findMetaformMember(metaformMemberId)
+    val foundMetaformMember = metaformKeycloakController.findMetaformMember(metaformMemberId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER, metaformMemberId))
 
     try {
-      keycloakController.getMetaformMemberRole(foundMetaformMember.id!!, metaformId)
+      metaformKeycloakController.getMetaformMemberRole(foundMetaformMember.id!!, metaformId)
     } catch (e: MetaformMemberRoleNotFoundException) {
       return createNotFound(createNotBelongMessage(METAFORM_MEMBER))
     }
@@ -144,8 +144,8 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
       email = metaformMember.email
     )
 
-    keycloakController.updateMemberManagementGroup(metaformId, updateMember, metaformMember.role)
-    val updatedMember = keycloakController.updateMetaformMember(updateMember)
+    metaformKeycloakController.updateMemberManagementGroup(metaformId, updateMember, metaformMember.role)
+    val updatedMember = metaformKeycloakController.updateMetaformMember(updateMember)
 
     return createOk(metaformMemberTranslator.translate(updatedMember, metaformMember.role))
   }

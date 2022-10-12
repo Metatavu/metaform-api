@@ -10,7 +10,7 @@ import fi.metatavu.metaform.server.test.functional.MailgunMocker
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
-import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MailgunResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -30,7 +30,7 @@ import java.util.*
 @QuarkusTest
 @QuarkusTestResource.List(
         QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(KeycloakResource::class),
+        QuarkusTestResource(MetaformKeycloakResource::class),
         QuarkusTestResource(MailgunResource::class)
 )
 @TestProfile(GeneralTestProfile::class)

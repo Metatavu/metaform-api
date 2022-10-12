@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.liquibase.changes
 
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
-import fi.metatavu.metaform.server.controllers.KeycloakController
+import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.permissions.AuthzController
 import liquibase.database.Database
 import liquibase.database.jvm.JdbcConnection
@@ -24,7 +24,7 @@ import javax.inject.Inject
 class CreateReplyAuthzResources : AbstractAuthzCustomChange() {
 
     @Inject
-    lateinit var keycloakController: KeycloakController
+    lateinit var metaformKeycloakController: MetaformKeycloakController
 
     @Inject
     lateinit var authzController: AuthzController
@@ -67,7 +67,7 @@ class CreateReplyAuthzResources : AbstractAuthzCustomChange() {
                         val uri = getReplyResourceUri(metaformId, replyId)
                         try {
                             val resource = authzController.createProtectedResource(
-                                keycloak = keycloakController.adminClient,
+                                keycloak = metaformKeycloakController.adminClient,
                                 ownerId = userId,
                                 name = name,
                                 uri = uri,

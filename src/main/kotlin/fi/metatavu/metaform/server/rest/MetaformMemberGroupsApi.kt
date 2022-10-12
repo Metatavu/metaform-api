@@ -35,7 +35,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     val createdGroup = try {
-      val group = keycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
+      val group = metaformKeycloakController.createMetaformMemberGroup(metaformId, GroupRepresentation().apply {
         name = metaformMemberGroup.displayName
       })
 
@@ -50,7 +50,7 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
     try {
       metaformMemberGroup.memberIds.forEach {
-          memberId -> keycloakController.userJoinGroup(createdGroup.id, memberId.toString())
+          memberId -> metaformKeycloakController.userJoinGroup(createdGroup.id, memberId.toString())
       }
     } catch (e: Exception) {
       return createInternalServerError(e.message)
@@ -69,10 +69,10 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
     metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val memberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
+    val memberGroup = metaformKeycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
 
-    keycloakController.deleteGroup(id = UUID.fromString(memberGroup.id))
+    metaformKeycloakController.deleteGroup(id = UUID.fromString(memberGroup.id))
 
     return createNoContent()
   }
@@ -86,10 +86,10 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaformMemberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
+    val foundMetaformMemberGroup = metaformKeycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
 
-    val foundGroupMembers = keycloakController.findMetaformMemberGroupMembers(metaformMemberGroupId)
+    val foundGroupMembers = metaformKeycloakController.findMetaformMemberGroupMembers(metaformMemberGroupId)
 
     return createOk(metaformMemberGroupTranslator.translate(foundMetaformMemberGroup, foundGroupMembers))
   }
@@ -103,8 +103,8 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val metaformMemberGroups = keycloakController.listMetaformMemberGroups(metaformId).map {
-      val metaformGroupMemberIds = keycloakController.findMetaformMemberGroupMembers(UUID.fromString(it.id))
+    val metaformMemberGroups = metaformKeycloakController.listMetaformMemberGroups(metaformId).map {
+      val metaformGroupMemberIds = metaformKeycloakController.findMetaformMemberGroupMembers(UUID.fromString(it.id))
       metaformMemberGroupTranslator.translate(it, metaformGroupMemberIds)
     }
 
@@ -120,19 +120,19 @@ class MetaformMemberGroupsApi: fi.metatavu.metaform.api.spec.MetaformMemberGroup
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val foundMetaformMemberGroup = keycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
+    val foundMetaformMemberGroup = metaformKeycloakController.findMetaformMemberGroup(metaformId, metaformMemberGroupId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER_GROUP, metaformMemberGroupId))
 
-    val foundGroupMembers = keycloakController.findMetaformMemberGroupMembers(metaformMemberGroupId).toSet()
+    val foundGroupMembers = metaformKeycloakController.findMetaformMemberGroupMembers(metaformMemberGroupId).toSet()
     val updatedGroupMembers = metaformMemberGroup.memberIds.toSet()
 
     val addedMembers = updatedGroupMembers - foundGroupMembers
     val removedMembers = foundGroupMembers - updatedGroupMembers
 
-    addedMembers.forEach { keycloakController.userJoinGroup(metaformMemberGroupId.toString(), it.toString()) }
-    removedMembers.forEach { keycloakController.userLeaveGroup(metaformMemberGroupId.toString(), it.toString()) }
+    addedMembers.forEach { metaformKeycloakController.userJoinGroup(metaformMemberGroupId.toString(), it.toString()) }
+    removedMembers.forEach { metaformKeycloakController.userLeaveGroup(metaformMemberGroupId.toString(), it.toString()) }
 
-    val updatedGroup = keycloakController.updateUserGroup(
+    val updatedGroup = metaformKeycloakController.updateUserGroup(
       foundMetaformMemberGroup.apply {
         name = metaformMemberGroup.displayName
       }

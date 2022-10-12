@@ -13,7 +13,7 @@ import fi.metatavu.metaform.api.client.models.MetaformMember
 import fi.metatavu.metaform.api.client.models.MetaformMemberRole
 import fi.metatavu.metaform.server.keycloak.NotNullResteasyJackson2Provider
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
-import fi.metatavu.metaform.server.test.functional.builder.resources.KeycloakResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import io.restassured.RestAssured
 import org.apache.commons.codec.binary.Base64
 import org.eclipse.microprofile.config.ConfigProvider
@@ -95,8 +95,8 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
             serverUrl,
             "master",
             "admin-cli",
-            KeycloakResource.serverAdminUser,
-            KeycloakResource.serverAdminPass,
+            MetaformKeycloakResource.serverAdminUser,
+            MetaformKeycloakResource.serverAdminPass,
             null
         )
 
@@ -106,8 +106,8 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
             .grantType(OAuth2Constants.PASSWORD)
             .clientId(clientId)
             .clientSecret(clientSecret)
-            .username(KeycloakResource.serverAdminUser)
-            .password(KeycloakResource.serverAdminPass)
+            .username(MetaformKeycloakResource.serverAdminUser)
+            .password(MetaformKeycloakResource.serverAdminPass)
             .resteasyClient(clientBuilder.build() as ResteasyClient)
             .authorization(String.format("Bearer %s", accessTokenProvider.accessToken))
             .build()
