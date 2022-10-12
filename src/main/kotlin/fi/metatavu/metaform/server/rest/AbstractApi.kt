@@ -324,7 +324,7 @@ abstract class AbstractApi {
      *
      * @return whether logged user is realm user
      */
-    protected val isReamUser: Boolean
+    protected val isRealmUser: Boolean
         get() = hasRealmRole(METAFORM_USER_ROLE)
 
     /**
@@ -452,7 +452,7 @@ abstract class AbstractApi {
 
     companion object {
         const val METAFORM_USER_ROLE = "metaform-user"
-        const val SYSTEM_ADMIN_ROLE = "metaform-admin"
+        const val SYSTEM_ADMIN_ROLE = "system-admin"
         const val VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs"
         const val UNAUTHORIZED = "Unauthorized"
         const val LIST = "list"

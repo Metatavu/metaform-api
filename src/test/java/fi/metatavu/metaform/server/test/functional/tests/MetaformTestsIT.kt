@@ -129,7 +129,7 @@ class MetaformTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             try {
                 testBuilder.permissionTestByScopes(
-                    scope = PermissionScope.METAFORM_ADMIN,
+                    scope = PermissionScope.SYSTEM_ADMIN,
                     apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
                         authentication.metaforms.createFromJsonFile("simple")
                     }

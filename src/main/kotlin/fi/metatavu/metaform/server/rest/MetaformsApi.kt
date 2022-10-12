@@ -38,7 +38,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   override fun createMetaform(metaform: Metaform): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isMetaformAdminAny) {
+    if (!isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM))
     }
 
