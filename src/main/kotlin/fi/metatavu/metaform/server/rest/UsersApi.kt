@@ -96,7 +96,7 @@ class UsersApi: UsersApi, AbstractApi() {
             .map { metaformKeycloakController.findUserById(UUID.fromString(it.id!!)) }
             .map { userTranslator.translate(it!!) }
             .toMutableList()
-        foundUsers.forEach { println(it.toString()) }
+
         val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(
             search = search,
             firstResult = firstResult,
@@ -109,16 +109,6 @@ class UsersApi: UsersApi, AbstractApi() {
             .map { userTranslator.translateCardAuthUserRepresentation(it) }
 
         foundUsers.addAll(cardAuthKeycloakUsers)
-
-        var totalUsers = metaformKeycloakController.searchUsers(
-            search = search,
-            maxResults = 1000
-        ).size
-
-        totalUsers += cardAuthKeycloakController.searchUsers(
-            search,
-            maxResults = 1000
-        ).size
 
         return createOk(foundUsers)
     }

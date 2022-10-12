@@ -14,7 +14,7 @@ import fi.metatavu.metaform.server.exceptions.KeycloakDuplicatedUserException
 import fi.metatavu.metaform.server.exceptions.KeycloakException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.*
-import fi.metatavu.metaform.server.keycloak.translate.KeycloakTranslator
+import fi.metatavu.metaform.server.keycloak.translate.KeycloakUserRepresentationTranslator
 import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
@@ -82,7 +82,7 @@ class MetaformKeycloakController {
     lateinit var keycloakClientUtils: KeycloakClientUtils
 
     @Inject
-    lateinit var keycloakTranslator: KeycloakTranslator
+    lateinit var keycloakUserRepresentationTranslator: KeycloakUserRepresentationTranslator
 
     private val keycloakConfiguration: KeycloakConfiguration
         get() {
@@ -780,7 +780,7 @@ class MetaformKeycloakController {
         try {
             usersApi.realmUsersPost(
                 realm = realm,
-                userRepresentation = keycloakTranslator.translateUser(user)
+                userRepresentation = keycloakUserRepresentationTranslator.translate(user)
             )
 
             return findUserByEmail(user.email) ?: throw KeycloakException("Failed to get created user")
@@ -862,7 +862,7 @@ class MetaformKeycloakController {
             userApi.realmUsersIdPut(
                 realm = realm,
                 id = userId.toString(),
-                userRepresentation = keycloakTranslator.translateUser(user)
+                userRepresentation = keycloakUserRepresentationTranslator.translate(user)
             )
 
             return findUserById(userId) ?: throw KeycloakException("Failed to get updated user")

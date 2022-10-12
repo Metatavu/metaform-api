@@ -42,7 +42,8 @@ class UsersController {
                 }
             }
 
-            return metaformKeycloakController.findUserById(UUID.fromString(createdUser.id)) ?: throw Exception("Couldn't find created user")
+            return metaformKeycloakController.findUserById(UUID.fromString(createdUser.id))
+                ?: throw Exception("Couldn't find created user")
         }
 
         return createdUser
@@ -65,16 +66,16 @@ class UsersController {
                 userId = userId,
                 user = user
             )
-            user.federatedIdentities.forEach {  userFederatedIdentity ->
+            user.federatedIdentities.forEach { userFederatedIdentity ->
                 when (userFederatedIdentity.source) {
                     UserFederationSource.CARD -> metaformKeycloakController.createUserFederatedIdentity(
-                            userId = userId,
-                            identityProvider = cardIdentityProvider,
-                            userFederatedIdentity = constructUserFederatedIdentity(
-                                userId = userFederatedIdentity.userId,
-                                username = userFederatedIdentity.userName,
-                            )
+                        userId = userId,
+                        identityProvider = cardIdentityProvider,
+                        userFederatedIdentity = constructUserFederatedIdentity(
+                            userId = userFederatedIdentity.userId,
+                            username = userFederatedIdentity.userName,
                         )
+                    )
                 }
             }
 
@@ -106,10 +107,10 @@ class UsersController {
         userId: String,
         username: String
     ): UserFederatedIdentity {
-     return UserFederatedIdentity(
-         source = source,
-         userId = userId,
-         userName = username
-     )
+        return UserFederatedIdentity(
+            source = source,
+            userId = userId,
+            userName = username
+        )
     }
 }
