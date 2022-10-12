@@ -21,6 +21,25 @@ class UsersController {
     lateinit var metaformKeycloakController: MetaformKeycloakController
 
     /**
+     * Creates User in Metaform Keycloak
+     *
+     * @param user User
+     * @return UserRepresentation
+     */
+    fun createUser(user: User): UserRepresentation {
+        val createdUser = metaformKeycloakController.createUser(user)
+
+        if (!user.federatedIdentities.isNullOrEmpty()) {
+            return metaformKeycloakController.createUserFederatedIdentity(
+                userId = UUID.fromString(createdUser.id),
+                userFederatedIdentity = user.federatedIdentities[0]
+            )
+        }
+
+        return createdUser
+    }
+
+    /**
      * Updates User in Metaform Keycloak
      *
      * @param userId userId
@@ -42,24 +61,30 @@ class UsersController {
                     firstResult = null,
                     maxResults = null
                 ).find { it.username!!.contains(upnNumber) }
-
-            return metaformKeycloakController.updateUser(
+            val updatedUser = metaformKeycloakController.updateUser(
                 userId = userId,
-                user = user.copy(
-                    federatedIdentities = listOf(
-                        createUserFederatedIdentity(
-                            userId = federatedUser?.id!!,
-                            username = federatedUser.username!!
-                        )
-                    )
-                )
+                user = user
             )
+            if (federatedUser != null) {
+                return metaformKeycloakController.createUserFederatedIdentity(
+                    userId = userId,
+                    userFederatedIdentity = createUserFederatedIdentity(
+                        userId = federatedUser.id!!,
+                        username = federatedUser.username!!
+                        )
+                )
+            }
+
+            return updatedUser
         }
 
-        return metaformKeycloakController.updateUser(
+        metaformKeycloakController.updateUser(
             userId = userId,
             user = user
         )
+        metaformKeycloakController.deleteUserFederatedIdentity(userId)
+
+        return metaformKeycloakController.findUserById(userId)
     }
 
     /**

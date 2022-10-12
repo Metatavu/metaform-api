@@ -30,18 +30,18 @@ class UsersTestsIT: AbstractTest() {
     @Throws(Exception::class)
     fun listUsers() {
         TestBuilder().use { testBuilder ->
-            val foundUsers = testBuilder.systemAdmin.users.listUsers()
-            val foundFiveUsers = testBuilder.systemAdmin.users.listUsers(maxResults = 5)
+            val foundUsers1 = testBuilder.systemAdmin.users.listUsers()
+            val foundUsers2 = testBuilder.systemAdmin.users.listUsers(maxResults = 5)
             val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "test-Tommi", maxResults = 1000)
             val metaformKeycloakFederatedUsers = testBuilder.systemAdmin.users.listUsers(
                 search = "Käyttäjä1"
-            ).filter { it.federatedIdentities != null }
+            )
 
-            Assertions.assertTrue(foundUsers.size == 10)
-            Assertions.assertTrue(metaformKeycloakFederatedUsers.size == 1)
-            Assertions.assertTrue(foundFiveUsers.size == 5)
-            Assertions.assertTrue(foundUserWithSearchParam.size == 2)
-            Assertions.assertEquals(foundUserWithSearchParam[0].firstName, "test-Tommi")
+            Assertions.assertTrue(foundUsers1.size > 10)
+            Assertions.assertEquals(1, metaformKeycloakFederatedUsers.size)
+            Assertions.assertEquals(10, foundUsers2.size)
+            Assertions.assertEquals(2, foundUserWithSearchParam.size)
+            Assertions.assertEquals("test-Tommi", foundUserWithSearchParam[0].firstName)
         }
     }
 
@@ -113,6 +113,8 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(createdUser.federatedIdentities!![0].source, userToCreate.federatedIdentities!![0].source)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userId, userToCreate.federatedIdentities[0].userId)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userName, userToCreate.federatedIdentities[0].userName)
+
+            testBuilder.systemAdmin.users.clean(createdUser)
         }
     }
 
@@ -143,7 +145,6 @@ class UsersTestsIT: AbstractTest() {
                         firstName = String.format("create-permission-test%d", index)
                     )
                     authentication.users.create(userToCreate)
-
                 }
             )
         }
@@ -219,6 +220,8 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertNotNull(updatedUser1.federatedIdentities)
             Assertions.assertNull(updatedUser2.federatedIdentities)
             Assertions.assertEquals(updatedUser2.displayName, "testi update-test")
+
+            testBuilder.systemAdmin.users.clean(createdUser)
         }
     }
 

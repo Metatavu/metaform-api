@@ -41,7 +41,7 @@ class UsersApi: UsersApi, AbstractApi() {
                 }
             }
 
-            val createdUser = metaformKeycloakController.createUser(user)
+            val createdUser = usersController.createUser(user)
 
             return createOk(userTranslator.translate(createdUser))
         } catch (e: Exception) {
@@ -88,15 +88,23 @@ class UsersApi: UsersApi, AbstractApi() {
             search = search,
             firstResult = firstResult,
             maxResults = maxResults
-        ).map { metaformKeycloakController.findUserById(UUID.fromString(it.id!!)) }.map { userTranslator.translate(it!!) }.toMutableList()
-
-        foundUsers.addAll(
-            cardAuthKeycloakController.findUsersBySearchParam(
-                search = search,
-                firstResult = firstResult,
-                maxResults = maxResults
-            ).map { userTranslator.translateCardAuthUserRepresentation(it) }
         )
+            .map { metaformKeycloakController.findUserById(UUID.fromString(it.id!!)) }
+            .map { userTranslator.translate(it!!) }
+            .toMutableList()
+
+        val cardAuthKeycloakUsers = cardAuthKeycloakController.findUsersBySearchParam(
+            search = search,
+            firstResult = firstResult,
+            maxResults = maxResults
+        )
+            .toMutableList()
+            .filter { cardAuthKeycloakUser ->
+                foundUsers.find { it.federatedIdentities?.get(0)?.userId == cardAuthKeycloakUser.id } == null
+            }
+            .map { userTranslator.translateCardAuthUserRepresentation(it) }
+
+        foundUsers.addAll(cardAuthKeycloakUsers)
 
         var totalUsers = metaformKeycloakController.findUsersBySearchParam(
             search = search,
@@ -108,29 +116,8 @@ class UsersApi: UsersApi, AbstractApi() {
             maxResults = 1000
         ).size
 
-        if (maxResults == null && foundUsers.size <= 10) {
-            return createOk(
-                entity = foundUsers.subList(firstResult ?: 0, foundUsers.size),
-                count = totalUsers
-            )
-        }
-
-        if (maxResults == null) {
-            return createOk(
-                entity = foundUsers.subList(firstResult ?: 0, firstResult?.plus(10) ?: 10),
-                count = totalUsers
-            )
-        }
-
-        if (maxResults > foundUsers.size) {
-            return createOk(
-                entity = foundUsers.subList(firstResult ?: 0, foundUsers.size),
-                count = totalUsers
-            )
-        }
-
         return createOk(
-            entity = foundUsers.subList(firstResult ?: 0, maxResults),
+            entity = foundUsers,
             count = totalUsers
         )
     }
