@@ -30,7 +30,6 @@ class UsersApi: UsersApi, AbstractApi() {
 
             val existingUsers = metaformKeycloakController.searchUsers(
                 search = null,
-                firstResult = null,
                 maxResults = 1000
             )
 
@@ -81,27 +80,19 @@ class UsersApi: UsersApi, AbstractApi() {
         return createOk(userTranslator.translate(foundUser))
     }
 
-    override fun listUsers(search: String?, firstResult: Int?, maxResults: Int?): Response {
+    override fun listUsers(search: String?): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
         if (!isMetaformAdminAny) {
             return createForbidden(UNAUTHORIZED)
         }
 
-        val foundUsers = metaformKeycloakController.searchUsers(
-            search = search,
-            firstResult = firstResult,
-            maxResults = maxResults
-        )
+        val foundUsers = metaformKeycloakController.searchUsers(search)
             .map { metaformKeycloakController.findUserById(UUID.fromString(it.id!!)) }
             .map { userTranslator.translate(it!!) }
             .toMutableList()
 
-        val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(
-            search = search,
-            firstResult = firstResult,
-            maxResults = maxResults
-        )
+        val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(search)
             .toMutableList()
             .filter { cardAuthKeycloakUser ->
                 foundUsers.find { it.federatedIdentities?.get(0)?.userId == cardAuthKeycloakUser.id } == null

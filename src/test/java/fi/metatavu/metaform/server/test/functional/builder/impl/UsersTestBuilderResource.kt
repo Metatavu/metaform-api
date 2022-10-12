@@ -65,11 +65,9 @@ class UsersTestBuilderResource(
      * @return List of Users
      */
     @Throws(IOException::class)
-    fun listUsers(search: String? = null, firstResult: Int? = null, maxResults: Int? = null): Array<User> {
+    fun listUsers(search: String? = null): Array<User> {
         return api.listUsers(
-            search = search,
-            firstResult = firstResult,
-            maxResults = maxResults
+            search = search
         )
     }
 
