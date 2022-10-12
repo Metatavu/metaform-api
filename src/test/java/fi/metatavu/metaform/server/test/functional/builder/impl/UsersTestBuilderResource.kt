@@ -191,23 +191,23 @@ class UsersTestBuilderResource(
      * Creates user from parameters with IDP link
      *
      * @param firstName firstName
-     * @param upnNumber upnNumber
+     * @param federatedUserId federatedUserId
      * @return User
      */
     fun createUserWithIDP(
         firstName: String,
-        upnNumber: Long? = (10000000000..99999999999).random()
+        federatedUserId: UUID = UUID.randomUUID()
     ): User {
         return User(
             email = String.format("%s.testi@example.com", firstName),
             firstName = firstName,
             lastName = "Testi",
-            displayName = String.format("testi %s %d", firstName, upnNumber),
+            displayName = String.format("testi %s", firstName),
             federatedIdentities = arrayOf(
                 UserFederatedIdentity(
                     source = UserFederationSource.CARD,
-                    userId = UUID.randomUUID().toString(),
-                    userName = String.format("testi %s %d", firstName, upnNumber)
+                    userId = federatedUserId.toString(),
+                    userName = String.format("testi %s", firstName)
                 )
             )
         )

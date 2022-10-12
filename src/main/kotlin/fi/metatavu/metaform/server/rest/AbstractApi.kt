@@ -83,22 +83,6 @@ abstract class AbstractApi {
     }
 
     /**
-     * Constructs ok response with x-total-count header
-     *
-     * @param entity payload
-     * @param count x-total-count value
-     * @return response
-     */
-    protected fun createOk(entity: Any?, count: Int): Response {
-        return Response
-            .status(Response.Status.OK)
-            .entity(entity)
-            .header("X-Total-Count", count.toString())
-            .header("Access-Control-Expose-Headers", "X-Total-Count")
-            .build()
-    }
-
-    /**
      * Constructs no content response
      *
      * @return response
@@ -497,7 +481,6 @@ abstract class AbstractApi {
         const val METAFORM_VERSION = "metaform version"
         const val ANONYMOUS_USERS_METAFORM_MESSAGE = "Anonymous users are not allowed on this Metaform"
         const val USER = "user"
-        const val UPN_NUMBER = "upn number"
 
         private const val INTERNAL_SERVER_ERROR = "Internal Server Error"
     }

@@ -19,7 +19,6 @@ class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
         config["metaforms.keycloak.admin.password"] = "test"
         config["metaforms.keycloak.admin.admin_client_id"] = "metaform-api"
         config["metaforms.keycloak.admin.secret"] = "378833f9-dde8-4443-84ca-edfa26e2f0ee"
-        config["metaforms.keycloak.oidc.provider"] = "oidc"
         return config
     }
 
@@ -35,6 +34,5 @@ class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
             .withAdminPassword(serverAdminPass)
             .withRealmImportFile("exported-metaform-kc.json")
             .withFeaturesEnabled("upload-scripts")
-//            .withCreateContainerCmdModifier { it.withName("metaform-kc") }
     }
 }

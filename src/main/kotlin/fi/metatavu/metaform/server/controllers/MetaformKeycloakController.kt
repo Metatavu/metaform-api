@@ -14,6 +14,7 @@ import fi.metatavu.metaform.server.exceptions.KeycloakDuplicatedUserException
 import fi.metatavu.metaform.server.exceptions.KeycloakException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.*
+import fi.metatavu.metaform.server.keycloak.translate.KeycloakTranslator
 import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
@@ -69,10 +70,6 @@ class MetaformKeycloakController {
     lateinit var authServerUrl: String
 
     @Inject
-    @ConfigProperty(name = "metaforms.keycloak.oidc.provider")
-    lateinit var oidcProvider: String
-
-    @Inject
     lateinit var logger: Logger
 
     @Inject
@@ -83,6 +80,9 @@ class MetaformKeycloakController {
 
     @Inject
     lateinit var keycloakClientUtils: KeycloakClientUtils
+
+    @Inject
+    lateinit var keycloakTranslator: KeycloakTranslator
 
     private val keycloakConfiguration: KeycloakConfiguration
         get() {
@@ -780,7 +780,7 @@ class MetaformKeycloakController {
         try {
             usersApi.realmUsersPost(
                 realm = realm,
-                userRepresentation = translateUserToUserRepresentation(user)
+                userRepresentation = keycloakTranslator.translateUser(user)
             )
 
             return findUserByEmail(user.email) ?: throw KeycloakException("Failed to get created user")
@@ -795,18 +795,20 @@ class MetaformKeycloakController {
      *
      * @param userId userId
      * @param federatedIdentityRepresentation federatedIdentityRepresentation
+     * @param identityProvider identityProvider
      * @return UserRepresentation
      */
     fun createUserFederatedIdentity(
         userId: UUID,
-        userFederatedIdentity: UserFederatedIdentity
+        userFederatedIdentity: UserFederatedIdentity,
+        identityProvider: String
     ): fi.metatavu.metaform.keycloak.client.models.UserRepresentation {
         userApi.realmUsersIdFederatedIdentityProviderPost(
             realm = realm,
             id = userId.toString(),
-            provider = oidcProvider,
+            provider = identityProvider,
             federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
-                identityProvider = oidcProvider,
+                identityProvider = identityProvider,
                 userId = userFederatedIdentity.userId,
                 userName = userFederatedIdentity.userName
             )
@@ -819,8 +821,9 @@ class MetaformKeycloakController {
      * Deletes Users Federated Identity
      *
      * @param userId userId
+     * @param identityProvider identityProvider
      */
-    fun deleteUserFederatedIdentity(userId: UUID) {
+    fun deleteUserFederatedIdentity(userId: UUID, identityProvider: String) {
         val federatedIdentity = userApi.realmUsersIdFederatedIdentityGet(
             realm = realm,
             id = userId.toString()
@@ -830,7 +833,7 @@ class MetaformKeycloakController {
             userApi.realmUsersIdFederatedIdentityProviderDelete(
                 realm = realm,
                 id = userId.toString(),
-                provider = oidcProvider
+                provider = identityProvider
             )
         }
     }
@@ -852,7 +855,6 @@ class MetaformKeycloakController {
      *
      * @param userId userId
      * @param user User
-     * @param
      * @return UserRepresentation
      */
     fun updateUser(userId: UUID, user: User): fi.metatavu.metaform.keycloak.client.models.UserRepresentation {
@@ -860,7 +862,7 @@ class MetaformKeycloakController {
             userApi.realmUsersIdPut(
                 realm = realm,
                 id = userId.toString(),
-                userRepresentation = translateUserToUserRepresentation(user)
+                userRepresentation = keycloakTranslator.translateUser(user)
             )
 
             return findUserById(userId) ?: throw KeycloakException("Failed to get updated user")
@@ -895,14 +897,14 @@ class MetaformKeycloakController {
      * @param maxResults maxResults
      * @return List of found users
      */
-    fun findUsersBySearchParam(
-        search: String? = "",
+    fun searchUsers(
+        search: String?,
         firstResult: Int? = 0,
         maxResults: Int? = 10
     ): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return usersApi.realmUsersGet(
             realm = realm,
-            search = search ?: "",
+            search = search,
             lastName = null,
             firstName = null,
             email = null,
@@ -969,23 +971,6 @@ class MetaformKeycloakController {
             exact = true,
             q = null
         ).firstOrNull()
-    }
-
-    /**
-     * Translates REST User to UserRepresentation
-     *
-     * @param user User
-     * @return UserRepresentation
-     */
-    private fun translateUserToUserRepresentation(user: User): fi.metatavu.metaform.keycloak.client.models.UserRepresentation {
-        return fi.metatavu.metaform.keycloak.client.models.UserRepresentation(
-            firstName = user.firstName,
-            lastName = user.lastName,
-            email = user.email,
-            emailVerified = true,
-            username = user.displayName,
-            id = user.id.toString()
-        )
     }
 
     companion object {

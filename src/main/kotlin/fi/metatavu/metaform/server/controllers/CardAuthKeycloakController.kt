@@ -1,6 +1,5 @@
 package fi.metatavu.metaform.server.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.keycloak.client.apis.UsersApi
 import fi.metatavu.metaform.keycloak.client.infrastructure.ApiClient
 import fi.metatavu.metaform.server.keycloak.KeycloakConfiguration
@@ -45,9 +44,6 @@ class CardAuthKeycloakController {
     lateinit var logger: Logger
 
     @Inject
-    lateinit var objectMapper: ObjectMapper
-
-    @Inject
     lateinit var keycloakControllerToken: KeycloakControllerToken
 
     private val keycloakConfiguration: KeycloakConfiguration
@@ -81,14 +77,14 @@ class CardAuthKeycloakController {
      * @param maxResults maxResults
      * @return List of found users
      */
-    fun findUsersBySearchParam(
-        search: String? = "",
+    fun searchUsers(
+        search: String?,
         firstResult: Int? = 0,
         maxResults: Int? = 10
     ): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return usersApi.realmUsersGet(
             realm = realm,
-            search = search ?: "",
+            search = search,
             lastName = null,
             firstName = null,
             email = null,

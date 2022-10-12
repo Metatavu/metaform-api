@@ -28,16 +28,20 @@ class UsersApi: UsersApi, AbstractApi() {
                 return createForbidden(UNAUTHORIZED)
             }
 
-            val existingUsers = metaformKeycloakController.findUsersBySearchParam(
+            val existingUsers = metaformKeycloakController.searchUsers(
                 search = null,
                 firstResult = null,
                 maxResults = 1000
             )
-            val upnNumber = user.displayName!!.split(" ")
 
-            if (upnNumber.size == 3) {
-                if (existingUsers.any { it.username!!.contains(upnNumber[2]) }) {
-                    return createConflict(createDuplicatedMessage(UPN_NUMBER))
+            existingUsers.forEach { existingUser ->
+                val conflictingFederatedIdentity = metaformKeycloakController.findUserById(UUID.fromString(existingUser.id))?.federatedIdentities
+                    ?.any { federatedIdentity ->
+                        user.federatedIdentities?.any { it.userId == federatedIdentity.userId } ?: false
+                    } ?: false
+
+                if (conflictingFederatedIdentity) {
+                    return createConflict(createDuplicatedMessage(USER))
                 }
             }
 
@@ -84,7 +88,7 @@ class UsersApi: UsersApi, AbstractApi() {
             return createForbidden(UNAUTHORIZED)
         }
 
-        val foundUsers = metaformKeycloakController.findUsersBySearchParam(
+        val foundUsers = metaformKeycloakController.searchUsers(
             search = search,
             firstResult = firstResult,
             maxResults = maxResults
@@ -92,8 +96,8 @@ class UsersApi: UsersApi, AbstractApi() {
             .map { metaformKeycloakController.findUserById(UUID.fromString(it.id!!)) }
             .map { userTranslator.translate(it!!) }
             .toMutableList()
-
-        val cardAuthKeycloakUsers = cardAuthKeycloakController.findUsersBySearchParam(
+        foundUsers.forEach { println(it.toString()) }
+        val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(
             search = search,
             firstResult = firstResult,
             maxResults = maxResults
@@ -106,20 +110,17 @@ class UsersApi: UsersApi, AbstractApi() {
 
         foundUsers.addAll(cardAuthKeycloakUsers)
 
-        var totalUsers = metaformKeycloakController.findUsersBySearchParam(
+        var totalUsers = metaformKeycloakController.searchUsers(
             search = search,
             maxResults = 1000
         ).size
 
-        totalUsers += cardAuthKeycloakController.findUsersBySearchParam(
+        totalUsers += cardAuthKeycloakController.searchUsers(
             search,
             maxResults = 1000
         ).size
 
-        return createOk(
-            entity = foundUsers,
-            count = totalUsers
-        )
+        return createOk(foundUsers)
     }
 
     override fun updateUser(userId: UUID, user: User): Response {

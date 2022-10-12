@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import fi.metatavu.metaform.api.client.models.UserFederatedIdentity
 import fi.metatavu.metaform.api.client.models.UserFederationSource
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
@@ -113,8 +114,6 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(createdUser.federatedIdentities!![0].source, userToCreate.federatedIdentities!![0].source)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userId, userToCreate.federatedIdentities[0].userId)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userName, userToCreate.federatedIdentities[0].userName)
-
-            testBuilder.systemAdmin.users.clean(createdUser)
         }
     }
 
@@ -124,7 +123,7 @@ class UsersTestsIT: AbstractTest() {
         TestBuilder().use { testBuilder ->
             val firstUserToCreate = testBuilder.systemAdmin.users.createUserWithIDP(
                 firstName = "create-test-conflict1",
-                upnNumber = 45678912301
+                federatedUserId = UUID.fromString("915e2fae-f702-4c49-ab84-4bf3802ab18e")
             )
 
             testBuilder.systemAdmin.users.assertCreateFailStatus(
@@ -202,7 +201,16 @@ class UsersTestsIT: AbstractTest() {
         TestBuilder().use { testBuilder ->
             val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test")
             val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
-            val userToUpdate = createdUser.copy(displayName = userToCreate.displayName.plus(" 78912345601"))
+            val userToUpdate = createdUser.copy(
+                displayName = userToCreate.displayName.plus(" 78912345601"),
+                federatedIdentities = arrayOf(
+                    UserFederatedIdentity(
+                        source = UserFederationSource.CARD,
+                        userId = "7e0f2037-20aa-4115-990a-6355c46cf36e",
+                        userName = "testi kayttaja2 78912345601"
+                    )
+                )
+            )
             val updatedUser1 = testBuilder.systemAdmin.users.updateUser(
                 userId = userToUpdate.id!!,
                 user = userToUpdate

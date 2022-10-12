@@ -11,6 +11,7 @@ class GeneralTestProfile : QuarkusTestProfile {
         properties["runmode"] = "TEST"
         properties["metaform.uploads.folder"] = "/tmp"
         properties["quarkus.liquibase.contexts"] = "test"
+        properties["metaforms.keycloak.card.identity.provider"] = "oidc"
         return properties
     }
 }
