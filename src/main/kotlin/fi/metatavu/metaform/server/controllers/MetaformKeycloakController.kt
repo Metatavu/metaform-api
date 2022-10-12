@@ -664,12 +664,19 @@ class MetaformKeycloakController {
     }
 
     /**
-     * Deletes metaform member
+     * Deletes metaform member (Only removes groups)
      *
      * @param metaformMemberId metaform member id
+     * @param metaformId metaform id
      */
-    fun deleteMetaformMember(metaformMemberId: UUID) {
-        adminClient.realm(realm).users().delete(metaformMemberId.toString())
+    fun deleteMetaformMember(metaformMemberId: UUID, metaformId: UUID) {
+        val managerBaseGroup = getMetaformManagerGroup(metaformId = metaformId)
+        val adminGroup = getMetaformAdminGroup(metaformId = metaformId)
+        val managerGroups = listMetaformMemberGroups(metaformId = metaformId)
+
+        managerGroups.plus(listOf(managerBaseGroup, adminGroup)).forEach {
+            userLeaveGroup(it.id, metaformMemberId.toString())
+        }
     }
 
     /**

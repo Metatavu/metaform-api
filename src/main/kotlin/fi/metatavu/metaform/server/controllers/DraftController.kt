@@ -75,6 +75,15 @@ class DraftController {
     }
 
     /**
+     * Lists drafts by metaform
+     *
+     * @param metaform metaform
+     */
+    fun listByMetaform(metaform: Metaform): List<Draft> {
+        return draftDAO.listByMetaform(metaform)
+    }
+
+    /**
      * Serializes data as string
      *
      * @param data data

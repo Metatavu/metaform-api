@@ -70,13 +70,7 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
     val foundMetaformMember = metaformKeycloakController.findMetaformMember(metaformMemberId)
       ?: return createNotFound(createNotFoundMessage(METAFORM_MEMBER, metaformMemberId))
 
-    val managerBaseGroup = metaformKeycloakController.getMetaformManagerGroup(metaformId = metaformId)
-    val adminGroup = metaformKeycloakController.getMetaformAdminGroup(metaformId = metaformId)
-    val managerGroups = metaformKeycloakController.listMetaformMemberGroups(metaformId = metaformId)
-
-    managerGroups.plus(listOf(managerBaseGroup, adminGroup)).forEach {
-      metaformKeycloakController.userLeaveGroup(it.id, foundMetaformMember.id!!)
-    }
+    metaformKeycloakController.deleteMetaformMember(UUID.fromString(foundMetaformMember.id!!), metaformId)
 
     return createNoContent()
   }
