@@ -31,16 +31,14 @@ class UsersTestsIT: AbstractTest() {
     @Throws(Exception::class)
     fun listUsers() {
         TestBuilder().use { testBuilder ->
-            val foundUsers1 = testBuilder.systemAdmin.users.listUsers()
-            val foundUsers2 = testBuilder.systemAdmin.users.listUsers(maxResults = 5)
-            val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "test-Tommi", maxResults = 1000)
+            val foundUsers = testBuilder.systemAdmin.users.listUsers()
+            val foundUserWithSearchParam = testBuilder.systemAdmin.users.listUsers(search = "test-Tommi")
             val metaformKeycloakFederatedUsers = testBuilder.systemAdmin.users.listUsers(
                 search = "Käyttäjä1"
             )
 
-            Assertions.assertTrue(foundUsers1.size > 10)
+            Assertions.assertTrue(foundUsers.size > 10)
             Assertions.assertEquals(1, metaformKeycloakFederatedUsers.size)
-            Assertions.assertEquals(10, foundUsers2.size)
             Assertions.assertEquals(2, foundUserWithSearchParam.size)
             Assertions.assertEquals("test-Tommi", foundUserWithSearchParam[0].firstName)
         }
@@ -159,11 +157,7 @@ class UsersTestsIT: AbstractTest() {
 
             testBuilder.systemAdmin.users.deleteUser(createdUser.id!!)
 
-            val users = testBuilder.systemAdmin.users.listUsers(
-                search = null,
-                firstResult = null,
-                maxResults = null
-            )
+            val users = testBuilder.systemAdmin.users.listUsers(search = null)
 
             Assertions.assertTrue(users.none { it.id == createdUser.id })
         }

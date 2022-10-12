@@ -893,14 +893,12 @@ class MetaformKeycloakController {
      * Finds users by search param
      *
      * @param search search
-     * @param firstResult firstResult
      * @param maxResults maxResults
      * @return List of found users
      */
     fun searchUsers(
         search: String?,
-        firstResult: Int? = 0,
-        maxResults: Int? = 10
+        maxResults: Int = 100
     ): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return usersApi.realmUsersGet(
             realm = realm,
@@ -912,8 +910,8 @@ class MetaformKeycloakController {
             emailVerified = null,
             idpAlias = null,
             idpUserId = null,
-            first = firstResult ?: 0,
-            max = maxResults ?: 10,
+            first = null,
+            max = maxResults,
             enabled = null,
             briefRepresentation = false,
             exact = false,
