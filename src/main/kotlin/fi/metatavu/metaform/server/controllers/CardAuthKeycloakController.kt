@@ -7,6 +7,7 @@ import fi.metatavu.metaform.server.keycloak.KeycloakControllerToken
 import fi.metatavu.metaform.server.keycloak.KeycloakSource
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
+import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
@@ -73,7 +74,6 @@ class CardAuthKeycloakController {
      * Finds users by search param
      *
      * @param search search
-     * @param firstResult firstResult
      * @param maxResults maxResults
      * @return List of found users
      */
