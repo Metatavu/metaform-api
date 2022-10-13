@@ -29,16 +29,17 @@ class KeycloakControllerToken {
 
     private lateinit var accessTokens: EnumMap<KeycloakSource, KeycloakAccessToken?>
 
+    private lateinit var accessTokenExpires: EnumMap<KeycloakSource, OffsetDateTime?>
+
     private val expireSlack = 60L
 
-    private var accessTokenExpires: OffsetDateTime? = null
-
     /**
-     * Post construct method for initializing accessTokens EnumMap
+     * Post construct method for initializing accessTokens & accessTokenExpires EnumMaps
      */
     @PostConstruct
     fun init() {
         accessTokens = EnumMap<KeycloakSource, KeycloakAccessToken?>(KeycloakSource::class.java)
+        accessTokenExpires = EnumMap<KeycloakSource, OffsetDateTime?>(KeycloakSource::class.java)
     }
 
     /**
@@ -51,7 +52,7 @@ class KeycloakControllerToken {
     fun getAccessToken(keycloakConfiguration: KeycloakConfiguration, keycloakSource: KeycloakSource): KeycloakAccessToken? {
         try {
             val now = OffsetDateTime.now()
-            val expires = accessTokenExpires?.minusSeconds(expireSlack)
+            val expires = accessTokenExpires[keycloakSource]?.minusSeconds(expireSlack)
 
             if ((accessTokens[keycloakSource] == null) || expires == null || expires.isBefore(now)) {
                 accessTokens[keycloakSource] = obtainAccessToken(keycloakConfiguration)
@@ -66,7 +67,7 @@ class KeycloakControllerToken {
                     return null
                 }
 
-                accessTokenExpires = OffsetDateTime.now().plusSeconds(expiresIn)
+                accessTokenExpires[keycloakSource] = OffsetDateTime.now().plusSeconds(expiresIn)
             }
 
             return accessTokens[keycloakSource]
