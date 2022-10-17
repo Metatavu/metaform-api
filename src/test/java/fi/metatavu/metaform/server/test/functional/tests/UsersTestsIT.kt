@@ -233,8 +233,8 @@ class UsersTestsIT: AbstractTest() {
 
             Assertions.assertNotEquals(createdUser.displayName, updatedUser1.displayName)
             Assertions.assertEquals(createdUser.id, updatedUser1.id)
-            Assertions.assertNotNull(updatedUser1.federatedIdentities)
-            Assertions.assertNull(updatedUser2.federatedIdentities)
+            Assertions.assertFalse(updatedUser1.federatedIdentities!!.isEmpty())
+            Assertions.assertTrue(updatedUser2.federatedIdentities!!.isEmpty())
             Assertions.assertEquals(updatedUser2.displayName, "testi update-test")
 
             testBuilder.systemAdmin.users.clean(createdUser)

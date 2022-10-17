@@ -26,23 +26,18 @@ class UserTranslator {
      * @return REST User
      */
     fun translate(entity: UserRepresentation): User {
-        val isUserFederated = !entity.federatedIdentities.isNullOrEmpty()
         val federatedIdentities =
-            if (isUserFederated) {
-                entity.federatedIdentities?.map { federatedIdentity ->
-                    val federatedIdentitySource =
-                        when (federatedIdentity.identityProvider) {
-                            cardIdentityProvider -> UserFederationSource.CARD
-                            else -> throw Exception("Non-supported identity provider: ${federatedIdentity.identityProvider}")
-                        }
-                    UserFederatedIdentity(
-                        source = federatedIdentitySource,
-                        userId = federatedIdentity.userId!!,
-                        userName = federatedIdentity.userName!!
-                    )
-                }
-            } else {
-                null
+            entity.federatedIdentities?.map { federatedIdentity ->
+                val federatedIdentitySource =
+                    when (federatedIdentity.identityProvider) {
+                        cardIdentityProvider -> UserFederationSource.CARD
+                        else -> throw Exception("Non-supported identity provider: ${federatedIdentity.identityProvider}")
+                    }
+                UserFederatedIdentity(
+                    source = federatedIdentitySource,
+                    userId = federatedIdentity.userId!!,
+                    userName = federatedIdentity.userName!!
+                )
             }
 
         return User(
