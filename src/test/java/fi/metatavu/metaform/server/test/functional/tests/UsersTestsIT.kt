@@ -45,12 +45,11 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(2, foundUserWithSearchParam.size)
             Assertions.assertEquals("test-Tommi", foundUserWithSearchParam[0].firstName)
             Assertions.assertEquals(2, cardAuthKeycloakUsers.size)
-            metaformKeycloakFederatedUsers.forEach {
-                Assertions.assertNotNull(it.federatedIdentities)
-            }
-            cardAuthKeycloakUsers.forEach {
-                Assertions.assertNotNull(it.federatedIdentities)
-            }
+            metaformKeycloakFederatedUsers.forEach { Assertions.assertNotNull(it.federatedIdentities) }
+            cardAuthKeycloakUsers.forEach { Assertions.assertNotNull(it.federatedIdentities) }
+            foundUsers
+                .filter { !it.federatedIdentities.isNullOrEmpty() }
+                .forEach { Assertions.assertTrue(it.federatedIdentities?.get(0)?.source == UserFederationSource.CARD ) }
         }
     }
 
