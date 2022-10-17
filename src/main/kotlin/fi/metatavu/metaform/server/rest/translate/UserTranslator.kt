@@ -31,14 +31,15 @@ class UserTranslator {
                 val federatedIdentitySource =
                     when (federatedIdentity.identityProvider) {
                         cardIdentityProvider -> UserFederationSource.CARD
-                        else -> throw Exception("Non-supported identity provider: ${federatedIdentity.identityProvider}")
-                    }
+                        else -> null
+                    } ?: return@map null
+
                 UserFederatedIdentity(
                     source = federatedIdentitySource,
                     userId = federatedIdentity.userId!!,
                     userName = federatedIdentity.userName!!
                 )
-            }
+            }?.filterNotNull()
 
         return User(
             email = entity.email ?: "",
