@@ -36,11 +36,21 @@ class UsersTestsIT: AbstractTest() {
             val metaformKeycloakFederatedUsers = testBuilder.systemAdmin.users.listUsers(
                 search = "Käyttäjä1"
             )
+            val cardAuthKeycloakUsers = testBuilder.systemAdmin.users.listUsers(
+                search = "Käyttäjä2"
+            )
 
             Assertions.assertTrue(foundUsers.size > 10)
             Assertions.assertEquals(1, metaformKeycloakFederatedUsers.size)
             Assertions.assertEquals(2, foundUserWithSearchParam.size)
             Assertions.assertEquals("test-Tommi", foundUserWithSearchParam[0].firstName)
+            Assertions.assertEquals(2, cardAuthKeycloakUsers.size)
+            metaformKeycloakFederatedUsers.forEach {
+                Assertions.assertNotNull(it.federatedIdentities)
+            }
+            cardAuthKeycloakUsers.forEach {
+                Assertions.assertNotNull(it.federatedIdentities)
+            }
         }
     }
 
@@ -104,6 +114,8 @@ class UsersTestsIT: AbstractTest() {
                 firstName = "create-test"
             )
             val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
+            val cardAuthUser = testBuilder.systemAdmin.users.listUsers(search = "Käyttäjä21").first()
+            val createdUser2 = testBuilder.systemAdmin.users.create(cardAuthUser)
 
             Assertions.assertEquals(createdUser.displayName, userToCreate.displayName)
             Assertions.assertEquals(createdUser.firstName, userToCreate.firstName)
@@ -112,6 +124,8 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(createdUser.federatedIdentities!![0].source, userToCreate.federatedIdentities!![0].source)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userId, userToCreate.federatedIdentities[0].userId)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userName, userToCreate.federatedIdentities[0].userName)
+            Assertions.assertEquals(createdUser2.federatedIdentities!![0].userId , cardAuthUser.federatedIdentities!![0].userId)
+            Assertions.assertEquals(createdUser2.federatedIdentities[0].userName , cardAuthUser.federatedIdentities[0].userName)
         }
     }
 
@@ -219,8 +233,8 @@ class UsersTestsIT: AbstractTest() {
 
             Assertions.assertNotEquals(createdUser.displayName, updatedUser1.displayName)
             Assertions.assertEquals(createdUser.id, updatedUser1.id)
-            Assertions.assertNotNull(updatedUser1.federatedIdentities)
-            Assertions.assertNull(updatedUser2.federatedIdentities)
+            Assertions.assertFalse(updatedUser1.federatedIdentities!!.isEmpty())
+            Assertions.assertTrue(updatedUser2.federatedIdentities!!.isEmpty())
             Assertions.assertEquals(updatedUser2.displayName, "testi update-test")
 
             testBuilder.systemAdmin.users.clean(createdUser)

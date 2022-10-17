@@ -73,7 +73,6 @@ class CardAuthKeycloakController {
      * Finds users by search param
      *
      * @param search search
-     * @param firstResult firstResult
      * @param maxResults maxResults
      * @return List of found users
      */

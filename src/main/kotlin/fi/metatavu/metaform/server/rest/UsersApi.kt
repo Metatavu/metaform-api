@@ -95,7 +95,7 @@ class UsersApi: UsersApi, AbstractApi() {
         val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(search)
             .toMutableList()
             .filter { cardAuthKeycloakUser ->
-                foundUsers.find { it.federatedIdentities?.get(0)?.userId == cardAuthKeycloakUser.id } == null
+                foundUsers.find { foundUser -> foundUser.federatedIdentities?.any { it.userId == cardAuthKeycloakUser.id } ?: false } == null
             }
             .map { userTranslator.translateCardAuthUserRepresentation(it) }
 
