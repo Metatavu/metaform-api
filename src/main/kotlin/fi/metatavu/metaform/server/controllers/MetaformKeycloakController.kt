@@ -810,7 +810,7 @@ class MetaformKeycloakController {
             federatedIdentityRepresentation = fi.metatavu.metaform.keycloak.client.models.FederatedIdentityRepresentation(
                 identityProvider = identityProvider,
                 userId = userFederatedIdentity.userId,
-                userName = userFederatedIdentity.userName
+                userName = userFederatedIdentity.username
             )
         )
 

@@ -22,7 +22,7 @@ class KeycloakUserRepresentationTranslator {
             lastName = entity.lastName,
             email = entity.email,
             emailVerified = true,
-            username = entity.userName,
+            username = entity.username,
             id = entity.id.toString(),
             enabled = true
         )
