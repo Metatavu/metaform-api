@@ -45,19 +45,19 @@ class PermissionController {
         defaultPermissionGroups ?: return result
 
         defaultPermissionGroups.editGroupIds?.let { groupIds ->
-            result.plus(groupIds.map {
+            result.addAll(groupIds.map {
                 GroupMemberPermission(scope = AuthorizationScope.REPLY_EDIT, memberGroupId = it)
             })
         }
 
         defaultPermissionGroups.viewGroupIds?.let { groupIds ->
-            result.plus(groupIds.map {
+            result.addAll(groupIds.map {
                 GroupMemberPermission(scope = AuthorizationScope.REPLY_VIEW, memberGroupId = it)
             })
         }
 
         defaultPermissionGroups.notifyGroupIds?.let { groupIds ->
-            result.plus(groupIds.map {
+            result.addAll(groupIds.map {
                 GroupMemberPermission(scope = AuthorizationScope.REPLY_NOTIFY, memberGroupId = it)
             })
         }
