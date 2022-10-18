@@ -80,7 +80,7 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(foundUserWithoutIDPLink.displayName, "turmiola test-tommi")
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.source , UserFederationSource.CARD)
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.userId, "915e2fae-f702-4c49-ab84-4bf3802ab18e")
-            Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.username, foundUserWithIDPLink.displayName)
+            Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.username, foundUserWithIDPLink.username)
         }
     }
 
