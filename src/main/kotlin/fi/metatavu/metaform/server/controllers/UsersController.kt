@@ -73,7 +73,7 @@ class UsersController {
                         identityProvider = cardIdentityProvider,
                         userFederatedIdentity = constructUserFederatedIdentity(
                             userId = userFederatedIdentity.userId,
-                            username = userFederatedIdentity.userName,
+                            username = userFederatedIdentity.username,
                         )
                     )
                 }
@@ -110,7 +110,7 @@ class UsersController {
         return UserFederatedIdentity(
             source = source,
             userId = userId,
-            userName = username
+            username = username
         )
     }
 }

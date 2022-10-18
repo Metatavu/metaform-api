@@ -181,7 +181,8 @@ class UsersTestBuilderResource(
             email = String.format("%s.testi@example.com", firstName),
             firstName = firstName,
             lastName = "Testi",
-            displayName = String.format("testi %s", firstName)
+            displayName = String.format("testi %s", firstName),
+            username = String.format("testi %s", firstName)
         )
     }
 
@@ -201,11 +202,12 @@ class UsersTestBuilderResource(
             firstName = firstName,
             lastName = "Testi",
             displayName = String.format("testi %s", firstName),
+            username = String.format("testi %s", firstName),
             federatedIdentities = arrayOf(
                 UserFederatedIdentity(
                     source = UserFederationSource.CARD,
                     userId = federatedUserId.toString(),
-                    userName = String.format("testi %s", firstName)
+                    username = String.format("testi %s", firstName)
                 )
             )
         )

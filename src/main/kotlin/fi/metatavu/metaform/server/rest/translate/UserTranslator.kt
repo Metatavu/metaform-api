@@ -37,7 +37,7 @@ class UserTranslator {
                 UserFederatedIdentity(
                     source = federatedIdentitySource,
                     userId = federatedIdentity.userId!!,
-                    userName = federatedIdentity.userName!!
+                    username = federatedIdentity.userName!!
                 )
             }?.filterNotNull()
 
@@ -45,6 +45,7 @@ class UserTranslator {
             email = entity.email ?: "",
             firstName = entity.firstName ?: "",
             lastName = entity.lastName ?: "",
+            username = entity.username ?: "",
             id = UUID.fromString(entity.id),
             displayName = entity.username,
             federatedIdentities = federatedIdentities
@@ -62,12 +63,13 @@ class UserTranslator {
             email = entity.email ?: "",
             firstName = entity.firstName ?: "",
             lastName = entity.lastName ?: "",
+            username = entity.username ?: "",
             id = null,
             displayName = entity.username,
             federatedIdentities = listOf(UserFederatedIdentity(
                 source = UserFederationSource.CARD,
                 userId = entity.id!!,
-                userName = entity.username!!
+                username = entity.username!!
                 ))
         )
     }

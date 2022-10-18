@@ -80,7 +80,7 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(foundUserWithoutIDPLink.displayName, "turmiola test-tommi")
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.source , UserFederationSource.CARD)
             Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.userId, "915e2fae-f702-4c49-ab84-4bf3802ab18e")
-            Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.userName, foundUserWithIDPLink.displayName)
+            Assertions.assertEquals(foundUserWithIDPLink.federatedIdentities?.get(0)?.username, foundUserWithIDPLink.username)
         }
     }
 
@@ -122,9 +122,9 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(createdUser.email, userToCreate.email)
             Assertions.assertEquals(createdUser.federatedIdentities!![0].source, userToCreate.federatedIdentities!![0].source)
             Assertions.assertEquals(createdUser.federatedIdentities[0].userId, userToCreate.federatedIdentities[0].userId)
-            Assertions.assertEquals(createdUser.federatedIdentities[0].userName, userToCreate.federatedIdentities[0].userName)
+            Assertions.assertEquals(createdUser.federatedIdentities[0].username, userToCreate.federatedIdentities[0].username)
             Assertions.assertEquals(createdUser2.federatedIdentities!![0].userId , cardAuthUser.federatedIdentities!![0].userId)
-            Assertions.assertEquals(createdUser2.federatedIdentities[0].userName , cardAuthUser.federatedIdentities[0].userName)
+            Assertions.assertEquals(createdUser2.federatedIdentities[0].username , cardAuthUser.federatedIdentities[0].username)
         }
     }
 
@@ -209,12 +209,12 @@ class UsersTestsIT: AbstractTest() {
             val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test")
             val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
             val userToUpdate = createdUser.copy(
-                displayName = userToCreate.displayName.plus(" 78912345601"),
+                username = userToCreate.displayName.plus(" 78912345601"),
                 federatedIdentities = arrayOf(
                     UserFederatedIdentity(
                         source = UserFederationSource.CARD,
                         userId = "7e0f2037-20aa-4115-990a-6355c46cf36e",
-                        userName = "testi kayttaja2 78912345601"
+                        username = "testi kayttaja2 78912345601"
                     )
                 )
             )
@@ -225,12 +225,12 @@ class UsersTestsIT: AbstractTest() {
             val updatedUser2 = testBuilder.systemAdmin.users.updateUser(
                 userId = userToUpdate.id,
                 user = userToUpdate.copy(
-                    displayName = "testi update-test",
+                    username = "testi update-test",
                     federatedIdentities = emptyArray()
                 )
             )
 
-            Assertions.assertNotEquals(createdUser.displayName, updatedUser1.displayName)
+            Assertions.assertNotEquals(createdUser.username, updatedUser1.username)
             Assertions.assertEquals(createdUser.id, updatedUser1.id)
             Assertions.assertFalse(updatedUser1.federatedIdentities!!.isEmpty())
             Assertions.assertTrue(updatedUser2.federatedIdentities!!.isEmpty())
