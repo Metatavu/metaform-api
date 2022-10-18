@@ -57,7 +57,7 @@ class UsersController {
      * @return UserRepresentation
      */
     fun updateUser(userId: UUID, user: User): UserRepresentation? {
-        if (user.displayName.isNullOrEmpty()) {
+        if (user.username.isEmpty()) {
             return null
         }
 
