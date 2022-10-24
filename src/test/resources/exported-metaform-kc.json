@@ -57,7 +57,7 @@
       "description" : "${role_default-roles}",
       "composite" : true,
       "composites" : {
-        "realm" : [ "offline_access", "uma_authorization" ],
+        "realm" : [ "offline_access", "uma_authorization", "metaform-user" ],
         "client" : {
           "account" : [ "manage-account", "view-profile" ]
         }
