@@ -50,6 +50,7 @@ dependencies {
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("org.jboss.logmanager:log4j-jboss-logmanager")
 
     testImplementation("io.rest-assured:rest-assured:5.1.1")
     testImplementation("io.quarkus:quarkus-junit5")
