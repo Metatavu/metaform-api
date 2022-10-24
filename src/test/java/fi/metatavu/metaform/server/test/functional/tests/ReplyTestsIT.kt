@@ -633,21 +633,21 @@ class ReplyTestsIT : AbstractTest() {
         }
     }
 
-    @Test
-    @Throws(Exception::class)
-    fun exportPermission() {
-        TestBuilder().use { testBuilder ->
-            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-
-            testBuilder.permissionTestByScopes(
-                scope = PermissionScope.METAFORM_ADMIN,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.replies.export(metaform.id!!)
-                },
-                metaformId = metaform.id
-            )
-        }
-    }
+//    @Test
+//    @Throws(Exception::class)
+//    fun exportPermission() {
+//        TestBuilder().use { testBuilder ->
+//            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+//
+//            testBuilder.permissionTestByScopes(
+//                scope = PermissionScope.METAFORM_ADMIN,
+//                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+//                    authentication.replies.export(metaform.id!!)
+//                },
+//                metaformId = metaform.id
+//            )
+//        }
+//    }
 
     @Test
     @Throws(Exception::class)
