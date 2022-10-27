@@ -420,7 +420,7 @@ class MetaformKeycloakController {
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformAdminGroupName(metaformId) })
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformManagerGroupName(metaformId) })
         val metaformManagerGroup = getMetaformManagerGroup(metaformId)
-        val metaformManagerRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_MANAGER_ROLE_NAME).toRepresentation()
+        val metaformManagerRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_MANAGER_ROLE).toRepresentation()
         adminClient.realm(realm).groups().group(metaformManagerGroup.id).roles().realmLevel().add(listOf(metaformManagerRole))
     }
 

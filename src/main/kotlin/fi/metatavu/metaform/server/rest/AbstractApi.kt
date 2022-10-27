@@ -321,7 +321,7 @@ abstract class AbstractApi {
      * @return whether logged user is anonymous
      */
     protected val isAnonymous: Boolean
-        get() = !hasRealmRole(METAFORM_USER_ROLE, SYSTEM_ADMIN_ROLE)
+        get() = !hasRealmRole(METAFORM_USER_ROLE, METAFORM_MANAGER_ROLE, SYSTEM_ADMIN_ROLE)
 
     /**
      * Returns whether logged user is realm user (system / metaform admins are all users)
@@ -330,6 +330,18 @@ abstract class AbstractApi {
      */
     protected val isRealmUser: Boolean
         get() = hasRealmRole(METAFORM_USER_ROLE)
+
+    /**
+     * Returns whether logger used is metaform manager
+     *
+     * @return whether logged user is metaform manager
+     */
+    protected val isRealmMetaformManager: Boolean
+        get() = hasRealmRole(METAFORM_MANAGER_ROLE)
+
+    /**
+     * Returns whether
+     */
 
     /**
      * Returns whether logged user is realm system admin
@@ -414,7 +426,7 @@ abstract class AbstractApi {
      * @return whether given reply is permitted within given scope
      */
     fun isPermittedReply(reply: Reply?, ownerKey: String?, authorizationScope: AuthorizationScope): Boolean {
-        if (isRealmSystemAdmin) {
+        if (isRealmSystemAdmin || isRealmMetaformManager) {
             return true
         }
         if (reply?.resourceId == null) {
@@ -456,7 +468,7 @@ abstract class AbstractApi {
 
     companion object {
         const val METAFORM_USER_ROLE = "metaform-user"
-        const val METAFORM_MANAGER_ROLE_NAME = "metaform-manager"
+        const val METAFORM_MANAGER_ROLE = "metaform-manager"
         const val SYSTEM_ADMIN_ROLE = "system-admin"
         const val VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs"
         const val UNAUTHORIZED = "Unauthorized"
