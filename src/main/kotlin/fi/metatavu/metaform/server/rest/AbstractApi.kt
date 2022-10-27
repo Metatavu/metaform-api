@@ -456,6 +456,7 @@ abstract class AbstractApi {
 
     companion object {
         const val METAFORM_USER_ROLE = "metaform-user"
+        const val METAFORM_MANAGER_ROLE_NAME = "metaform-manager"
         const val SYSTEM_ADMIN_ROLE = "system-admin"
         const val VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs"
         const val UNAUTHORIZED = "Unauthorized"
