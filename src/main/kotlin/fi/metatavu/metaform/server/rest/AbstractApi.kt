@@ -426,7 +426,7 @@ abstract class AbstractApi {
      * @return whether given reply is permitted within given scope
      */
     fun isPermittedReply(reply: Reply?, ownerKey: String?, authorizationScope: AuthorizationScope): Boolean {
-        if (isRealmSystemAdmin || isRealmMetaformManager) {
+        if (isRealmSystemAdmin) {
             return true
         }
         if (reply?.resourceId == null) {
