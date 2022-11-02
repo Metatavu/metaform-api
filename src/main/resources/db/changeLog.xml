@@ -569,7 +569,7 @@
         <constraints nullable="false"/>
       </column>
     </addColumn>
-    <sql>UPDATE reply SET lastmodifierid = userid WHERE lastmodifierid IS NULL</sql>
+    <sql>UPDATE reply SET lastmodifierid = userid</sql>
   </changeSet>
 
 </databaseChangeLog>
