@@ -569,7 +569,7 @@
         <constraints nullable="false"/>
       </column>
     </addColumn>
-    <sql>UPDATE reply SET lastmodifierid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
+    <sql>UPDATE reply SET lastmodifierid = userid WHERE lastmodifierid IS NULL</sql>
   </changeSet>
 
 </databaseChangeLog>
