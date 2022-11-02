@@ -207,11 +207,14 @@ class ReplyTestsIT : AbstractTest() {
             val reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
             val updateData: MutableMap<String, Any> = HashMap()
             updateData["text"] = "Updated text value"
-            val secondReply = Reply(reply.id, reply.userId, reply.revision, reply.ownerKey, reply.createdAt,
-                    reply.modifiedAt, updateData)
-            testBuilder.test1.replies.updateReply(metaform.id, secondReply.id!!, secondReply, null)
+            val secondReply = reply.copy(data = updateData)
+            val metaformAdminAuthentication = testBuilder.createMetaformAdminAuthentication(metaformId = metaform.id)
+            metaformAdminAuthentication.replies.updateReply(metaform.id, secondReply.id!!, secondReply, null)
             val foundReply = testBuilder.test1.replies.findReply(metaform.id, reply.id!!, null)
             assertEquals("Updated text value", foundReply.data!!["text"])
+            assertEquals(reply.createdAt, foundReply.createdAt)
+            Assertions.assertNotEquals(reply.lastModifierId, foundReply.lastModifierId)
+            Assertions.assertNotEquals(reply.modifiedAt, foundReply.modifiedAt)
         }
     }
 

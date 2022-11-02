@@ -129,7 +129,8 @@ class ReplyController {
             metaform = metaform,
             resourceId = null,
             privateKey = privateKey?.encoded,
-            revision = null
+            revision = null,
+            lastModifierId = loggedUserId
         )
     }
 
@@ -174,6 +175,17 @@ class ReplyController {
     fun updateResourceId(reply: Reply, resourceId: UUID?): Reply {
         replyDAO.updateResourceId(reply, resourceId)
         return reply
+    }
+
+    /**
+     * Updates reply last modifier id
+     *
+     * @param reply reply
+     * @param lastModifierId lastModifierId
+     * @return Updated Reply
+     */
+    fun updateReplyLastModifierId(reply: Reply, lastModifierId: UUID): Reply {
+        return replyDAO.updateLastModifierId(reply, lastModifierId)
     }
 
     /**

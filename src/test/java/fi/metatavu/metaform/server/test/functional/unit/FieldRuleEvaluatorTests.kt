@@ -7,6 +7,8 @@ import org.junit.Assert
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.net.URISyntaxException
+import java.util.UUID
+import kotlin.collections.HashMap
 
 /**
  * Unit tests for field rule evaluator
@@ -67,6 +69,7 @@ class FieldRuleEvaluatorTests {
                 null,
                 null,
                 null,
+                UUID.randomUUID(),
                 data
         )
     }
@@ -91,6 +94,7 @@ class FieldRuleEvaluatorTests {
                 null,
                 null,
                 null,
+                UUID.randomUUID(),
                 data
         )
     }

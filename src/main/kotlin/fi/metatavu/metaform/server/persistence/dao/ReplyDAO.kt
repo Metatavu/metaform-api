@@ -39,7 +39,8 @@ class ReplyDAO : AbstractDAO<Reply>() {
     metaform: Metaform,
     resourceId: UUID?,
     privateKey: ByteArray?,
-    revision: OffsetDateTime?
+    revision: OffsetDateTime?,
+    lastModifierId: UUID
   ): Reply {
     val reply = Reply()
     reply.id = id
@@ -47,7 +48,8 @@ class ReplyDAO : AbstractDAO<Reply>() {
     reply.userId = userId
     reply.resourceId = resourceId
     reply.privateKey = privateKey
-    reply.revision = revision 
+    reply.revision = revision
+    reply.lastModifierId = lastModifierId
     return persist(reply)
   }
 
@@ -273,6 +275,18 @@ class ReplyDAO : AbstractDAO<Reply>() {
    */
   fun updateResourceId(reply: Reply, resourceId: UUID?): Reply {
     reply.resourceId = resourceId
+    return persist(reply)
+  }
+
+  /**
+   * Updated last modifier id
+   *
+   * @param reply reply
+   * @param lastModifierId last modifier id
+   * @return updated reply
+   */
+  fun updateLastModifierId(reply: Reply, lastModifierId: UUID): Reply {
+    reply.lastModifierId = lastModifierId
     return persist(reply)
   }
 
