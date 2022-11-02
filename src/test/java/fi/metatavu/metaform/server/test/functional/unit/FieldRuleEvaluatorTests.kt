@@ -7,6 +7,8 @@ import org.junit.Assert
 import org.junit.jupiter.api.Test
 import java.io.IOException
 import java.net.URISyntaxException
+import java.util.UUID
+import kotlin.collections.HashMap
 
 /**
  * Unit tests for field rule evaluator
@@ -61,13 +63,13 @@ class FieldRuleEvaluatorTests {
         val data: MutableMap<String, Any> = HashMap()
         data[field] = value
         return Reply(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                data
+                id = null,
+                userId = null,
+                ownerKey = null,
+                createdAt = null,
+                modifiedAt = null,
+                revision = null,
+                data = data
         )
     }
 
@@ -85,13 +87,13 @@ class FieldRuleEvaluatorTests {
         data[field1] = value1
         data[field2] = value2
         return Reply(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                data
+            id = null,
+            userId = null,
+            ownerKey = null,
+            createdAt = null,
+            modifiedAt = null,
+            revision = null,
+            data = data
         )
     }
 

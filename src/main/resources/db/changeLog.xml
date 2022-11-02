@@ -563,4 +563,13 @@
     <sql>UPDATE metaform SET modifiedat = now()</sql>
   </changeSet>
 
+  <changeSet id="reply-last-modifier-id" author="Ville Juutila">
+    <addColumn tableName="reply">
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <sql>UPDATE reply SET lastmodifierid = userid</sql>
+  </changeSet>
+
 </databaseChangeLog>

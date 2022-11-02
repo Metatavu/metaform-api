@@ -561,6 +561,8 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         loggedUserId = userId,
         groupMemberPermissions = groupMemberPermissions
       )
+
+      replyController.updateReplyLastModifierId(foundReply, userId)
     } catch (e: AuthzException) {
       return createInternalServerError(e.message!!)
     }

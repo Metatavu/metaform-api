@@ -152,7 +152,7 @@ class FieldController {
      */
     fun resolveMetaField(fieldName: String?, entity: Reply): Any? {
         return when (fieldName) {
-            "lastEditor" -> entity.userId
+            "lastModifierId" -> entity.lastModifierId
             "created", "createdAt" -> formatDateTime(entity.createdAt!!)
             "modified" -> formatDateTime(entity.modifiedAt!!)
             else -> {

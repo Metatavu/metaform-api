@@ -21,7 +21,7 @@
           "contexts": [ "META" ]
         },
         {
-          "name": "lastEditor",
+          "name": "lastModifierId",
           "type": "text",
           "title": "lastEditor metafield",
           "contexts": [ "META" ]
