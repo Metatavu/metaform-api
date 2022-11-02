@@ -496,7 +496,7 @@ class ReplyTestsIT : AbstractTest() {
             val foundReply = testBuilder.test1.replies.findReply(metaform.id, reply.id!!, null)
             assertEquals(parsedCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime(foundReply.data!!["created"] as String).truncatedTo(ChronoUnit.MINUTES).toInstant())
             assertEquals(parsedModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime(foundReply.data["modified"] as String).truncatedTo(ChronoUnit.MINUTES).toInstant())
-            assertEquals(REALM1_USER_1_ID.toString(), foundReply.data["lastEditor"])
+            assertEquals(REALM1_USER_1_ID.toString(), foundReply.data["lastModifierId"])
         }
     }
 
