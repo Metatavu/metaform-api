@@ -63,14 +63,13 @@ class FieldRuleEvaluatorTests {
         val data: MutableMap<String, Any> = HashMap()
         data[field] = value
         return Reply(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                UUID.randomUUID(),
-                data
+                id = null,
+                userId = null,
+                ownerKey = null,
+                createdAt = null,
+                modifiedAt = null,
+                revision = null,
+                data = data
         )
     }
 
@@ -88,14 +87,13 @@ class FieldRuleEvaluatorTests {
         data[field1] = value1
         data[field2] = value2
         return Reply(
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                UUID.randomUUID(),
-                data
+            id = null,
+            userId = null,
+            ownerKey = null,
+            createdAt = null,
+            modifiedAt = null,
+            revision = null,
+            data = data
         )
     }
 

@@ -373,7 +373,15 @@ class ReplyTestBuilderResource(
      * @return reply object with given data
      */
     fun createReplyWithData(replyData: Map<String, Any>?): Reply {
-        return Reply(null, null, null, null, null, null, UUID.randomUUID(), replyData)
+        return Reply(
+            id = null,
+            userId = null,
+            revision = null,
+            ownerKey = null,
+            createdAt = null,
+            modifiedAt = null,
+            data = replyData
+        )
     }
 
     /**
