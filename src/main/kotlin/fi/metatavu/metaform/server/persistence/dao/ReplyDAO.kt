@@ -279,7 +279,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
   }
 
   /**
-   * Updated last modifier id
+   * Updates last modifier id
    *
    * @param reply reply
    * @param lastModifierId last modifier id
