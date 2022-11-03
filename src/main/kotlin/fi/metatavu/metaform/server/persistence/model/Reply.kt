@@ -37,4 +37,7 @@ class Reply : Metadata() {
   @Column
   var resourceId: UUID? = null
 
+  @Column(nullable = false)
+  lateinit var lastModifierId: UUID
+
 }

@@ -80,6 +80,13 @@
       "containerId" : "test-1",
       "attributes" : { }
     }, {
+      "id" : "771f303f-00f8-4141-90f2-2fa1a19a9071",
+      "name" : "metaform-manager",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "test-1",
+      "attributes" : { }
+    }, {
       "id" : "838d3ffd-1a11-4797-ae31-943b8d0b7386",
       "name" : "offline_access",
       "description" : "${role_offline-access}",

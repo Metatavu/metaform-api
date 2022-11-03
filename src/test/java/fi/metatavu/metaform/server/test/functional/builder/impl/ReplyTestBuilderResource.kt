@@ -10,7 +10,6 @@ import fi.metatavu.metaform.api.client.models.ReplyOrderCriteria
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
-import org.json.JSONException
 import org.junit.Assert
 import java.io.File
 import java.io.IOException
@@ -374,7 +373,15 @@ class ReplyTestBuilderResource(
      * @return reply object with given data
      */
     fun createReplyWithData(replyData: Map<String, Any>?): Reply {
-        return Reply(null, null, null, null, null, null, replyData)
+        return Reply(
+            id = null,
+            userId = null,
+            revision = null,
+            ownerKey = null,
+            createdAt = null,
+            modifiedAt = null,
+            data = replyData
+        )
     }
 
     /**

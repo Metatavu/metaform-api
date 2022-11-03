@@ -47,7 +47,8 @@ class ReplyTranslator {
                 revision = reply.revision,
                 createdAt = reply.createdAt,
                 modifiedAt = reply.modifiedAt,
-                ownerKey = cryptoController.getPublicKeyBase64(ownerKey)
+                ownerKey = cryptoController.getPublicKeyBase64(ownerKey),
+                lastModifierId = reply.lastModifierId
         )
     }
 }
