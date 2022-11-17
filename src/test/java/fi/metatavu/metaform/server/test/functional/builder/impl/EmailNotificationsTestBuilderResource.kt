@@ -4,10 +4,12 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.metaform.api.client.apis.EmailNotificationsApi
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.accessToken
+import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.EmailNotification
 import fi.metatavu.metaform.api.client.models.FieldRule
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
+import org.junit.Assert
 import java.io.IOException
 import java.util.*
 
@@ -58,11 +60,12 @@ class EmailNotificationsTestBuilderResource(
      * @return email notification
      */
     @Throws(IOException::class)
-    fun createEmailNotification(metaformId: UUID, subjectTemplate: String, contentTemplate: String, emails: List<String>, notifyIf: FieldRule?): EmailNotification {
+    fun createEmailNotification(metaformId: UUID, subjectTemplate: String, contentTemplate: String, emails: List<String>, notifyIf: FieldRule?, addClosable: Boolean = true): EmailNotification {
         val notification = EmailNotification(subjectTemplate, contentTemplate, emails.toTypedArray(), null, notifyIf)
         val createdNotification = api.createEmailNotification(metaformId, notification)
         emailNotificationMetaforms[createdNotification.id] = metaformId
-        return addClosable(createdNotification)
+        if (addClosable) addClosable(createdNotification)
+        return createdNotification
     }
 
     /**
@@ -99,5 +102,22 @@ class EmailNotificationsTestBuilderResource(
     @Throws(IOException::class)
     fun listEmailNotifications(metaformId: UUID): List<EmailNotification> {
         return listOf(*api.listEmailNotifications(metaformId))
+    }
+
+    /**
+     * Asserts that finding EmailNotification fails with given status
+     *
+     * @param expectedStatus expected status
+     * @param emailNotificationId email notification id
+     * @param metaformId metaform id
+     */
+    @Throws(IOException::class)
+    fun assertFindFailStatus(expectedStatus: Int, emailNotificationId: UUID, metaformId: UUID) {
+        try {
+            api.findEmailNotification(metaformId, emailNotificationId)
+            Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus, e.statusCode)
+        }
     }
 }
