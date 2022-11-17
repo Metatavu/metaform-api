@@ -262,7 +262,7 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.METAFORM_MANAGER,
+                scope = PermissionScope.USER,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
                     authentication.metaforms.findMetaform(
                         metaformSlug = null,
