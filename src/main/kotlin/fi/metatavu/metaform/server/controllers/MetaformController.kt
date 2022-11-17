@@ -165,6 +165,9 @@ class MetaformController {
                 metaformKeycloakController.listMetaformMemberManager(metaform.id!!)
         metaformMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id), metaform.id!!) }
 
+        val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(metaform)
+        emailNotifications.forEach { emailNotification: EmailNotification -> emailNotificationController.deleteEmailNotification(emailNotification) }
+
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
         metaformDAO.delete(metaform)
