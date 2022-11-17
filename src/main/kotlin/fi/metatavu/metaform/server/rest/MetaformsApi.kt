@@ -136,7 +136,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
           createOk(translatedMetaform)
       }
       MetaformVisibility.PRIVATE -> {
-        if (isMetaformManager(metaform.id!!)) {
+        if (!isAnonymous) {
           createOk(translatedMetaform)
         } else {
           createForbidden(createNotAllowedMessage(FIND, METAFORM))
