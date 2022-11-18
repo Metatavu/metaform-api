@@ -244,7 +244,7 @@ class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
         assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.METAFORM_ADMIN, successStatus)) { apiCaller(adminAuthentication, 3) }
         assertApiCallFailStatus(getScopeStatus(scope, PermissionScope.SYSTEM_ADMIN, successStatus)) { apiCaller(systemAdmin, 4) }
 
-        if (metaformId != null) {
+        if (metaformId != null && scope.level > 1) {
             val testMetaformForbidden = systemAdmin.metaforms.createFromJsonFile(metaformName).id!!
             val adminAuthenticationForbidden = createMetaformAdminAuthentication(testMetaformForbidden)
             val managerAuthenticationForbidden = createMetaformManagerAuthentication(testMetaformForbidden)
