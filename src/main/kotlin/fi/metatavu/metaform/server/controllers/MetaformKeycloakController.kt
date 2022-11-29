@@ -15,6 +15,7 @@ import fi.metatavu.metaform.server.exceptions.KeycloakException
 import fi.metatavu.metaform.server.exceptions.MetaformMemberRoleNotFoundException
 import fi.metatavu.metaform.server.keycloak.*
 import fi.metatavu.metaform.server.keycloak.translate.KeycloakUserRepresentationTranslator
+import fi.metatavu.metaform.server.permissions.AuthzController
 import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
@@ -80,6 +81,9 @@ class MetaformKeycloakController {
 
     @Inject
     lateinit var keycloakClientUtils: KeycloakClientUtils
+
+    @Inject
+    lateinit var authzController: AuthzController
 
     @Inject
     lateinit var keycloakUserRepresentationTranslator: KeycloakUserRepresentationTranslator
@@ -229,15 +233,20 @@ class MetaformKeycloakController {
     /**
      * Returns list of permitted users for a resource with given scopes
      *
-     * @param keycloak keycloak client instance
-     * @param client client
      * @param resourceId resource id
-     * @param resourceName resource name
      * @param scopes scopes
      * @return set of user ids
      */
-    fun getResourcePermittedUsers(keycloak: Keycloak, client: ClientRepresentation, resourceId: UUID, resourceName: String, scopes: List<AuthorizationScope>): Set<UUID> {
-        return getPermittedUsers(keycloak.realm(realm), client, resourceId, resourceName, scopes)
+    fun getResourcePermittedUsers(resourceId: UUID, scopes: List<AuthorizationScope>): Set<UUID> {
+        val users = authzController.listResourceUsers(
+            resourceId = resourceId.toString(),
+            scopes = scopes.map { it.scopeName }
+        ) ?: emptyList()
+
+        return users
+            .map(fi.metatavu.metaform.keycloak.client.models.UserRepresentation::id)
+            .mapNotNull (UUID::fromString)
+            .toSet()
     }
 
     /**

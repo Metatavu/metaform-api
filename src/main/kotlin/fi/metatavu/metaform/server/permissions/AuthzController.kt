@@ -1,8 +1,10 @@
 package fi.metatavu.metaform.server.permissions
 
+import fi.metatavu.metaform.keycloak.client.infrastructure.*
+import fi.metatavu.metaform.keycloak.client.models.UserRepresentation
+import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.exceptions.AuthzException
-import fi.metatavu.metaform.server.keycloak.AuthorizationScope
-import fi.metatavu.metaform.server.keycloak.KeycloakClientUtils
+import fi.metatavu.metaform.server.keycloak.*
 import org.apache.commons.io.IOUtils
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.keycloak.admin.client.Keycloak
@@ -32,10 +34,79 @@ class AuthzController {
     lateinit var clientId: String
 
     @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.secret")
+    lateinit var clientSecret: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.user")
+    lateinit var apiAdminUser: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.password")
+    lateinit var apiAdminPassword: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.host")
+    lateinit var authServerUrl: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.resourceserver")
+    lateinit var authAdminResourceServer: String
+
+    @Inject
     lateinit var logger: Logger
 
     @Inject
     lateinit var keycloakClientUtils: KeycloakClientUtils
+
+    @Inject
+    lateinit var metaformKeycloakController: MetaformKeycloakController
+
+    @Inject
+    lateinit var keycloakControllerToken: KeycloakControllerToken
+
+    /**
+     * Lists resource users
+     *
+     * @param resourceId resource id
+     * @param scopes scopes
+     */
+    fun listResourceUsers(
+        resourceId: String,
+        scopes: List<String>
+    ): List<UserRepresentation>? {
+        val client = ResourceUsersClient(
+            basePath = authServerUrl,
+            keycloakAdminRealm = realm,
+            resourceClientId = authAdminResourceServer
+        )
+
+        val keycloakConfiguration = KeycloakConfiguration(
+            realm = realm,
+            clientId = clientId,
+            clientSecret = clientSecret,
+            apiAdminUser = apiAdminUser,
+            apiAdminPassword = apiAdminPassword,
+            authServerUrl = authServerUrl
+        )
+
+        val accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)
+
+        val response = client.listResourceUsers(
+            accessToken = accessToken?.accessToken ?: "",
+            resourceId = resourceId,
+            scope = scopes.joinToString(","),
+            search = null,
+            first = null,
+            max = null
+        )
+
+        if (response is Success) {
+            return response.data
+        }
+
+        return null
+    }
 
     /**
      * Creates protected resource into Keycloak

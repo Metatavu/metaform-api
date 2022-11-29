@@ -257,11 +257,8 @@ class MetaformController {
         val notifiedUserIds =
                 if (replyCreated) emptySet()
                 else metaformKeycloakController.getResourcePermittedUsers(
-                        adminClient,
-                        keycloakClient,
-                    reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
-                        resourceName,
-                        listOf(AuthorizationScope.REPLY_NOTIFY)
+                    resourceId = reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
+                    scopes = listOf(AuthorizationScope.REPLY_NOTIFY)
                 )
 
         val resourceId =  permissionController.updateReplyPermissions(
@@ -271,11 +268,8 @@ class MetaformController {
 
         val notifyUserIds = metaformKeycloakController
             .getResourcePermittedUsers(
-                adminClient,
-                keycloakClient,
-                resourceId,
-                resourceName,
-                listOf(AuthorizationScope.REPLY_NOTIFY)
+                resourceId = resourceId,
+                scopes = listOf(AuthorizationScope.REPLY_NOTIFY)
             )
             .filter { notifyUserId: UUID -> !notifiedUserIds.contains(notifyUserId) }
             .minus(loggedUserId)
