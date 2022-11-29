@@ -5,7 +5,7 @@ docker-compose up -d mysql
 
 sleep 5
 
-CONTAINER_ID=$(docker ps -q --filter name=metaform-api_mysql_1)
+CONTAINER_ID=metaform-api-mysql-1
 echo "MySQL container started with ID: $CONTAINER_ID"
 
 docker cp ../db_dumps/keycloak.sql $CONTAINER_ID:/tmp/kc.sql
