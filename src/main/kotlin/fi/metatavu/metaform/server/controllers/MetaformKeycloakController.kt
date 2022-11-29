@@ -319,7 +319,12 @@ class MetaformKeycloakController {
         return try {
             val evaluationRequest = createEvaluationRequest(client, resourceId, resourceName, userId, scopes)
             val response = realm.clients()[client.id].authorization().policies().evaluate(evaluationRequest)
-            response.status
+
+            if (response.results.isEmpty()) {
+                DecisionEffect.DENY
+            } else {
+                response.status
+            }
         } catch (e: InternalServerErrorException) {
             logger.error("Failed to evaluate resource {} policy for {}", resourceName, userId, e)
             DecisionEffect.DENY
@@ -416,12 +421,13 @@ class MetaformKeycloakController {
      *
      * @param metaformId metaform id
      */
-    fun createMetaformManagementGroup(metaformId: UUID) {
+    fun createMetaformManagementGroup(metaformId: UUID): GroupRepresentation {
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformAdminGroupName(metaformId) })
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformManagerGroupName(metaformId) })
         val metaformManagerGroup = getMetaformManagerGroup(metaformId)
         val metaformManagerRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_MANAGER_ROLE).toRepresentation()
         adminClient.realm(realm).groups().group(metaformManagerGroup.id).roles().realmLevel().add(listOf(metaformManagerRole))
+        return metaformManagerGroup
     }
 
     /**
@@ -797,7 +803,7 @@ class MetaformKeycloakController {
      * Creates Users Federated Identity
      *
      * @param userId userId
-     * @param federatedIdentityRepresentation federatedIdentityRepresentation
+     * @param userFederatedIdentity federated identity representation
      * @param identityProvider identityProvider
      * @return UserRepresentation
      */
