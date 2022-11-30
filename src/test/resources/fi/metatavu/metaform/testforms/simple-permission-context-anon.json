@@ -1,6 +1,7 @@
 {
 	"title": "Simple permission context",
 	"allowAnonymous": true,
+	"visibility": "PUBLIC",
 	"sections": [
 		{
 			"title": "Simple",
@@ -31,6 +32,10 @@
 						{
 							"name": "group-2",
 							"text": "Group 2"
+						},
+						{
+							"name": "group-3",
+							"text": "Group 3"
 						}
 					]
 				}
