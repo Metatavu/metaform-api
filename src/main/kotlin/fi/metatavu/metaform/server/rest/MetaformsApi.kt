@@ -191,11 +191,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
     val permissionGroups = MetaformUtils.getPermissionGroups(metaform = metaform)
 
-    val editGroupIds = permissionGroups.flatMap { it.editGroupIds ?: emptyList() }
-    if (editGroupIds.isEmpty()) {
-      return createBadRequest("Form does not have any edit groups defined.")
-    }
-
     if (!metaformController.validatePermissionGroups(permissionGroups = permissionGroups)) {
       return createBadRequest("Invalid permission groups")
     }
