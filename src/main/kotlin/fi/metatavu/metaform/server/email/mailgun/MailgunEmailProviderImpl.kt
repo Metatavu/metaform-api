@@ -56,6 +56,7 @@ class MailgunEmailProviderImpl : EmailProvider {
 
     override fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?) {
         logger.info("Sending email to {}", toEmail)
+        /**
         var mailBuilder = Mail.using(configuration)
                 .to(toEmail)
                 .subject(subject)
@@ -73,6 +74,7 @@ class MailgunEmailProviderImpl : EmailProvider {
         } else {
             logger.info("Sending email to {} failed with message {}", toEmail, response.responseMessage())
         }
+        **/
     }
 
 }
