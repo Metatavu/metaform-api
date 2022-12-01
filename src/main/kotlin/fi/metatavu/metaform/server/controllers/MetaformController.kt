@@ -266,7 +266,8 @@ class MetaformController {
 
         val resourceId =  permissionController.updateReplyPermissions(
             reply = reply,
-            groupMemberPermissions = groupMemberPermissions
+            groupMemberPermissions = groupMemberPermissions,
+            allowAnonymous = metaform.allowAnonymous ?: false
         )
 
         val notifyUserIds = metaformKeycloakController

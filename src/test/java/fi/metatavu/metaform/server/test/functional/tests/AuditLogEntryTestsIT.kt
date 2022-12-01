@@ -43,11 +43,11 @@ class AuditLogEntryTestsIT : AbstractTest() {
             builder.test1.replies.delete(metaform.id, reply.id, reply.ownerKey)
             val auditLogEntries: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, reply.id, null, null)
             Assertions.assertEquals(5, auditLogEntries.size)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", REALM1_USER_1_ID, reply.id), auditLogEntries[0].message)
-            Assertions.assertEquals(java.lang.String.format("user %s viewed reply %s", REALM1_USER_1_ID, reply.id), auditLogEntries[1].message)
-            Assertions.assertEquals(java.lang.String.format("user %s listed reply %s", REALM1_USER_1_ID, reply.id), auditLogEntries[2].message)
-            Assertions.assertEquals(java.lang.String.format("user %s modified reply %s", REALM1_USER_1_ID, reply.id), auditLogEntries[3].message)
-            Assertions.assertEquals(java.lang.String.format("user %s deleted reply %s", REALM1_USER_1_ID, reply.id), auditLogEntries[4].message)
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply.id), auditLogEntries[0].message)
+            Assertions.assertEquals(java.lang.String.format("user %s viewed reply %s", USER_1_ID, reply.id), auditLogEntries[1].message)
+            Assertions.assertEquals(java.lang.String.format("user %s listed reply %s", USER_1_ID, reply.id), auditLogEntries[2].message)
+            Assertions.assertEquals(java.lang.String.format("user %s modified reply %s", USER_1_ID, reply.id), auditLogEntries[3].message)
+            Assertions.assertEquals(java.lang.String.format("user %s deleted reply %s", USER_1_ID, reply.id), auditLogEntries[4].message)
         }
     }
 
@@ -61,11 +61,11 @@ class AuditLogEntryTestsIT : AbstractTest() {
             val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyWithData)
             val reply2 = builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(), replyWithData)
-            val auditLogEntriesForUser1: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, REALM1_USER_1_ID, null, null, null)
-            val auditLogEntriesForUser2: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, REALM1_USER_2_ID, null, null, null)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", REALM1_USER_1_ID, reply1.id),
+            val auditLogEntriesForUser1: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, USER_1_ID, null, null, null)
+            val auditLogEntriesForUser2: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, USER_2_ID, null, null, null)
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply1.id),
                     auditLogEntriesForUser1[0].message)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", REALM1_USER_2_ID, reply2.id),
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_2_ID, reply2.id),
                     auditLogEntriesForUser2[0].message)
         }
     }
@@ -85,8 +85,8 @@ class AuditLogEntryTestsIT : AbstractTest() {
             val metaform2AuditLogs: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform2.id, null, null, null, null)
             Assertions.assertEquals(1, metaform1AuditLogs.size)
             Assertions.assertEquals(1, metaform2AuditLogs.size)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", REALM1_USER_1_ID, reply1.id), metaform1AuditLogs[0].message)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", REALM1_USER_1_ID, reply2.id), metaform2AuditLogs[0].message)
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply1.id), metaform1AuditLogs[0].message)
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply2.id), metaform2AuditLogs[0].message)
         }
     }
 
@@ -110,7 +110,7 @@ class AuditLogEntryTestsIT : AbstractTest() {
             Assertions.assertEquals(2, auditLogEntries.size)
             val entryByReply: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, reply3.id, null, null)
             Assertions.assertEquals(1, entryByReply.size)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", REALM1_USER_1_ID, reply3.id), entryByReply[0].message)
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply3.id), entryByReply[0].message)
         }
     }
 
