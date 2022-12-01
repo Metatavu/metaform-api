@@ -127,34 +127,34 @@ class PermissionController {
      *
      * @param reply reply
      * @param groupMemberPermissions group member permissions to be added
+     * @param allowAnonymous allow anonymous
      */
     fun updateReplyPermissions(
         reply: Reply,
-        groupMemberPermissions: Set<GroupMemberPermission>
+        groupMemberPermissions: Set<GroupMemberPermission>,
+        allowAnonymous: Boolean
     ): UUID {
         val keycloak = metaformKeycloakController.adminClient
-        val metaform = reply.metaform
         val resourceId = reply.resourceId ?: createReplyProtectedResource(
             keycloak = keycloak,
             reply = reply
         )
 
-        val commonPolicyIds = authzController.getPolicyIdsByNames(keycloak, listOf(
-            METAFORM_ADMIN_POLICY_NAME,
-            OWNER_POLICY_NAME
-        ))
-
         for (scope in AuthorizationScope.values()) {
             val groupIds = groupMemberPermissions.filter { it.scope == scope }.map { it.memberGroupId }
             val policyNames = groupIds.map(this::getGroupPolicyName)
 
-            var policyIds = authzController.getPolicyIdsByNames(
+            val policyIds = authzController.getPolicyIdsByNames(
                 keycloak = keycloak,
                 policyNames = policyNames
-            )
+            ).toMutableSet()
 
-            if (scope != AuthorizationScope.REPLY_NOTIFY) {
-                policyIds = policyIds.plus(commonPolicyIds)
+            if (!allowAnonymous && scope != AuthorizationScope.REPLY_NOTIFY) {
+                policyIds.addAll(authzController.getPolicyIdsByNames(
+                    keycloak, listOf(
+                        OWNER_POLICY_NAME
+                    )
+                ))
             }
 
             authzController.upsertScopePermission(
@@ -164,21 +164,6 @@ class PermissionController {
                 name = getReplyPermissionName(reply, scope.scopeName.lowercase(Locale.getDefault())),
                 decisionStrategy = DecisionStrategy.AFFIRMATIVE,
                 policyIds = policyIds
-            )
-        }
-
-        if (metaform.allowAnonymous == true) {
-            val userPolicyIds = authzController.getPolicyIdsByNames(keycloak, listOf(
-                USER_POLICY_NAME
-            ))
-
-            authzController.upsertScopePermission(
-                keycloak = keycloak,
-                scopes = setOf(AuthorizationScope.REPLY_VIEW),
-                decisionStrategy = DecisionStrategy.AFFIRMATIVE,
-                name = "require-user",
-                policyIds = userPolicyIds,
-                resourceId = resourceId
             )
         }
 
@@ -230,10 +215,8 @@ class PermissionController {
 
     companion object {
         private const val REPLY_PERMISSION_NAME_TEMPLATE = "permission-%s-%s"
-        private const val USER_POLICY_NAME = "user"
         private const val OWNER_POLICY_NAME = "owner"
         private const val GROUP_POLICY_NAME = "group-%s"
-        private const val METAFORM_ADMIN_POLICY_NAME = "metaform-admin"
         private val REPLY_SCOPES = listOf(AuthorizationScope.REPLY_VIEW, AuthorizationScope.REPLY_EDIT, AuthorizationScope.REPLY_NOTIFY)
     }
 

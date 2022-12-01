@@ -1163,16 +1163,6 @@
           "code" : "var context = $evaluation.getContext();\nvar identity = context.getIdentity();\nvar permission = $evaluation.getPermission();\nif (permission.resource && permission.resource.owner === identity.id) {\n    $evaluation.grant();\n}"
         }
       }, {
-        "id" : "65a1664f-fc6e-4b56-9880-3fe9e2dcff7f",
-        "name" : "system-admin",
-        "description" : "system-admin",
-        "type" : "role",
-        "logic" : "POSITIVE",
-        "decisionStrategy" : "UNANIMOUS",
-        "config" : {
-          "roles" : "[{\"id\":\"system-admin\",\"required\":true}]"
-        }
-      }, {
         "id" : "0bd939ad-53c2-4474-9c25-52fde39e1d44",
         "name" : "Default Permission",
         "description" : "A permission that applies to the default resource type",

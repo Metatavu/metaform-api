@@ -23,12 +23,14 @@ import org.keycloak.admin.client.ClientBuilderWrapper
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.RealmResource
+import org.keycloak.authorization.client.AuthorizationDeniedException
 import org.keycloak.authorization.client.AuthzClient
 import org.keycloak.authorization.client.Configuration
 import org.keycloak.representations.idm.ClientRepresentation
 import org.keycloak.representations.idm.GroupRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.keycloak.representations.idm.authorization.*
+import org.keycloak.representations.idm.authorization.PolicyEvaluationResponse.EvaluationResultRepresentation
 import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -150,18 +152,26 @@ class MetaformKeycloakController {
         try {
             val authzClient = getAuthzClient()
             val request = AuthorizationRequest()
-            resourceIds.forEach{ resourceId: UUID -> request.addPermission(resourceId.toString(), authorizationScope.scopeName) }
+            resourceIds.forEach { resourceId: UUID ->
+                request.addPermission(
+                    resourceId.toString(),
+                    authorizationScope.scopeName
+                )
+            }
             val response = authzClient.authorization(tokenString).authorize(request)
             val irt = authzClient.protection().introspectRequestingPartyToken(response?.token)
             val permissions = irt?.permissions
             return permissions
-                    ?.map { obj: Permission -> obj.resourceId }
-                    ?.map { name: String? -> UUID.fromString(name) }
-                    ?.toSet() ?: emptySet()
-
+                ?.map { obj: Permission -> obj.resourceId }
+                ?.map { name: String? -> UUID.fromString(name) }
+                ?.toSet() ?: emptySet()
+        } catch (e: AuthorizationDeniedException) {
+            // AuthorizationDeniedException are thrown when user does not have permission, so this
+            // is expected behaviour
         } catch (e: Exception) {
             logger.error("Failed to get permission from Keycloak", e)
         }
+
         return emptySet()
     }
 
@@ -319,11 +329,43 @@ class MetaformKeycloakController {
         return try {
             val evaluationRequest = createEvaluationRequest(client, resourceId, resourceName, userId, scopes)
             val response = realm.clients()[client.id].authorization().policies().evaluate(evaluationRequest)
-            response.status
+
+            evaluatePolicyDecision(response, scopes)
         } catch (e: InternalServerErrorException) {
-            logger.error("Failed to evaluate resource {} policy for {}", resourceName, userId, e)
+            logger.error("Failed to evaluate resource {} policy for {}", resourceName, userId, e)
             DecisionEffect.DENY
         }
+    }
+
+    /**
+     * Evaluates policy evaluation decision
+     *
+     * @param response evaluation result
+     * @param scopes requested scopes
+     * @return decision
+     */
+    private fun evaluatePolicyDecision(
+        response: PolicyEvaluationResponse,
+        scopes: List<AuthorizationScope>
+    ): DecisionEffect {
+        if (response.results.isEmpty()) {
+            return DecisionEffect.DENY
+        }
+
+        if (response.status == DecisionEffect.PERMIT) {
+            val allowedScopeNames = response.results
+                .flatMap(EvaluationResultRepresentation::getAllowedScopes)
+                .map(ScopeRepresentation::getName)
+
+            val requestedScopeNames = scopes
+                .map(AuthorizationScope::scopeName)
+
+            if (!allowedScopeNames.containsAll(requestedScopeNames)) {
+                return DecisionEffect.DENY
+            }
+        }
+
+        return response.status
     }
 
     /**
@@ -340,6 +382,7 @@ class MetaformKeycloakController {
         val resourceScopes = scopes.map(AuthorizationScope::scopeName).map { ScopeRepresentation(it) }.toSet()
         val resource = ResourceRepresentation(resourceName, resourceScopes)
         resource.id = resourceId.toString()
+
         val evaluationRequest = PolicyEvaluationRequest()
         evaluationRequest.clientId = client.id
         evaluationRequest.resources = listOf(resource)
@@ -416,12 +459,13 @@ class MetaformKeycloakController {
      *
      * @param metaformId metaform id
      */
-    fun createMetaformManagementGroup(metaformId: UUID) {
+    fun createMetaformManagementGroup(metaformId: UUID): GroupRepresentation {
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformAdminGroupName(metaformId) })
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformManagerGroupName(metaformId) })
         val metaformManagerGroup = getMetaformManagerGroup(metaformId)
         val metaformManagerRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_MANAGER_ROLE).toRepresentation()
         adminClient.realm(realm).groups().group(metaformManagerGroup.id).roles().realmLevel().add(listOf(metaformManagerRole))
+        return metaformManagerGroup
     }
 
     /**
@@ -797,7 +841,7 @@ class MetaformKeycloakController {
      * Creates Users Federated Identity
      *
      * @param userId userId
-     * @param federatedIdentityRepresentation federatedIdentityRepresentation
+     * @param userFederatedIdentity federated identity representation
      * @param identityProvider identityProvider
      * @return UserRepresentation
      */

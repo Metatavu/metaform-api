@@ -18,7 +18,6 @@ import org.apache.commons.lang3.ArrayUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.lang.Boolean
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -123,7 +122,7 @@ class ReplyTestsIT : AbstractTest() {
             Assertions.assertNotEquals(createdReply1.id, createdReply2.id)
             assertEquals("Updated text value", createdReply2.data!!["text"])
             val replies: List<Reply> = builder.test1.replies.listReplies(metaform.id,
-                    REALM1_USER_1_ID, null, null, null, null, Boolean.TRUE,
+                    USER_1_ID, null, null, null, null, true,
                     null, null, null, null, null).clone().toList()
             assertEquals(2, replies.size)
             Assertions.assertNotNull(replies[0].revision)
@@ -142,8 +141,8 @@ class ReplyTestsIT : AbstractTest() {
             builder.test1.replies.createSimpleReply(metaform.id!!, "val 1", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 2", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
-            val replies: List<Reply> = builder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null,
-                    null, null, null, Boolean.TRUE, null, null, null, null, null).clone().toList()
+            val replies: List<Reply> = builder.test1.replies.listReplies(metaform.id, USER_1_ID, null,
+                    null, null, null, true, null, null, null, null, null).clone().toList()
             assertEquals(3, replies.size)
             assertEquals("val 1", replies[0].data!!["text"])
             assertEquals("val 2", replies[1].data!!["text"])
@@ -160,7 +159,6 @@ class ReplyTestsIT : AbstractTest() {
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
             val reply: Reply = testBuilder.test2.replies.createReplyWithData(replyData)
-
 
             testBuilder.permissionTestByScopes(
                 scope = PermissionScope.USER,
@@ -192,9 +190,11 @@ class ReplyTestsIT : AbstractTest() {
                 )
             } finally {
                 val replies = testBuilder.systemAdmin.replies.listReplies(metaform.id!!)
-                replies.forEach {
-                    testBuilder.systemAdmin.replies.delete(metaform.id, it.id!!, null)
-                }
+                cleanReplies(
+                    metaform = metaform,
+                    replies = replies,
+                    testBuilder = testBuilder
+                )
             }
         }
     }
@@ -245,19 +245,19 @@ class ReplyTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
-            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
-            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
-            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("text:test 1"), null, null, null, null)
-            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("text:test 2"), null, null, null, null)
-            val repliesBoth: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("text:test 1", "text:test 2"), null, null, null, null)
-            val repliesNone: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("text:non", "text:existing"), null, null, null, null)
-            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("text^test 1"), null, null, null, null)
+            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("text:test 1"), null, null, null, null)
+            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("text:test 2"), null, null, null, null)
+            val repliesBoth: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("text:test 1", "text:test 2"), null, null, null, null)
+            val repliesNone: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("text:non", "text:existing"), null, null, null, null)
+            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("text^test 1"), null, null, null, null)
             assertEquals(1, replies1.size)
             assertEquals("test 1", replies1[0].data!!["text"])
             assertEquals(1, replies2.size)
@@ -276,19 +276,19 @@ class ReplyTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
-            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
-            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
-            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist:option 1"), null, null, null, null)
-            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist:option 2"), null, null, null, null)
-            val repliesBoth: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist:option 1", "checklist:option 2"), null, null, null, null)
-            val repliesNone: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist:non", "checklist:existing"), null, null, null, null)
-            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist^option 1"), null, null, null, null)
+            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist:option 1"), null, null, null, null)
+            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist:option 2"), null, null, null, null)
+            val repliesBoth: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist:option 1", "checklist:option 2"), null, null, null, null)
+            val repliesNone: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist:non", "checklist:existing"), null, null, null, null)
+            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist^option 1"), null, null, null, null)
             assertEquals(1, replies1.size)
             assertEquals("test 1", replies1[0].data!!["text"])
             assertEquals(1, replies2.size)
@@ -307,19 +307,19 @@ class ReplyTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
-            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
-            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
-            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("number:1"), null, null, null, null)
-            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("number:2.5"), null, null, null, null)
-            val repliesBoth: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("number:1", "number:2.5"), null, null, null, null)
-            val repliesNone: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("number:55", "number:66"), null, null, null, null)
-            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("number^1"), null, null, null, null)
+            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("number:1"), null, null, null, null)
+            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("number:2.5"), null, null, null, null)
+            val repliesBoth: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("number:1", "number:2.5"), null, null, null, null)
+            val repliesNone: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("number:55", "number:66"), null, null, null, null)
+            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("number^1"), null, null, null, null)
             assertEquals(1, replies1.size)
             assertEquals("test 1", replies1[0].data!!["text"])
             assertEquals(1, replies2.size)
@@ -338,15 +338,15 @@ class ReplyTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
-            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
-            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
-            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("boolean:true"), null, null, null, null)
-            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("boolean:false"), null, null, null, null)
-            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("boolean^false"), null, null, null, null)
+            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("boolean:true"), null, null, null, null)
+            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("boolean:false"), null, null, null, null)
+            val notReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("boolean^false"), null, null, null, null)
             assertEquals(1, replies1.size)
             assertEquals("test 1", replies1[0].data!!["text"])
             assertEquals(1, replies2.size)
@@ -363,17 +363,17 @@ class ReplyTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
             Assertions.assertNotNull(metaform)
-            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", Boolean.TRUE, 1.0, arrayOf("option 1"))
-            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", Boolean.FALSE, 2.5, arrayOf("option 2"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
+            testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
-            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("boolean:true", "number:1"), null, null, null, null)
-            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("boolean:false", "number:1"), null, null, null, null)
-            val replies3: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist:option 1", "boolean:true"), null, null, null, null)
-            val replies4: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null,
-                    Boolean.TRUE, ArrayUtils.toArray("checklist^option 1", "boolean:false"), null, null, null, null)
+            val replies1: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("boolean:true", "number:1"), null, null, null, null)
+            val replies2: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("boolean:false", "number:1"), null, null, null, null)
+            val replies3: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist:option 1", "boolean:true"), null, null, null, null)
+            val replies4: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null,
+                    true, ArrayUtils.toArray("checklist^option 1", "boolean:false"), null, null, null, null)
             assertEquals(1, replies1.size)
             assertEquals("test 1", replies1[0].data!!["text"])
             assertEquals(0, replies2.size)
@@ -417,15 +417,15 @@ class ReplyTestsIT : AbstractTest() {
             updateReplyCreated(reply1, getOffsetDateTime(2018, 5, 25, TIMEZONE))
             updateReplyCreated(reply2, getOffsetDateTime(2018, 5, 27, TIMEZONE))
             updateReplyCreated(reply3, getOffsetDateTime(2018, 5, 29, TIMEZONE))
-            val allReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID,
+            val allReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID,
                     null, null, null, null,
-                    Boolean.TRUE, null, null, null, null, null)
-            val createdBefore26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID,
+                    true, null, null, null, null, null)
+            val createdBefore26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID,
                     getIsoDateTime(2018, 5, 26, TIMEZONE), null, null,
-                    null, Boolean.FALSE, null, null, null, null, null)
-            val createdAfter26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID,
+                    null, false, null, null, null, null, null)
+            val createdAfter26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID,
                     null, getIsoDateTime(2018, 5, 26, TIMEZONE), null,
-                    null, Boolean.FALSE, null, null, null, null, null)
+                    null, false, null, null, null, null, null)
             assertEquals(3, allReplies.size)
             assertEquals("test 1", allReplies[0].data!!["text"])
             assertEquals("test 2", allReplies[1].data!!["text"])
@@ -449,9 +449,9 @@ class ReplyTestsIT : AbstractTest() {
             updateReplyModified(reply1, getOffsetDateTime(2018, 5, 25, TIMEZONE))
             updateReplyModified(reply2, getOffsetDateTime(2018, 5, 27, TIMEZONE))
             updateReplyModified(reply3, getOffsetDateTime(2018, 5, 29, TIMEZONE))
-            val allReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, null, Boolean.FALSE, null, null, null, null, null)
-            val modifiedBefore26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, Boolean.FALSE, null, null, null, null, null)
-            val modifiedAfter26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, REALM1_USER_1_ID, null, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), Boolean.FALSE, null, null, null, null, null)
+            val allReplies: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, null, false, null, null, null, null, null)
+            val modifiedBefore26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), null, false, null, null, null, null, null)
+            val modifiedAfter26: Array<Reply> = testBuilder.test1.replies.listReplies(metaform.id, USER_1_ID, null, null, null, getIsoDateTime(2018, 5, 26, TIMEZONE), false, null, null, null, null, null)
             assertEquals(3, allReplies.size.toLong())
             assertEquals("test 1", allReplies[0].data!!["text"])
             assertEquals("test 2", allReplies[1].data!!["text"])
@@ -496,7 +496,7 @@ class ReplyTestsIT : AbstractTest() {
             val foundReply = testBuilder.test1.replies.findReply(metaform.id, reply.id!!, null)
             assertEquals(parsedCreated.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime(foundReply.data!!["created"] as String).truncatedTo(ChronoUnit.MINUTES).toInstant())
             assertEquals(parsedModified.truncatedTo(ChronoUnit.MINUTES).toInstant(), parseOffsetDateTime(foundReply.data["modified"] as String).truncatedTo(ChronoUnit.MINUTES).toInstant())
-            assertEquals(REALM1_USER_1_ID.toString(), foundReply.data["lastModifierId"])
+            assertEquals(USER_1_ID.toString(), foundReply.data["lastModifierId"])
         }
     }
 
@@ -505,8 +505,15 @@ class ReplyTestsIT : AbstractTest() {
     fun testFindReplyOwnerKeys() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
-            val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
-            val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
+
+            val replies = arrayOf(
+                testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE),
+                testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
+            )
+
+            val reply1 = replies[0]
+            val reply2 = replies[1]
+
             Assertions.assertNotNull(reply1.ownerKey)
             Assertions.assertNotNull(reply2.ownerKey)
             Assertions.assertNotEquals(reply1.ownerKey, reply2.ownerKey)
@@ -714,6 +721,28 @@ class ReplyTestsIT : AbstractTest() {
             assertEquals(reply3.size, 1)
             assertEquals(reply3[0].data!!["text"], "pagination-test-3")
         }
+    }
+
+    /**
+     * Cleans replies using system admin privileges
+     */
+    private fun cleanReplies(
+        metaform: Metaform,
+        replies: Array<Reply>,
+        testBuilder: TestBuilder
+    ) {
+        replies
+            .mapNotNull(Reply::id)
+            .forEach {
+                testBuilder
+                    .systemAdmin
+                    .replies
+                    .delete(
+                        metaform.id!!,
+                        it,
+                        null
+                    )
+            }
     }
 
     companion object {

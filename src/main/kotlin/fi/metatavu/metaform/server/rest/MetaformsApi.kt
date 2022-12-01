@@ -189,7 +189,9 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createBadRequest("Duplicate field names")
     }
 
-    if (!metaformController.validatePermissionGroups(MetaformUtils.getPermissionGroups(metaform = metaform))) {
+    val permissionGroups = MetaformUtils.getPermissionGroups(metaform = metaform)
+
+    if (!metaformController.validatePermissionGroups(permissionGroups = permissionGroups)) {
       return createBadRequest("Invalid permission groups")
     }
 
