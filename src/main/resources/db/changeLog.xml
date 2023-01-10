@@ -573,6 +573,7 @@
   </changeSet>
 
   <changeSet id="auditlogentrytype-string-value" author="Ville Juutila">
+    <modifyDataType tableName="auditlogentry" columnName="logentrytype" newDataType="varchar(32)"/>
     <sql>UPDATE auditlogentry SET logentrytype = 'VIEW_REPLY' WHERE logentrytype = 0</sql>
     <sql>UPDATE auditlogentry SET logentrytype = 'LIST_REPLY' WHERE logentrytype = 1</sql>
     <sql>UPDATE auditlogentry SET logentrytype = 'MODIFY_REPLY' WHERE logentrytype = 2</sql>
