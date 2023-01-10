@@ -291,6 +291,23 @@ class ReplyDAO : AbstractDAO<Reply>() {
   }
 
   /**
+   * Gets count of unprocessed replies by Metaform
+   *
+   * @param metaform metaform
+   * @return count of unprocessed replis
+   */
+  fun getCountOfUnprocessedReplies(metaform: Metaform): Long? {
+    return entityManager.createQuery(
+      "select count(r.id) " +
+      "from Reply r " +
+      "inner join ReplyField rf on r.id = rf.reply and rf.name = 'status' " +
+      "inner join StringReplyField srf on rf.id = srf.id and srf.value = 'waiting' " +
+      "where r.metaform = :metaform",
+      Long::class.javaObjectType
+    ).setParameter("metaform", metaform).singleResult
+  }
+
+  /**
    * Creates subquery for quering existing fields by name
    *
    * @param criteriaBuilder criteria builder

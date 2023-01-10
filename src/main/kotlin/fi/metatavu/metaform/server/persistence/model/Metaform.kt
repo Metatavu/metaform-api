@@ -48,4 +48,10 @@ class Metaform: Metadata() {
 
   @Column(nullable = false)
   lateinit var lastModifierId: UUID
+
+  @OneToMany(mappedBy = "metaform", targetEntity = MetaformReplyViewed::class)
+  lateinit var metaformReplyViewed: List<MetaformReplyViewed>
+
+  @OneToMany(mappedBy = "metaform", targetEntity = MetaformReplyCreated::class)
+  lateinit var metaformReplyCreated: List<MetaformReplyCreated>
 }
