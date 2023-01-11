@@ -140,7 +140,7 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
     val criteria = criteriaBuilder.createQuery(OffsetDateTime::class.java)
     val root = criteria.from(AuditLogEntry::class.java)
 
-    criteria.select(criteriaBuilder.least(root.get(AuditLogEntry_.createdAt)))
+    criteria.select(criteriaBuilder.greatest(root.get(AuditLogEntry_.createdAt)))
     criteria.where(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform))
 
     return getSingleResult(entityManager.createQuery(criteria))
