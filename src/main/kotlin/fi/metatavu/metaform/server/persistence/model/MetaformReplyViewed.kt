@@ -4,11 +4,11 @@ import java.time.OffsetDateTime
 import java.util.*
 import javax.persistence.*
 
+/**
+ * JPA entity represeting MetaformReplyViewed View
+ */
 @Entity
 class MetaformReplyViewed {
-
-    @Id
-    var id: UUID? = null
 
     @ManyToOne(optional = false)
     lateinit var metaform: Metaform
@@ -16,14 +16,8 @@ class MetaformReplyViewed {
     @Column(nullable = false)
     lateinit var replyViewed: OffsetDateTime
 
-    @ManyToOne(optional = false)
-    lateinit var reply: Reply
+    @Id
+    @Column(nullable = false)
+    lateinit var replyId: UUID
 
-    /**
-     * JPA Pre-Persist handler
-     */
-    @PrePersist
-    fun onCreate() {
-        id = UUID.randomUUID()
-    }
 }

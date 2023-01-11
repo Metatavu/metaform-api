@@ -8,6 +8,9 @@ import javax.inject.Inject
 import javax.transaction.Transactional
 import javax.ws.rs.core.Response
 
+/**
+ * Implementation for Metaform Statistics API
+ */
 @RequestScoped
 @Transactional
 class MetaformStatisticsApi: fi.metatavu.metaform.api.spec.MetaformStatisticsApi, AbstractApi() {

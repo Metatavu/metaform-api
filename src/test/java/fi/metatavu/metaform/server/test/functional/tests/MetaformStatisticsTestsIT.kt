@@ -69,7 +69,7 @@ class MetaformStatisticsTestsIT: AbstractTest() {
     }
 
     @Test
-    fun testCountOfUnprocessedReplies() {
+    fun testCountUnprocessedReplies() {
         TestBuilder().use { builder ->
             val metaform1 = builder.systemAdmin.metaforms.createFromJsonFile("simple-status")
             val metaform2 = builder.systemAdmin.metaforms.createFromJsonFile("simple-status")

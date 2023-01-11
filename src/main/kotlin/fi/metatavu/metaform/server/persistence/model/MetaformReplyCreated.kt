@@ -6,13 +6,12 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.ManyToOne
-import javax.persistence.PrePersist
 
+/**
+ * JPA entity represeting MetaformReplyCreated View
+ */
 @Entity
 class MetaformReplyCreated {
-
-    @Id
-    var id: UUID? = null
 
     @ManyToOne(optional = false)
     lateinit var metaform: Metaform
@@ -20,14 +19,7 @@ class MetaformReplyCreated {
     @Column(nullable = false)
     lateinit var replyCreated: OffsetDateTime
 
-    @ManyToOne(optional = false)
-    lateinit var reply: Reply
-
-    /**
-     * JPA Pre-Persist handler
-     */
-    @PrePersist
-    fun onCreate() {
-        id = UUID.randomUUID()
-    }
+    @Id
+    @Column(nullable = false)
+    lateinit var replyId: UUID
 }
