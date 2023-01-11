@@ -29,11 +29,13 @@ class MetaformStatisticsTestsIT: AbstractTest() {
     fun testLastReplyDate() {
         TestBuilder().use { builder ->
             val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id!!)
+            val reply1 = builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id!!)
             val metaformStatistics1 = builder.systemAdmin.metaformStatistics.getMetaformStatistics(metaform.id)
-            builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id)
+            val reply2 = builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id)
             val metaformStatistics2 = builder.systemAdmin.metaformStatistics.getMetaformStatistics(metaform.id)
 
+            assertEquals(OffsetDateTime.parse(reply1.createdAt), OffsetDateTime.parse(metaformStatistics1.lastReplyDate))
+            assertEquals(OffsetDateTime.parse(reply2.createdAt), OffsetDateTime.parse(metaformStatistics2.lastReplyDate))
             assertTrue(OffsetDateTime.parse(metaformStatistics2.lastReplyDate) > OffsetDateTime.parse(metaformStatistics1.lastReplyDate))
         }
     }

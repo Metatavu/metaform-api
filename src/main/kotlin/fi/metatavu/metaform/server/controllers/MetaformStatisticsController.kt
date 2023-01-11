@@ -28,7 +28,7 @@ class MetaformStatisticsController {
      * @returns Metaform Statistics
      */
     fun getMetaformStatistics(metaform: Metaform): MetaformStatistics {
-        val lastReplyDate = auditLogEntryDAO.getLastReplyDateByMetaform(metaform)
+        val lastReplyDate = replyDAO.getLastReplyDateByMetaform(metaform)
         val amountOfUnprocessedReplies = replyDAO.countUnprocessedReplies(metaform)
         val averageProcessDelay = auditLogEntryDAO.getAverageProcessDelayByMetaform(metaform)
         val averageMonthlyReplies = getAverageMonthlyReplies(metaform)
