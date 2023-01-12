@@ -313,6 +313,23 @@ class ReplyDAO : AbstractDAO<Reply>() {
   }
 
   /**
+   * Gets date of latest Reply for given Metaform
+   *
+   * @param metaform metaform
+   * @returns date of latest reply
+   */
+  fun getLastReplyDateByMetaform(metaform: Metaform): OffsetDateTime? {
+    val criteriaBuilder = entityManager.criteriaBuilder
+    val criteria = criteriaBuilder.createQuery(OffsetDateTime::class.java)
+    val root = criteria.from(Reply::class.java)
+
+    criteria.select(criteriaBuilder.greatest(root.get(Reply_.createdAt)))
+    criteria.where(criteriaBuilder.equal(root.get(Reply_.metaform), metaform))
+
+    return getSingleResult(entityManager.createQuery(criteria))
+  }
+
+  /**
    * Creates subquery for quering existing fields by name
    *
    * @param criteriaBuilder criteria builder

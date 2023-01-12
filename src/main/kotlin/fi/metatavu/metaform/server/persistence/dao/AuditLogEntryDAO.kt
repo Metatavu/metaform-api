@@ -130,23 +130,6 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
   }
 
   /**
-   * Gets date of last reply for given Metaform
-   *
-   * @param metaform metaform
-   * @return date of last reply
-   */
-  fun getLastReplyDateByMetaform(metaform: Metaform): OffsetDateTime? {
-    val criteriaBuilder = entityManager.criteriaBuilder
-    val criteria = criteriaBuilder.createQuery(OffsetDateTime::class.java)
-    val root = criteria.from(AuditLogEntry::class.java)
-
-    criteria.select(criteriaBuilder.greatest(root.get(AuditLogEntry_.createdAt)))
-    criteria.where(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform))
-
-    return getSingleResult(entityManager.createQuery(criteria))
-  }
-
-  /**
    * Gets average process delay for given Metaforms replies
    *
    * @param metaform metaform
