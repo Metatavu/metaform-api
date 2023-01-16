@@ -22,7 +22,7 @@ import jakarta.inject.Inject
 @ApplicationScoped
 class EmailFreemarkerRenderer {
     @Inject
-    lateinit var  logger: Logger
+    lateinit var logger: Logger
 
     @Inject
     lateinit var freemarkerTemplateLoader: EmailFreemarkerTemplateLoader
