@@ -70,6 +70,19 @@ abstract class AbstractApi {
         } else UUID.fromString(jsonWebToken.subject)
 
     /**
+     * Returns CRON key from request headers
+     *
+     * @return CRON key
+     */
+    protected val requestCronKey: UUID?
+        get() {
+            val httpHeaders = request.httpHeaders
+            val cronKeyHeader = httpHeaders.getRequestHeader("X-CRON-KEY")
+
+            return if (cronKeyHeader.isEmpty()) null else UUID.fromString(cronKeyHeader.first())
+        }
+
+    /**
      * Constructs ok response
      *
      * @param entity payload
