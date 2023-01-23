@@ -594,4 +594,14 @@
     >SELECT metaform_id, min(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid</createView>
   </changeSet>
 
+  <changeSet id="billing-report" author="Ville Juutila">
+    <addColumn tableName="metaform">
+      <column name="publishedat" type="datetime(6)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="nonbillable" defaultValue="false" type="boolean"/>
+    </addColumn>
+    <sql>UPDATE metaform SET publishedAt = '2023-01-01 00:00:00'</sql>
+  </changeSet>
+
 </databaseChangeLog>

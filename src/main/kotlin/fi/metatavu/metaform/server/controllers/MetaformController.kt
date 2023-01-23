@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.UserRepresentation
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -76,6 +77,8 @@ class MetaformController {
             title: String?,
             slug: String? = null,
             data: String,
+            publishedAt: OffsetDateTime?,
+            nonBillable: Boolean?,
             creatorId: UUID
     ): Metaform {
         return metaformDAO.create(
@@ -85,6 +88,8 @@ class MetaformController {
             visibility = visibility,
             allowAnonymous = allowAnonymous,
             data = data,
+            publishedAt = publishedAt,
+            nonBillable = nonBillable,
             creatorId = creatorId
         ).let {
             metaformKeycloakController.createMetaformManagementGroup(it.id!!)

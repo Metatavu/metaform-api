@@ -36,6 +36,10 @@ class SystemApi: fi.metatavu.metaform.api.spec.SystemApi, AbstractApi() {
     }
 
     val createdBillingReport = billingReportController.createBillingReport(billingReportRequest?.period)
+      ?: return createBadRequest("")
+  println(createdBillingReport)
+//    val recipientEmail = billingReportRequest?.recipientEmail ?: return createBadRequest("")
+//    billingReportController.sendBillingReport(recipientEmail, createdBillingReport)
 
     return createNoContent()
   }

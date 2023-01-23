@@ -405,6 +405,15 @@ class MetaformKeycloakController {
     }
 
     /**
+     * Gets system administrators
+     *
+     * @return list of user representations
+     */
+    fun getSystemAdministrators(): List<UserRepresentation> {
+        return adminClient.realm(realm).roles().get("system-admin").roleUserMembers.toList()
+    }
+
+    /**
      * Gets user group
      *
      * @param userId user id

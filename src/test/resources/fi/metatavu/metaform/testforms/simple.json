@@ -2,6 +2,8 @@
   "title": "Simple",
   "allowDrafts": true,
   "visibility": "PUBLIC",
+  "publishedAt": "2022-01-01T00:00:00Z",
+  "nonBillable": false,
   "sections": [
     {
       "title": "Simple form",

@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.persistence.model.ExportTheme
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.Metaform_
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.persistence.criteria.CriteriaBuilder
@@ -35,6 +36,8 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     visibility: MetaformVisibility,
     allowAnonymous: Boolean?,
     data: String,
+    publishedAt: OffsetDateTime?,
+    nonBillable: Boolean?,
     creatorId: UUID
   ): Metaform {
     val metaform = Metaform()
@@ -44,6 +47,8 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
+    metaform.publishedAt = publishedAt
+    metaform.nonBillable = nonBillable ?: true
     metaform.creatorId = creatorId
     metaform.lastModifierId = creatorId
     return persist(metaform)
