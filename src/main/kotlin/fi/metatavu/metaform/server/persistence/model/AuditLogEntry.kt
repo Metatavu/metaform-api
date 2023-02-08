@@ -36,6 +36,7 @@ class AuditLogEntry {
 
   @Column(nullable = false)
   @NotNull
+  @Enumerated(EnumType.STRING)
   lateinit var logEntryType: AuditLogEntryType
 
   @ManyToOne(optional = false)

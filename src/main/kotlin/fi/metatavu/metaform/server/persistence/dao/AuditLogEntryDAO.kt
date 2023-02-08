@@ -1,13 +1,15 @@
 package fi.metatavu.metaform.server.persistence.dao
 
 import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
-import fi.metatavu.metaform.server.persistence.model.AuditLogEntry
-import fi.metatavu.metaform.server.persistence.model.AuditLogEntry_
-import fi.metatavu.metaform.server.persistence.model.Metaform
+import fi.metatavu.metaform.server.persistence.model.*
 import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
+import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Predicate
+import kotlin.collections.ArrayList
+
 
 /**
  * DAO class for AuditLogEntry entity
@@ -125,5 +127,49 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
     criteria.where(criteriaBuilder.equal(root.get(AuditLogEntry_.metaform), metaform))
     val query = entityManager.createQuery(criteria)
     return query.resultList
+  }
+
+  /**
+   * Gets average process delay for given Metaforms replies
+   *
+   * @param metaform metaform
+   * @returns average reply process delay
+   */
+  fun getAverageProcessDelayByMetaform(metaform: Metaform): Double? {
+    val criteriaBuilder = entityManager.criteriaBuilder
+    val criteria = criteriaBuilder.createQuery(Double::class.java)
+    val root = criteria.from(Metaform::class.java)
+    val viewedJoin = root.join(Metaform_.metaformReplyViewed)
+    val createdJoin = root.join(Metaform_.metaformReplyCreated)
+    val replyCreated = createdJoin.get(MetaformReplyCreated_.replyCreated)
+    val replyViewed = viewedJoin.get(MetaformReplyViewed_.replyViewed)
+
+    criteria.select(
+      criteriaBuilder.avg(
+        criteriaBuilder.diff(
+          createToSecondsSqlFunction(criteriaBuilder, replyViewed),
+          createToSecondsSqlFunction(criteriaBuilder, replyCreated)
+        )
+      )
+    )
+
+   criteria.where(criteriaBuilder.equal(root.get(Metaform_.id), metaform.id!!))
+
+    return getSingleResult(entityManager.createQuery(criteria))
+  }
+
+  /**
+   * Creates SQL TO_SECONDS function for Criteria Query
+   *
+   * @param criteriaBuilder criteria builder
+   * @param value value to convert to seconds
+   * @returns
+   */
+  private fun createToSecondsSqlFunction(criteriaBuilder: CriteriaBuilder, value: Expression<*>): Expression<Int>? {
+    return criteriaBuilder.function(
+      "TO_SECONDS",
+      Int::class.java,
+      value
+    )
   }
 }
