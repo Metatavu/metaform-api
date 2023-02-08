@@ -120,7 +120,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
                 metaformId = metaformId,
                 payload = MetaformMemberGroup(
                     displayName = "Permitted group",
-                    memberIds = arrayOf(REALM1_USER_2_ID)
+                    memberIds = arrayOf(USER_2_ID)
                 )
             )
 
@@ -128,7 +128,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
 
             val updatedForm = setOptionGroupPermission(
                 metaform = metaform,
-                fieldName = "group-2",
+                optionName = "group-2",
                 viewGroupIds = arrayOf(permittedGroupId),
                 editGroupIds = arrayOf(permittedGroupId)
             )
@@ -176,7 +176,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
                 metaformId = metaformId,
                 payload = MetaformMemberGroup(
                     displayName = "Permitted group",
-                    memberIds = arrayOf(REALM1_USER_2_ID)
+                    memberIds = arrayOf(USER_2_ID)
                 )
             )
 
@@ -184,7 +184,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
 
             val updatedForm = setOptionGroupPermission(
                 metaform = metaform,
-                fieldName = "group-2",
+                optionName = "group-2",
                 viewGroupIds = arrayOf(permittedGroupId),
                 editGroupIds = arrayOf(permittedGroupId)
             )
@@ -250,7 +250,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * another user receives when reply is updated
      */
     @Test
-    fun notifyPermissionContextReply() {
+    fun notifyPermissionContextReplyUpdate() {
         val mailgunMocker: MailgunMocker = startMailgunMocker()
         try {
             TestBuilder().use { builder ->
@@ -263,7 +263,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
                     metaformId = metaformId,
                     payload = MetaformMemberGroup(
                         displayName = "Group 1",
-                        memberIds = arrayOf(REALM1_USER_1_ID)
+                        memberIds = arrayOf(USER_1_ID)
                     )
                 )
 
@@ -271,19 +271,19 @@ class ReplyPermissionTestsIT : AbstractTest() {
                     metaformId = metaformId,
                     payload = MetaformMemberGroup(
                         displayName = "Group 2",
-                        memberIds = arrayOf(REALM1_USER_2_ID)
+                        memberIds = arrayOf(USER_2_ID)
                     )
                 )
 
                 var updatedForm = setOptionGroupPermission(
                     metaform = metaform,
-                    fieldName = "group-1",
+                    optionName = "group-1",
                     notifyGroupIds = arrayOf(group1.id!!)
                 )
 
                 updatedForm = setOptionGroupPermission(
                     metaform = updatedForm,
-                    fieldName = "group-2",
+                    optionName = "group-2",
                     notifyGroupIds = arrayOf(group2.id!!)
                 )
 
@@ -315,6 +315,115 @@ class ReplyPermissionTestsIT : AbstractTest() {
         }
     }
 
+
+    /**
+     * Test that asserts that user in permission context receives an email but no-one else does
+     */
+    @Test
+    fun notifyPermissionContextReplyTestWithScopes() {
+        val mailgunMocker: MailgunMocker = startMailgunMocker()
+        try {
+            TestBuilder().use { builder ->
+
+                val subject = "Permission context subject"
+                val content = "Permission context content"
+
+                // Create metaform with permission context
+                var metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context-anon")
+                val metaformId = metaform.id!!
+
+                // Add an email notification
+                builder.systemAdmin.emailNotifications.createEmailNotification(metaformId, subject, content, emptyList())
+
+                // Create test groups
+
+                val groups = mapOf(
+                    "Edit and notify" to USER_1_ID,
+                    "Notify" to USER_2_ID,
+                    "Edit" to USER_3_ID
+                ).map {
+                    builder.systemAdmin.metaformMemberGroups.create(
+                        metaformId = metaformId,
+                        payload = MetaformMemberGroup(
+                            displayName = it.key,
+                            memberIds = arrayOf(it.value)
+                        )
+                    )
+                }
+
+                // Assign permission: group 1 notify, group 2 edit and notify, group 3 edit only
+
+                metaform = setOptionGroupPermission(
+                    metaform = metaform,
+                    optionName = "group-1",
+                    notifyGroupIds = arrayOf(groups[0].id!!)
+                )
+
+                metaform = setOptionGroupPermission(
+                    metaform = metaform,
+                    optionName = "group-2",
+                    notifyGroupIds = arrayOf(groups[1].id!!),
+                    editGroupIds = arrayOf(groups[1].id!!)
+                )
+
+                metaform = setOptionGroupPermission(
+                    metaform = metaform,
+                    optionName = "group-3",
+                    editGroupIds = arrayOf(groups[2].id!!)
+                )
+
+                builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = metaform)
+
+                // Create replies and assert that group 1 & 2 receive email and 3 does not
+
+                val scenarios = mapOf(
+                    "group-1" to mapOf(
+                        "user1@example.com" to 1,
+                        "user2@example.com" to 0,
+                        "user3@example.com" to 0
+                    ),
+                    "group-2" to mapOf(
+                        "user1@example.com" to 1,
+                        "user2@example.com" to 1,
+                        "user3@example.com" to 0
+                    ),
+                    "group-3" to mapOf(
+                        "user1@example.com" to 1,
+                        "user2@example.com" to 1,
+                        "user3@example.com" to 0
+                    )
+                )
+
+                scenarios.forEach { (answer, asserts) ->
+                    val reply = builder.anon.replies.create(
+                        metaformId = metaformId,
+                        replyMode = ReplyMode.REVISION.toString(),
+                        payload = builder.anon.replies.createReplyWithData(createPermissionSelectReplyData(answer))
+                    )
+
+                    asserts.forEach { (to, count) ->
+                        mailgunMocker.verifyHtmlMessageSent(
+                            count = count,
+                            fromName = "Metaform Test",
+                            fromEmail = "metaform-test@example.com",
+                            to = to,
+                            subject = subject,
+                            content = content
+                        )
+                    }
+
+                    builder.systemAdmin.replies.delete(
+                        metaformId = metaformId,
+                        replyId = reply.id!!,
+                        ownerKey = null
+                    )
+                }
+            }
+        } finally {
+            stopMailgunMocker(mailgunMocker)
+        }
+    }
+
     /**
      * Creates permission select reply data with given value
      *
@@ -330,7 +439,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
      * Returns updated metaform where given groups has been added to field permission groups
      *
      * @param metaform metaform
-     * @param fieldName option field name
+     * @param optionName option name
      * @param viewGroupIds view group ids
      * @param editGroupIds edit group ids
      * @param notifyGroupIds notify group ids
@@ -338,7 +447,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
      */
     private fun setOptionGroupPermission(
         metaform: Metaform,
-        fieldName: String,
+        optionName: String,
         viewGroupIds: Array<UUID>? = null,
         editGroupIds: Array<UUID>? = null,
         notifyGroupIds: Array<UUID>? = null
@@ -348,7 +457,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
         val options = fields[0].options!!
 
         val updatedOptions = options.map {
-            if (it.name == fieldName) {
+            if (it.name == optionName) {
                 it.copy(
                     permissionGroups = PermissionGroups(
                         viewGroupIds = viewGroupIds,

@@ -241,7 +241,7 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.METAFORM_MANAGER,
+                scope = PermissionScope.USER,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
                     authentication.metaforms.findMetaform(
                         metaformSlug = metaform.slug!!,
@@ -262,7 +262,7 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.METAFORM_MANAGER,
+                scope = PermissionScope.USER,
                 apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
                     authentication.metaforms.findMetaform(
                         metaformSlug = null,
@@ -446,9 +446,16 @@ class MetaformTestsIT : AbstractTest() {
                 val draftData: MutableMap<String, Any> = HashMap()
                 draftData["text"] = "draft value"
                 val createdDraft: Draft = testBuilder.systemAdmin.drafts.createDraft(testMetaform1, draftData, false)
-
+                val createdEmailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(
+                    metaformId = testMetaform1.id!!,
+                    subjectTemplate = "Simple subject",
+                    contentTemplate = "Simple content",
+                    emails = emptyList(),
+                    notifyIf = null,
+                    addClosable = false
+                )
                 val foundMetaform = testBuilder.systemAdmin.metaforms.findMetaform(
-                    metaformId=testMetaform1.id!!,
+                    metaformId=testMetaform1.id,
                     replyId = null,
                     ownerKey = null,
                     metaformSlug = null
@@ -458,9 +465,11 @@ class MetaformTestsIT : AbstractTest() {
                 assertNotNull(foundMetaform.id)
                 assertNotNull(foundDraft)
                 assertNotNull(foundDraft.id)
+                assertNotNull(createdEmailNotification.id)
                 testBuilder.systemAdmin.metaforms.delete(foundMetaform.id!!)
                 testBuilder.systemAdmin.metaforms.assertFindFailStatus(404, metaformId = foundMetaform.id)
                 testBuilder.systemAdmin.drafts.assertFindFailStatus(404, metaformId = foundMetaform.id, draftId = createdDraft.id)
+                testBuilder.systemAdmin.emailNotifications.assertFindFailStatus(404, createdEmailNotification.id!!, foundMetaform.id)
             } finally {
                 val metaforms = testBuilder.systemAdmin.metaforms.list()
                 metaforms.forEach { metaform ->
