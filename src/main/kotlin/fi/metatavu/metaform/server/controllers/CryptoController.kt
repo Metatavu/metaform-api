@@ -5,9 +5,6 @@ import org.apache.commons.lang3.StringUtils
 import org.slf4j.Logger
 import java.nio.ByteBuffer
 import java.security.*
-import java.security.spec.InvalidKeySpecException
-import java.security.spec.PKCS8EncodedKeySpec
-import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -28,6 +25,7 @@ class CryptoController {
      * @return generated key pair
      */
     fun generateRsaKeyPair(): KeyPair? {
+        /**
         return try {
             val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
             keyPairGenerator.initialize(KEY_SIZE)
@@ -36,6 +34,8 @@ class CryptoController {
             logger.error("Failed to initialize key pair generator", e)
             null
         }
+        **/
+        return null
     }
 
     /**
@@ -65,6 +65,7 @@ class CryptoController {
      * @return public key
      */
     fun loadPublicKeyBase64(base64String: String?): PublicKey? {
+        /**
         if (StringUtils.isBlank(base64String)) {
             return null
         }
@@ -79,6 +80,8 @@ class CryptoController {
         } catch (e: InvalidKeySpecException) {
             null
         }
+        **/
+        return null
     }
 
     /**
@@ -103,6 +106,7 @@ class CryptoController {
      * @return private key
      */
     fun loadPrivateKey(key: ByteArray?): PrivateKey? {
+        /**
         return try {
             val keyFactory = KeyFactory.getInstance("RSA")
             val keySpec = PKCS8EncodedKeySpec(key)
@@ -112,6 +116,8 @@ class CryptoController {
         } catch (e: InvalidKeySpecException) {
             null
         }
+        **/
+        return null
     }
 
     /**
