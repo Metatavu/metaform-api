@@ -31,6 +31,5 @@ class CardAuthKeycloakResource: QuarkusTestResourceLifecycleManager {
             .withAdminUsername(serverAdminUser)
             .withAdminPassword(serverAdminPass)
             .withRealmImportFile("exported-card-auth-kc.json")
-            .withFeaturesEnabled("upload-scripts")
     }
 }

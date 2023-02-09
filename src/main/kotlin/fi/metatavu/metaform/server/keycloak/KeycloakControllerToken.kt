@@ -87,7 +87,7 @@ class KeycloakControllerToken {
     private fun obtainAccessToken(keycloakConfiguration: KeycloakConfiguration): KeycloakAccessToken? {
         logger.info("Obtaining new admin access token...")
 
-        val uri = "${keycloakConfiguration.authServerUrl}/realms/${keycloakConfiguration.realm}/protocol/openid-connect/token"
+        val uri = "${keycloakConfiguration.authServerUrl}realms/${keycloakConfiguration.realm}/protocol/openid-connect/token"
         try {
             HttpClients.createDefault().use { client ->
                 val httpPost = HttpPost(uri)

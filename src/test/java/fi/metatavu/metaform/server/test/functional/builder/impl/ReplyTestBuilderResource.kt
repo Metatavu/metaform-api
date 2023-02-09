@@ -39,7 +39,11 @@ class ReplyTestBuilderResource(
     @Throws(IOException::class)
     override fun clean(reply: Reply) {
         val metaformId = replyMetaformIds[reply.id]
-        api.deleteReply(metaformId!!, reply.id!!, null)
+        testBuilder.systemAdmin.replies.delete(
+            metaformId = metaformId!!,
+            replyId = reply.id!!,
+            ownerKey = null
+        )
     }
 
     /**

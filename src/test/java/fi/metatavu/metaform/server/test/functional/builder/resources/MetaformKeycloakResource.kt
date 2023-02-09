@@ -11,7 +11,7 @@ class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
     override fun start(): Map<String, String> {
         keycloak.start()
         val config: MutableMap<String, String> = HashMap()
-        config["quarkus.oidc.auth-server-url"] = String.format("%s/realms/test-1", keycloak.authServerUrl)
+        config["quarkus.oidc.auth-server-url"] = String.format("%srealms/test-1", keycloak.authServerUrl)
         config["quarkus.oidc.client-id"] = "metaform-api"
         config["metaforms.keycloak.admin.host"] = keycloak.authServerUrl
         config["metaforms.keycloak.admin.realm"] = "test-1"
@@ -33,6 +33,5 @@ class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
             .withAdminUsername(serverAdminUser)
             .withAdminPassword(serverAdminPass)
             .withRealmImportFile("exported-metaform-kc.json")
-            .withFeaturesEnabled("upload-scripts")
     }
 }

@@ -1264,38 +1264,7 @@
         "_id" : "c98e1802-37fd-4d3e-bd63-acb2cc812c98",
         "uris" : [ "/*" ]
       } ],
-      "policies" : [ {
-        "id" : "eabdd15e-2327-4c5a-ae22-9bf187876190",
-        "name" : "Default Policy",
-        "description" : "A policy that grants access only for users within this realm",
-        "type" : "js",
-        "logic" : "POSITIVE",
-        "decisionStrategy" : "AFFIRMATIVE",
-        "config" : {
-          "code" : "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
-        }
-      }, {
-        "id" : "c553c09d-84d5-48ff-975d-3dabdcd637b4",
-        "name" : "owner",
-        "description" : "resource owner can access",
-        "type" : "js",
-        "logic" : "POSITIVE",
-        "decisionStrategy" : "UNANIMOUS",
-        "config" : {
-          "code" : "var context = $evaluation.getContext();\nvar identity = context.getIdentity();\nvar permission = $evaluation.getPermission();\nif (permission.resource && permission.resource.owner === identity.id) {\n    $evaluation.grant();\n}"
-        }
-      }, {
-        "id" : "0bd939ad-53c2-4474-9c25-52fde39e1d44",
-        "name" : "Default Permission",
-        "description" : "A permission that applies to the default resource type",
-        "type" : "resource",
-        "logic" : "POSITIVE",
-        "decisionStrategy" : "UNANIMOUS",
-        "config" : {
-          "defaultResourceType" : "urn:metaform-api:resources:default",
-          "applyPolicies" : "[\"Default Policy\"]"
-        }
-      } ],
+      "policies" : [ ],
       "scopes" : [ {
         "id" : "fa04adca-4f98-4fa2-9be1-d03e402817e0",
         "name" : "reply:create"

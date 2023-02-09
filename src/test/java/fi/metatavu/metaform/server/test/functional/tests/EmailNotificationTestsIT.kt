@@ -35,6 +35,7 @@ import java.util.*
 )
 @TestProfile(GeneralTestProfile::class)
 class EmailNotificationTestsIT : AbstractTest() {
+
     @Test
     @Throws(Exception::class)
     fun singleEmailNotification() {

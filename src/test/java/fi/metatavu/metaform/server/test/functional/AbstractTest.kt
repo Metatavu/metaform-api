@@ -188,7 +188,7 @@ class AbstractTest {
      * @return object mapper
      */
     protected val objectMapper: ObjectMapper
-        protected get() {
+        get() {
             val objectMapper = ObjectMapper()
             objectMapper.registerModule(JavaTimeModule())
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -416,6 +416,7 @@ class AbstractTest {
         val USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63")
         val USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5")
         val USER_3_ID = UUID.fromString("3c497a19-a235-465a-9d83-8efdc851c273")
+        val SYSTEM_ADMIN_ID = UUID.fromString("83543c6b-1324-42c6-a4ca-c164a3ade516")
 
         val USER_WITHOUT_IDP_ID = UUID.fromString("f88927f4-4b79-4f81-b507-d4adf8ac1f69")
         val USER_WITH_IDP_ID = UUID.fromString("ea61792a-b546-44bf-b64b-5e745e404bd7")
