@@ -1,11 +1,9 @@
 package fi.metatavu.metaform.server.pdf
 
-import com.itextpdf.text.DocumentException
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import org.apache.commons.io.IOUtils
 import org.slf4j.Logger
 import org.xhtmlrenderer.pdf.ITextRenderer
-import org.xml.sax.SAXException
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -14,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.parsers.ParserConfigurationException
 
 @ApplicationScoped
 class PdfPrinter {
@@ -53,26 +50,11 @@ class PdfPrinter {
                 val builder = factory.newDocumentBuilder()
                 val inputDoc = builder.parse(htmlStream)
                 val renderer = ITextRenderer()
-                val chainingReplacedElementFactory = ChainingReplacedElementFactory()
-                chainingReplacedElementFactory.addReplacedElementFactory(Base64ImageReplacedElementFactory())
-                renderer.sharedContext.replacedElementFactory = chainingReplacedElementFactory
                 renderer.setDocument(inputDoc, "")
                 renderer.layout()
                 renderer.createPDF(pdfStream)
             }
-        } catch (e: IOException) {
-            val html = String(htmlData, StandardCharsets.UTF_8)
-            logger.error("Failed to render PDF from HTML {}", html)
-            throw PdfRenderException("Pdf rendering failed", e)
-        } catch (e: DocumentException) {
-            val html = String(htmlData, StandardCharsets.UTF_8)
-            logger.error("Failed to render PDF from HTML {}", html)
-            throw PdfRenderException("Pdf rendering failed", e)
-        } catch (e: SAXException) {
-            val html = String(htmlData, StandardCharsets.UTF_8)
-            logger.error("Failed to render PDF from HTML {}", html)
-            throw PdfRenderException("Pdf rendering failed", e)
-        } catch (e: ParserConfigurationException) {
+        } catch (e: Exception) {
             val html = String(htmlData, StandardCharsets.UTF_8)
             logger.error("Failed to render PDF from HTML {}", html)
             throw PdfRenderException("Pdf rendering failed", e)
