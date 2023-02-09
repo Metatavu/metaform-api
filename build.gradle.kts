@@ -17,10 +17,11 @@ val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
-val testContainersVersion: String by project
 val testContainersKeycloakVersion: String by project
 val moshiVersion: String by project
 val wiremockVersion: String by project
+val flyingSaucerVersion: String by project
+val freemarkerVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -37,10 +38,11 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
+
     implementation("javax.servlet:javax.servlet-api:4.0.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.xhtmlrenderer:flying-saucer-pdf-itext5:9.1.15")
-    implementation("org.freemarker:freemarker:2.3.28")
+    implementation("org.xhtmlrenderer:flying-saucer-pdf-openpdf:$flyingSaucerVersion")
+    implementation("org.freemarker:freemarker:$freemarkerVersion")
     implementation("org.apache.commons:commons-lang3")
     implementation("org.apache.poi:poi:4.1.2")
     implementation("org.apache.poi:poi-ooxml:4.1.2")
