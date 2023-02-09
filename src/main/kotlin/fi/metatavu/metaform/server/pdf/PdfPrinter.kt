@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.pdf
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import org.apache.commons.io.IOUtils
 import org.slf4j.Logger
-import org.xhtmlrenderer.pdf.ITextRenderer
+// import org.xhtmlrenderer.pdf.ITextRenderer
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -49,10 +49,12 @@ class PdfPrinter {
                 factory.isNamespaceAware = true
                 val builder = factory.newDocumentBuilder()
                 val inputDoc = builder.parse(htmlStream)
+                /**
                 val renderer = ITextRenderer()
                 renderer.setDocument(inputDoc, "")
                 renderer.layout()
                 renderer.createPDF(pdfStream)
+                **/
             }
         } catch (e: Exception) {
             val html = String(htmlData, StandardCharsets.UTF_8)
