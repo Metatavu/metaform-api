@@ -37,6 +37,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Abstract base class for all tests
+ */
 @QuarkusTest
 class AbstractTest {
 
