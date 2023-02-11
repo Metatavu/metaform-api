@@ -25,6 +25,9 @@ class PdfPrinter {
     @ConfigProperty (name = "metaform.pdf-renderer.url")
     private lateinit var pdfRendererUrl: String
 
+    @ConfigProperty (name = "metaform.pdf-renderer.apiKey")
+    private lateinit var pdfRendererApiKey: String
+
     /**
      * Renders html stream as pdf stream
      *
@@ -54,6 +57,8 @@ class PdfPrinter {
             ByteArrayInputStream(htmlData).use {
                 HttpClients.createDefault().use { client ->
                     val httpPost = HttpPost(pdfRendererUrl)
+                    httpPost.setHeader("x-api-key", pdfRendererApiKey)
+
                     httpPost.entity = StringEntity(jacksonObjectMapper().writeValueAsString(mapOf(
                         "html" to htmlData.toString(StandardCharsets.UTF_8)
                     )))

@@ -14,7 +14,8 @@ class PdfRendererResource : QuarkusTestResourceLifecycleManager {
         container.start()
 
         return hashMapOf(
-            "metaform.pdf-renderer.url" to "http://${container.host}:${container.getMappedPort(3000)}/dev/print"
+            "metaform.pdf-renderer.url" to "http://${container.host}:${container.getMappedPort(3000)}/dev/print",
+            "metaform.pdf-renderer.apiKey" to "notrealapikey"
         )
     }
 
