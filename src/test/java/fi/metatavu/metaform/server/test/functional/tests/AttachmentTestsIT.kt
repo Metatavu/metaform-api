@@ -28,8 +28,8 @@ import java.util.*
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class AttachmentTestsIT : AbstractTest() {

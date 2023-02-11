@@ -29,9 +29,9 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class),
-        QuarkusTestResource(MailgunResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class),
+    QuarkusTestResource(MailgunResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class EmailNotificationTestsIT : AbstractTest() {

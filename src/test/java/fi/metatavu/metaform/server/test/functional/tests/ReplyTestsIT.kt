@@ -10,6 +10,7 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
@@ -34,8 +35,9 @@ import kotlin.arrayOf
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class),
+    QuarkusTestResource(PdfRendererResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class ReplyTestsIT : AbstractTest() {
@@ -614,7 +616,7 @@ class ReplyTestsIT : AbstractTest() {
                     metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
             testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
             val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
-            assertPdfDownloadStatus(200, testBuilder.systemAdmin.token, metaform, reply)
+            assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaform, reply)
         }
     }
 

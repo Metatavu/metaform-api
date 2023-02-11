@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class AuditLogEntryTestsIT : AbstractTest() {

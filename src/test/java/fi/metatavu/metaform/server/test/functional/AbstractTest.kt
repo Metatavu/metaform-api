@@ -9,6 +9,7 @@ import fi.metatavu.metaform.api.client.models.Reply
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured
 import org.apache.commons.codec.digest.DigestUtils
+import org.apache.commons.lang3.StringUtils
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpDelete
 import org.apache.http.client.methods.HttpGet
@@ -16,10 +17,13 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.eclipse.microprofile.config.ConfigProvider
 import org.hamcrest.collection.IsIterableContainingInAnyOrder
 import org.junit.Assert
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -326,9 +330,50 @@ class AbstractTest {
                 .then()
                 .assertThat()
                 .statusCode(expected)
+
         if (expected == 200) {
             response.header("Content-Type", "application/pdf")
         }
+    }
+
+    /**
+     * Assert PDF download status code
+     *
+     * @param expected    expected status code
+     * @param accessToken access token
+     * @param metaform    metaform
+     * @param reply       reply
+     */
+    protected fun assertPdfDownloadContents(expected: String, accessToken: String?, metaform: Metaform, reply: Reply) {
+        val response = RestAssured.given()
+            .baseUri(ApiTestSettings.apiBasePath)
+            .header("Content-Type", "application/json")
+            .header("Authorization", String.format("Bearer %s", accessToken))["/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.id.toString(), reply.id.toString()]
+
+        val data = response.body.asByteArray()
+        Assert.assertNotNull(data)
+        response.then().assertThat().statusCode(200)
+
+        assertPdfContains(
+            expected = expected,
+            data = data
+        )
+    }
+
+
+    /**
+     * Asserts that given PDF data contains expected string
+     *
+     * @param expected expected string
+     * @param data     PDF data
+     * @throws IOException thrown on PDF read failure
+     */
+    @Throws(IOException::class)
+    protected fun assertPdfContains(expected: String?, data: ByteArray?) {
+        val document = PDDocument.load(ByteArrayInputStream(data))
+        val pdfText = PDFTextStripper().getText(document)
+        document.close()
+        Assert.assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
     }
 
     /**
