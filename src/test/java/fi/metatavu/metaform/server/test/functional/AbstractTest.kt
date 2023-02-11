@@ -122,7 +122,6 @@ class AbstractTest {
      * @return upload response
      * @throws IOException thrown on upload failure
      */
-    @Throws(IOException::class)
     protected fun uploadResourceFile(resourceName: String?): FileUploadResponse {
         val classLoader = javaClass.classLoader
         classLoader.getResourceAsStream(resourceName).use { fileStream ->
