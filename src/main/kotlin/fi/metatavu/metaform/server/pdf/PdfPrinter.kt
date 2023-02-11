@@ -16,6 +16,9 @@ import java.nio.charset.StandardCharsets
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
+/**
+ * Class for converting HTML documents to PDF documents
+ */
 @ApplicationScoped
 class PdfPrinter {
 
