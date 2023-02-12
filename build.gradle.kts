@@ -8,6 +8,12 @@ plugins {
     id("org.jetbrains.kotlin.kapt") version "1.6.10"
 }
 
+configurations {
+    all() {
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
+}
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -51,6 +57,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.jboss.logmanager:log4j-jboss-logmanager")
+    implementation("org.jboss.logging:commons-logging-jboss-logging")
     implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
 
     testImplementation("io.rest-assured:rest-assured:5.1.1")
