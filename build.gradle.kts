@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
     kotlin("plugin.allopen") version "1.6.10"
     id("io.quarkus")
-    id("org.openapi.generator") version "6.1.1-kotlin-vertx-client-rc11"
+    id("org.openapi.generator") version "6.3.0"
     id("org.jetbrains.kotlin.kapt") version "1.6.10"
 }
 
@@ -44,24 +44,17 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
 
-    implementation("javax.servlet:javax.servlet-api:4.0.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.freemarker:freemarker:$freemarkerVersion")
-    implementation("org.apache.commons:commons-lang3")
     implementation("org.apache.poi:poi:4.1.2")
     implementation("org.apache.poi:poi-ooxml:4.1.2")
-    implementation("org.liquibase:liquibase-cdi:4.3.1")
     implementation("net.sargue:mailgun:1.9.2")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.8")
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
-    implementation("org.jboss.logmanager:log4j-jboss-logmanager")
-    implementation("org.jboss.logging:commons-logging-jboss-logging")
-    implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.squareup.okhttp3:okhttp")
 
-    testImplementation("io.rest-assured:rest-assured:5.1.1")
     testImplementation("io.quarkus:quarkus-junit5")
+    testImplementation("io.rest-assured:rest-assured")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:mysql")
@@ -70,11 +63,8 @@ dependencies {
     testImplementation("org.apache.pdfbox:pdfbox-tools:2.0.26")
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
-    testImplementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
-    testImplementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
 
     kapt("org.hibernate:hibernate-jpamodelgen:5.5.7.Final")
-
 }
 
 group = "fi.metatavu.metaform-api"
@@ -133,6 +123,7 @@ val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
     this.configOptions.put("dateLibrary", "string")
     this.configOptions.put("collectionType", "array")
     this.configOptions.put("enumPropertyNaming", "UPPERCASE")
+    this.configOptions.put("serializationLibrary", "jackson")
 }
 
 val generateKeycloackClient = tasks.register("generateKeycloackClient",GenerateTask::class){
