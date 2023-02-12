@@ -138,6 +138,7 @@ val generateKeycloackClient = tasks.register("generateKeycloackClient",GenerateT
     setProperty("packageName", "fi.metatavu.metaform.keycloak.client")
     this.configOptions.put("dateLibrary", "java8")
     this.configOptions.put("serializationLibrary", "jackson")
+    this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
 }
 
 tasks.named("compileKotlin") {

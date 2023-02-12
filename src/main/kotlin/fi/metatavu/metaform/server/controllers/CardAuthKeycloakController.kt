@@ -65,7 +65,7 @@ class CardAuthKeycloakController {
 
     private val usersApi: UsersApi
         get() {
-            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.CARD_AUTH)?.accessToken
+            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.CARD_AUTH)?.getAccessToken()
             return UsersApi(basePath = apiBasePath)
         }
 

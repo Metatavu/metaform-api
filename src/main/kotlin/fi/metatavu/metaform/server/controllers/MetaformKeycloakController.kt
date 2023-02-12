@@ -105,19 +105,19 @@ class MetaformKeycloakController {
 
     private val usersApi: UsersApi
         get() {
-            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)?.accessToken
+            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)?.getAccessToken()
             return UsersApi(basePath = apiBasePath)
         }
 
     private val userApi: UserApi
         get() {
-            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)?.accessToken
+            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)?.getAccessToken()
             return UserApi(basePath = apiBasePath)
         }
 
     private val groupApi: GroupApi
         get() {
-            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)?.accessToken
+            ApiClient.accessToken = keycloakControllerToken.getAccessToken(keycloakConfiguration, KeycloakSource.METAFORM)?.getAccessToken()
             return GroupApi(basePath = apiBasePath)
         }
 
@@ -221,7 +221,7 @@ class MetaformKeycloakController {
                 .username(adminUser)
                 .password(adminPass)
                 .resteasyClient(clientBuilder.build() as ResteasyClient)
-                .authorization("Bearer ${token?.accessToken}")
+                .authorization("Bearer ${token?.getAccessToken()}")
                 .build()
         }
 
