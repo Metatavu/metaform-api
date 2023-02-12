@@ -45,6 +45,7 @@ dependencies {
     implementation("io.quarkus:quarkus-undertow")
 
     implementation("org.jboss.logging:commons-logging-jboss-logging")
+    implementation("org.jboss.logmanager:log4j-jboss-logmanager")
     implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
 
     implementation("org.freemarker:freemarker:$freemarkerVersion")
