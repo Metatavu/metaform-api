@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.liquibase.changes
 
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
+import io.quarkus.runtime.annotations.RegisterForReflection
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.keycloak.authorization.client.AuthzClient
@@ -19,6 +20,7 @@ import javax.ws.rs.BadRequestException
  *
  * @author Antti Leppä
  */
+@RegisterForReflection
 abstract class AbstractAuthzCustomChange : AbstractCustomChange() {
     /**
      * Creates protected resource into Keycloak

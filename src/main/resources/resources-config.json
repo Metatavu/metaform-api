@@ -1,7 +1,7 @@
 {
   "resources": [
     {
-      "pattern": "db/changeLog.xml"
+      "pattern": "replacements.properties"
     }
   ]
 }

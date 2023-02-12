@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.liquibase.changes
 
+import io.quarkus.runtime.annotations.RegisterForReflection
 import liquibase.database.Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
@@ -12,6 +13,7 @@ import java.util.*
  *
  * @author Antti Leppä
  */
+@RegisterForReflection
 class FormSlugs : AbstractAuthzCustomChange() {
     @Throws(CustomChangeException::class)
     override fun execute(database: Database) {
