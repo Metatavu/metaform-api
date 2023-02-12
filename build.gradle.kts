@@ -44,6 +44,9 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
 
+    implementation("org.jboss.logging:commons-logging-jboss-logging")
+    implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
+
     implementation("org.freemarker:freemarker:$freemarkerVersion")
     implementation("org.apache.poi:poi:4.1.2")
     implementation("org.apache.poi:poi-ooxml:4.1.2")
