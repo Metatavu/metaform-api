@@ -3,12 +3,13 @@ package fi.metatavu.metaform.server.test.functional
 import fi.metatavu.metaform.server.test.functional.builder.resources.*
 import fi.metatavu.metaform.server.test.functional.tests.GeneralTestProfile
 import fi.metatavu.metaform.server.test.functional.tests.MetaformMembersTestsIT
+import fi.metatavu.metaform.server.test.functional.tests.MetaformStatisticsTestsIT
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusIntegrationTest
 import io.quarkus.test.junit.TestProfile
 
 /**
- * Native tests for MetaformMembers API
+ * Native tests for metaform Statistics API
  */
 @QuarkusIntegrationTest
 @QuarkusTestResource.List(
@@ -19,5 +20,5 @@ import io.quarkus.test.junit.TestProfile
     QuarkusTestResource(MailgunResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
-class NativeMetaformMemberTestsIT: MetaformMembersTestsIT() {
+class NativeMetaformStatisticsTestsIT: MetaformStatisticsTestsIT() {
 }

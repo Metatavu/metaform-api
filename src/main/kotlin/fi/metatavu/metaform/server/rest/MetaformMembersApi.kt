@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response
 class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, AbstractApi() {
 
   @Inject
-  private lateinit var logger: Logger
+  lateinit var logger: Logger
 
   @Inject
   lateinit var metaformController: MetaformController

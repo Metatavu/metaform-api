@@ -26,10 +26,10 @@ class PdfPrinter {
     lateinit var logger: Logger
 
     @ConfigProperty (name = "metaform.pdf-renderer.url")
-    private lateinit var pdfRendererUrl: String
+    lateinit var pdfRendererUrl: String
 
     @ConfigProperty (name = "metaform.pdf-renderer.apiKey")
-    private lateinit var pdfRendererApiKey: String
+    lateinit var pdfRendererApiKey: String
 
     /**
      * Renders html stream as pdf stream
