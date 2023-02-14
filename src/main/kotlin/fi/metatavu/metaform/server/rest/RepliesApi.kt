@@ -265,6 +265,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       val metaformEntity = try {
         metaformTranslator.translate(metaform)
       } catch (e: MalformedMetaformJsonException) {
+        logger.error("Failed to read Metaform", e)
         return createInternalServerError(e.message)
       }
 
@@ -284,6 +285,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       try {
         streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       } catch (e: XlsxException) {
+        logger.error("Failed to rwite XLSX", e)
         createInternalServerError(e.message!!)
       }
     } else {

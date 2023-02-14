@@ -2,6 +2,9 @@
   "resources": [
     {
       "pattern": "replacements.properties"
+    },
+    {
+      "pattern": "org/apache/poi/schemas/ooxml/system/ooxml/*"
     }
   ]
 }

@@ -4,6 +4,7 @@ import io.quarkus.test.common.QuarkusTestResourceLifecycleManager
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
+import java.time.Duration
 
 /**
  * Starts test container for PDF renderer
@@ -30,6 +31,7 @@ class PdfRendererResource : QuarkusTestResourceLifecycleManager {
             .withLogConsumer {
                 logger.info(it.utf8String)
             }
+            .withStartupTimeout(Duration.ofMinutes(5))
             .withExposedPorts(3000)
     }
 

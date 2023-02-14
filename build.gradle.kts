@@ -17,6 +17,7 @@ configurations {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { setUrl("https://jitpack.io") }
 }
 
 val quarkusPlatformGroupId: String by project
@@ -27,6 +28,7 @@ val testContainersKeycloakVersion: String by project
 val moshiVersion: String by project
 val wiremockVersion: String by project
 val freemarkerVersion: String by project
+val quarkusRegisterReflectionVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -43,6 +45,8 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
+
+    implementation("com.github.metatavu.quarkus-register-reflection:quarkus-register-reflection:$quarkusRegisterReflectionVersion")
 
     implementation("org.jboss.logging:commons-logging-jboss-logging")
     implementation("org.jboss.logmanager:log4j-jboss-logmanager")
