@@ -46,7 +46,7 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
 
-    implementation("com.github.metatavu.quarkus-register-reflection:quarkus-register-reflection:$quarkusRegisterReflectionVersion")
+    // implementation("com.github.metatavu.quarkus-register-reflection:quarkus-register-reflection:$quarkusRegisterReflectionVersion")
 
     implementation("org.jboss.logging:commons-logging-jboss-logging")
     implementation("org.jboss.logmanager:log4j-jboss-logmanager")
