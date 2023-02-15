@@ -48,6 +48,7 @@ dependencies {
     
     implementation("io.quarkiverse.poi:quarkus-poi:1.0.2")
 
+    implementation("org.jboss.logmanager:log4j-jboss-logmanager")
     implementation("org.jboss.logmanager:log4j2-jboss-logmanager")
     implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
     implementation("org.freemarker:freemarker:$freemarkerVersion")
