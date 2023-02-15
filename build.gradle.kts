@@ -11,6 +11,7 @@ plugins {
 configurations {
     all() {
         exclude(group = "commons-logging", module = "commons-logging")
+        exclude(group = "org.apache.logging.log4j", module = "log4j-api")
     }
 }
 
