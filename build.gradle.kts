@@ -28,7 +28,7 @@ val testContainersKeycloakVersion: String by project
 val moshiVersion: String by project
 val wiremockVersion: String by project
 val freemarkerVersion: String by project
-val quarkusRegisterReflectionVersion: String by project
+val quarkusPoiVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -46,7 +46,7 @@ dependencies {
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
     
-    implementation("io.quarkiverse.poi:quarkus-poi:1.0.2")
+    implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
 
     implementation("org.jboss.logmanager:log4j-jboss-logmanager")
     implementation("org.jboss.logmanager:log4j2-jboss-logmanager")
