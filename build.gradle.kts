@@ -45,16 +45,15 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
-
-    // implementation("com.github.metatavu.quarkus-register-reflection:quarkus-register-reflection:$quarkusRegisterReflectionVersion")
+    
+    implementation("io.quarkiverse.poi:quarkus-poi:1.0.2")
 
     implementation("org.jboss.logging:commons-logging-jboss-logging")
     implementation("org.jboss.logmanager:log4j-jboss-logmanager")
-    implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
 
+    implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
     implementation("org.freemarker:freemarker:$freemarkerVersion")
-    implementation("org.apache.poi:poi:4.1.2")
-    implementation("org.apache.poi:poi-ooxml:4.1.2")
+
     implementation("net.sargue:mailgun:1.9.2")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
