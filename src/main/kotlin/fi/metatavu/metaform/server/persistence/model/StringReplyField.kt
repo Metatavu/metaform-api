@@ -1,7 +1,5 @@
 package fi.metatavu.metaform.server.persistence.model
 
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import org.hibernate.annotations.Type
 import javax.persistence.Cacheable
 import javax.persistence.Column
@@ -15,7 +13,6 @@ import javax.persistence.Lob
  */
 @Entity
 @Cacheable(true)
-@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 class StringReplyField : ReplyField() {
   @Lob
   @Type(type = "org.hibernate.type.TextType")
