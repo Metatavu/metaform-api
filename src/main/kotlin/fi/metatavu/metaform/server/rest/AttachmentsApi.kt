@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.server.controllers.AttachmentController
+import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.persistence.model.Attachment
 import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator
 import java.util.*
@@ -26,7 +27,7 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))
 
-    if (!isPermittedAttachment(attachment, ownerKey) && !isMetaformAdminAny) {
+    if (!isPermittedAttachment(attachment, ownerKey, AuthorizationScope.REPLY_VIEW)) {
       return createForbidden(createAnonNotAllowedMessage(FIND, ATTACHMENT))
     }
 
@@ -35,14 +36,12 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     return createOk(attachmentTranslator.translate(attachment))
   }
 
-  private fun isPermittedAttachment(attachment: Attachment, ownerKey: String?): Boolean {
+  private fun isPermittedAttachment(attachment: Attachment, ownerKey: String?, authorizationScope: AuthorizationScope): Boolean {
     if (isMetaformAdminAny) {
       return true
     }
     val reply = attachmentController.findReplyByAttachment(attachment)
-    return if (reply?.resourceId == null) {
-      false
-    } else replyController.isValidOwnerKey(reply, ownerKey)
+    return isPermittedReply(reply, ownerKey, authorizationScope)
   }
 
   override fun findAttachmentData(attachmentId: UUID, ownerKey: String?): Response {
@@ -50,7 +49,7 @@ class AttachmentsApi: fi.metatavu.metaform.api.spec.AttachmentsApi, AbstractApi(
     val attachment: Attachment = attachmentController.findAttachmentById(attachmentId)
             ?: return createNotFound(createNotFoundMessage(ATTACHMENT, attachmentId))
 
-    if (!isPermittedAttachment(attachment, ownerKey) && !isMetaformAdminAny) {
+    if (!isPermittedAttachment(attachment, ownerKey, AuthorizationScope.REPLY_VIEW)) {
       return createForbidden(createAnonNotAllowedMessage(FIND, ATTACHMENT))
     }
 
