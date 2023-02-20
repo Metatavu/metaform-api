@@ -8,19 +8,21 @@
           "name": "table",
           "title": "Table field",
           "type": "table",
-          "add-rows": true,
-          "columns": [
-            {
-              "type": "text",
-              "name": "tabletext",
-              "title": "Text table field"
-            }, {
-              "type": "number",
-              "name": "tablenumber",
-              "title": "Number table field",
-              "calculate-sum": true
-            }
-          ]
+          "table": {
+            "addRows": true,
+            "columns": [
+              {
+                "type": "text",
+                "name": "tabletext",
+                "title": "Text table field"
+              }, {
+                "type": "number",
+                "name": "tablenumber",
+                "title": "Number table field",
+                "calculate-sum": true
+              }
+            ]
+          }
         }
       ]
      }

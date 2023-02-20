@@ -122,16 +122,4 @@ abstract class AbstractAuthzCustomChange : AbstractCustomChange() {
             e
         } else unwrapBadRequestException(e.cause)
     }
-
-    /**
-     * Converts UUID into bytes
-     *
-     * @param uuid UUID
-     * @return bytes
-     */
-    protected fun getUUIDBytes(uuid: UUID): ByteArray {
-        val result = ByteArray(16)
-        ByteBuffer.wrap(result).order(ByteOrder.BIG_ENDIAN).putLong(uuid.mostSignificantBits).putLong(uuid.leastSignificantBits)
-        return result
-    }
 }
