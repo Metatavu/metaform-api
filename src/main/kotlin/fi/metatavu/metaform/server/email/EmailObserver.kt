@@ -37,16 +37,7 @@ class EmailObserver {
      */
     fun onSendEmailEventAfterSuccess(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: SendEmailEvent) {
         if (event.transactionPhase == TransactionPhase.AFTER_SUCCESS) {
-            try {
-                emailProvider.sendMail(
-                    toEmail = event.toEmail,
-                    subject = event.subject,
-                    content = event.content,
-                    format = event.format
-                )
-            } catch (e: Exception) {
-                logger.error("Failed to send email", e)
-            }
+            sendEmail(event)
         }
     }
 
@@ -57,14 +48,28 @@ class EmailObserver {
      */
     fun onSendEmailEventInProgress(@Observes(during = TransactionPhase.IN_PROGRESS) event: SendEmailEvent) {
         if (event.transactionPhase == TransactionPhase.IN_PROGRESS) {
-            try {
-                emailProvider.sendMail(
-                    toEmail = event.toEmail,
-                    subject = event.subject,
-                    content = event.content,
-                    format = event.format
-                )
-            } catch (e: Exception) {
+            sendEmail(event)
+        }
+    }
+
+    /**
+     * Sends email based on event. Retries sending email if sending fails
+     *
+     * @param event event
+     * @param attemptsLeft attempts left
+     */
+    private fun sendEmail(event: SendEmailEvent, attemptsLeft: Int = 3) {
+        try {
+            emailProvider.sendMail(
+                toEmail = event.toEmail,
+                subject = event.subject,
+                content = event.content,
+                format = event.format
+            )
+        } catch (e: Exception) {
+            if (attemptsLeft > 0) {
+                sendEmail(event, attemptsLeft - 1)
+            } else {
                 logger.error("Failed to send email", e)
             }
         }
