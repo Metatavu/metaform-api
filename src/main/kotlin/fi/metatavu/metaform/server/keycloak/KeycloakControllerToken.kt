@@ -25,7 +25,7 @@ import javax.inject.Inject
 class KeycloakControllerToken {
 
     @Inject
-    private lateinit var logger: Logger
+    lateinit var logger: Logger
 
     private lateinit var accessTokens: EnumMap<KeycloakSource, KeycloakAccessToken?>
 
