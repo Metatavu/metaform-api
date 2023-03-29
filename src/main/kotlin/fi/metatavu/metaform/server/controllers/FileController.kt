@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.server.exceptions.FailStoreFailedException
-import fi.metatavu.metaform.server.exceptions.MalformedDraftDataException
 import fi.metatavu.metaform.server.files.File
 import fi.metatavu.metaform.server.files.FileMeta
 import org.apache.commons.io.IOUtils

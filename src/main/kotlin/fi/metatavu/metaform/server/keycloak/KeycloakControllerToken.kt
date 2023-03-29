@@ -25,7 +25,7 @@ import javax.inject.Inject
 class KeycloakControllerToken {
 
     @Inject
-    private lateinit var logger: Logger
+    lateinit var logger: Logger
 
     private lateinit var accessTokens: EnumMap<KeycloakSource, KeycloakAccessToken?>
 
@@ -36,6 +36,7 @@ class KeycloakControllerToken {
     /**
      * Post construct method for initializing accessTokens & accessTokenExpires EnumMaps
      */
+    @Suppress("unused")
     @PostConstruct
     fun init() {
         accessTokens = EnumMap<KeycloakSource, KeycloakAccessToken?>(KeycloakSource::class.java)
