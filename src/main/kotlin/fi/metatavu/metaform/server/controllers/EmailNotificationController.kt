@@ -176,6 +176,8 @@ class EmailNotificationController {
         val content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE)
 
         emails.forEach { email ->
+            logger.info("Scheduing email to {} with subject {}", email, subject)
+
             emailEvent.fire(
                 SendEmailEvent(
                     toEmail = email,

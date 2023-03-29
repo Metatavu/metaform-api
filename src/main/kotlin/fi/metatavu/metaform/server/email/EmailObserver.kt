@@ -59,6 +59,8 @@ class EmailObserver {
      * @param attemptsLeft attempts left
      */
     private fun sendEmail(event: SendEmailEvent, attemptsLeft: Int = 3) {
+        logger.info("Sending email to {} with subject {}", event.toEmail, event.subject)
+
         try {
             emailProvider.sendMail(
                 toEmail = event.toEmail,
