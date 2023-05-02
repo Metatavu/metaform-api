@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.FieldRule
 import fi.metatavu.metaform.api.spec.model.Reply
+import fi.metatavu.metaform.server.email.SendEmailEvent
 import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer
-import fi.metatavu.metaform.server.email.EmailProvider
 import fi.metatavu.metaform.server.email.EmailTemplateSource
 import fi.metatavu.metaform.server.email.mailgun.MailFormat
 import fi.metatavu.metaform.server.metaform.FieldRuleEvaluator
@@ -21,6 +21,8 @@ import org.slf4j.Logger
 import java.io.IOException
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
+import javax.enterprise.event.Event
+import javax.enterprise.event.TransactionPhase
 import javax.inject.Inject
 
 /**
@@ -36,9 +38,6 @@ class EmailNotificationController {
     lateinit var emailNotificationTranslator: EmailNotificationTranslator
 
     @Inject
-    lateinit var emailProvider: EmailProvider
-
-    @Inject
     lateinit var freemarkerRenderer: EmailFreemarkerRenderer
 
     @Inject
@@ -46,6 +45,9 @@ class EmailNotificationController {
 
     @Inject
     lateinit var emailNotificationEmailDAO: EmailNotificationEmailDAO
+
+    @Inject
+    lateinit var emailEvent: Event<SendEmailEvent>
 
     /**
      * Creates email notification
@@ -90,7 +92,7 @@ class EmailNotificationController {
     /**
      * Lists an email notifications from Metaform
      *
-     * @param Metaform metaform
+     * @param metaform metaform
      * @return a email notification
      */
     fun listEmailNotificationByMetaform(metaform: Metaform): List<EmailNotification> {
@@ -125,22 +127,22 @@ class EmailNotificationController {
     }
 
     /**
-     * Returns whether email notification should be send according to notify if rule
+     * Returns whether email notification should be sent according to notify if rule
      *
      * @param emailNotification email notification
      * @param replyEntity reply entity
-     * @return whether email notification should be send according to notify if rule
+     * @return whether email notification should be sent according to notify if rule
      */
     fun evaluateEmailNotificationNotifyIf(emailNotification: EmailNotification, replyEntity: Reply): Boolean {
         return evaluateEmailNotificationNotifyIf(emailNotificationTranslator.translate(emailNotification), replyEntity)
     }
 
     /**
-     * Returns whether email notification should be send according to notify if rule
+     * Returns whether email notification should be sent according to notify if rule
      *
      * @param emailNotificationEntity email notification entity
      * @param replyEntity reply entity
-     * @return whether email notification should be send according to notify if rule
+     * @return whether email notification should be sent according to notify if rule
      */
     fun evaluateEmailNotificationNotifyIf(emailNotificationEntity: fi.metatavu.metaform.api.spec.model.EmailNotification, replyEntity: Reply): Boolean {
         val notifyIf = emailNotificationEntity.notifyIf
@@ -172,7 +174,18 @@ class EmailNotificationController {
         val data = toFreemarkerData(replyEntity)
         val subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE)
         val content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE)
-        emails.forEach { email -> emailProvider.sendMail(email, subject, content, MailFormat.HTML) }
+
+        emails.forEach { email ->
+            emailEvent.fire(
+                SendEmailEvent(
+                    toEmail = email,
+                    subject = subject,
+                    content = content,
+                    format = MailFormat.HTML,
+                    transactionPhase = TransactionPhase.AFTER_SUCCESS
+                )
+            )
+        }
     }
 
     /**
@@ -198,7 +211,7 @@ class EmailNotificationController {
         val objectMapper = ObjectMapper()
         objectMapper.registerModule(JavaTimeModule())
         try {
-            return objectMapper.readValue<Map<String, Any>>(objectMapper.writeValueAsString(reply), object : TypeReference<Map<String, Any>>() {})
+            return objectMapper.readValue(objectMapper.writeValueAsString(reply), object : TypeReference<Map<String, Any>>() {})
         } catch (e: IOException) {
             logger.error("Failed to convert reply into freemarker data", e)
         }

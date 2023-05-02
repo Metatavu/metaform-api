@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils
  */
 @ApplicationScoped
 class AdminThemeController {
+
     @Inject
     lateinit var adminThemeDAO: AdminThemeDAO
 
@@ -30,10 +31,9 @@ class AdminThemeController {
      * @param data the data in the theme
      * @param name the name of the theme
      * @param slug the slug of the theme
-     * @param creatorId who created this theme
-     * @param lastModifierId who last modified this theme
+     * @param userId who created this theme
      *
-     * @return new [AdminTheme] object
+     * @return created admin theme
      */
     fun create(
         id: UUID,
@@ -101,7 +101,7 @@ class AdminThemeController {
     /**
      * Update an admin theme
      * 
-     * @param theme the theme to update
+     * @param adminTheme the theme to update
      * @param data the data to update
      * @param name the name to update
      * @param slug the slug to update
