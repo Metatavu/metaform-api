@@ -90,7 +90,7 @@ class EmailNotificationController {
     /**
      * Lists an email notifications from Metaform
      *
-     * @param Metaform metaform
+     * @param metaform metaform
      * @return a email notification
      */
     fun listEmailNotificationByMetaform(metaform: Metaform): List<EmailNotification> {
