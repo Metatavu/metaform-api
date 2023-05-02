@@ -101,7 +101,7 @@ class AdminThemeController {
     /**
      * Update an admin theme
      * 
-     * @param theme the theme to update
+     * @param adminTheme the theme to update
      * @param data the data to update
      * @param name the name to update
      * @param slug the slug to update
