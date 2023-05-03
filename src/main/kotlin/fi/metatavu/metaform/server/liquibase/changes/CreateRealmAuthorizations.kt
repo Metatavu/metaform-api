@@ -5,6 +5,7 @@ import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.keycloak.ResourceType
 import fi.metatavu.metaform.server.permissions.AuthzController
+import io.quarkus.runtime.annotations.RegisterForReflection
 import liquibase.database.Database
 import liquibase.exception.CustomChangeException
 import org.keycloak.representations.idm.authorization.DecisionStrategy
@@ -18,6 +19,7 @@ import javax.inject.Inject
  */
 @ApplicationScoped
 @Suppress ("UNUSED")
+@RegisterForReflection
 class CreateRealmAuthorizations : AbstractAuthzCustomChange() {
 
     @Inject

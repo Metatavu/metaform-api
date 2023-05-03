@@ -3,16 +3,11 @@ package fi.metatavu.metaform.server.test.functional.tests
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.apache.commons.lang3.StringUtils
-import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.text.PDFTextStripper
 import org.awaitility.Awaitility
-import org.junit.Assert
-import java.io.ByteArrayInputStream
-import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 /**
@@ -20,8 +15,9 @@ import java.util.concurrent.TimeUnit
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class),
+    QuarkusTestResource(PdfRendererResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class ScriptTestsIT : AbstractTest() {
@@ -119,20 +115,6 @@ class ScriptTestsIT : AbstractTest() {
     }
   }
  */
-    /**
-     * Asserts that given PDF data contains expected string
-     *
-     * @param expected expected string
-     * @param data     PDF data
-     * @throws IOException thrown on PDF read failure
-     */
-    @Throws(IOException::class)
-    protected fun assertPdfContains(expected: String?, data: ByteArray?) {
-        val document = PDDocument.load(ByteArrayInputStream(data))
-        val pdfText = PDFTextStripper().getText(document)
-        document.close()
-        Assert.assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
-    }
 
     /**
      * Wait until theme file caches are flushed

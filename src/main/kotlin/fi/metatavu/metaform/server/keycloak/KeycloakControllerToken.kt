@@ -1,8 +1,7 @@
 package fi.metatavu.metaform.server.keycloak
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.quarkus.arc.Lock
 import org.apache.commons.io.IOUtils
 import org.apache.http.NameValuePair
@@ -62,7 +61,7 @@ class KeycloakControllerToken {
                     return null
                 }
 
-                val expiresIn = accessTokens[keycloakSource]?.expiresIn
+                val expiresIn = accessTokens[keycloakSource]?.getExpiresIn()
                 if (expiresIn == null) {
                     logger.error("Could not resolve access token expires in")
                     return null
@@ -88,7 +87,7 @@ class KeycloakControllerToken {
     private fun obtainAccessToken(keycloakConfiguration: KeycloakConfiguration): KeycloakAccessToken? {
         logger.info("Obtaining new admin access token...")
 
-        val uri = "${keycloakConfiguration.authServerUrl}/realms/${keycloakConfiguration.realm}/protocol/openid-connect/token"
+        val uri = "${keycloakConfiguration.authServerUrl}realms/${keycloakConfiguration.realm}/protocol/openid-connect/token"
         try {
             HttpClients.createDefault().use { client ->
                 val httpPost = HttpPost(uri)
@@ -105,16 +104,11 @@ class KeycloakControllerToken {
                         return null
                     }
 
-                    response.entity.content.use { inputStream ->
-                        val objectMapper = ObjectMapper()
-                        objectMapper.registerModule(JavaTimeModule())
-                        objectMapper.registerModule(KotlinModule.Builder().build())
-                        return objectMapper.readValue(inputStream, KeycloakAccessToken::class.java)
-                    }
+                    return response.entity.content.use(jacksonObjectMapper()::readValue)
                 }
             }
         } catch (e: IOException) {
-            logger.debug("Failed to retrieve access token", e)
+            logger.error("Failed to retrieve access token", e)
         }
 
         return null

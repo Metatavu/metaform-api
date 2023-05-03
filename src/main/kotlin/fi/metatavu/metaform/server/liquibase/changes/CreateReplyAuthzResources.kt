@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.liquibase.changes
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.permissions.AuthzController
+import io.quarkus.runtime.annotations.RegisterForReflection
 import liquibase.database.Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
@@ -21,6 +22,7 @@ import javax.inject.Inject
  */
 @ApplicationScoped
 @Suppress ("UNUSED")
+@RegisterForReflection
 class CreateReplyAuthzResources : AbstractAuthzCustomChange() {
 
     @Inject

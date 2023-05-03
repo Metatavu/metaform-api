@@ -19,6 +19,7 @@ import javax.inject.Inject
  */
 @ApplicationScoped
 class CryptoController {
+
     @Inject
     lateinit var logger: Logger
 
@@ -49,16 +50,6 @@ class CryptoController {
     }
 
     /**
-     * Returns private part of key pair as base64 encoded string
-     *
-     * @param privateKey private key
-     * @return private part of key pair as base64 encoded string
-     */
-    fun getPrivateKeyBase64(privateKey: PrivateKey?): String? {
-        return privateKey?.let { Base64.encodeBase64URLSafeString(it.encoded) }
-    }
-
-    /**
      * Loads public key from base64 encoded string
      *
      * @param base64String encoded key
@@ -79,21 +70,6 @@ class CryptoController {
         } catch (e: InvalidKeySpecException) {
             null
         }
-    }
-
-    /**
-     * Loads private key from base64 encoded string
-     *
-     * @param base64String encoded key
-     * @return private key
-     */
-    fun loadPrivateKeyBase64(base64String: String?): PrivateKey? {
-        if (StringUtils.isBlank(base64String)) {
-            return null
-        }
-
-        val key = Base64.decodeBase64(base64String) ?: return null
-        return loadPrivateKey(key)
     }
 
     /**
@@ -204,4 +180,5 @@ class CryptoController {
     companion object {
         private const val KEY_SIZE = 2048
     }
+
 }

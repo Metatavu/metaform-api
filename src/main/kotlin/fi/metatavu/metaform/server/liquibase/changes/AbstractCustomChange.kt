@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.liquibase.changes
 
+import io.quarkus.runtime.annotations.RegisterForReflection
 import liquibase.change.custom.CustomTaskChange
 import liquibase.database.Database
 import liquibase.exception.SetupException
@@ -11,6 +12,7 @@ import liquibase.resource.ResourceAccessor
  *
  * @author Antti Leppä
  */
+@RegisterForReflection
 abstract class AbstractCustomChange : CustomTaskChange {
     private val confirmationMessage = StringBuilder()
 

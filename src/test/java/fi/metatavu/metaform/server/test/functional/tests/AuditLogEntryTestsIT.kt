@@ -10,6 +10,7 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
@@ -23,11 +24,13 @@ import org.junit.jupiter.api.Test
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class),
+    QuarkusTestResource(PdfRendererResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class AuditLogEntryTestsIT : AbstractTest() {
+
     @Test
     @Throws(Exception::class)
     fun basicActionsOnReply() {
@@ -37,17 +40,17 @@ class AuditLogEntryTestsIT : AbstractTest() {
             replyData["text"] = "Test text value"
             val createdReply: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply: Reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), createdReply)
-            builder.test1.replies.findReply(metaform.id, reply.id!!, null)
-            builder.test1.replies.listReplies(metaform.id, null, null, null, null, null, true, null, null, null, null, null)
-            builder.test1.replies.updateReply(metaform.id, reply.id, reply, reply.ownerKey)
-            builder.test1.replies.delete(metaform.id, reply.id, reply.ownerKey)
+            builder.systemAdmin.replies.findReply(metaform.id, reply.id!!, null)
+            builder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, true, null, null, null, null, null)
+            builder.systemAdmin.replies.updateReply(metaform.id, reply.id, reply, reply.ownerKey)
+            builder.systemAdmin.replies.delete(metaform.id, reply.id, reply.ownerKey)
             val auditLogEntries: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, reply.id, null, null)
             Assertions.assertEquals(5, auditLogEntries.size)
             Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply.id), auditLogEntries[0].message)
-            Assertions.assertEquals(java.lang.String.format("user %s viewed reply %s", USER_1_ID, reply.id), auditLogEntries[1].message)
-            Assertions.assertEquals(java.lang.String.format("user %s listed reply %s", USER_1_ID, reply.id), auditLogEntries[2].message)
-            Assertions.assertEquals(java.lang.String.format("user %s modified reply %s", USER_1_ID, reply.id), auditLogEntries[3].message)
-            Assertions.assertEquals(java.lang.String.format("user %s deleted reply %s", USER_1_ID, reply.id), auditLogEntries[4].message)
+            Assertions.assertEquals(java.lang.String.format("user %s viewed reply %s", SYSTEM_ADMIN_ID, reply.id), auditLogEntries[1].message)
+            Assertions.assertEquals(java.lang.String.format("user %s listed reply %s", SYSTEM_ADMIN_ID, reply.id), auditLogEntries[2].message)
+            Assertions.assertEquals(java.lang.String.format("user %s modified reply %s", SYSTEM_ADMIN_ID, reply.id), auditLogEntries[3].message)
+            Assertions.assertEquals(java.lang.String.format("user %s deleted reply %s", SYSTEM_ADMIN_ID, reply.id), auditLogEntries[4].message)
         }
     }
 
@@ -92,8 +95,6 @@ class AuditLogEntryTestsIT : AbstractTest() {
 
     /**
      * test verifies that sorting by reply id words
-     *
-     * @throws IOException
      */
     @Test
     @Throws(Exception::class)
@@ -102,15 +103,13 @@ class AuditLogEntryTestsIT : AbstractTest() {
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
-            val replyWithData1: Reply = builder.test1.replies.createReplyWithData(replyData)
-            val replyWithData2: Reply = builder.test1.replies.createReplyWithData(replyData)
-            val reply3 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyWithData1)
-            builder.test1.replies.create(metaform.id, null, ReplyMode.REVISION.toString(), replyWithData2)
+            val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), builder.test1.replies.createReplyWithData(replyData))
+            builder.test1.replies.create(metaform.id, null, ReplyMode.REVISION.toString(), builder.test1.replies.createReplyWithData(replyData))
             val auditLogEntries: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null)
             Assertions.assertEquals(2, auditLogEntries.size)
-            val entryByReply: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, reply3.id, null, null)
+            val entryByReply: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, reply1.id, null, null)
             Assertions.assertEquals(1, entryByReply.size)
-            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply3.id), entryByReply[0].message)
+            Assertions.assertEquals(java.lang.String.format("user %s created reply %s", USER_1_ID, reply1.id), entryByReply[0].message)
         }
     }
 
@@ -121,8 +120,7 @@ class AuditLogEntryTestsIT : AbstractTest() {
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val replyData: MutableMap<String, Any> = HashMap()
             replyData["text"] = "Test text value"
-            val reply1: Reply = builder.test1.replies.createReplyWithData(replyData)
-            builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply1)
+            builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), builder.test1.replies.createReplyWithData(replyData))
             val auditLogEntries: Array<AuditLogEntry> = builder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null)
             Assertions.assertNotNull(auditLogEntries)
             builder.test2.auditLogs.assertListFailStatus(403, metaform.id, null, null, null, null)
