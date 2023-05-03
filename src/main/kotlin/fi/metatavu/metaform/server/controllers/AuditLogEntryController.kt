@@ -104,8 +104,7 @@ class AuditLogEntryController {
             action: String?,
             type: AuditLogEntryType
     ): AuditLogEntry {
-        var defaction = ""
-        defaction = when (type) {
+        val defaction = when (type) {
             AuditLogEntryType.DELETE_REPLY -> "deleted reply"
             AuditLogEntryType.CREATE_REPLY -> "created reply"
             AuditLogEntryType.MODIFY_REPLY -> "modified reply"
@@ -116,6 +115,7 @@ class AuditLogEntryController {
             AuditLogEntryType.EXPORT_REPLY_PDF -> "exported to pdf "
             AuditLogEntryType.EXPORT_REPLY_XLSX -> "exported to xlsx"
         }
+
         return createAuditLogEntry(
             metaform = metaform,
             userId = userId,
