@@ -154,7 +154,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     if (metaformEntity.scripts != null) {
       setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.type == ScriptType.AFTER_CREATE_REPLY }
+      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.AFTER_CREATE_REPLY }
       scriptController.runScripts(scriptsToRun)
     }
 
@@ -548,7 +548,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     if (metaformEntity.scripts != null) {
       setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.type == ScriptType.AFTER_UPDATE_REPLY }
+      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.AFTER_UPDATE_REPLY }
       scriptController.runScripts(scriptsToRun)
     }
 

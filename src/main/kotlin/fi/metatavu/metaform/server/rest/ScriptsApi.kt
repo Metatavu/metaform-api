@@ -87,14 +87,14 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
     }
 
     val foundScript = scriptsController.findScript(scriptId)
-      ?: return createNotFound(createNotFoundMessage(SCRIPT, UUID.fromString(script.id)))
+      ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
 
     val updatedScript = scriptsController.updateScript(
       script = foundScript,
-      name = foundScript.name,
-      language = foundScript.language,
-      type = foundScript.type,
-      content = foundScript.content,
+      name = script.name,
+      language = script.language,
+      type = script.type,
+      content = script.content,
       lastModifierId = userId
     )
 

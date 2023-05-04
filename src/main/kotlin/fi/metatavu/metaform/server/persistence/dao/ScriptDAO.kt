@@ -32,7 +32,7 @@ class ScriptDAO: AbstractDAO<Script>() {
     script.name = name
     script.language = language
     script.content = content
-    script.type = type
+    script.scriptType = type
     script.creatorId = creatorId
     script.lastModifierId = creatorId
     return persist(script)
@@ -72,7 +72,7 @@ class ScriptDAO: AbstractDAO<Script>() {
    * @param lastModifierId last modifier id
    */
   fun updateType(script: Script, type: ScriptType, lastModifierId: UUID): Script {
-    script.type = type
+    script.scriptType = type
     script.lastModifierId = lastModifierId
     return persist(script)
   }

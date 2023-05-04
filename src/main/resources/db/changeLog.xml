@@ -609,7 +609,7 @@
       <column name="language" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
-      <column name="visibility" type="varchar(191)">
+      <column name="scripttype" type="varchar(191)">
         <constraints nullable="false"/>
       </column>
       <column name="content" type="longtext">

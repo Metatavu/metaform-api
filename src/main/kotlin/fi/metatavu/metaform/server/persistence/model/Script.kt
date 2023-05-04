@@ -27,9 +27,8 @@ class Script: Metadata() {
 
     @Column(nullable = false)
     @NotNull
-    @NotEmpty
     @Enumerated(EnumType.STRING)
-    lateinit var type: ScriptType
+    lateinit var scriptType: ScriptType
 
     @Lob
     @Column(nullable = false)

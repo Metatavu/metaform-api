@@ -10,11 +10,11 @@ import javax.enterprise.context.ApplicationScoped
 class ScriptsTranslator {
   fun translate(entity: Script): fi.metatavu.metaform.api.spec.model.Script {
     return fi.metatavu.metaform.api.spec.model.Script(
-      id = entity.id.toString(),
+      id = entity.id,
       name = entity.name,
       language = entity.language,
       content = entity.content,
-      type = entity.type
+      type = entity.scriptType
     )
   }
 }
