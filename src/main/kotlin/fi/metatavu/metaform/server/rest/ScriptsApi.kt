@@ -49,7 +49,7 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
     }
 
     val script = scriptsController.findScript(scriptId)
-      ?: return createNotFound(createNotFoundMessage(METAFORM, scriptId))
+      ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
 
     scriptsController.deleteScript(script)
 
@@ -57,11 +57,26 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   }
 
   override fun findScript(scriptId: UUID): Response {
-    TODO("Not yet implemented")
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (!isRealmSystemAdmin && !isMetaformAdminAny) {
+      return createForbidden(createNotAllowedMessage(LIST, SCRIPT))
+    }
+
+    val script = scriptsController.findScript(scriptId)
+      ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+
+    return createOk(scriptsTranslator.translate(script))
   }
 
   override fun listScripts(): Response {
-    TODO("Not yet implemented")
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (!isRealmSystemAdmin && !isMetaformAdminAny) {
+      return createForbidden(createNotAllowedMessage(LIST, SCRIPT))
+    }
+
+    return createOk(scriptsController.listScripts().map(scriptsTranslator::translate))
   }
 
   override fun updateScript(scriptId: UUID, script: Script): Response {
