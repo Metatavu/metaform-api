@@ -32,12 +32,12 @@ class ScriptsController {
     creatorId: UUID
   ): Script {
     return scriptDAO.createScript(
-      UUID.randomUUID(),
-      name,
-      language,
-      type,
-      content,
-      creatorId
+      id = UUID.randomUUID(),
+      name = name,
+      language = language,
+      type = type,
+      content = content,
+      creatorId = creatorId
     )
   }
 
