@@ -7,12 +7,6 @@ import javax.enterprise.context.ApplicationScoped
 
 /**
  * DAO class for Script-entity
- *
- * @param id id
- * @param name name
- * @param type type
- * @param content content
- * @param creatorId creator id
  */
 @ApplicationScoped
 class ScriptDAO: AbstractDAO<Script>() {
