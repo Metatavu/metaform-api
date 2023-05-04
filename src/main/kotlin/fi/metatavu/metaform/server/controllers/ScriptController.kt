@@ -1,6 +1,6 @@
 package fi.metatavu.metaform.server.controllers
 
-import fi.metatavu.metaform.api.spec.model.MetaformScript
+import fi.metatavu.metaform.server.persistence.model.Script
 import fi.metatavu.metaform.server.script.RunnableScript
 import fi.metatavu.metaform.server.script.ScriptProcessor
 import javax.enterprise.context.ApplicationScoped
@@ -20,7 +20,7 @@ class ScriptController {
      *
      * @param scripts scripts
      */
-    fun runScripts(scripts: List<MetaformScript>?) {
+    fun runScripts(scripts: List<Script>?) {
         scripts?.forEach { runScript(it) }
     }
 
@@ -29,7 +29,7 @@ class ScriptController {
      *
      * @param script
      */
-    private fun runScript(script: MetaformScript?) {
+    private fun runScript(script: Script?) {
         if (script != null) {
             scriptProcessor.processScript(RunnableScript(script.language, script.content, script.name), mapOf())
         }

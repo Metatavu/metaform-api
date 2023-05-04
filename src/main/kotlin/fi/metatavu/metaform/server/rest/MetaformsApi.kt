@@ -6,8 +6,10 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.controllers.ExportThemeController
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.controllers.ScriptsController
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.metaform.SlugValidation
+import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Reply
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import fi.metatavu.metaform.server.utils.MetaformUtils
@@ -34,6 +36,12 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
   @Inject
   lateinit var exportThemeController: ExportThemeController
+
+  @Inject
+  lateinit var scriptsController: ScriptsController
+
+  @Inject
+  lateinit var metaformScriptDAO: MetaformScriptDAO
 
   override fun createMetaform(metaform: Metaform): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
@@ -63,8 +71,12 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createBadRequest("Invalid permission groups")
     }
 
+    metaform.scripts?.forEach { scriptId ->
+      scriptsController.findScript(scriptId) ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+    }
+
     val metaformData = try {
-      metaformController.serializeMetaform(metaform)
+      metaformController.serializeMetaform(metaform.copy(scripts = ArrayList<UUID>()))
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
     }
@@ -78,6 +90,11 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       data = metaformData,
       creatorId = userId
     )
+
+    metaform.scripts?.forEach { scriptId ->
+      val script = scriptsController.findScript(scriptId)
+      metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = createdMetaform, script = script!!, creatorId = userId)
+    }
 
     return try {
       createOk(metaformTranslator.translate(createdMetaform))
@@ -95,6 +112,10 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
     val metaform = metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+
+    metaformScriptDAO.listByMetaform(metaform).forEach { metaformScript ->
+      metaformScriptDAO.delete(metaformScript)
+    }
 
     metaformController.deleteMetaform(metaform)
 
@@ -179,8 +200,12 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createForbidden(createNotAllowedMessage(UPDATE, METAFORM))
     }
 
+    metaform.scripts?.forEach { scriptId ->
+      scriptsController.findScript(scriptId) ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+    }
+
     val data = try {
-      metaformController.serializeMetaform(metaform)
+      metaformController.serializeMetaform(metaform.copy(scripts = ArrayList<UUID>()))
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
     }
@@ -217,6 +242,22 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       slug = formSlug,
       lastModifierId = userId
     )
+
+    if (metaform.scripts != null) {
+      val existingMetaformScripts = metaformScriptDAO.listByMetaform(updatedMetaform)
+      existingMetaformScripts.forEach { metaformScript ->
+        if (!metaform.scripts.contains(metaformScript.script?.id)) {
+          metaformScriptDAO.delete(metaformScript)
+        }
+      }
+
+      metaform.scripts.forEach { scriptId ->
+        if (existingMetaformScripts.none { metaformScript -> metaformScript.script?.id == scriptId }) {
+          val script = scriptsController.findScript(scriptId)
+          metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = updatedMetaform, script = script!!, creatorId = userId)
+        }
+      }
+    }
 
     return try {
       createOk(metaformTranslator.translate(updatedMetaform))
