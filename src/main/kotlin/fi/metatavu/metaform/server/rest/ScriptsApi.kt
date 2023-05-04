@@ -65,6 +65,24 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   }
 
   override fun updateScript(scriptId: UUID, script: Script): Response {
-    TODO("Not yet implemented")
+    val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (!isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(UPDATE, SCRIPT))
+    }
+
+    val foundScript = scriptsController.findScript(scriptId)
+      ?: return createNotFound(createNotFoundMessage(SCRIPT, UUID.fromString(script.id)))
+
+    val updatedScript = scriptsController.updateScript(
+      script = foundScript,
+      name = foundScript.name,
+      language = foundScript.language,
+      type = foundScript.type,
+      content = foundScript.content,
+      lastModifierId = userId
+    )
+
+    return createOk(scriptsTranslator.translate(updatedScript))
   }
 }
