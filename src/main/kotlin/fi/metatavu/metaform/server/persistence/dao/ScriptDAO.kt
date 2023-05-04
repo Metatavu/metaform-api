@@ -6,8 +6,23 @@ import java.util.*
 
 /**
  * DAO class for Script-entity
+ *
+ * @param id id
+ * @param name name
+ * @param type type
+ * @param content content
+ * @param creatorId creator id
  */
 class ScriptDAO: AbstractDAO<Script>() {
+  /**
+   * Creates a script
+   *
+   * @param id id
+   * @param name name
+   * @param type type
+   * @param content content
+   * @param creatorId creator id
+   */
   fun createScript(
     id: UUID,
     name: String,
@@ -27,24 +42,53 @@ class ScriptDAO: AbstractDAO<Script>() {
     return persist(script)
   }
 
+  /**
+   * Updates the name
+   *
+   * @param script script to update
+   * @param name new name
+   * @param lastModifierId last modifier id
+   */
   fun updateName(script: Script, name: String, lastModifierId: UUID): Script {
     script.name = name
     script.lastModifierId = lastModifierId
     return persist(script)
   }
 
+  /**
+   * Updates the language
+   *
+   * @param script script to update
+   * @param language new language
+   * @param lastModifierId last modifier id
+   */
   fun updateLanguage(script: Script, language: String, lastModifierId: UUID): Script {
     script.language = language
     script.lastModifierId = lastModifierId
     return persist(script)
   }
 
+  /**
+   * Updates the type
+   *
+   * @param script script to update
+   * @param type new type
+   * @param lastModifierId last modifier id
+   */
   fun updateType(script: Script, type: ScriptType, lastModifierId: UUID): Script {
     script.type = type
     script.lastModifierId = lastModifierId
     return persist(script)
   }
 
+
+  /**
+   * Updates the type
+   *
+   * @param script script to update
+   * @param content new content
+   * @param lastModifierId last modifier id
+   */
   fun updateContent(script: Script, content: String, lastModifierId: UUID): Script {
     script.content = content
     script.lastModifierId = lastModifierId
