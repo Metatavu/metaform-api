@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.controllers
 
 import fi.metatavu.metaform.api.spec.model.ScriptType
+import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.dao.ScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Script
 import java.util.*
@@ -15,6 +16,9 @@ class ScriptsController {
 
   @Inject
   lateinit var scriptDAO: ScriptDAO
+
+  @Inject
+  lateinit var metaformScriptDAO: MetaformScriptDAO
 
   /**
    * Creates a script
@@ -89,6 +93,7 @@ class ScriptsController {
    * @param script to delete
    */
   fun deleteScript(script: Script) {
+    metaformScriptDAO.listByScript(script).forEach(metaformScriptDAO::delete)
     scriptDAO.delete(script)
   }
 }
