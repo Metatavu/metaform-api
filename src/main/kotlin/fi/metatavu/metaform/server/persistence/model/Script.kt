@@ -36,4 +36,10 @@ class Script: Metadata() {
     @NotNull
     @NotEmpty
     lateinit var content: String
+
+    @Column(nullable = false)
+    lateinit var creatorId: UUID
+
+    @Column(nullable = false)
+    lateinit var lastModifierId: UUID
 }

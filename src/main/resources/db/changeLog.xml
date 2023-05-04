@@ -597,5 +597,37 @@
       viewName="MetaformReplyViewed"
     >SELECT metaform_id, min(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid</createView>
   </changeSet>
+  
+  <changeSet id="system-wide-scripts" author="Simeon Platonov">
+    <createTable tableName="script">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="name" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="language" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="visibility" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
 
 </databaseChangeLog>
