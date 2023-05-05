@@ -9,6 +9,9 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import java.io.IOException
 import java.util.*
 
+/**
+ * Test builder resource for scripts API
+ */
 class ScriptsTestBuilderResource(
   testBuilder: TestBuilder,
   private val accessTokenProvider: AccessTokenProvider?,
