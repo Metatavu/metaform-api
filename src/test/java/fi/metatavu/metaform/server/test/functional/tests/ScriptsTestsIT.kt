@@ -1,5 +1,7 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import fi.metatavu.metaform.api.client.models.Metaform
+import fi.metatavu.metaform.api.client.models.MetaformVisibility
 import fi.metatavu.metaform.api.client.models.Script
 import fi.metatavu.metaform.api.client.models.ScriptType
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
@@ -235,6 +237,47 @@ class ScriptsTestsIT {
       builder.assertApiCallFailStatus(403) { builder.test1.scripts.list() }
       builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.list() }
       builder.assertApiCallFailStatus(200) { adminAuthentication.scripts.list() }
+    }
+  }
+
+  @Test
+  fun testMetaformScripts() {
+    TestBuilder().use { builder ->
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      val createdScript = builder.systemAdmin.scripts.create(script)
+      val createdMetaform = builder.systemAdmin.metaforms.create(Metaform(
+        title = "Test",
+        allowDrafts = true,
+        visibility = MetaformVisibility.PUBLIC,
+        scripts = arrayOf(createdScript.id!!)
+      ))
+
+      assertEquals(createdScript.id, createdMetaform.scripts!![0])
+
+      val createdScript2 = builder.systemAdmin.scripts.create(script)
+      val updatedMetaform1 = builder.systemAdmin.metaforms.updateMetaform(createdMetaform.id!!, createdMetaform.copy(
+        scripts = arrayOf(createdScript.id, createdScript2.id!!)
+      ))
+      assertEquals(2, updatedMetaform1.scripts!!.size)
+
+      val createdScript3 = builder.systemAdmin.scripts.create(script)
+      val updatedMetaform2 = builder.systemAdmin.metaforms.updateMetaform(createdMetaform.id, createdMetaform.copy(
+        scripts = arrayOf(createdScript2.id, createdScript3.id!!)
+      ))
+      assertEquals(false, updatedMetaform2.scripts!!.contains(createdScript.id))
+      assertEquals(true, updatedMetaform2.scripts.contains(createdScript2.id))
+      assertEquals(true, updatedMetaform2.scripts.contains(createdScript3.id))
+
+      builder.systemAdmin.scripts.delete(createdScript2.id)
+      val foundMetaform = builder.systemAdmin.metaforms.findMetaform(metaformId = createdMetaform.id, metaformSlug = null, replyId = null, ownerKey = null)
+      assertEquals(false, foundMetaform.scripts!!.contains(createdScript2.id))
+      assertEquals(true, foundMetaform.scripts.contains(createdScript3.id))
     }
   }
 }
