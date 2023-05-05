@@ -52,6 +52,22 @@ class ScriptsTestBuilderResource(
     return api.findScript(scriptId)
   }
 
+  /**
+   * Deletes a script from the API
+   *
+   * @param scriptId id of script to be deleted
+   */
+  @Throws(IOException::class)
+  fun delete(scriptId: UUID) {
+    api.deleteScript(scriptId)
+    removeCloseable { closable ->
+      if (closable is Script) {
+        return@removeCloseable scriptId == closable.id
+      }
+      false
+    }
+  }
+
   @Throws(IOException::class)
   override fun clean(script: Script) {
     api.deleteScript(script.id!!)

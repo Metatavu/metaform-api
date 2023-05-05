@@ -84,7 +84,7 @@ class ScriptsTestsIT {
   }
 
   @Test
-  fun testFindScripts() {
+  fun testFindScript() {
     TestBuilder().use { builder ->
       val script = Script(
         name = "Script",
@@ -100,6 +100,141 @@ class ScriptsTestsIT {
       assertEquals("Haskell", foundScript.language)
       assertEquals("Script content", foundScript.content)
       assertEquals(ScriptType.EXPORT_XSLX, foundScript.type)
+    }
+  }
+
+  @Test
+  fun testDeleteScript() {
+    TestBuilder().use { builder ->
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      val createdScript = builder.systemAdmin.scripts.create(script)
+      assertEquals(1, builder.systemAdmin.scripts.list().size)
+      builder.systemAdmin.scripts.delete(createdScript.id!!)
+      assertEquals(0, builder.systemAdmin.scripts.list().size)
+    }
+  }
+
+  @Test
+  fun testDeleteScriptPermission() {
+    TestBuilder().use { builder ->
+      val testMetaformId1 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val testMetaformId2 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val managerAuthentication = builder.createMetaformManagerAuthentication(testMetaformId1, false)
+      val adminAuthentication = builder.createMetaformAdminAuthentication(testMetaformId2, false)
+
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      val createdScript = builder.systemAdmin.scripts.create(script)
+
+      builder.assertApiCallFailStatus(403) { builder.anon.scripts.delete(createdScript.id!!) }
+      builder.assertApiCallFailStatus(403) { builder.test1.scripts.delete(createdScript.id!!) }
+      builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.delete(createdScript.id!!) }
+      builder.assertApiCallFailStatus(403) { adminAuthentication.scripts.delete(createdScript.id!!) }
+    }
+  }
+
+  @Test
+  fun testCreateScriptPermission() {
+    TestBuilder().use { builder ->
+      val testMetaformId1 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val testMetaformId2 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val managerAuthentication = builder.createMetaformManagerAuthentication(testMetaformId1, false)
+      val adminAuthentication = builder.createMetaformAdminAuthentication(testMetaformId2, false)
+
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      builder.assertApiCallFailStatus(403) { builder.anon.scripts.create(script) }
+      builder.assertApiCallFailStatus(403) { builder.test1.scripts.create(script) }
+      builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.create(script) }
+      builder.assertApiCallFailStatus(403) { adminAuthentication.scripts.create(script) }
+    }
+  }
+
+  @Test
+  fun testUpdateScriptPermission() {
+    TestBuilder().use { builder ->
+      val testMetaformId1 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val testMetaformId2 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val managerAuthentication = builder.createMetaformManagerAuthentication(testMetaformId1, false)
+      val adminAuthentication = builder.createMetaformAdminAuthentication(testMetaformId2, false)
+
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      val createdScript = builder.systemAdmin.scripts.create(script)
+
+      builder.assertApiCallFailStatus(403) { builder.anon.scripts.update(createdScript) }
+      builder.assertApiCallFailStatus(403) { builder.test1.scripts.update(createdScript) }
+      builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.update(createdScript) }
+      builder.assertApiCallFailStatus(403) { adminAuthentication.scripts.update(createdScript) }
+    }
+  }
+
+  @Test
+  fun testFindScriptPermission() {
+    TestBuilder().use { builder ->
+      val testMetaformId1 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val testMetaformId2 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val managerAuthentication = builder.createMetaformManagerAuthentication(testMetaformId1, false)
+      val adminAuthentication = builder.createMetaformAdminAuthentication(testMetaformId2, false)
+
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      val createdScript = builder.systemAdmin.scripts.create(script)
+
+      builder.assertApiCallFailStatus(403) { builder.anon.scripts.find(createdScript.id!!) }
+      builder.assertApiCallFailStatus(403) { builder.test1.scripts.find(createdScript.id!!) }
+      builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.find(createdScript.id!!) }
+      builder.assertApiCallFailStatus(200) { adminAuthentication.scripts.find(createdScript.id!!) }
+    }
+  }
+
+  @Test
+  fun testListScriptsPermission() {
+    TestBuilder().use { builder ->
+      val testMetaformId1 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val testMetaformId2 = builder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
+      val managerAuthentication = builder.createMetaformManagerAuthentication(testMetaformId1, false)
+      val adminAuthentication = builder.createMetaformAdminAuthentication(testMetaformId2, false)
+
+      val script = Script(
+        name = "Script",
+        language = "Haskell",
+        content = "Script content",
+        type = ScriptType.EXPORT_XSLX
+      )
+
+      builder.systemAdmin.scripts.create(script)
+
+      builder.assertApiCallFailStatus(403) { builder.anon.scripts.list() }
+      builder.assertApiCallFailStatus(403) { builder.test1.scripts.list() }
+      builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.list() }
+      builder.assertApiCallFailStatus(200) { adminAuthentication.scripts.list() }
     }
   }
 }
