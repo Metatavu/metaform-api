@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.liquibase.changes
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.api.spec.model.Metaform
@@ -38,11 +39,11 @@ abstract class AbstractCustomChange : CustomTaskChange {
     protected fun readMetaforms(
         connection: JdbcConnection,
         ignoreUnknownProperties: Boolean = false
-    ): List<Pair<ByteArray, Metaform>> {
+    ): List<Pair<ByteArray, JsonNode>> {
         try {
             connection.prepareStatement("SELECT id, data FROM metaform").use { statement ->
                 statement.executeQuery().use { resultSet ->
-                    val metaforms = mutableListOf<Pair<ByteArray, Metaform>>()
+                    val metaforms = mutableListOf<Pair<ByteArray, JsonNode>>()
                     while (resultSet.next()) {
                         val objectMapper = jacksonObjectMapper()
 
@@ -54,7 +55,7 @@ abstract class AbstractCustomChange : CustomTaskChange {
 
                         val id = resultSet.getBytes(1)
                         val data = resultSet.getString(2)
-                        metaforms.add(Pair(id, objectMapper.readValue(data, Metaform::class.java)))
+                        metaforms.add(Pair(id, objectMapper.readTree(data)))
                     }
 
                     return metaforms
@@ -73,7 +74,7 @@ abstract class AbstractCustomChange : CustomTaskChange {
      * @param connection JDBC connection
      * @param metaform metaform
      */
-    protected fun updateMetaform(connection: JdbcConnection, metaformId: ByteArray, metaform: Metaform) {
+    protected fun updateMetaform(connection: JdbcConnection, metaformId: ByteArray, metaform: JsonNode) {
         try {
             connection.prepareStatement("UPDATE metaform SET data = ? WHERE id = ?").use { statement ->
                 statement.setString(1, serializeMetaform(metaform))
@@ -105,7 +106,7 @@ abstract class AbstractCustomChange : CustomTaskChange {
      * @param metaform metaform
      * @return JSON string
      */
-    protected fun serializeMetaform(metaform: Metaform): String {
+    protected fun serializeMetaform(metaform: JsonNode): String {
         val objectMapper = jacksonObjectMapper()
         objectMapper.registerModule(JavaTimeModule())
         return objectMapper.writeValueAsString(metaform)
