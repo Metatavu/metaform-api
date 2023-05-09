@@ -71,6 +71,10 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals(LocalDate.now(), metaform2CreatedAtDate)
             assertEquals(LocalDate.now(), metaform2ModifiedAtDate)
             assertEquals(metaform2.creatorId, metaform2.lastModifierId)
+
+            assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("a"))
+            assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("b"))
+            assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("c"))
         }
     }
 
