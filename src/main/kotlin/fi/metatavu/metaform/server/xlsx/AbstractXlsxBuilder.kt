@@ -363,7 +363,10 @@ abstract class AbstractXlsxBuilder<B : Workbook, S : Sheet>(private var workbook
      */
     @Throws(IOException::class)
     open fun write(stream: OutputStream?) {
-        workbook.creationHelper.createFormulaEvaluator().evaluateAll()
+        try {
+            workbook.creationHelper.createFormulaEvaluator().evaluateAll()
+        } catch (_: Exception) {}
+
         workbook.write(stream)
     }
 
