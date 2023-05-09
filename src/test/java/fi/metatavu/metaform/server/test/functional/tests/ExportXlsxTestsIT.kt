@@ -46,8 +46,15 @@ class ExportXlsxTestsIT : AbstractTest() {
             val workbook = getXlsxReport(metaform, builder.systemAdmin.token)
             val simpleSheet: Sheet = workbook.getSheet("Simple")
             assertNotNull(simpleSheet)
+            assertEquals("Table field", simpleSheet.getRow(0).getCell(0).stringCellValue)
+            assertEquals("Table field - 1", simpleSheet.getRow(1).getCell(0).stringCellValue)
+            assertEquals("Table field - 1", simpleSheet.getRow(1).getCell(0).hyperlink.address)
             val tableSheet: Sheet = workbook.getSheet("Table Field - 1")
             assertNotNull(tableSheet)
+            assertEquals("Text table field", tableSheet.getRow(0).getCell(0).stringCellValue)
+            assertNotNull(tableSheet.find { row -> row.getCell(0).stringCellValue == "Text 1" })
+            assertNotNull(tableSheet.find { row -> row.getCell(0).stringCellValue == "Text 2" })
+            assertEquals("SUM(B2:B3)", tableSheet.getRow(3).getCell(1).cellFormula)
         }
     }
 
