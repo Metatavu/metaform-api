@@ -6,10 +6,10 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.controllers.ExportThemeController
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.controllers.MetaformScriptController
 import fi.metatavu.metaform.server.controllers.ScriptsController
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.metaform.SlugValidation
-import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Reply
 import fi.metatavu.metaform.server.persistence.model.Script
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
@@ -42,7 +42,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   lateinit var scriptsController: ScriptsController
 
   @Inject
-  lateinit var metaformScriptDAO: MetaformScriptDAO
+  lateinit var metaformScriptController: MetaformScriptController
 
   override fun createMetaform(metaform: Metaform): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
@@ -95,7 +95,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     )
 
     scripts.forEach { script ->
-      metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = createdMetaform, script = script, creatorId = userId)
+      metaformScriptController.createMetaformScript(createdMetaform, script, userId)
     }
 
     return try {
@@ -115,9 +115,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    metaformScriptDAO.listByMetaform(metaform).forEach { metaformScript ->
-      metaformScriptDAO.delete(metaformScript)
-    }
+    metaformScriptController.deleteMetaformScriptsByMetaform(metaform)
 
     metaformController.deleteMetaform(metaform)
 
@@ -245,21 +243,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       lastModifierId = userId
     )
 
-    if (metaform.scripts != null) {
-      val existingMetaformScripts = metaformScriptDAO.listByMetaform(updatedMetaform)
-      existingMetaformScripts.forEach { metaformScript ->
-        if (!metaform.scripts.contains(metaformScript.script?.id)) {
-          metaformScriptDAO.delete(metaformScript)
-        }
-      }
-
-      metaform.scripts.forEach { scriptId ->
-        if (existingMetaformScripts.none { metaformScript -> metaformScript.script?.id == scriptId }) {
-          val script = scriptsController.findScript(scriptId)
-          metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = updatedMetaform, script = script!!, creatorId = userId)
-        }
-      }
-    }
+    metaformScriptController.updateMetaformScripts(metaform, updatedMetaform, userId)
 
     return try {
       createOk(metaformTranslator.translate(updatedMetaform))
