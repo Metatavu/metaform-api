@@ -38,13 +38,11 @@ class MigrateRemovePropertyClass : AbstractAuthzCustomChange() {
                     fields.add(newField)
                 }
 
-
                 val newSection = (section as ObjectNode)
                 newSection.put("fields", fields)
                 sections.add(newSection)
             }
-
-
+            
             val newMetaform = (metaform as ObjectNode)
             newMetaform.put("sections", sections)
 
