@@ -662,4 +662,8 @@
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateRemovePropertyClass"/>
   </changeSet>
 
+  <changeSet author="Simeon Platonov" id="deprecated-field-proprties-2">
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateDeprecatedFieldProperties2"/>
+  </changeSet>
+
 </databaseChangeLog>
