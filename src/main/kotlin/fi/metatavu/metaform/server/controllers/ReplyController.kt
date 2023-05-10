@@ -100,6 +100,9 @@ class ReplyController {
     lateinit var pdfPrinter: PdfPrinter
 
     @Inject
+    lateinit var scriptsController: ScriptsController
+
+    @Inject
     lateinit var scriptController: ScriptController
 
     @Inject
@@ -502,7 +505,8 @@ class ReplyController {
                     formRuntimeContext.xlsxBuilder = xlsxBuilder
                     val scripts = metaformEntity.scripts
                     if (scripts != null) {
-                        scriptController.runScripts(scripts.metaformExportXlsx)
+                        val scriptsToRun = scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.EXPORT_XSLX }
+                        scriptController.runScripts(scriptsToRun)
                     }
                     xlsxBuilder.write(output)
                     return output.toByteArray()

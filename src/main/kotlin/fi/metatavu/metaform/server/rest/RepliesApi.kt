@@ -55,6 +55,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   lateinit var auditLogEntryController: AuditLogEntryController
 
   @Inject
+  lateinit var scriptsController: ScriptsController
+
+  @Inject
   lateinit var scriptController: ScriptController
 
   @Inject
@@ -149,9 +152,10 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     val replyEntity = replyTranslator.translate(metaformEntity, createdReply, publicKey)
 
-    if (metaformEntity.scripts?.afterCreateReply != null) {
+    if (metaformEntity.scripts != null) {
       setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      scriptController.runScripts(metaformEntity.scripts.afterCreateReply)
+      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.AFTER_CREATE_REPLY }
+      scriptController.runScripts(scriptsToRun)
     }
 
     try {
@@ -542,9 +546,10 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     val replyEntity: Reply = replyTranslator.translate(metaformEntity, foundReply, null)
 
-    if (metaformEntity.scripts?.afterUpdateReply != null) {
+    if (metaformEntity.scripts != null) {
       setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      scriptController.runScripts(metaformEntity.scripts.afterUpdateReply)
+      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.AFTER_UPDATE_REPLY }
+      scriptController.runScripts(scriptsToRun)
     }
 
     auditLogEntryController.generateAuditLog(metaform, userId, foundReply.id!!, null, null, AuditLogEntryType.MODIFY_REPLY)

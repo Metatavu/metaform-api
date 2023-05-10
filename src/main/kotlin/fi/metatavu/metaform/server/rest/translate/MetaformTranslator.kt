@@ -3,9 +3,11 @@ package fi.metatavu.metaform.server.rest.translate
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
+import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import java.io.IOException
 import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 
 /**
  * Translator for Metaforms
@@ -14,6 +16,9 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class MetaformTranslator {
+
+  @Inject
+  lateinit var metaformScriptDAO: MetaformScriptDAO
 
   /**
    * Translates JPA Metaform into REST Metaform
@@ -32,9 +37,12 @@ class MetaformTranslator {
       throw MalformedMetaformJsonException(String.format("Failed to translate metaform %s", entity.id.toString()), e)
     }
 
+    val scripts = metaformScriptDAO.listByMetaform(entity).mapNotNull { metaformScript -> metaformScript.script?.id}
+
     return result.copy(
       id = entity.id,
       slug = entity.slug,
+      scripts = scripts,
       exportThemeId = entity.exportTheme?.id,
       visibility = entity.visibility,
       createdAt = entity.createdAt,
