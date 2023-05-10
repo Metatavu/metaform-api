@@ -29,12 +29,22 @@ class MetaformScriptController {
     metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = metaform, script = script, creatorId = creatorId)
   }
 
+  /**
+   * Deletes links between a metaform and its scripts
+   *
+   * @param metaform metaform
+   */
   fun deleteMetaformScriptsByMetaform (metaform: Metaform) {
     metaformScriptDAO.listByMetaform(metaform).forEach { metaformScript ->
       metaformScriptDAO.delete(metaformScript)
     }
   }
 
+  /**
+   * Updates links between a metaform and its scripts
+   *
+   * @param metaform metaform
+   */
   fun updateMetaformScripts(metaform: fi.metatavu.metaform.api.spec.model.Metaform, updatedMetaform: Metaform, creatorId: UUID) {
     if (metaform.scripts != null) {
       val existingMetaformScripts = metaformScriptDAO.listByMetaform(updatedMetaform)
