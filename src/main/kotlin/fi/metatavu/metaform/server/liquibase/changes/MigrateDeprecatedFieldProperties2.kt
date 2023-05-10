@@ -11,7 +11,6 @@ import java.util.*
 
 /**
  * Custom change for migrating deprecated field properties
- *
  */
 @RegisterForReflection
 @Suppress ("UNUSED")
