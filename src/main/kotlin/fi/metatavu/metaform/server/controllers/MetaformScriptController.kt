@@ -43,7 +43,9 @@ class MetaformScriptController {
   /**
    * Updates links between a metaform and its scripts
    *
-   * @param metaform metaform
+   * @param metaform metaform from client-side update request
+   * @param updatedMetaform updated metaform
+   * @param creatorId creator id
    */
   fun updateMetaformScripts(metaform: fi.metatavu.metaform.api.spec.model.Metaform, updatedMetaform: Metaform, creatorId: UUID) {
     if (metaform.scripts != null) {
