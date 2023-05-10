@@ -9,11 +9,9 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
 import java.util.*
 
-
 /**
  * Custom change for migrating deprecated field properties
  *
- * @author Antti Leppä
  */
 @RegisterForReflection
 @Suppress ("UNUSED")
@@ -47,12 +45,10 @@ class MigrateDeprecatedFieldProperties2 : AbstractAuthzCustomChange() {
                     fields.add(newField)
                 }
 
-
                 val newSection = (section as ObjectNode)
                 newSection.put("fields", fields)
                 sections.add(newSection)
             }
-
 
             val newMetaform = (metaform as ObjectNode)
             newMetaform.put("sections", sections)
