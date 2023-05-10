@@ -16,11 +16,11 @@ class MetaformScript: Metadata() {
   @Id
   lateinit var id: UUID
 
-  @ManyToOne
-  var metaform: Metaform? = null
+  @ManyToOne(optional = false)
+  lateinit var metaform: Metaform
 
-  @ManyToOne
-  var script: Script? = null
+  @ManyToOne(optional = false)
+  lateinit var script: Script
 
   @Column(nullable = false)
   lateinit var creatorId: UUID

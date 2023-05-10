@@ -11,6 +11,7 @@ import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Reply
+import fi.metatavu.metaform.server.persistence.model.Script
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import fi.metatavu.metaform.server.utils.MetaformUtils
 import org.slf4j.Logger
@@ -71,8 +72,10 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createBadRequest("Invalid permission groups")
     }
 
+    val scripts: ArrayList<Script> = arrayListOf()
     metaform.scripts?.forEach { scriptId ->
-      scriptsController.findScript(scriptId) ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+      val script  = scriptsController.findScript(scriptId) ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+      scripts.add(script)
     }
 
     val metaformData = try {
@@ -91,9 +94,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       creatorId = userId
     )
 
-    metaform.scripts?.forEach { scriptId ->
-      val script = scriptsController.findScript(scriptId)
-      metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = createdMetaform, script = script!!, creatorId = userId)
+    scripts.forEach { script ->
+      metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = createdMetaform, script = script, creatorId = userId)
     }
 
     return try {
