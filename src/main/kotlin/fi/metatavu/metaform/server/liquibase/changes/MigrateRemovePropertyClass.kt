@@ -9,7 +9,6 @@ import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
 import java.util.*
 
-
 /**
  * Custom change for migrating deprecated field properties
  */
