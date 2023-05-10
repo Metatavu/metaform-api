@@ -654,4 +654,8 @@
     </createTable>
   </changeSet>
 
+  <changeSet author="antti.leppa" id="deprecated-field-proprties">
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateDeprecatedFieldProperties"/>
+  </changeSet>
+
 </databaseChangeLog>

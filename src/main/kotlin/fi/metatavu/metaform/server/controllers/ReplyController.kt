@@ -552,10 +552,13 @@ class ReplyController {
      * @return Xlsx table sheet
      */
     private fun createXlsxTableSheet(xlsxBuilder: XlsxBuilder, replyIndex: Int, field: MetaformField, value: Any): String? {
-        val columns = field.columns
+        val table = field.table ?: return null
+
+        val columns = table.columns
         if (columns?.isEmpty() != false) {
             return null
         }
+
         val columnMap = getTableColumnMap(field)
         val tableValue = getTableValue(columnMap, value)
         if (tableValue?.isEmpty() == false) {
@@ -697,7 +700,7 @@ class ReplyController {
      * @return column map for a table field
      */
     private fun getTableColumnMap(field: MetaformField): Map<String, MetaformTableColumn> {
-        return field.columns?.associateBy(MetaformTableColumn::name) ?: emptyMap()
+        return field.table?.columns?.associateBy(MetaformTableColumn::name) ?: emptyMap()
     }
 
     /**
