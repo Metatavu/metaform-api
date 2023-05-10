@@ -99,7 +99,6 @@ class AuditLogEntryController {
      * @param replyId replyId
      * @param attachmentId attachmentId
      * @param type logEntryType
-     * @param loggedUserId logger user id
      */
     fun generateAuditLog(
             metaform: Metaform,
@@ -108,27 +107,29 @@ class AuditLogEntryController {
             attachmentId: UUID?,
             action: String?,
             type: AuditLogEntryType
-    ): AuditLogEntry {
-        val defaction = when (type) {
-            AuditLogEntryType.DELETE_REPLY -> "deleted reply"
-            AuditLogEntryType.CREATE_REPLY -> "created reply"
-            AuditLogEntryType.MODIFY_REPLY -> "modified reply"
-            AuditLogEntryType.LIST_REPLY -> "listed reply"
-            AuditLogEntryType.VIEW_REPLY -> "viewed reply"
-            AuditLogEntryType.VIEW_REPLY_ATTACHMENT -> "viewed attachment of reply "
-            AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT -> "downloaded attachment of reply "
-            AuditLogEntryType.EXPORT_REPLY_PDF -> "exported to pdf "
-            AuditLogEntryType.EXPORT_REPLY_XLSX -> "exported to xlsx"
-        }
+    ) {
+        if (auditLog == "true") {
+            val defaction = when (type) {
+                AuditLogEntryType.DELETE_REPLY -> "deleted reply"
+                AuditLogEntryType.CREATE_REPLY -> "created reply"
+                AuditLogEntryType.MODIFY_REPLY -> "modified reply"
+                AuditLogEntryType.LIST_REPLY -> "listed reply"
+                AuditLogEntryType.VIEW_REPLY -> "viewed reply"
+                AuditLogEntryType.VIEW_REPLY_ATTACHMENT -> "viewed attachment of reply "
+                AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT -> "downloaded attachment of reply "
+                AuditLogEntryType.EXPORT_REPLY_PDF -> "exported to pdf "
+                AuditLogEntryType.EXPORT_REPLY_XLSX -> "exported to xlsx"
+            }
 
-        return createAuditLogEntry(
-            metaform = metaform,
-            userId = userId,
-            type = type,
-            replyId = replyId,
-            attachmentId = attachmentId,
-            message = action ?: String.format("user %1\$s %2\$s %3\$s", userId.toString(), defaction, replyId.toString())
-        )
+            createAuditLogEntry(
+                metaform = metaform,
+                userId = userId,
+                type = type,
+                replyId = replyId,
+                attachmentId = attachmentId,
+                message = action ?: String.format("user %1\$s %2\$s %3\$s", userId.toString(), defaction, replyId.toString())
+            )
+        }
     }
 
 }
