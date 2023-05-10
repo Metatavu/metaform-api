@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.model.AuditLogEntry
 import fi.metatavu.metaform.server.persistence.model.Metaform
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -17,6 +18,10 @@ class AuditLogEntryController {
 
     @Inject
     lateinit var auditLogEntryDAO: AuditLogEntryDAO
+
+    @Inject
+    @ConfigProperty(name = "metaforms.features.auditlog")
+    lateinit var auditLog: String
 
     /**
      * Creates AuditLogEntry and fill the missing fields (generate uuid, fill current time)
