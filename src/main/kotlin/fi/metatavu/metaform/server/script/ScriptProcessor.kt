@@ -16,7 +16,13 @@ class ScriptProcessor {
     lateinit var logger: Logger
 
     @Inject
-    lateinit var formScriptBinding: FormScriptBinding
+    lateinit var xlsxServices: XlsxServices
+
+    @Inject
+    lateinit var encodingServices: EncodingServices
+
+    @Inject
+    lateinit var pdfServices: PdfServices
 
     /**
      * Processes a script
@@ -27,7 +33,7 @@ class ScriptProcessor {
      */
     fun processScript(script: RunnableScript, params: Map<String, String?>): String? {
         try {
-            Context.create(script.language).use { scriptingContext ->
+            Context.newBuilder(script.language).allowAllAccess(true).build().use { scriptingContext ->
                 val scriptArgs: MutableMap<String, String?> = HashMap()
                 params.keys.stream().forEach { param: String ->
                     if (!RESERVED_PARAMS.contains(param)) {
@@ -36,7 +42,9 @@ class ScriptProcessor {
                 }
                 val bindings = scriptingContext.getBindings(script.language)
                 bindings.putMember("XMLHttpRequest", XMLHttpRequest::class.java)
-                bindings.putMember("form", formScriptBinding)
+                bindings.putMember("xlsxServices", xlsxServices)
+                bindings.putMember("encodingServices", encodingServices)
+                bindings.putMember("pdfServices", pdfServices)
                 bindings.putMember("args", scriptArgs)
                 val source = Source.newBuilder(script.language, script.content, script.name).build()
                 val returnValue = scriptingContext.eval(source)

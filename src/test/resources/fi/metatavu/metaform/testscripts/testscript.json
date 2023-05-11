@@ -1,0 +1,6 @@
+{
+  "name": "Export",
+  "type": "EXPORT_XLSX",
+  "language": "js",
+  "content": "var sheetId = xlsxServices.getSheetIds()[0];\nvar rowCount = xlsxServices.getRowCount(sheetId);\nvar columnCount = xlsxServices.getColumnCount(sheetId, 0);\nvar _loop_1 = function (columnIndex) {\n    var cellSource = xlsxServices.getCellSource(sheetId, 0, columnIndex);\n    var cellField = cellSource ? cellSource.getField() : null;\n    var fieldTitle = cellField ? String(cellField.getTitle()) : null;\n    if (fieldTitle == \"Table field\") {\n        xlsxServices.setCellValueString(sheetId, 0, columnIndex, `Table field changed to something else`);\n    }\n};\nfor (var columnIndex = 0; columnIndex < columnCount; columnIndex++) {\n    _loop_1(columnIndex);\n}"
+}

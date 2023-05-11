@@ -71,6 +71,19 @@ class ScriptsTestBuilderResource(
     }
   }
 
+  /**
+   * Reads a Script from JSON file
+   *
+   * @param script file name
+   * @return Script object
+   * @throws IOException throws IOException when JSON reading fails
+   */
+  @Throws(IOException::class)
+  fun readScript(form: String): Script? {
+    return ScriptsReader.readScript(form)
+  }
+
+
   @Throws(IOException::class)
   override fun clean(script: Script) {
     api.deleteScript(script.id!!)

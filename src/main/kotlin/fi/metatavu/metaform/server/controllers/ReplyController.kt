@@ -505,7 +505,7 @@ class ReplyController {
                     formRuntimeContext.xlsxBuilder = xlsxBuilder
                     val scripts = metaformEntity.scripts
                     if (scripts != null) {
-                        val scriptsToRun = scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.EXPORT_XSLX }
+                        val scriptsToRun = scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.EXPORT_XLSX }
                         scriptController.runScripts(scriptsToRun)
                     }
                     xlsxBuilder.write(output)

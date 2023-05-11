@@ -29,14 +29,14 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
     assertEquals("Script", createdScript.name)
     assertEquals("Haskell", createdScript.language)
     assertEquals("Script content", createdScript.content)
-    assertEquals(ScriptType.EXPORT_XSLX, createdScript.type)
+    assertEquals(ScriptType.EXPORT_XLSX, createdScript.type)
   }
 
   @Test
@@ -45,7 +45,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
@@ -69,7 +69,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     builder.systemAdmin.scripts.create(script)
@@ -85,7 +85,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
@@ -94,7 +94,7 @@ class ScriptsTestsIT {
     assertEquals("Script", foundScript.name)
     assertEquals("Haskell", foundScript.language)
     assertEquals("Script content", foundScript.content)
-    assertEquals(ScriptType.EXPORT_XSLX, foundScript.type)
+    assertEquals(ScriptType.EXPORT_XLSX, foundScript.type)
   }
 
   @Test
@@ -103,7 +103,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
@@ -123,7 +123,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
@@ -145,7 +145,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     builder.assertApiCallFailStatus(403) { builder.anon.scripts.create(script) }
@@ -165,7 +165,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
@@ -187,7 +187,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)
@@ -209,7 +209,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     builder.systemAdmin.scripts.create(script)
@@ -225,7 +225,7 @@ class ScriptsTestsIT {
       name = "Script",
       language = "Haskell",
       content = "Script content",
-      type = ScriptType.EXPORT_XSLX
+      type = ScriptType.EXPORT_XLSX
     )
 
     val createdScript = builder.systemAdmin.scripts.create(script)

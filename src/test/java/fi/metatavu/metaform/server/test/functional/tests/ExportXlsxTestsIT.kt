@@ -58,6 +58,28 @@ class ExportXlsxTestsIT : AbstractTest() {
         }
     }
 
+    @Test
+    @Throws(Exception::class)
+    fun testExportXlsxWithScript() {
+        TestBuilder().use { builder ->
+            val parsedScript = builder.systemAdmin.scripts.readScript("testscript")
+            val scriptId = builder.systemAdmin.scripts.create(parsedScript!!).id!!
+
+            val parsedMetaform = builder.systemAdmin.metaforms.readMetaform("simple-table")
+            val metaform = builder.systemAdmin.metaforms.create(parsedMetaform!!.copy(scripts = arrayOf(scriptId)))
+
+            val tableData: List<Map<String, Any>> = listOf(createSimpleTableRow("Text 1", 10.0), createSimpleTableRow("Text 2", 20.0))
+            val replyData: HashMap<String, Any> = HashMap()
+            replyData["table"] = tableData
+            val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
+            builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyWithData)
+            val workbook = getXlsxReport(metaform, builder.systemAdmin.token)
+            val simpleSheet: Sheet = workbook.getSheet("Simple")
+            assertNotNull(simpleSheet)
+            assertEquals("Table field changed to something else", simpleSheet.getRow(0).getCell(0).stringCellValue)
+        }
+    }
+
     /**
      * Downloads XLSX report and returns it as POI Workbook
      *
