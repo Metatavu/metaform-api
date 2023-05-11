@@ -46,6 +46,7 @@ class ScriptProcessor {
                 bindings.putMember("encodingServices", encodingServices)
                 bindings.putMember("pdfServices", pdfServices)
                 bindings.putMember("args", scriptArgs)
+                
                 val source = Source.newBuilder(script.language, script.content, script.name).build()
                 val returnValue = scriptingContext.eval(source)
                 if (returnValue.isString) {
