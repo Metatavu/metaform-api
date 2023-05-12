@@ -75,6 +75,7 @@ class ExportXlsxTestsIT : AbstractTest() {
             builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyWithData)
             val workbook = getXlsxReport(metaform, builder.systemAdmin.token)
             val simpleSheet: Sheet = workbook.getSheet("Simple")
+            
             assertNotNull(simpleSheet)
             assertEquals("Table field changed to something else", simpleSheet.getRow(0).getCell(0).stringCellValue)
         }
