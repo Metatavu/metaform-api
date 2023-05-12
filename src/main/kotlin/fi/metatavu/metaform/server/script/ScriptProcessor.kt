@@ -24,6 +24,10 @@ class ScriptProcessor {
     @Inject
     lateinit var pdfServices: PdfServices
 
+    val XLSX_SERVICES = "xlsxServices"
+    val ENCODING_SERVICES = "encodingServices"
+    val PDF_SERVICES = "pdfServices"
+
     /**
      * Processes a script
      *
@@ -42,9 +46,9 @@ class ScriptProcessor {
                 }
                 val bindings = scriptingContext.getBindings(script.language)
                 bindings.putMember("XMLHttpRequest", XMLHttpRequest::class.java)
-                bindings.putMember("xlsxServices", xlsxServices)
-                bindings.putMember("encodingServices", encodingServices)
-                bindings.putMember("pdfServices", pdfServices)
+                bindings.putMember(XLSX_SERVICES, xlsxServices)
+                bindings.putMember(ENCODING_SERVICES, encodingServices)
+                bindings.putMember(PDF_SERVICES, pdfServices)
                 bindings.putMember("args", scriptArgs)
                 
                 val source = Source.newBuilder(script.language, script.content, script.name).build()
