@@ -6,7 +6,7 @@ ARG KEYCLOAK_MODULE_VERSION=4.5.0.Final
 ARG MYSQL_MODULE_VERSION=8.0.17
 
 ADD --chown=jboss target/*.war /opt/jboss/wildfly/standalone/deployments/app.war
-ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh 
+ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh
 ADD --chown=jboss ./docker/jboss-cli.properties /opt/docker/jboss-cli.properties
 ADD --chown=jboss ./docker/host.cli /opt/docker/host.cli
 ADD --chown=jboss ./docker/kubernets-jgroups.cli /opt/docker/kubernets-jgroups.cli

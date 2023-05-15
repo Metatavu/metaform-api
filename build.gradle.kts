@@ -64,6 +64,7 @@ dependencies {
     implementation("org.graalvm.js:js:${graalVMVersion}")
     implementation("org.graalvm.js:js-scriptengine:${graalVMVersion}")
     implementation("org.graalvm.truffle:truffle-api:${graalVMVersion}")
+    implementation("com.oracle.truffle:truffle-api:0.33")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
