@@ -15,9 +15,6 @@
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
-FROM quay.io/quarkus/ubi-quarkus-native-image:22.3.0-java17
-USER root
-RUN gu install js
 RUN microdnf install freetype fontconfig
 WORKDIR /work/
 RUN chown 1001 /work \
