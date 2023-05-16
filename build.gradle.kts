@@ -61,6 +61,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp")
 
     implementation("com.oracle.truffle:truffle-api:0.33")
+    implementation("org.python:jython-standalone:2.7.3")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
