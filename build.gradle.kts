@@ -60,13 +60,6 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.squareup.okhttp3:okhttp")
 
-    implementation("org.graalvm.sdk:graal-sdk:${graalVMVersion}")
-    implementation("org.graalvm.js:js:${graalVMVersion}")
-    implementation("org.graalvm.js:js-scriptengine:${graalVMVersion}")
-    implementation("com.oracle.truffle:truffle-api:0.33")
-    //implementation("org.python:jython-standalone:2.7.3")
-    //implementation("com.fasterxml.woodstox:woodstox-core:6.5.1")
-
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
