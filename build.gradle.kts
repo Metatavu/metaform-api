@@ -66,6 +66,7 @@ dependencies {
     implementation("com.oracle.truffle:truffle-api:0.33")
     implementation("org.python:jython-slim:2.7.3")
     implementation("com.fasterxml.woodstox:woodstox-core:6.5.1")
+    implementation("com.github.jnr:jnr-ffi:2.1.15")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
