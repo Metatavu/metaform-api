@@ -64,7 +64,7 @@ dependencies {
     implementation("org.graalvm.js:js:${graalVMVersion}")
     implementation("org.graalvm.js:js-scriptengine:${graalVMVersion}")
     implementation("com.oracle.truffle:truffle-api:0.33")
-    implementation("org.python:jython-standalone:2.7.3")
+    implementation("org.python:jython-standalone:2.7.1")
     implementation("com.fasterxml.woodstox:woodstox-core:6.5.1")
     implementation("com.github.jnr:jnr-ffi:2.1.15")
 
