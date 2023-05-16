@@ -65,6 +65,7 @@ dependencies {
     implementation("org.graalvm.js:js-scriptengine:${graalVMVersion}")
     implementation("com.oracle.truffle:truffle-api:0.33")
     implementation("org.python:jython:2.7.0")
+    implementation("com.fasterxml.woodstox:woodstox-core:6.5.1")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
