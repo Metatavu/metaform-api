@@ -1,0 +1,1 @@
+jnr.ffi.provider.jffi.AbstractA64StubCompiler\,org.python.core.PyVersionInfo.n_sequence_fields\,org.python.modules.zipimport.zipimporter$__doc___descriptor
