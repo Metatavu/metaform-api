@@ -60,9 +60,6 @@ class MetaformController {
     @Inject
     lateinit var permissionController: PermissionController
 
-    @Inject
-    lateinit var metaformVersionDAO: MetaformVersionDAO
-
     /**
      * Creates new Metaform
      *
@@ -174,9 +171,6 @@ class MetaformController {
 
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
-
-        val metaformVersions = metaformVersionDAO.listByMetaform(metaform)
-        metaformVersions.forEach { metaformVersion -> metaformVersionDAO.delete(metaformVersion) }
 
         metaformDAO.delete(metaform)
         metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)
