@@ -17,6 +17,7 @@ import fi.metatavu.metaform.server.permissions.GroupMemberPermission
 import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
+import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import org.apache.commons.lang3.StringUtils
@@ -58,6 +59,9 @@ class MetaformController {
 
     @Inject
     lateinit var permissionController: PermissionController
+
+    @Inject
+    lateinit var metaformVersionDAO: MetaformVersionDAO
 
     /**
      * Creates new Metaform
@@ -170,6 +174,10 @@ class MetaformController {
 
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
+
+        val metaformVersions = metaformVersionDAO.listByMetaform(metaform)
+        metaformVersions.forEach { metaformVersion -> metaformVersionDAO.delete(metaformVersion) }
+
         metaformDAO.delete(metaform)
         metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)
     }
