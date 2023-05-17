@@ -20,8 +20,8 @@ class AuditLogEntryController {
     lateinit var auditLogEntryDAO: AuditLogEntryDAO
 
     @Inject
-    @ConfigProperty(name = "metaforms.features.auditlog")
-    lateinit var auditLog: String
+    @ConfigProperty(name = "metaforms.features.auditlog", defaultValue = "true")
+    var auditLog: Boolean = true
 
     /**
      * Creates AuditLogEntry and fill the missing fields (generate uuid, fill current time)
@@ -108,7 +108,7 @@ class AuditLogEntryController {
             action: String?,
             type: AuditLogEntryType
     ) {
-        if (auditLog == "true") {
+        if (auditLog) {
             val defaction = when (type) {
                 AuditLogEntryType.DELETE_REPLY -> "deleted reply"
                 AuditLogEntryType.CREATE_REPLY -> "created reply"
