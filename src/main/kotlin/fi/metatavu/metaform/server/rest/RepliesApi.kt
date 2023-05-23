@@ -93,7 +93,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
     }
 
-    val replyUserId = if (!isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
+    val replyUserId = if (!isMetatavuAdmin || !isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
     var replyMode = try {
       replyModeParam?.let { ReplyMode.valueOf(it) }
     } catch (ex: IllegalArgumentException) {

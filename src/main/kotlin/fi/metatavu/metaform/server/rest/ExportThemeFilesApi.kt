@@ -26,7 +26,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   ): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(CREATE, EXPORT_THEME))
     }
 
@@ -50,7 +50,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   ): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(DELETE, EXPORT_THEME))
     }
 
@@ -73,7 +73,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   override fun findExportThemeFile(exportThemeId: UUID, exportThemeFileId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(FIND, EXPORT_THEME))
     }
 
@@ -92,7 +92,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   override fun listExportThemeFiles(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(LIST, EXPORT_THEME))
     }
 
@@ -111,7 +111,7 @@ class ExportThemeFilesApi: fi.metatavu.metaform.api.spec.ExportThemeFilesApi, Ab
   ): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(UPDATE, EXPORT_THEME))
     }
 

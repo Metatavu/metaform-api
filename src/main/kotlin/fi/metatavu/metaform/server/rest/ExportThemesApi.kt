@@ -22,7 +22,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   override fun createExportTheme(exportTheme: ExportTheme): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(CREATE, EXPORT_THEME))
     }
 
@@ -44,7 +44,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   override fun deleteExportTheme(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(UPDATE, EXPORT_THEME))
     }
 
@@ -59,7 +59,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   override fun findExportTheme(exportThemeId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(UPDATE, EXPORT_THEME))
     }
 
@@ -72,7 +72,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   override fun listExportThemes(): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    return if (!isRealmSystemAdmin) {
+    return if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       createForbidden(createNotAllowedMessage(LIST, EXPORT_THEME))
     } else createOk(exportThemeController.listExportThemes()
             .map(exportThemeTranslator::translateExportTheme))
@@ -81,7 +81,7 @@ class ExportThemesApi: fi.metatavu.metaform.api.spec.ExportThemesApi, AbstractAp
   override fun updateExportTheme(exportThemeId: UUID, exportTheme: ExportTheme): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(UPDATE, EXPORT_THEME))
     }
 

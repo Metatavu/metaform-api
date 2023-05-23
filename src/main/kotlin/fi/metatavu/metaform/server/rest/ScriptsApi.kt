@@ -26,7 +26,7 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   override fun createScript(script: Script): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin) {
       return createForbidden(createNotAllowedMessage(CREATE, SCRIPT))
     }
 
@@ -44,7 +44,7 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   override fun deleteScript(scriptId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin) {
       return createForbidden(createNotAllowedMessage(DELETE, SCRIPT))
     }
 
@@ -59,7 +59,7 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   override fun findScript(scriptId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin && !isMetaformAdminAny) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin && !isMetaformAdminAny) {
       return createForbidden(createNotAllowedMessage(LIST, SCRIPT))
     }
 
@@ -72,7 +72,7 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   override fun listScripts(): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin && !isMetaformAdminAny) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin && !isMetaformAdminAny) {
       return createForbidden(createNotAllowedMessage(LIST, SCRIPT))
     }
 
@@ -82,7 +82,7 @@ class ScriptsApi: fi.metatavu.metaform.api.spec.ScriptsApi, AbstractApi(){
   override fun updateScript(scriptId: UUID, script: Script): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin) {
       return createForbidden(createNotAllowedMessage(UPDATE, SCRIPT))
     }
 

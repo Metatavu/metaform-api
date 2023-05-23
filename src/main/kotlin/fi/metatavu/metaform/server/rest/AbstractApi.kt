@@ -352,12 +352,20 @@ abstract class AbstractApi {
         get() = hasRealmRole(SYSTEM_ADMIN_ROLE)
 
     /**
+     * Returns whether logged user is Metatavu admin
+     *
+     * @return whether logged user is Metatavu admin
+     */
+    protected val isMetatavuAdmin: Boolean
+        get() = hasRealmRole(METATAVU_ADMIN_ROLE)
+
+    /**
      * Returns whether the logged user is metaform admin or with higher permission
      *
      * @return whether logged user is Metaform admin
      */
     fun isMetaformAdmin(metaformId: UUID): Boolean {
-        if (isRealmSystemAdmin) return true
+        if (isMetatavuAdmin || isRealmSystemAdmin) return true
         return metaformKeycloakController.isMetaformAdmin(metaformId, loggedUserId!!)
     }
 
@@ -368,7 +376,7 @@ abstract class AbstractApi {
      */
     val isMetaformAdminAny: Boolean
         get() {
-            if (isRealmSystemAdmin) return true
+            if (isMetatavuAdmin || isRealmSystemAdmin) return true
             return metaformKeycloakController.isMetaformAdminAny(loggedUserId!!)
         }
 
@@ -378,7 +386,7 @@ abstract class AbstractApi {
      * @return whether logged user is realm Metaform manager
      */
     fun isMetaformManager(metaformId: UUID): Boolean {
-        if (isRealmSystemAdmin) return true
+        if (isMetatavuAdmin || isRealmSystemAdmin) return true
         if (metaformKeycloakController.isMetaformAdmin(metaformId, loggedUserId!!)) return true
         return metaformKeycloakController.isMetaformManager(metaformId, loggedUserId!!)
     }
@@ -390,7 +398,7 @@ abstract class AbstractApi {
      */
     val isMetaformManagerAny: Boolean
         get() {
-            if (isRealmSystemAdmin) return true
+            if (isMetatavuAdmin || isRealmSystemAdmin) return true
             if (metaformKeycloakController.isMetaformAdminAny(loggedUserId!!)) return true
             return metaformKeycloakController.isMetaformManagerAny(loggedUserId!!)
         }
@@ -426,7 +434,7 @@ abstract class AbstractApi {
      * @return whether given reply is permitted within given scope
      */
     fun isPermittedReply(reply: Reply?, ownerKey: String?, authorizationScope: AuthorizationScope): Boolean {
-        if (isRealmSystemAdmin) {
+        if (isMetatavuAdmin || isRealmSystemAdmin) {
             return true
         }
         if (reply?.resourceId == null) {
@@ -470,6 +478,7 @@ abstract class AbstractApi {
         const val METAFORM_USER_ROLE = "metaform-user"
         const val METAFORM_MANAGER_ROLE = "metaform-manager"
         const val SYSTEM_ADMIN_ROLE = "system-admin"
+        const val METATAVU_ADMIN_ROLE = "metatavu-admin"
         const val VIEW_AUDIT_LOGS_ROLE = "metaform-view-all-audit-logs"
         const val UNAUTHORIZED = "Unauthorized"
         const val LIST = "list"
