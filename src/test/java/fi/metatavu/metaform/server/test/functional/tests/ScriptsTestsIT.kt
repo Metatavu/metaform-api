@@ -11,6 +11,7 @@ import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 /**
@@ -195,11 +196,12 @@ class ScriptsTestsIT {
 
     val createdScript = builder.metatavuAdmin.scripts.create(script)
 
-    builder.assertApiCallFailStatus(200) { builder.systemAdmin.scripts.find(createdScript.id!!) }
-    builder.assertApiCallFailStatus(403) { builder.anon.scripts.find(createdScript.id!!) }
-    builder.assertApiCallFailStatus(403) { builder.test1.scripts.find(createdScript.id!!) }
-    builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.find(createdScript.id!!) }
-    builder.assertApiCallFailStatus(200) { adminAuthentication.scripts.find(createdScript.id!!) }
+    builder.systemAdmin.scripts.find(createdScript.id!!)
+    adminAuthentication.scripts.find(createdScript.id)
+    builder.assertApiCallFailStatus(403) { builder.anon.scripts.find(createdScript.id) }
+    builder.assertApiCallFailStatus(403) { builder.test1.scripts.find(createdScript.id) }
+    builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.find(createdScript.id) }
+
   }
 
   @Test
@@ -218,11 +220,11 @@ class ScriptsTestsIT {
 
     builder.metatavuAdmin.scripts.create(script)
 
-    builder.assertApiCallFailStatus(200) { builder.systemAdmin.scripts.list() }
+    builder.systemAdmin.scripts.list()
+    adminAuthentication.scripts.list()
     builder.assertApiCallFailStatus(403) { builder.anon.scripts.list() }
     builder.assertApiCallFailStatus(403) { builder.test1.scripts.list() }
     builder.assertApiCallFailStatus(403) { managerAuthentication.scripts.list() }
-    builder.assertApiCallFailStatus(200) { adminAuthentication.scripts.list() }
   }
   @Test
   fun testMetaformScripts() = TestBuilder().use { builder ->
