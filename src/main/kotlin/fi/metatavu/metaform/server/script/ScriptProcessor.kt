@@ -16,6 +16,9 @@ class ScriptProcessor {
     lateinit var logger: Logger
 
     @Inject
+    lateinit var formScriptBinding: FormScriptBinding
+
+    @Inject
     lateinit var xlsxServices: XlsxServices
 
     @Inject
@@ -50,7 +53,8 @@ class ScriptProcessor {
                 bindings.putMember(ENCODING_SERVICES, encodingServices)
                 bindings.putMember(PDF_SERVICES, pdfServices)
                 bindings.putMember("args", scriptArgs)
-                
+                bindings.putMember("form", formScriptBinding)
+
                 val source = Source.newBuilder(script.language, script.content, script.name).build()
                 val returnValue = scriptingContext.eval(source)
                 if (returnValue.isString) {
