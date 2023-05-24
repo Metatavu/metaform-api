@@ -29,7 +29,6 @@ val moshiVersion: String by project
 val wiremockVersion: String by project
 val freemarkerVersion: String by project
 val quarkusPoiVersion: String by project
-val graalVMVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -59,9 +58,6 @@ dependencies {
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.squareup.okhttp3:okhttp")
-
-    implementation("com.oracle.truffle:truffle-api:0.33")
-    implementation("org.python:jython-standalone:2.7.3")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
