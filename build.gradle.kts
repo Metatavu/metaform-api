@@ -29,6 +29,7 @@ val moshiVersion: String by project
 val wiremockVersion: String by project
 val freemarkerVersion: String by project
 val quarkusPoiVersion: String by project
+val graalVmVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -45,8 +46,13 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
-    
+
     implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
+
+    implementation("org.graalvm.sdk:graal-sdk:${graalVmVersion}")
+    implementation("org.graalvm.js:js:${graalVmVersion}")
+    implementation("org.graalvm.js:js-scriptengine:${graalVmVersion}")
+    implementation("org.graalvm.truffle:truffle-api:${graalVmVersion}")
 
     implementation("org.jboss.logmanager:log4j-jboss-logmanager")
     implementation("org.jboss.logmanager:log4j2-jboss-logmanager")
