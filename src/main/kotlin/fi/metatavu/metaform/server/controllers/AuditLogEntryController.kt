@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.model.AuditLogEntry
 import fi.metatavu.metaform.server.persistence.model.Metaform
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -17,6 +18,10 @@ class AuditLogEntryController {
 
     @Inject
     lateinit var auditLogEntryDAO: AuditLogEntryDAO
+
+    @Inject
+    @ConfigProperty(name = "metaforms.features.auditlog", defaultValue = "true")
+    var auditLog: Boolean = true
 
     /**
      * Creates AuditLogEntry and fill the missing fields (generate uuid, fill current time)
@@ -94,7 +99,6 @@ class AuditLogEntryController {
      * @param replyId replyId
      * @param attachmentId attachmentId
      * @param type logEntryType
-     * @param loggedUserId logger user id
      */
     fun generateAuditLog(
             metaform: Metaform,
@@ -103,27 +107,29 @@ class AuditLogEntryController {
             attachmentId: UUID?,
             action: String?,
             type: AuditLogEntryType
-    ): AuditLogEntry {
-        val defaction = when (type) {
-            AuditLogEntryType.DELETE_REPLY -> "deleted reply"
-            AuditLogEntryType.CREATE_REPLY -> "created reply"
-            AuditLogEntryType.MODIFY_REPLY -> "modified reply"
-            AuditLogEntryType.LIST_REPLY -> "listed reply"
-            AuditLogEntryType.VIEW_REPLY -> "viewed reply"
-            AuditLogEntryType.VIEW_REPLY_ATTACHMENT -> "viewed attachment of reply "
-            AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT -> "downloaded attachment of reply "
-            AuditLogEntryType.EXPORT_REPLY_PDF -> "exported to pdf "
-            AuditLogEntryType.EXPORT_REPLY_XLSX -> "exported to xlsx"
-        }
+    ) {
+        if (auditLog) {
+            val defaction = when (type) {
+                AuditLogEntryType.DELETE_REPLY -> "deleted reply"
+                AuditLogEntryType.CREATE_REPLY -> "created reply"
+                AuditLogEntryType.MODIFY_REPLY -> "modified reply"
+                AuditLogEntryType.LIST_REPLY -> "listed reply"
+                AuditLogEntryType.VIEW_REPLY -> "viewed reply"
+                AuditLogEntryType.VIEW_REPLY_ATTACHMENT -> "viewed attachment of reply "
+                AuditLogEntryType.DOWNLOAD_REPLY_ATTACHMENT -> "downloaded attachment of reply "
+                AuditLogEntryType.EXPORT_REPLY_PDF -> "exported to pdf "
+                AuditLogEntryType.EXPORT_REPLY_XLSX -> "exported to xlsx"
+            }
 
-        return createAuditLogEntry(
-            metaform = metaform,
-            userId = userId,
-            type = type,
-            replyId = replyId,
-            attachmentId = attachmentId,
-            message = action ?: String.format("user %1\$s %2\$s %3\$s", userId.toString(), defaction, replyId.toString())
-        )
+            createAuditLogEntry(
+                metaform = metaform,
+                userId = userId,
+                type = type,
+                replyId = replyId,
+                attachmentId = attachmentId,
+                message = action ?: String.format("user %1\$s %2\$s %3\$s", userId.toString(), defaction, replyId.toString())
+            )
+        }
     }
 
 }
