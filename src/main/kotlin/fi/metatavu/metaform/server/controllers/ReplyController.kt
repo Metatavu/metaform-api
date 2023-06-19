@@ -100,12 +100,6 @@ class ReplyController {
     lateinit var pdfPrinter: PdfPrinter
 
     @Inject
-    lateinit var scriptsController: ScriptsController
-
-    @Inject
-    lateinit var scriptController: ScriptController
-
-    @Inject
     lateinit var cryptoController: CryptoController
 
     @Inject
@@ -503,11 +497,7 @@ class ReplyController {
                         }
                     }
                     formRuntimeContext.xlsxBuilder = xlsxBuilder
-                    val scripts = metaformEntity.scripts
-                    if (scripts != null) {
-                        val scriptsToRun = scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.EXPORT_XLSX }
-                        scriptController.runScripts(scriptsToRun)
-                    }
+
                     xlsxBuilder.write(output)
                     return output.toByteArray()
                 }
