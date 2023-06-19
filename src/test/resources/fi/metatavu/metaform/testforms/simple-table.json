@@ -14,7 +14,8 @@
               {
                 "type": "text",
                 "name": "tabletext",
-                "title": "Text table field"
+                "title": "Text table field",
+                "classifiers": ["a", "b"]
               }, {
                 "type": "number",
                 "name": "tablenumber",
