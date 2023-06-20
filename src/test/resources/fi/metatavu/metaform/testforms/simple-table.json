@@ -19,7 +19,8 @@
                 "type": "number",
                 "name": "tablenumber",
                 "title": "Number table field",
-                "calculate-sum": true
+                "calculate-sum": true,
+                "sum-postfix": "€"
               }
             ]
           }

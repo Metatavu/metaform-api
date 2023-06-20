@@ -54,7 +54,7 @@ class ExportXlsxTestsIT : AbstractTest() {
             assertEquals("Text table field", tableSheet.getRow(0).getCell(0).stringCellValue)
             assertNotNull(tableSheet.find { row -> row.getCell(0).stringCellValue == "Text 1" })
             assertNotNull(tableSheet.find { row -> row.getCell(0).stringCellValue == "Text 2" })
-            assertEquals("SUM(B2:B3)", tableSheet.getRow(3).getCell(1).cellFormula)
+            assertEquals("SUM(B2:B3)&\"€\"", tableSheet.getRow(3).getCell(1).cellFormula)
         }
     }
 

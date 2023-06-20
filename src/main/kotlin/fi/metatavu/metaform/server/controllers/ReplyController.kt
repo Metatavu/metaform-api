@@ -100,12 +100,6 @@ class ReplyController {
     lateinit var pdfPrinter: PdfPrinter
 
     @Inject
-    lateinit var scriptsController: ScriptsController
-
-    @Inject
-    lateinit var scriptController: ScriptController
-
-    @Inject
     lateinit var cryptoController: CryptoController
 
     @Inject
@@ -503,11 +497,7 @@ class ReplyController {
                         }
                     }
                     formRuntimeContext.xlsxBuilder = xlsxBuilder
-                    val scripts = metaformEntity.scripts
-                    if (scripts != null) {
-                        val scriptsToRun = scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.EXPORT_XSLX }
-                        scriptController.runScripts(scriptsToRun)
-                    }
+
                     xlsxBuilder.write(output)
                     return output.toByteArray()
                 }
@@ -602,7 +592,8 @@ class ReplyController {
                 if (java.lang.Boolean.TRUE == column.calculateSum) {
                     val cellSource = CellSource(field, CellSourceType.TABLE_SUM)
                     val columnString = CellReference.convertNumToColString(columnIndex)
-                    xlsxBuilder.setCellFormula(sheetId, tableValue.size + 1, columnIndex, String.format("SUM(%s%d:%s%d)", columnString, 2, columnString, tableValue.size + 1), cellSource)
+                    val postfix = column.sumPostfix ?: ""
+                    xlsxBuilder.setCellFormula(sheetId, tableValue.size + 1, columnIndex, String.format("SUM(%s%d:%s%d)&\"%s\"", columnString, 2, columnString, tableValue.size + 1, postfix), cellSource)
                 }
             }
             return sheetName

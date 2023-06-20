@@ -55,7 +55,7 @@ class UsersApi: UsersApi, AbstractApi() {
     override fun deleteUser(userId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-        if (!isRealmSystemAdmin) {
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
             return createForbidden(UNAUTHORIZED)
         }
 

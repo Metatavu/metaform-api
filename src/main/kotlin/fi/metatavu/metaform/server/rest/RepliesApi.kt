@@ -58,9 +58,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   lateinit var scriptsController: ScriptsController
 
   @Inject
-  lateinit var scriptController: ScriptController
-
-  @Inject
   lateinit var formRuntimeContext: FormRuntimeContext
 
   @Inject
@@ -93,7 +90,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
     }
 
-    val replyUserId = if (!isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
+    val replyUserId = if (!isMetatavuAdmin || !isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
     var replyMode = try {
       replyModeParam?.let { ReplyMode.valueOf(it) }
     } catch (ex: IllegalArgumentException) {
@@ -151,12 +148,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     val replyEntity = replyTranslator.translate(metaformEntity, createdReply, publicKey)
-
-    if (metaformEntity.scripts != null) {
-      setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.AFTER_CREATE_REPLY }
-      scriptController.runScripts(scriptsToRun)
-    }
 
     try {
       val groupMemberPermissions = getGroupPermissions(
@@ -545,12 +536,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     replyController.deleteReplyFields(foundReply, fieldNames)
 
     val replyEntity: Reply = replyTranslator.translate(metaformEntity, foundReply, null)
-
-    if (metaformEntity.scripts != null) {
-      setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      val scriptsToRun = metaformEntity.scripts.mapNotNull { scriptId -> scriptsController.findScript(scriptId) }.filter { script -> script.scriptType == ScriptType.AFTER_UPDATE_REPLY }
-      scriptController.runScripts(scriptsToRun)
-    }
 
     auditLogEntryController.generateAuditLog(metaform, userId, foundReply.id!!, null, null, AuditLogEntryType.MODIFY_REPLY)
     try {
