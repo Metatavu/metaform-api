@@ -21,7 +21,7 @@ class AuditLogEntryController {
 
     @Inject
     @ConfigProperty(name = "metaforms.features.auditlog", defaultValue = "true")
-    var auditLog: Boolean = true
+    lateinit var auditLog: Boolean
 
     /**
      * Creates AuditLogEntry and fill the missing fields (generate uuid, fill current time)
