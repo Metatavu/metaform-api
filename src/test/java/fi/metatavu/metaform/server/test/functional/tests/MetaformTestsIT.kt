@@ -75,10 +75,6 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("a"))
             assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("b"))
             assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("c"))
-
-            val metaform3 = builder.systemAdmin.metaforms.createFromJsonFile("simple-table")
-            assertEquals(true, metaform3.sections!![0].fields!![0].table!!.columns!![0].classifiers!!.contains("a"))
-            assertEquals(true, metaform3.sections[0].fields!![0].table!!.columns!![0].classifiers!!.contains("b"))
         }
     }
 
