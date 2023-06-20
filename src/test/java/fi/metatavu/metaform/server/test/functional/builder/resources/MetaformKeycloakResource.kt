@@ -19,7 +19,6 @@ class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
         config["metaforms.keycloak.admin.password"] = "test"
         config["metaforms.keycloak.admin.admin_client_id"] = "metaform-api"
         config["metaforms.keycloak.admin.secret"] = "378833f9-dde8-4443-84ca-edfa26e2f0ee"
-        config["metaforms.features.auditlog"] = "true"
         return config
     }
 
