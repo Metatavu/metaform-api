@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.User
 import fi.metatavu.metaform.server.rest.translate.UserTranslator
 import fi.metatavu.metaform.api.spec.UsersApi
 import fi.metatavu.metaform.server.controllers.UsersController
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.UUID
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -13,6 +14,9 @@ import javax.ws.rs.core.Response
 @RequestScoped
 @Transactional
 class UsersApi: UsersApi, AbstractApi() {
+    @Inject
+    @ConfigProperty(name = "metaforms.features.cardauth", defaultValue = "false")
+    var cardAuthEnabled: Boolean = false
 
     @Inject
     lateinit var userTranslator: UserTranslator
@@ -92,14 +96,16 @@ class UsersApi: UsersApi, AbstractApi() {
             .map { userTranslator.translate(it!!) }
             .toMutableList()
 
-        val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(search)
-            .toMutableList()
-            .filter { cardAuthKeycloakUser ->
-                foundUsers.find { foundUser -> foundUser.federatedIdentities?.any { it.userId == cardAuthKeycloakUser.id } ?: false } == null
-            }
-            .map { userTranslator.translateCardAuthUserRepresentation(it) }
+        if (cardAuthEnabled) {
+            val cardAuthKeycloakUsers = cardAuthKeycloakController.searchUsers(search)
+                    .toMutableList()
+                    .filter { cardAuthKeycloakUser ->
+                        foundUsers.find { foundUser -> foundUser.federatedIdentities?.any { it.userId == cardAuthKeycloakUser.id } ?: false } == null
+                    }
+                    .map { userTranslator.translateCardAuthUserRepresentation(it) }
 
-        foundUsers.addAll(cardAuthKeycloakUsers)
+            foundUsers.addAll(cardAuthKeycloakUsers)
+        }
 
         return createOk(foundUsers)
     }

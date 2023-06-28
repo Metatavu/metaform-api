@@ -13,6 +13,7 @@ class GeneralTestProfile : QuarkusTestProfile {
         properties["quarkus.liquibase.contexts"] = "test"
         properties["metaforms.keycloak.card.identity.provider"] = "oidc"
         properties["metaforms.features.auditlog"] = "true"
+        properties["metaforms.features.cardauth"] = "true"
         return properties
     }
 }
