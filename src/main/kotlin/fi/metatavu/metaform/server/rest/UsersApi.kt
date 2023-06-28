@@ -15,8 +15,8 @@ import javax.ws.rs.core.Response
 @Transactional
 class UsersApi: UsersApi, AbstractApi() {
     @Inject
-    @ConfigProperty(name = "metaforms.features.cardauth", defaultValue = "true")
-    var cardAuthEnabled: Boolean = true
+    @ConfigProperty(name = "metaforms.features.cardauth", defaultValue = "false")
+    var cardAuthEnabled: Boolean = false
 
     @Inject
     lateinit var userTranslator: UserTranslator
