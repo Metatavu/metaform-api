@@ -666,4 +666,31 @@
     <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateDeprecatedFieldProperties2"/>
   </changeSet>
 
+  <changeSet id="templates" author="Harri Häkkinen">
+    <createTable tableName="template">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="visibility" type="varchar(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+
+    </createTable>
+  </changeSet>
+
 </databaseChangeLog>
