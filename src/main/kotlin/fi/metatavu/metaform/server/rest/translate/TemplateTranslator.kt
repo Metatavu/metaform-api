@@ -27,7 +27,12 @@ class TemplateTranslator {
 
         return Template(
           id = template.id,
-          data = deserializedData
+          data = deserializedData,
+          visibility = template.visibility,
+          creatorId = template.creatorId,
+          lastModifierId = template.lastModifierId,
+          createdAt = template.createdAt,
+          modifiedAt = template.modifiedAt
         )
     }
 

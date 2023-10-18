@@ -39,12 +39,18 @@ class TemplateController {
     ): Template {
 
         val serializedTemplateData = try {
-            serializeData(templateData)
+            serializeTemplateData(templateData)
         } catch (e: Exception) {
            throw Exception(e.message)
         }
 
-        return templateDAO.create(creatorId, serializedTemplateData, visibility)
+        return templateDAO.create(
+                id = UUID.randomUUID(),
+                data = serializedTemplateData,
+                visibility = visibility,
+                creatorId = creatorId,
+                lastModifierId = creatorId
+        )
     }
 
     /**
@@ -64,8 +70,18 @@ class TemplateController {
      * @param data data
      * @return updated template
      */
-    fun updateTemplate(template: Template, data: String): Template {
-        return templateDAO.updateData(template, data)
+    fun updateTemplate(
+        template: Template,
+        data: String,
+        templateVisibility: TemplateVisibility,
+        lastModifier: UUID
+    ): Template {
+        return templateDAO.updateData(
+            template = template,
+            data = data,
+            templateVisibility = templateVisibility,
+            lastModifier = lastModifier
+        )
     }
 
     /**
@@ -78,26 +94,36 @@ class TemplateController {
     }
 
     /**
-     * Lists all templates
-     * TODO: PARAMS!!!
+     * Lists templates by visibility
+     * @param visibility TemplateVisibility
      */
-    fun listTemplates(): List<Template> {
-        return templateDAO.listTemplates()
+    fun listTemplates(visibility: TemplateVisibility? = null): List<Template> {
+        visibility ?: return templateDAO.listAll()
+        return templateDAO.listByVisibility(visibility)
     }
 
     /**
-     * Serializes data as string
+     * Serializes TemplateData as string
      *
      * @param data data
      * @return data as string
      */
 
     @Throws(Exception::class)
-    fun serializeData(data: TemplateData): String {
+    fun serializeTemplateData(templateData: TemplateData): String {
         try {
-            return jacksonObjectMapper().writeValueAsString(data)
+            return jacksonObjectMapper().writeValueAsString(templateData)
         } catch (e: Exception) {
-            throw Exception("Failed to serialize draft data", e)
+            throw Exception("Failed to serialize template data", e)
+        }
+    }
+
+    @Throws(Exception::class)
+    fun serializeTemplate(template: fi.metatavu.metaform.api.spec.model.Template): String {
+        try {
+            return jacksonObjectMapper().writeValueAsString(template)
+        } catch (e: Exception) {
+            throw Exception("Failed to serialize template data", e)
         }
     }
 }

@@ -504,6 +504,7 @@ abstract class AbstractApi {
         const val METAFORM_VERSION = "metaform version"
         const val ANONYMOUS_USERS_METAFORM_MESSAGE = "Anonymous users are not allowed on this Metaform"
         const val USER = "user"
+        const val TEMPLATE = "template"
 
         private const val INTERNAL_SERVER_ERROR = "Internal Server Error"
     }

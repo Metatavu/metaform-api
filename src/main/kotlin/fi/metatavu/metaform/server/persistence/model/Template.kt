@@ -29,4 +29,10 @@ class Template : Metadata() {
     @NotNull
     @Enumerated(EnumType.STRING)
     var visibility: TemplateVisibility? = null
+
+    @Column(nullable = false)
+    lateinit var creatorId: UUID
+
+    @Column(nullable = false)
+    lateinit var lastModifierId: UUID
 }

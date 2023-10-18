@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.Template
 import fi.metatavu.metaform.api.spec.model.TemplateVisibility
 import fi.metatavu.metaform.server.controllers.*
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
+import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.rest.translate.TemplateTranslator
 
 import org.slf4j.Logger
@@ -79,23 +80,69 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
   }
 
   override fun updateTemplate(templateId: UUID, template: Template): Response {
-    TODO("Not yet implemented")
-    /*
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+    val userId = loggedUserId
+        ?: return createForbidden(UNAUTHORIZED)
 
     val foundTemplate = templateController.findTemplateById(templateId)
-      ?: return createNotFound(createNotFoundMessage("template", templateId))
+        ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
-
-    val serializedTemplate = try {
-
+    val data = try {
+        templateController.serializeTemplateData(templateData = template.data!!)
+    } catch (e: MalformedMetaformJsonException) {
+        createInvalidMessage(createInvalidMessage(TEMPLATE))
     }
 
-    val updatedTemplate = templateController.updateTemplate(foundTemplate, serializedTemplate)
+    /* TODO PERMISSIONS AND DUPLICATE FIELDS
+    if (!metaformController.validateMetaform(metaform)) {
+        return createBadRequest("Duplicate field names")
+    }
+
+    val permissionGroups = MetaformUtils.getPermissionGroups(metaform = metaform)
+
+    if (!metaformController.validatePermissionGroups(permissionGroups = permissionGroups)) {
+        return createBadRequest("Invalid permission groups")
+    }
     */
+
+    val updatedTemplate = templateController.updateTemplate(
+        template = foundTemplate,
+        templateVisibility = template.visibility ?: foundTemplate.visibility!!,
+        data = data,
+        lastModifier = userId
+    )
+
+    return try {
+        createOk(templateTranslator.translateTemplate(updatedTemplate))
+    } catch (e: MalformedMetaformJsonException) {
+        createInternalServerError(e.message)
+    }
   }
 
   override fun listTemplates(visibility: TemplateVisibility?): Response {
-    TODO("Not yet implemented")
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (visibility == TemplateVisibility.PRIVATE) {
+      return createForbidden(createNotAllowedMessage(LIST, TEMPLATE))
+    }
+
+    val templates = templateController.listTemplates(visibility = visibility)
+
+            .filter { template ->
+              //val templateId = template.id!!
+              template.visibility == TemplateVisibility.PUBLIC
+            }
+
+            /*
+            .filter { template ->
+              val templateId = template.id!!
+              when (memberRole) {
+                MetaformMemberRole.ADMINISTRATOR -> isMetaformAdmin(metaformId)
+                MetaformMemberRole.MANAGER -> isMetaformManager(metaformId)
+                else -> true
+              }
+            }
+            */
+
+    return createOk(templates.map(templateTranslator::translateTemplate))
   }
 }
