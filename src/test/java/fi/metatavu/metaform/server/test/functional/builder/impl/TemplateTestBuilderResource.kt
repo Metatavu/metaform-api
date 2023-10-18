@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.builder.impl
 
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
-import fi.metatavu.metaform.api.client.apis.DraftsApi
 import fi.metatavu.metaform.api.client.apis.TemplatesApi
 import fi.metatavu.metaform.api.client.infrastructure.ApiClient
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
@@ -35,7 +34,7 @@ class TemplateTestBuilderResource (
     /**
      * Creates new template
      *
-     * @param payload payload
+     * @param template Template
      * @return created template
      */
     @Throws(IOException::class)

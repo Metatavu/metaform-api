@@ -1,9 +1,6 @@
 package fi.metatavu.metaform.server.persistence.dao
 
-import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.api.spec.model.TemplateVisibility
-import fi.metatavu.metaform.server.persistence.model.Metaform
-import fi.metatavu.metaform.server.persistence.model.Metaform_
 import fi.metatavu.metaform.server.persistence.model.Template
 import fi.metatavu.metaform.server.persistence.model.Template_
 import java.util.UUID

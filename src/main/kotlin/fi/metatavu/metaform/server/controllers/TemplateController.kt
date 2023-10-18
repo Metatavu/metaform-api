@@ -27,9 +27,9 @@ class TemplateController {
     /**
      * Creates new template
      *
-     * @param template template
-     * @param userId user id
-     * @param data template data
+     * @param templateData TemplateData
+     * @param visibility TemplateVisibility
+     * @param creatorId UUID
      * @return created template
      */
     fun createTemplate(
@@ -105,7 +105,7 @@ class TemplateController {
     /**
      * Serializes TemplateData as string
      *
-     * @param data data
+     * @param templateData TemplateData
      * @return data as string
      */
 
@@ -118,12 +118,4 @@ class TemplateController {
         }
     }
 
-    @Throws(Exception::class)
-    fun serializeTemplate(template: fi.metatavu.metaform.api.spec.model.Template): String {
-        try {
-            return jacksonObjectMapper().writeValueAsString(template)
-        } catch (e: Exception) {
-            throw Exception("Failed to serialize template data", e)
-        }
-    }
 }
