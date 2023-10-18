@@ -92,7 +92,7 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
         createInvalidMessage(createInvalidMessage(TEMPLATE))
     }
 
-    /* TODO PERMISSIONS AND DUPLICATE FIELDS
+    /*
     if (!metaformController.validateMetaform(metaform)) {
         return createBadRequest("Duplicate field names")
     }
