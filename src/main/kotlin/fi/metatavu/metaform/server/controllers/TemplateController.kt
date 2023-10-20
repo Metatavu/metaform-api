@@ -1,8 +1,11 @@
 package fi.metatavu.metaform.server.controllers
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.TemplateData
 import fi.metatavu.metaform.api.spec.model.TemplateVisibility
+import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.persistence.dao.TemplateDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import org.slf4j.Logger
@@ -111,10 +114,22 @@ class TemplateController {
 
     @Throws(Exception::class)
     fun serializeTemplateData(templateData: TemplateData): String {
-        try {
+    /*    try {
             return jacksonObjectMapper().writeValueAsString(templateData)
         } catch (e: Exception) {
             throw Exception("Failed to serialize template data", e)
         }
+
+     */
+        val objectMapper = ObjectMapper()
+        objectMapper.registerModule(JavaTimeModule())
+
+        try {
+            return objectMapper.writeValueAsString(templateData)
+        } catch (e: JsonProcessingException) {
+            throw MalformedMetaformJsonException("Failed to serialize draft data", e)
+        }
     }
+
+
 }
