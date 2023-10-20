@@ -117,5 +117,4 @@ class TemplateController {
             throw Exception("Failed to serialize template data", e)
         }
     }
-
 }

@@ -116,6 +116,23 @@ class TemplateTestBuilderResource (
     }
 
     /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param templateId     templateId
+     * @param template       template
+     */
+    @Throws(IOException::class)
+    fun assertUpdateFailStatus(expectedStatus: Int, templateId: UUID, template: Template) {
+        try {
+            api.updateTemplate(templateId = templateId, template = template)
+            Assert.fail(String.format("Expected update to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
      * Asserts find status fails with given status code
      *
      * @param expectedStatus expected status code

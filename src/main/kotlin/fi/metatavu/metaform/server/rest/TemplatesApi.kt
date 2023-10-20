@@ -1,12 +1,10 @@
 package fi.metatavu.metaform.server.rest
 
-import fi.metatavu.metaform.api.spec.model.Template
-import fi.metatavu.metaform.api.spec.model.TemplateVisibility
+import fi.metatavu.metaform.api.spec.model.*
 import fi.metatavu.metaform.server.controllers.*
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.rest.translate.TemplateTranslator
-
 import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.RequestScoped
@@ -34,6 +32,10 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
   override fun createTemplate(template: Template): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+    }
+
     val templateData = template.data
             ?: return createBadRequest("Template data is required")
 
@@ -58,6 +60,10 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
   override fun deleteTemplate(templateId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+    }
+
     val template = templateController.findTemplateById(templateId)
       ?: return createNotFound(createNotFoundMessage("template", templateId))
 
@@ -68,6 +74,10 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
 
   override fun findTemplate(templateId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+    }
 
     val template = templateController.findTemplateById(templateId)
       ?: return createNotFound(createNotFoundMessage("template", templateId))
@@ -83,6 +93,10 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
     val userId = loggedUserId
         ?: return createForbidden(UNAUTHORIZED)
 
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+    }
+
     val foundTemplate = templateController.findTemplateById(templateId)
         ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
@@ -91,18 +105,6 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
     } catch (e: MalformedMetaformJsonException) {
         createInvalidMessage(createInvalidMessage(TEMPLATE))
     }
-
-    /*
-    if (!metaformController.validateMetaform(metaform)) {
-        return createBadRequest("Duplicate field names")
-    }
-
-    val permissionGroups = MetaformUtils.getPermissionGroups(metaform = metaform)
-
-    if (!metaformController.validatePermissionGroups(permissionGroups = permissionGroups)) {
-        return createBadRequest("Invalid permission groups")
-    }
-    */
 
     val updatedTemplate = templateController.updateTemplate(
         template = foundTemplate,
@@ -131,17 +133,6 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
               //val templateId = template.id!!
               template.visibility == TemplateVisibility.PUBLIC
             }
-
-            /*
-            .filter { template ->
-              val templateId = template.id!!
-              when (memberRole) {
-                MetaformMemberRole.ADMINISTRATOR -> isMetaformAdmin(metaformId)
-                MetaformMemberRole.MANAGER -> isMetaformManager(metaformId)
-                else -> true
-              }
-            }
-            */
 
     return createOk(templates.map(templateTranslator::translateTemplate))
   }
