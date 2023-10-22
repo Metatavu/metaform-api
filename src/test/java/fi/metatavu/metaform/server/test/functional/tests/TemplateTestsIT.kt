@@ -58,8 +58,6 @@ class TemplateTestsIT : AbstractTest() {
             expected = testTemplate.data?.sections?.get(0),
             actual = createdTemplate.data?.sections?.get(0)
         )
-
-        //Puutteet???
     }
 
     @Test

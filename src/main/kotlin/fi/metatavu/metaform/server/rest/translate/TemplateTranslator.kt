@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest.translate
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.Template
+import fi.metatavu.metaform.api.spec.model.TemplateData
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import org.slf4j.Logger
@@ -32,19 +33,20 @@ class TemplateTranslator {
         objectMapper.registerModule(JavaTimeModule())
 
         val result = try {
-            objectMapper.readValue(template.data, Template::class.java)
+            objectMapper.readValue(template.data, TemplateData::class.java)
         } catch (e: IOException) {
             throw MalformedMetaformJsonException(String.format("Failed to translate template %s", template.id.toString()), e)
         }
 
-        return result.copy(
-          id = template.id,
-          data = result.data,
-          visibility = template.visibility,
-          creatorId = template.creatorId,
-          lastModifierId = template.lastModifierId,
-          createdAt = template.createdAt,
-          modifiedAt = template.modifiedAt
+        //return result.copy(
+        return Template(
+            id = template.id,
+            data = result,
+            visibility = template.visibility,
+            creatorId = template.creatorId,
+            lastModifierId = template.lastModifierId,
+            createdAt = template.createdAt,
+            modifiedAt = template.modifiedAt
         )
     }
 
