@@ -40,16 +40,9 @@ class TemplateController {
             visibility: TemplateVisibility,
             creatorId: UUID
     ): Template {
-
-        val serializedTemplateData = try {
-            serializeTemplateData(templateData)
-        } catch (e: Exception) {
-           throw Exception(e.message)
-        }
-
         return templateDAO.create(
                 id = UUID.randomUUID(),
-                data = serializedTemplateData,
+                data = serializeTemplateData(templateData),
                 visibility = visibility,
                 creatorId = creatorId,
                 lastModifierId = creatorId
