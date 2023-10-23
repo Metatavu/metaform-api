@@ -48,13 +48,7 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
         creatorId = userId
     )
 
-    val templateEntity: Template = try {
-      templateTranslator.translateTemplate(template = createdTemplate)
-    } catch (e: DeserializationFailedException) {
-      return createInternalServerError(e.message)
-    }
-
-    return createOk(templateEntity)
+    return createOk(templateTranslator.translateTemplate(template = createdTemplate))
   }
 
   override fun deleteTemplate(templateId: UUID): Response {
