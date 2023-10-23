@@ -76,11 +76,7 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
     val template = templateController.findTemplateById(templateId)
       ?: return createNotFound(createNotFoundMessage("template", templateId))
 
-    return try {
-      createOk(templateTranslator.translateTemplate(template))
-    } catch (e: DeserializationFailedException) {
-      createInternalServerError(e.message)
-    }
+    return createOk(templateTranslator.translateTemplate(template))
   }
 
   override fun updateTemplate(templateId: UUID, template: Template): Response {
