@@ -103,11 +103,7 @@ class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
         lastModifier = userId
     )
 
-    return try {
-        createOk(templateTranslator.translateTemplate(updatedTemplate))
-    } catch (e: MalformedMetaformJsonException) {
-        createInternalServerError(e.message)
-    }
+    return createOk(templateTranslator.translateTemplate(updatedTemplate))
   }
 
   override fun listTemplates(visibility: TemplateVisibility?): Response {
