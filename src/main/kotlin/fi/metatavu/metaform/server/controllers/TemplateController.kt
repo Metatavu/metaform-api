@@ -68,7 +68,7 @@ class TemplateController {
      */
     fun updateTemplate(
         template: Template,
-        data: String,
+        templateData: TemplateData,
         templateVisibility: TemplateVisibility,
         lastModifier: UUID
     ): Template {
