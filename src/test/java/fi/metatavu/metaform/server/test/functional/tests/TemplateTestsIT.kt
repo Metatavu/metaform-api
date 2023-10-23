@@ -324,6 +324,13 @@ class TemplateTestsIT : AbstractTest() {
         }
     }
 
+    /**
+     * Creates a template object from a metaform
+     *
+     * @param metaform the metaform to create the template from
+     * @param templateVisibility the visibility of the template
+     * @return the created template
+     */
     private fun createTemplateFromMetaform(metaform: Metaform, templateVisibility: TemplateVisibility): Template {
         val testTemplateData = TemplateData(
             title = metaform.title,
