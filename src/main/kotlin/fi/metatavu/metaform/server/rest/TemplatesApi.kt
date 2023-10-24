@@ -105,13 +105,10 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
         val foundTemplate = templateController.findTemplateById(templateId)
                 ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
-        val templateData = template.data
-                ?: return createNotFound(TEMPLATE)
-
         val updatedTemplate = templateController.updateTemplate(
                 template = foundTemplate,
-                templateData = templateData,
-                templateVisibility = template.visibility!!,
+                templateData = template.data,
+                templateVisibility = template.visibility,
                 lastModifier = userId
         )
 
