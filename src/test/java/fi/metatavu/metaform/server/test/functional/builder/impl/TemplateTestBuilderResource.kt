@@ -39,7 +39,9 @@ class TemplateTestBuilderResource (
      */
     @Throws(IOException::class)
     fun createTemplate(template: Template): Template {
-        return addClosable(api.createTemplate(template = template))
+        return addClosable(
+            api.createTemplate(template = template)
+        )
     }
 
     /**
@@ -78,58 +80,16 @@ class TemplateTestBuilderResource (
         return api.listTemplates(visibility = visibility)
     }
 
+    /**
+     * Updates template by id
+     *
+     * @param id template id
+     * @param template template
+     * @return Template
+     */
     @Throws(IOException::class)
     fun updateTemplate(id: UUID, template: Template): Template {
         return api.updateTemplate(templateId = id, template = template)
-    }
-
-    /**
-     * Asserts create status fails with given status code
-     *
-     * @param expectedStatus expected status code
-     * @param template       Template
-     */
-    @Throws(IOException::class)
-    fun assertCreateFailStatus(expectedStatus: Int, template: Template) {
-        try {
-            api.createTemplate(template)
-            Assert.fail(String.format("Expected create to fail with status %d", expectedStatus))
-        } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
-        }
-    }
-
-    /**
-     * Asserts delete status fails with given status code
-     *
-     * @param expectedStatus expected status code
-     * @param templateId template id
-     */
-    @Throws(IOException::class)
-    fun assertDeleteFailStatus(expectedStatus: Int, templateId: UUID) {
-        try {
-            api.deleteTemplate(templateId = templateId)
-            Assert.fail(String.format("Expected delete to fail with status %d", expectedStatus))
-        } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
-        }
-    }
-
-    /**
-     * Asserts update status fails with given status code
-     *
-     * @param expectedStatus expected status code
-     * @param templateId     templateId
-     * @param template       template
-     */
-    @Throws(IOException::class)
-    fun assertUpdateFailStatus(expectedStatus: Int, templateId: UUID, template: Template) {
-        try {
-            api.updateTemplate(templateId = templateId, template = template)
-            Assert.fail(String.format("Expected update to fail with status %d", expectedStatus))
-        } catch (e: ClientException) {
-            Assert.assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
-        }
     }
 
     /**

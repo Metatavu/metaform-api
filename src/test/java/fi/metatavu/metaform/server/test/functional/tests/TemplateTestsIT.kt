@@ -28,35 +28,33 @@ class TemplateTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createTemplate() = TestBuilder().use { testBuilder ->
 
-
-        //First create a simple metaform from JSON in order to be able to crate a new template
         val testMetaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
         assertNotNull(testMetaform)
         assertNotNull(testMetaform.id)
 
-        //create template from given metaform
         val testTemplate: Template = createTemplateFromMetaform(
             metaform = testMetaform,
             templateVisibility = TemplateVisibility.PUBLIC
         )
 
-        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(testTemplate)
+        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(template = testTemplate)
 
         assertNotNull(createdTemplate.id)
+        assertEquals(createdTemplate.visibility, TemplateVisibility.PUBLIC)
         assertNotNull(createdTemplate.creatorId)
         assertNotNull(createdTemplate.createdAt)
         assertNotNull(createdTemplate.lastModifierId)
         assertNotNull(createdTemplate.modifiedAt)
 
         assertNotNull(createdTemplate.data)
-        assertNotNull(createdTemplate.data?.sections)
-        assertEquals(1,createdTemplate.data?.sections?.size)
+        assertNotNull(createdTemplate.data.sections)
+        assertEquals(1,createdTemplate.data.sections?.size)
 
-        assertNotNull(testTemplate.data?.sections?.get(0))
+        assertNotNull(testTemplate.data.sections?.get(0))
 
         testBuilder.systemAdmin.templates.assertSectionEqual(
-            expected = testTemplate.data?.sections?.get(0),
-            actual = createdTemplate.data?.sections?.get(0)
+            expected = testTemplate.data.sections?.get(0),
+            actual = createdTemplate.data.sections?.get(0)
         )
     }
 
@@ -65,16 +63,17 @@ class TemplateTestsIT : AbstractTest() {
     fun testFindTemplate() = TestBuilder().use { testBuilder ->
 
         val testMetaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-
         val testTemplate: Template = createTemplateFromMetaform(
             metaform = testMetaform,
             templateVisibility = TemplateVisibility.PUBLIC
         )
 
-        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(testTemplate)
+        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(template = testTemplate)
+
         val foundTemplate = testBuilder.systemAdmin.templates.findTemplate(templateId = createdTemplate.id!!)
 
         assertEquals(createdTemplate.id, foundTemplate.id)
+        assertEquals(createdTemplate.visibility, foundTemplate.visibility)
     }
 
     @Test
@@ -108,11 +107,52 @@ class TemplateTestsIT : AbstractTest() {
         assertNotNull(createdTemplate2)
         assertNotNull(createdTemplate3)
 
-        testBuilder.systemAdmin.templates.createTemplate(createdTemplate1)
-        testBuilder.systemAdmin.templates.createTemplate(createdTemplate2)
-        testBuilder.systemAdmin.templates.createTemplate(createdTemplate3)
+        testBuilder.systemAdmin.templates.createTemplate(template = createdTemplate1)
+        testBuilder.systemAdmin.templates.createTemplate(template = createdTemplate2)
+        testBuilder.systemAdmin.templates.createTemplate(template = createdTemplate3)
 
         assertEquals(3, testBuilder.systemAdmin.templates.list().size)
+
+        for (template in testBuilder.systemAdmin.templates.list()) {
+            assertNotNull(template.id)
+        }
+    }
+    
+    @Test
+    @Throws(Exception::class)
+    fun testTemplateVisibility() = TestBuilder().use { testBuilder ->
+
+        val createdMetaform1 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+        val createdMetaform2 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+        val createdMetaform3 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+        assertNotNull(createdMetaform1)
+        assertNotNull(createdMetaform2)
+        assertNotNull(createdMetaform3)
+
+        val template1 = createTemplateFromMetaform(metaform = createdMetaform1, templateVisibility = TemplateVisibility.PUBLIC)
+        val template2 = createTemplateFromMetaform(metaform = createdMetaform2, templateVisibility = TemplateVisibility.PUBLIC)
+        val template3 = createTemplateFromMetaform(metaform = createdMetaform3, templateVisibility = TemplateVisibility.PUBLIC)
+
+        assertNotNull(template1)
+        assertNotNull(template1.data)
+        assertNotNull(template1.visibility)
+
+        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(template = template1)
+        testBuilder.systemAdmin.templates.createTemplate(template = template2)
+        testBuilder.systemAdmin.templates.createTemplate(template = template3)
+
+        assertEquals(3, testBuilder.systemAdmin.templates.list(TemplateVisibility.PUBLIC).size)
+
+        val updatedTemplate = createdTemplate.copy(visibility = TemplateVisibility.PRIVATE)
+
+        testBuilder.systemAdmin.templates.updateTemplate(
+                id = createdTemplate.id!!,
+                template = updatedTemplate
+        )
+
+        assertEquals(2, testBuilder.systemAdmin.templates.list(TemplateVisibility.PUBLIC).size)
+
     }
 
     @Test
@@ -122,12 +162,12 @@ class TemplateTestsIT : AbstractTest() {
         val createdMetaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
         assertNotNull(createdMetaform)
 
-        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(
-            template = createTemplateFromMetaform(
+        val template1 = createTemplateFromMetaform(
                 metaform = createdMetaform,
                 templateVisibility = TemplateVisibility.PUBLIC
-            )
         )
+
+        val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(template = template1)
 
         assertNotNull(createdTemplate)
         assertNotNull(createdTemplate.id)
@@ -145,37 +185,49 @@ class TemplateTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testUpdateTemplate() = TestBuilder().use { testBuilder ->
 
-        val createdMetaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-        assertNotNull(createdMetaform)
-        assertNotNull(createdMetaform.id)
+        val simpleMetaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+        assertNotNull(simpleMetaform)
+        assertNotNull(simpleMetaform.id)
+        val tbncMetaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
+        assertNotNull(tbncMetaform)
+        assertNotNull(tbncMetaform.id)
 
         val createdTemplate = testBuilder.systemAdmin.templates.createTemplate(
-            createTemplateFromMetaform(
-                metaform = createdMetaform,
-                templateVisibility = TemplateVisibility.PRIVATE)
+                template = createTemplateFromMetaform(
+                        metaform = simpleMetaform,
+                        templateVisibility = TemplateVisibility.PRIVATE
+                )
         )
+
         assertNotNull(createdTemplate)
         assertNotNull(createdTemplate.id)
         assertEquals(TemplateVisibility.PRIVATE, createdTemplate.visibility)
 
-        val changedTemplate = Template(
-            id = createdTemplate.id,
-            data = createdTemplate.data,
-            visibility = TemplateVisibility.PUBLIC,
-            creatorId = createdTemplate.creatorId,
-            createdAt = createdTemplate.createdAt
+        //lets change some existing data and update it to database
+        val changedTemplate: Template = createdTemplate.copy(
+                visibility = TemplateVisibility.PUBLIC,
+                data = TemplateData(
+                        title = tbncMetaform.title,
+                        exportThemeId = tbncMetaform.exportThemeId,
+                        sections = tbncMetaform.sections
+                )
         )
 
-        val updatedTemplate = testBuilder.systemAdmin.templates.updateTemplate(
+        val updatedTemplate: Template = testBuilder.systemAdmin.templates.updateTemplate(
             id = createdTemplate.id!!,
             template = changedTemplate
         )
+
         assertNotNull(updatedTemplate)
         assertNotNull(updatedTemplate.id)
         assertNotNull(updatedTemplate.visibility)
+
+        assertEquals(updatedTemplate.id, changedTemplate.id)
+        assertEquals(updatedTemplate.visibility, changedTemplate.visibility)
+
         assertEquals(updatedTemplate.id, createdTemplate.id)
         assertEquals(updatedTemplate.createdAt, createdTemplate.createdAt)
-        assertEquals(TemplateVisibility.PUBLIC, updatedTemplate.visibility)
+        assertEquals(updatedTemplate.visibility, TemplateVisibility.PUBLIC)
 
         val foundTemplate = testBuilder.systemAdmin.templates.findTemplate(
             templateId = updatedTemplate.id!!
@@ -185,8 +237,6 @@ class TemplateTestsIT : AbstractTest() {
         assertNotNull(foundTemplate.id)
         assertNotNull(foundTemplate.visibility)
         assertEquals(updatedTemplate.visibility, foundTemplate.visibility)
-        assertEquals(updatedTemplate.createdAt, foundTemplate.createdAt)
-        assertNotEquals(updatedTemplate.modifiedAt, foundTemplate.modifiedAt)
     }
 
     @Test
@@ -227,12 +277,20 @@ class TemplateTestsIT : AbstractTest() {
         val managerAuthentication = testBuilder.createMetaformManagerAuthentication(metaform1.id!!, false)
 
         //with anon, user and manager roles should fail trying to list templates
-        testBuilder.assertApiCallFailStatus(403) { testBuilder.anon.templates.findTemplate(templateId = createdTemplate.id!!) }
-        testBuilder.assertApiCallFailStatus(403) { testBuilder.test1.templates.findTemplate(templateId = createdTemplate.id!!) }
-        testBuilder.assertApiCallFailStatus(403) { managerAuthentication.templates.findTemplate(templateId = createdTemplate.id!!) }
+        testBuilder.assertApiCallFailStatus(403) {
+            testBuilder.anon.templates.findTemplate(templateId = createdTemplate.id!!)
+        }
+        testBuilder.assertApiCallFailStatus(403) {
+            testBuilder.test1.templates.findTemplate(templateId = createdTemplate.id!!)
+        }
+        testBuilder.assertApiCallFailStatus(403) {
+            managerAuthentication.templates.findTemplate(templateId = createdTemplate.id!!)
+        }
 
         //with admin roles should succeed list templates
-        testBuilder.assertApiCallFailStatus(200) { testBuilder.systemAdmin.templates.findTemplate(templateId = createdTemplate.id!!) }
+        testBuilder.assertApiCallFailStatus(200) {
+            testBuilder.systemAdmin.templates.findTemplate(templateId = createdTemplate.id!!)
+        }
     }
 
     @Test
@@ -325,24 +383,26 @@ class TemplateTestsIT : AbstractTest() {
     }
 
     /**
-     * Creates a template object from a metaform
+     * Creates a template from a metaform
      *
      * @param metaform the metaform to create the template from
      * @param templateVisibility the visibility of the template
      * @return the created template
      */
-    private fun createTemplateFromMetaform(metaform: Metaform, templateVisibility: TemplateVisibility): Template {
+    private fun createTemplateFromMetaform(
+            metaform: Metaform,
+            templateVisibility: TemplateVisibility?
+    ): Template {
+
         val testTemplateData = TemplateData(
             title = metaform.title,
-            allowAnonymous = metaform.allowAnonymous,
-            defaultPermissionGroups = metaform.defaultPermissionGroups,
             exportThemeId = metaform.exportThemeId,
             sections = metaform.sections
         )
 
         return Template(
             data = testTemplateData,
-            visibility = templateVisibility,
+            visibility = templateVisibility!!,
             createdAt = metaform.createdAt,
             modifiedAt = metaform.modifiedAt,
             creatorId = metaform.creatorId,

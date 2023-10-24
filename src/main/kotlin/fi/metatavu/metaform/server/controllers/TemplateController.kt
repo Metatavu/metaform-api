@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.TemplateData
 import fi.metatavu.metaform.api.spec.model.TemplateVisibility
-import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
+import fi.metatavu.metaform.server.exceptions.MalformedTemplateJsonException
 import fi.metatavu.metaform.server.persistence.dao.TemplateDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import org.slf4j.Logger
@@ -63,21 +63,27 @@ class TemplateController {
      * Updates a template
      *
      * @param template template
-     * @param data data
+     * @param templateData template data
+     * @param lastModifier last modifier UUID
      * @return updated template
      */
     fun updateTemplate(
-        template: Template,
-        templateData: TemplateData,
-        templateVisibility: TemplateVisibility,
-        lastModifier: UUID
+            template: Template,
+            templateData: TemplateData,
+            templateVisibility: TemplateVisibility,
+            lastModifier: UUID
     ): Template {
-        return templateDAO.updateData(
-            template = template,
-            data = data,
-            templateVisibility = templateVisibility,
-            lastModifier = lastModifier
+        templateDAO.updateData(
+                template = template,
+                data = serializeTemplateData(templateData),
+                lastModifier = lastModifier
         )
+        templateDAO.updateVisibility(
+                template = template,
+                templateVisibility = templateVisibility,
+                lastModifierId = lastModifier
+        )
+        return template
     }
 
     /**
@@ -95,7 +101,7 @@ class TemplateController {
      */
     fun listTemplates(visibility: TemplateVisibility? = null): List<Template> {
         visibility ?: return templateDAO.listAll()
-        return templateDAO.listByVisibility(visibility)
+        return templateDAO.list(visibility)
     }
 
     /**
@@ -104,23 +110,15 @@ class TemplateController {
      * @param templateData TemplateData
      * @return data as string
      */
-
     @Throws(Exception::class)
-    fun serializeTemplateData(templateData: TemplateData): String {
-    /*    try {
-            return jacksonObjectMapper().writeValueAsString(templateData)
-        } catch (e: Exception) {
-            throw Exception("Failed to serialize template data", e)
-        }
-
-     */
+    private fun serializeTemplateData(templateData: TemplateData): String {
         val objectMapper = ObjectMapper()
         objectMapper.registerModule(JavaTimeModule())
 
         try {
             return objectMapper.writeValueAsString(templateData)
         } catch (e: JsonProcessingException) {
-            throw MalformedMetaformJsonException("Failed to serialize draft data", e)
+            throw MalformedTemplateJsonException("Failed to serialize draft data", e)
         }
     }
 

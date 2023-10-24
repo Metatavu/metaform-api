@@ -2,8 +2,7 @@ package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.*
 import fi.metatavu.metaform.server.controllers.*
-import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
-import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
+import fi.metatavu.metaform.api.spec.TemplatesApi
 import fi.metatavu.metaform.server.rest.translate.TemplateTranslator
 import org.slf4j.Logger
 import java.util.*
@@ -15,111 +14,124 @@ import javax.ws.rs.core.Response
 @RequestScoped
 @Transactional
 @Suppress("unused")
-class TemplatesApi: fi.metatavu.metaform.api.spec.TemplatesApi, AbstractApi() {
+class TemplatesApi : TemplatesApi, AbstractApi() {
 
-  @Inject
-  lateinit var logger: Logger
+    @Inject
+    lateinit var logger: Logger
 
-  @Inject
-  lateinit var exportThemeController: ExportThemeController
+    @Inject
+    lateinit var exportThemeController: ExportThemeController
 
-  @Inject
-  lateinit var templateController: TemplateController
+    @Inject
+    lateinit var templateController: TemplateController
 
-  @Inject
-  lateinit var templateTranslator: TemplateTranslator
+    @Inject
+    lateinit var templateTranslator: TemplateTranslator
 
-  override fun createTemplate(template: Template): Response {
-    val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
+    /**
+     * Creates a new template
+     *
+     * @param template template
+     */
+    override fun createTemplate(template: Template): Response {
 
-    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
-      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+            return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        }
+
+        val createdTemplate = templateController.createTemplate(
+                templateData = template.data,
+                visibility = template.visibility,
+                creatorId = userId
+        )
+
+        return createOk(templateTranslator.translateTemplate(template = createdTemplate))
     }
 
-    val templateData = template.data
-            ?: return createBadRequest("Template data is required")
+    /**
+     * Deletes a template
+     *
+     * @param templateId template id
+     */
+    override fun deleteTemplate(templateId: UUID): Response {
+        loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    val templateVisibility = template.visibility
-            ?: return createBadRequest("Template visibility is required")
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+            return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        }
 
-    val createdTemplate = templateController.createTemplate(
-        templateData = templateData,
-        visibility = templateVisibility,
-        creatorId = userId
-    )
+        val template = templateController.findTemplateById(templateId)
+                ?: return createNotFound(createNotFoundMessage("template", templateId))
 
-    return createOk(templateTranslator.translateTemplate(template = createdTemplate))
-  }
+        templateController.deleteTemplate(template)
 
-  override fun deleteTemplate(templateId: UUID): Response {
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
-
-    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
-      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        return createNoContent()
     }
 
-    val template = templateController.findTemplateById(templateId)
-      ?: return createNotFound(createNotFoundMessage("template", templateId))
+    /**
+     * Finds a template by template id
+     *
+     * @param templateId template id
+     */
+    override fun findTemplate(templateId: UUID): Response {
+        loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    templateController.deleteTemplate(template)
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+            return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        }
 
-    return createNoContent()
-  }
+        val template = templateController.findTemplateById(templateId)
+                ?: return createNotFound(createNotFoundMessage("template", templateId))
 
-  override fun findTemplate(templateId: UUID): Response {
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
-
-    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
-      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        return createOk(templateTranslator.translateTemplate(template))
     }
 
-    val template = templateController.findTemplateById(templateId)
-      ?: return createNotFound(createNotFoundMessage("template", templateId))
+    /**
+     * Updates a template
+     *
+     * @param templateId template id
+     * @param template template
+     */
+    override fun updateTemplate(templateId: UUID, template: Template): Response {
+        val userId = loggedUserId
+                ?: return createForbidden(UNAUTHORIZED)
 
-    return createOk(templateTranslator.translateTemplate(template))
-  }
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+            return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        }
 
-  override fun updateTemplate(templateId: UUID, template: Template): Response {
-    val userId = loggedUserId
-        ?: return createForbidden(UNAUTHORIZED)
+        val foundTemplate = templateController.findTemplateById(templateId)
+                ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
-    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
-      return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
+        val templateData = template.data
+                ?: return createNotFound(TEMPLATE)
+
+        val updatedTemplate = templateController.updateTemplate(
+                template = foundTemplate,
+                templateData = templateData,
+                templateVisibility = template.visibility!!,
+                lastModifier = userId
+        )
+
+        return createOk(templateTranslator.translateTemplate(updatedTemplate))
     }
 
-    val foundTemplate = templateController.findTemplateById(templateId)
-        ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
+    /**
+     * Lists templates.
+     *
+     * @param visibility template visibility
+     */
+    override fun listTemplates(visibility: TemplateVisibility?): Response {
+        loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    val data = try {
-        templateController.serializeTemplateData(templateData = template.data!!)
-    } catch (e: MalformedMetaformJsonException) {
-        createInvalidMessage(createInvalidMessage(TEMPLATE))
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+          return createForbidden(createNotAllowedMessage(LIST, TEMPLATE))
+        }
+
+        val templates = templateController.listTemplates(visibility = visibility)
+
+        return createOk(templates.map(templateTranslator::translateTemplate))
     }
-
-    val updatedTemplate = templateController.updateTemplate(
-        template = foundTemplate,
-        templateVisibility = template.visibility ?: foundTemplate.visibility!!,
-        data = data,
-        lastModifier = userId
-    )
-
-    return createOk(templateTranslator.translateTemplate(updatedTemplate))
-  }
-
-  override fun listTemplates(visibility: TemplateVisibility?): Response {
-    loggedUserId ?: return createForbidden(UNAUTHORIZED)
-
-    if (visibility == TemplateVisibility.PRIVATE) {
-      return createForbidden(createNotAllowedMessage(LIST, TEMPLATE))
-    }
-
-    val templates = templateController.listTemplates(visibility = visibility)
-
-            .filter { template ->
-              //val templateId = template.id!!
-              template.visibility == TemplateVisibility.PUBLIC
-            }
-
-    return createOk(templates.map(templateTranslator::translateTemplate))
-  }
 }
