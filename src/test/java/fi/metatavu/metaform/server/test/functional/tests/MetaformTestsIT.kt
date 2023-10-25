@@ -597,4 +597,33 @@ class MetaformTestsIT : AbstractTest() {
             builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.MANAGER)
         }
     }
+
+    @Test
+    fun testScheduledFields() {
+        TestBuilder().use { builder ->
+            val testMetaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-scheduled-field")
+
+            assertNotNull(testMetaform)
+
+            assertNotNull(testMetaform.sections!![0].fields!![0].schedule!!.startTime)
+            assertNotNull(testMetaform.sections[0].fields!![0].schedule!!.endTime)
+            assertNull(testMetaform.sections[0].fields!![1].schedule!!.startTime)
+            assertNull(testMetaform.sections[0].fields!![1].schedule!!.endTime)
+            assertNotNull(testMetaform.sections!![0].fields!![2].schedule!!.startTime)
+            assertNull(testMetaform.sections[0].fields!![2].schedule!!.endTime)
+
+            val scheduleStartDateTime = OffsetDateTime.parse(testMetaform.sections!![0].fields!![0].schedule!!.startTime)
+            val expectedStartDateTime = OffsetDateTime.parse("2023-01-01T10:33:19.51Z")
+            val scheduleEndDateTime = OffsetDateTime.parse(testMetaform.sections!![0].fields!![0].schedule!!.endTime)
+            val expectedEndDateTime = OffsetDateTime.parse("2023-12-31T11:33:19.51Z")
+
+            assertEquals(scheduleStartDateTime, expectedStartDateTime)
+            assertEquals(scheduleEndDateTime, expectedEndDateTime)
+
+            val scheduleStartDateTime2 = OffsetDateTime.parse(testMetaform.sections!![0].fields!![2].schedule!!.startTime)
+            val expectedStartDateTime2 = OffsetDateTime.parse("2023-02-01T10:33:19.51Z")
+
+            assertEquals(scheduleStartDateTime2, expectedStartDateTime2)
+        }
+    }
 }
