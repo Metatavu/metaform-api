@@ -63,7 +63,7 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
         }
 
         val template = templateController.findTemplateById(templateId)
-                ?: return createNotFound(createNotFoundMessage("template", templateId))
+                ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
         templateController.deleteTemplate(template)
 
