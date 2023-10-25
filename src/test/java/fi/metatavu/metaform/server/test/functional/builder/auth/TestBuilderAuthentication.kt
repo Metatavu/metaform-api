@@ -32,6 +32,7 @@ class TestBuilderAuthentication(
     val metaformMemberGroups: MetaformMemberGroupsTestBuilderResource = MetaformMemberGroupsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val users: UsersTestBuilderResource = UsersTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val metaformStatistics: MetaformStatisticsTestBuilderResource = MetaformStatisticsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
+    val templates: TemplateTestBuilderResource = TemplateTestBuilderResource(testBuilder, accessTokenProvider, createClient())
 
     val token: String
         get() {
