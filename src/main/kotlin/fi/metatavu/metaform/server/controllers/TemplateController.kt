@@ -100,7 +100,6 @@ class TemplateController {
      * @param visibility TemplateVisibility
      */
     fun listTemplates(visibility: TemplateVisibility? = null): List<Template> {
-        visibility ?: return templateDAO.listAll()
         return templateDAO.list(visibility)
     }
 
