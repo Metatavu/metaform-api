@@ -203,7 +203,6 @@ class TemplateTestsIT : AbstractTest() {
         assertNotNull(createdTemplate.id)
         assertEquals(TemplateVisibility.PRIVATE, createdTemplate.visibility)
 
-        //lets change some existing data and update it to database
         val changedTemplate: Template = createdTemplate.copy(
                 visibility = TemplateVisibility.PUBLIC,
                 data = TemplateData(
@@ -221,6 +220,11 @@ class TemplateTestsIT : AbstractTest() {
         assertNotNull(updatedTemplate)
         assertNotNull(updatedTemplate.id)
         assertNotNull(updatedTemplate.visibility)
+
+        testBuilder.systemAdmin.templates.assertSectionEqual(
+                expected = updatedTemplate.data.sections?.get(0),
+                actual = changedTemplate.data.sections?.get(0)
+        )
 
         assertEquals(updatedTemplate.id, changedTemplate.id)
         assertEquals(updatedTemplate.visibility, changedTemplate.visibility)
