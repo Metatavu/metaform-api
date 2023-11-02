@@ -1,6 +1,7 @@
 package fi.metatavu.metaform.server.keycloak
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import io.quarkus.runtime.annotations.RegisterForReflection
 
 /**
  * Jackson data class for Keycloak access tokens
@@ -14,30 +15,96 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @property sessionState session state field value
  * @property scope scope field value
  */
-data class KeycloakAccessToken (
+@RegisterForReflection
+@Suppress ("UNUSED")
+class KeycloakAccessToken {
 
     @JsonProperty("access_token")
-    val accessToken: String,
+    private var accessToken: String? = null
 
     @JsonProperty("expires_in")
-    val expiresIn: Long,
+    private var expiresIn: Long? = null
 
     @JsonProperty("refresh_expires_in")
-    val refreshExpiresIn: Long,
+    private var refreshExpiresIn: Long? = null
 
     @JsonProperty("refresh_token")
-    val refreshToken: String,
+    private var refreshToken: String? = null
 
     @JsonProperty("token_type")
-    val tokenType: String,
+    private var tokenType: String? = null
 
     @JsonProperty("not-before-policy")
-    val notBeforePolicy: Long,
+    private var notBeforePolicy: Long? = null
 
     @JsonProperty("session_state")
-    val sessionState: String,
+    private var sessionState: String? = null
 
     @JsonProperty("scope")
-    val scope: String
+    private var scope: String? = null
 
-)
+    fun getAccessToken(): String? {
+        return accessToken
+    }
+
+    fun setAccessToken(accessToken: String) {
+        this.accessToken = accessToken
+    }
+
+    fun getExpiresIn(): Long? {
+        return this.expiresIn
+    }
+
+    fun setExpiresIn(expiresIn: Long) {
+        this.expiresIn = expiresIn
+    }
+
+    fun getRefreshExpiresIn(): Long? {
+        return this.refreshExpiresIn
+    }
+
+    fun setRefreshExpiresIn(refreshExpiresIn: Long?) {
+        this.refreshExpiresIn = refreshExpiresIn
+    }
+
+    fun getRefreshToken(): String? {
+        return refreshToken
+    }
+
+    fun setRefreshToken(refreshToken: String?) {
+        this.refreshToken = refreshToken
+    }
+
+    fun getTokenType(): String? {
+        return this.tokenType
+    }
+
+    fun setTokenType(tokenType: String?) {
+        this.tokenType = tokenType
+    }
+
+    fun getNotBeforePolicy(): Long? {
+        return notBeforePolicy
+    }
+
+    fun setNotBeforePolicy(notBeforePolicy: Long?) {
+        this.notBeforePolicy = notBeforePolicy
+    }
+
+    fun getSessionState(): String? {
+        return sessionState
+    }
+
+    fun setSessionState(sessionState: String?)  {
+        this.sessionState = sessionState
+    }
+
+    fun getScope(): String? {
+        return this.scope
+    }
+
+    fun setScope(scope: String?) {
+        this.scope = scope
+    }
+
+}

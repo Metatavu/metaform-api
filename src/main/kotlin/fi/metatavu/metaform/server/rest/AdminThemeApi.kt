@@ -22,7 +22,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
     override fun createAdminTheme(adminTheme: AdminTheme): Response {
         val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmSystemAdmin) {
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
@@ -59,7 +59,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
     override fun deleteAdminTheme(themeId: UUID): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmSystemAdmin) {
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
@@ -86,7 +86,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
     override fun listAdminTheme(): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmSystemAdmin) {
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 
@@ -101,7 +101,7 @@ class AdminThemeApi : fi.metatavu.metaform.api.spec.AdminThemeApi, AbstractApi()
 
     override fun updateAdminTheme(themeId: UUID, adminTheme: AdminTheme): Response {
         loggedUserId ?: return createForbidden(UNAUTHORIZED)
-        if (!isRealmSystemAdmin) {
+        if (!isMetatavuAdmin && !isRealmSystemAdmin) {
             return createForbidden(createNotAllowedMessage(CREATE, ADMIN_THEME))
         }
 

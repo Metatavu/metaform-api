@@ -1,7 +1,5 @@
 package fi.metatavu.metaform.server.persistence.model
 
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import javax.persistence.Cacheable
 import javax.persistence.Column
 import javax.persistence.Entity
@@ -13,7 +11,6 @@ import javax.persistence.Entity
  */
 @Entity
 @Cacheable(true)
-@Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 class NumberReplyField : ReplyField() {
   @Column
   var value: Double? = null

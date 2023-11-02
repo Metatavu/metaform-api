@@ -103,7 +103,7 @@ class MetaformTestBuilderResource(
         api.deleteMetaform(metaformId)
         removeCloseable { closable ->
             if (closable is Metaform) {
-                return@removeCloseable metaformId != closable.id
+                return@removeCloseable metaformId == closable.id
             }
             false
         }

@@ -11,6 +11,7 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
@@ -28,8 +29,9 @@ import java.util.*
  */
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class),
+    QuarkusTestResource(PdfRendererResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class AttachmentTestsIT : AbstractTest() {
@@ -46,7 +48,7 @@ class AttachmentTestsIT : AbstractTest() {
             Assertions.assertNotNull(reply)
             Assertions.assertNotNull(reply.data)
             Assertions.assertEquals(listOf(fileUpload.fileRef.toString()), reply.data!!["files"])
-            val foundReply: Reply = builder.test1.replies.findReply(metaform.id, reply.id!!, null)
+            val foundReply: Reply = builder.systemAdmin.replies.findReply(metaform.id, reply.id!!, null)
             Assertions.assertNotNull(foundReply)
             Assertions.assertNotNull(foundReply.data)
             Assertions.assertEquals(listOf(fileUpload.fileRef.toString()), foundReply.data!!["files"])
@@ -95,15 +97,15 @@ class AttachmentTestsIT : AbstractTest() {
             val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply1 = builder.test1.replies.create(metaform.id!!, ReplyMode.REVISION.toString(), replyWithData)
             assertListsEqualInAnyOrder(fileRefs, reply1.data!!["files"])
-            val foundReply1 = builder.test1.replies.findReply(metaform.id, reply1.id!!, null)
+            val foundReply1 = builder.systemAdmin.replies.findReply(metaform.id, reply1.id!!, null)
             assertListsEqualInAnyOrder(fileRefs, foundReply1.data!!["files"])
             builder.systemAdmin.attachments.assertAttachmentExists(fileUpload1)
             builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)
             val updateData: MutableMap<String, Any> = HashMap()
             updateData["files"] = listOf(fileRef2)
             val newReplyWithData: Reply = builder.test1.replies.createReplyWithData(updateData)
-            builder.test1.replies.updateReply(metaform.id, reply1.id, newReplyWithData, null)
-            val foundReply2 = builder.test1.replies.findReply(metaform.id, reply1.id, null)
+            builder.systemAdmin.replies.updateReply(metaform.id, reply1.id, newReplyWithData, null)
+            val foundReply2 = builder.systemAdmin.replies.findReply(metaform.id, reply1.id, null)
             Assertions.assertEquals(listOf(fileRef2), foundReply2.data!!["files"])
             builder.systemAdmin.attachments.assertAttachmentNotFound(fileUpload1.fileRef)
             builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)
@@ -125,7 +127,7 @@ class AttachmentTestsIT : AbstractTest() {
             val replyWithData: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply: Reply = builder.test1.replies.create(metaform.id!!, ReplyMode.REVISION.toString(), replyWithData)
             assertListsEqualInAnyOrder(fileRefs, reply.data!!["files"])
-            val foundReply = builder.test1.replies.findReply(metaform.id, reply.id!!, null)
+            val foundReply = builder.systemAdmin.replies.findReply(metaform.id, reply.id!!, null)
             assertListsEqualInAnyOrder(fileRefs, foundReply.data!!["files"])
             builder.systemAdmin.attachments.assertAttachmentExists(fileUpload1)
             builder.systemAdmin.attachments.assertAttachmentExists(fileUpload2)

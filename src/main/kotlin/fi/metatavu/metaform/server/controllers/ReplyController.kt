@@ -100,9 +100,6 @@ class ReplyController {
     lateinit var pdfPrinter: PdfPrinter
 
     @Inject
-    lateinit var scriptController: ScriptController
-
-    @Inject
     lateinit var cryptoController: CryptoController
 
     @Inject
@@ -500,10 +497,7 @@ class ReplyController {
                         }
                     }
                     formRuntimeContext.xlsxBuilder = xlsxBuilder
-                    val scripts = metaformEntity.scripts
-                    if (scripts != null) {
-                        scriptController.runScripts(scripts.metaformExportXlsx)
-                    }
+
                     xlsxBuilder.write(output)
                     return output.toByteArray()
                 }
@@ -548,10 +542,13 @@ class ReplyController {
      * @return Xlsx table sheet
      */
     private fun createXlsxTableSheet(xlsxBuilder: XlsxBuilder, replyIndex: Int, field: MetaformField, value: Any): String? {
-        val columns = field.columns
+        val table = field.table ?: return null
+
+        val columns = table.columns
         if (columns?.isEmpty() != false) {
             return null
         }
+
         val columnMap = getTableColumnMap(field)
         val tableValue = getTableValue(columnMap, value)
         if (tableValue?.isEmpty() == false) {
@@ -595,7 +592,8 @@ class ReplyController {
                 if (java.lang.Boolean.TRUE == column.calculateSum) {
                     val cellSource = CellSource(field, CellSourceType.TABLE_SUM)
                     val columnString = CellReference.convertNumToColString(columnIndex)
-                    xlsxBuilder.setCellFormula(sheetId, tableValue.size + 1, columnIndex, String.format("SUM(%s%d:%s%d)", columnString, 2, columnString, tableValue.size + 1), cellSource)
+                    val postfix = column.sumPostfix ?: ""
+                    xlsxBuilder.setCellFormula(sheetId, tableValue.size + 1, columnIndex, String.format("SUM(%s%d:%s%d)&\"%s\"", columnString, 2, columnString, tableValue.size + 1, postfix), cellSource)
                 }
             }
             return sheetName
@@ -693,7 +691,7 @@ class ReplyController {
      * @return column map for a table field
      */
     private fun getTableColumnMap(field: MetaformField): Map<String, MetaformTableColumn> {
-        return field.columns?.associateBy(MetaformTableColumn::name) ?: emptyMap()
+        return field.table?.columns?.associateBy(MetaformTableColumn::name) ?: emptyMap()
     }
 
     /**

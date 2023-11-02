@@ -9,6 +9,7 @@ import fi.metatavu.metaform.api.client.models.Reply
 import io.quarkus.test.junit.QuarkusTest
 import io.restassured.RestAssured
 import org.apache.commons.codec.digest.DigestUtils
+import org.apache.commons.lang3.StringUtils
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpDelete
 import org.apache.http.client.methods.HttpGet
@@ -16,10 +17,13 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.ContentType
 import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.eclipse.microprofile.config.ConfigProvider
 import org.hamcrest.collection.IsIterableContainingInAnyOrder
 import org.junit.Assert
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -33,6 +37,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Abstract base class for all tests
+ */
 @QuarkusTest
 class AbstractTest {
 
@@ -115,7 +122,6 @@ class AbstractTest {
      * @return upload response
      * @throws IOException thrown on upload failure
      */
-    @Throws(IOException::class)
     protected fun uploadResourceFile(resourceName: String?): FileUploadResponse {
         val classLoader = javaClass.classLoader
         classLoader.getResourceAsStream(resourceName).use { fileStream ->
@@ -188,7 +194,7 @@ class AbstractTest {
      * @return object mapper
      */
     protected val objectMapper: ObjectMapper
-        protected get() {
+        get() {
             val objectMapper = ObjectMapper()
             objectMapper.registerModule(JavaTimeModule())
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -326,9 +332,50 @@ class AbstractTest {
                 .then()
                 .assertThat()
                 .statusCode(expected)
+
         if (expected == 200) {
             response.header("Content-Type", "application/pdf")
         }
+    }
+
+    /**
+     * Assert PDF download status code
+     *
+     * @param expected    expected status code
+     * @param accessToken access token
+     * @param metaform    metaform
+     * @param reply       reply
+     */
+    protected fun assertPdfDownloadContents(expected: String, accessToken: String?, metaform: Metaform, reply: Reply) {
+        val response = RestAssured.given()
+            .baseUri(ApiTestSettings.apiBasePath)
+            .header("Content-Type", "application/json")
+            .header("Authorization", String.format("Bearer %s", accessToken))["/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.id.toString(), reply.id.toString()]
+
+        val data = response.body.asByteArray()
+        Assert.assertNotNull(data)
+        response.then().assertThat().statusCode(200)
+
+        assertPdfContains(
+            expected = expected,
+            data = data
+        )
+    }
+
+
+    /**
+     * Asserts that given PDF data contains expected string
+     *
+     * @param expected expected string
+     * @param data     PDF data
+     * @throws IOException thrown on PDF read failure
+     */
+    @Throws(IOException::class)
+    protected fun assertPdfContains(expected: String?, data: ByteArray?) {
+        val document = PDDocument.load(ByteArrayInputStream(data))
+        val pdfText = PDFTextStripper().getText(document)
+        document.close()
+        Assert.assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
     }
 
     /**
@@ -416,6 +463,7 @@ class AbstractTest {
         val USER_1_ID = UUID.fromString("b6039e55-3758-4252-9858-a973b0988b63")
         val USER_2_ID = UUID.fromString("5ec6c56a-f618-4038-ab62-098b0db50cd5")
         val USER_3_ID = UUID.fromString("3c497a19-a235-465a-9d83-8efdc851c273")
+        val SYSTEM_ADMIN_ID = UUID.fromString("83543c6b-1324-42c6-a4ca-c164a3ade516")
 
         val USER_WITHOUT_IDP_ID = UUID.fromString("f88927f4-4b79-4f81-b507-d4adf8ac1f69")
         val USER_WITH_IDP_ID = UUID.fromString("ea61792a-b546-44bf-b64b-5e745e404bd7")

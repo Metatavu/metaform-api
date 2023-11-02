@@ -55,7 +55,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
   lateinit var auditLogEntryController: AuditLogEntryController
 
   @Inject
-  lateinit var scriptController: ScriptController
+  lateinit var scriptsController: ScriptsController
 
   @Inject
   lateinit var formRuntimeContext: FormRuntimeContext
@@ -90,7 +90,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
     }
 
-    val replyUserId = if (!isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
+    val replyUserId = if (!isMetatavuAdmin || !isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
     var replyMode = try {
       replyModeParam?.let { ReplyMode.valueOf(it) }
     } catch (ex: IllegalArgumentException) {
@@ -148,11 +148,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     val replyEntity = replyTranslator.translate(metaformEntity, createdReply, publicKey)
-
-    if (metaformEntity.scripts?.afterCreateReply != null) {
-      setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      scriptController.runScripts(metaformEntity.scripts.afterCreateReply)
-    }
 
     try {
       val groupMemberPermissions = getGroupPermissions(
@@ -265,6 +260,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       val metaformEntity = try {
         metaformTranslator.translate(metaform)
       } catch (e: MalformedMetaformJsonException) {
+        logger.error("Failed to read Metaform", e)
         return createInternalServerError(e.message)
       }
 
@@ -284,6 +280,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       try {
         streamResponse(replyController.getRepliesAsXlsx(metaform, metaformEntity, replyEntities), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       } catch (e: XlsxException) {
+        logger.error("Failed to rwite XLSX", e)
         createInternalServerError(e.message!!)
       }
     } else {
@@ -539,11 +536,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     replyController.deleteReplyFields(foundReply, fieldNames)
 
     val replyEntity: Reply = replyTranslator.translate(metaformEntity, foundReply, null)
-
-    if (metaformEntity.scripts?.afterUpdateReply != null) {
-      setupFormRuntimeContext(userId, metaform, metaformEntity, replyEntity)
-      scriptController.runScripts(metaformEntity.scripts.afterUpdateReply)
-    }
 
     auditLogEntryController.generateAuditLog(metaform, userId, foundReply.id!!, null, null, AuditLogEntryType.MODIFY_REPLY)
     try {

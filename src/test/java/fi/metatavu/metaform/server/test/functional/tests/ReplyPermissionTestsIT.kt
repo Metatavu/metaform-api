@@ -11,6 +11,7 @@ import fi.metatavu.metaform.server.test.functional.MailgunMocker
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
@@ -28,25 +29,12 @@ import java.util.stream.Collectors
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @QuarkusTest
 @QuarkusTestResource.List(
-        QuarkusTestResource(MysqlResource::class),
-        QuarkusTestResource(MetaformKeycloakResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(MetaformKeycloakResource::class),
+    QuarkusTestResource(PdfRendererResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class ReplyPermissionTestsIT : AbstractTest() {
-
-    /**
-     * Test that asserts that user may find his / her own reply
-     */
-    @Test
-    fun findOwnReply() {
-        TestBuilder().use { builder ->
-            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
-            val reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
-            val foundReply: Reply = builder.test1.replies.findReply(metaform.id, reply.id!!, null)
-            Assertions.assertNotNull(foundReply)
-        }
-    }
 
     /**
      * Test that asserts that anonymous users may not find their "own" replies
@@ -85,25 +73,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
                     builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
             val foundReply: Reply = builder.systemAdmin.replies.findReply(metaform.id, reply.id!!, null)
             Assertions.assertNotNull(foundReply)
-        }
-    }
-
-    /**
-     * Test that asserts that user may list only his / her own replies
-     */
-    @Test
-    fun listOwnReplies() {
-        TestBuilder().use { builder ->
-            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
-            val reply1 = builder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-1")))
-            builder.test2.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2")))
-            builder.test3.replies.create(metaform.id, null, ReplyMode.REVISION.toString(),
-                    builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-3")))
-            val replies: Array<Reply> = builder.test1.replies.listReplies(metaform.id)
-            Assertions.assertEquals(1, replies.size.toLong())
-            Assertions.assertEquals(reply1.id, replies[0].id)
         }
     }
 
@@ -148,16 +117,14 @@ class ReplyPermissionTestsIT : AbstractTest() {
             val replies2: Array<Reply> = builder.test2.replies.listReplies(metaformId)
             val replies3: Array<Reply> = builder.test3.replies.listReplies(metaformId)
 
-            Assertions.assertEquals(1, replies1.size)
-            Assertions.assertEquals(replies[0].id, replies1[0].id)
+            Assertions.assertEquals(0, replies1.size)
             Assertions.assertEquals(3, replies2.size)
+            Assertions.assertEquals(0, replies3.size)
 
             val reply2Ids = Arrays.stream(replies2).map(Reply::id).collect(Collectors.toSet())
 
             Assertions.assertTrue(reply2Ids.containsAll(replies.map(Reply::id)))
 
-            Assertions.assertEquals(1, replies3.size)
-            Assertions.assertEquals(replies[2].id, replies3[0].id)
         }
     }
 
@@ -205,8 +172,8 @@ class ReplyPermissionTestsIT : AbstractTest() {
                 )
             }
 
-            // test1.realm1 may download only own reply
-            assertPdfDownloadStatus(200, builder.test1.token, metaform, replies[0])
+            // test1.realm1 may not download any replies
+            assertPdfDownloadStatus(403, builder.test1.token, metaform, replies[0])
             assertPdfDownloadStatus(403, builder.test1.token, metaform, replies[1])
             assertPdfDownloadStatus(403, builder.test1.token, metaform, replies[2])
 
@@ -215,10 +182,10 @@ class ReplyPermissionTestsIT : AbstractTest() {
             assertPdfDownloadStatus(200, builder.test2.token, metaform, replies[1])
             assertPdfDownloadStatus(200, builder.test2.token, metaform, replies[2])
 
-            // test3.realm1 may download only own reply
+            // test3.realm1 may not download any replies
             assertPdfDownloadStatus(403, builder.test3.token, metaform, replies[0])
             assertPdfDownloadStatus(403, builder.test3.token, metaform, replies[1])
-            assertPdfDownloadStatus(200, builder.test3.token, metaform, replies[2])
+            assertPdfDownloadStatus(403, builder.test3.token, metaform, replies[2])
 
             // anonymous may not download any replies
             assertPdfDownloadStatus(403, builder.anonymousToken.token, metaform, replies[0])
@@ -295,13 +262,13 @@ class ReplyPermissionTestsIT : AbstractTest() {
                     payload = builder.test3.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
                 )
 
-                builder.test3.replies.updateReply(
+                builder.systemAdmin.replies.updateReply(
                     metaformId = metaformId,
                     replyId = reply.id!!,
                     body = builder.test3.replies.createPermissionSelectReply("group-1")
                 )
 
-                builder.test3.replies.updateReply(
+                builder.systemAdmin.replies.updateReply(
                     metaformId = metaformId,
                     replyId = reply.id,
                     body = builder.test3.replies.createPermissionSelectReply("group-1")
@@ -314,7 +281,6 @@ class ReplyPermissionTestsIT : AbstractTest() {
             stopMailgunMocker(mailgunMocker)
         }
     }
-
 
     /**
      * Test that asserts that user in permission context receives an email but no-one else does

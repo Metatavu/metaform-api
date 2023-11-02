@@ -24,6 +24,7 @@ import java.util.*
 )
 @TestProfile(GeneralTestProfile::class)
 class TableFieldTestsIT : AbstractTest() {
+
     @Test
     @Throws(Exception::class)
     fun createTableReply() {
@@ -34,10 +35,10 @@ class TableFieldTestsIT : AbstractTest() {
             replyData["table"] = tableData
             val reply: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
             val reply1: Reply = testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
-            val foundReply: Reply = testBuilder.test1.replies.findReply(metaform.id, reply1.id!!, null)
+            val foundReply: Reply = testBuilder.systemAdmin.replies.findReply(metaform.id, reply1.id!!, null)
             Assertions.assertNotNull(foundReply)
             Assertions.assertNotNull(foundReply.id)
-            testBuilder.test1.replies.assertTableDataEquals(replyData, foundReply.data!!)
+            testBuilder.systemAdmin.replies.assertTableDataEquals(replyData, foundReply.data!!)
         }
     }
 
@@ -50,20 +51,20 @@ class TableFieldTestsIT : AbstractTest() {
             createReplyData["table"] = listOf(createSimpleTableRow("Text 1", 10.0), createSimpleTableRow("Text 2", 20.0))
             val reply: Reply = testBuilder.test1.replies.createReplyWithData(createReplyData)
             val reply1: Reply = testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
-            testBuilder.test1.replies.assertTableDataEquals(createReplyData, reply1.data!!)
-            val foundReply: Reply = testBuilder.test1.replies.findReply(metaform.id, reply1.id!!, null)
+            testBuilder.systemAdmin.replies.assertTableDataEquals(createReplyData, reply1.data!!)
+            val foundReply: Reply = testBuilder.systemAdmin.replies.findReply(metaform.id, reply1.id!!, null)
             Assertions.assertNotNull(foundReply)
             Assertions.assertNotNull(foundReply.id)
-            testBuilder.test1.replies.assertTableDataEquals(createReplyData, foundReply.data!!)
+            testBuilder.systemAdmin.replies.assertTableDataEquals(createReplyData, foundReply.data!!)
             val updateReplyData: MutableMap<String, Any> = HashMap()
             updateReplyData["table"] = listOf(createSimpleTableRow("Added new text", -210.0), createSimpleTableRow("Text 1", 10.0), createSimpleTableRow("Updated Text 2", 45.5))
             val updateReply: Reply = testBuilder.test1.replies.createReplyWithData(updateReplyData)
-            testBuilder.test1.replies.updateReply(metaform.id, reply1.id, updateReply, null)
-            testBuilder.test1.replies.assertTableDataEquals(updateReplyData, updateReply.data!!)
-            val foundUpdatedReply: Reply = testBuilder.test1.replies.findReply(metaform.id, reply1.id, null)
+            testBuilder.systemAdmin.replies.updateReply(metaform.id, reply1.id, updateReply, null)
+            testBuilder.systemAdmin.replies.assertTableDataEquals(updateReplyData, updateReply.data!!)
+            val foundUpdatedReply: Reply = testBuilder.systemAdmin.replies.findReply(metaform.id, reply1.id, null)
             Assertions.assertNotNull(foundUpdatedReply)
             Assertions.assertNotNull(foundUpdatedReply.id)
-            testBuilder.test1.replies.assertTableDataEquals(updateReplyData, foundUpdatedReply.data!!)
+            testBuilder.systemAdmin.replies.assertTableDataEquals(updateReplyData, foundUpdatedReply.data!!)
         }
     }
 
@@ -77,10 +78,10 @@ class TableFieldTestsIT : AbstractTest() {
             replyData["table"] = tableData
             val reply: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
             val reply1 = testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
-            val foundReply: Reply = testBuilder.test1.replies.findReply(metaform.id, reply1.id!!, null)
+            val foundReply: Reply = testBuilder.systemAdmin.replies.findReply(metaform.id, reply1.id!!, null)
             Assertions.assertNotNull(foundReply)
             Assertions.assertNotNull(foundReply.id)
-            testBuilder.test1.replies.assertTableDataEquals(replyData, foundReply.data!!)
+            testBuilder.systemAdmin.replies.assertTableDataEquals(replyData, foundReply.data!!)
         }
     }
 
@@ -106,10 +107,10 @@ class TableFieldTestsIT : AbstractTest() {
             replyData["table"] = tableData
             val reply: Reply = testBuilder.test1.replies.createReplyWithData(replyData)
             val createdReply: Reply = testBuilder.test1.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
-            val foundReply: Reply = testBuilder.test1.replies.findReply(metaform.id, createdReply.id!!, null)
+            val foundReply: Reply = testBuilder.systemAdmin.replies.findReply(metaform.id, createdReply.id!!, null)
             Assertions.assertNotNull(foundReply)
             testBuilder.systemAdmin.replies.delete(metaform.id, createdReply.id, null)
-            testBuilder.test1.replies.assertFindFailStatus(404, metaform.id, createdReply.id, null)
+            testBuilder.systemAdmin.replies.assertFindFailStatus(404, metaform.id, createdReply.id, null)
         }
     }
 }

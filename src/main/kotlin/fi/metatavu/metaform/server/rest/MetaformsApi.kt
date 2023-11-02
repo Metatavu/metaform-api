@@ -6,9 +6,12 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.controllers.ExportThemeController
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.controllers.MetaformScriptController
+import fi.metatavu.metaform.server.controllers.ScriptsController
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.persistence.model.Reply
+import fi.metatavu.metaform.server.persistence.model.Script
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import fi.metatavu.metaform.server.utils.MetaformUtils
 import org.slf4j.Logger
@@ -35,10 +38,16 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
   @Inject
   lateinit var exportThemeController: ExportThemeController
 
+  @Inject
+  lateinit var scriptsController: ScriptsController
+
+  @Inject
+  lateinit var metaformScriptController: MetaformScriptController
+
   override fun createMetaform(metaform: Metaform): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    if (!isRealmSystemAdmin) {
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
       return createForbidden(createNotAllowedMessage(CREATE, METAFORM))
     }
 
@@ -63,8 +72,14 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createBadRequest("Invalid permission groups")
     }
 
+    val scripts: ArrayList<Script> = arrayListOf()
+    metaform.scripts?.forEach { scriptId ->
+      val script  = scriptsController.findScript(scriptId) ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+      scripts.add(script)
+    }
+
     val metaformData = try {
-      metaformController.serializeMetaform(metaform)
+      metaformController.serializeMetaform(metaform.copy(scripts = ArrayList<UUID>()))
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
     }
@@ -78,6 +93,10 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       data = metaformData,
       creatorId = userId
     )
+
+    scripts.forEach { script ->
+      metaformScriptController.createMetaformScript(createdMetaform, script, userId)
+    }
 
     return try {
       createOk(metaformTranslator.translate(createdMetaform))
@@ -95,6 +114,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
 
     val metaform = metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+
+    metaformScriptController.deleteMetaformScriptsByMetaform(metaform)
 
     metaformController.deleteMetaform(metaform)
 
@@ -179,8 +200,12 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createForbidden(createNotAllowedMessage(UPDATE, METAFORM))
     }
 
+    metaform.scripts?.forEach { scriptId ->
+      scriptsController.findScript(scriptId) ?: return createNotFound(createNotFoundMessage(SCRIPT, scriptId))
+    }
+
     val data = try {
-      metaformController.serializeMetaform(metaform)
+      metaformController.serializeMetaform(metaform.copy(scripts = ArrayList<UUID>()))
     } catch (e: MalformedMetaformJsonException) {
       createInvalidMessage(createInvalidMessage(METAFORM))
     }
@@ -217,6 +242,8 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       slug = formSlug,
       lastModifierId = userId
     )
+
+    metaformScriptController.updateMetaformScripts(metaform, updatedMetaform, userId)
 
     return try {
       createOk(metaformTranslator.translate(updatedMetaform))

@@ -19,6 +19,7 @@ class TestBuilderAuthentication(
 ) : AuthorizedTestBuilderAuthentication<ApiClient, AccessTokenProvider>(testBuilder, accessTokenProvider) {
     val adminThemes: AdminThemeTestBuilderResource = AdminThemeTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val metaforms: MetaformTestBuilderResource = MetaformTestBuilderResource(testBuilder, accessTokenProvider, createClient())
+    val scripts: ScriptsTestBuilderResource = ScriptsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val metaformVersions: MetaformVersionTestBuilderResource = MetaformVersionTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val replies: ReplyTestBuilderResource = ReplyTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val exportThemes: ExportThemeTestBuilderResource = ExportThemeTestBuilderResource(testBuilder, accessTokenProvider, createClient())
@@ -31,6 +32,7 @@ class TestBuilderAuthentication(
     val metaformMemberGroups: MetaformMemberGroupsTestBuilderResource = MetaformMemberGroupsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val users: UsersTestBuilderResource = UsersTestBuilderResource(testBuilder, accessTokenProvider, createClient())
     val metaformStatistics: MetaformStatisticsTestBuilderResource = MetaformStatisticsTestBuilderResource(testBuilder, accessTokenProvider, createClient())
+    val templates: TemplateTestBuilderResource = TemplateTestBuilderResource(testBuilder, accessTokenProvider, createClient())
 
     val token: String
         get() {

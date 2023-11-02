@@ -71,6 +71,10 @@ class MetaformTestsIT : AbstractTest() {
             assertEquals(LocalDate.now(), metaform2CreatedAtDate)
             assertEquals(LocalDate.now(), metaform2ModifiedAtDate)
             assertEquals(metaform2.creatorId, metaform2.lastModifierId)
+
+            assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("a"))
+            assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("b"))
+            assertEquals(true, metaform1.sections[0].fields!![0].classifiers!!.contains("c"))
         }
     }
 
@@ -100,26 +104,6 @@ class MetaformTestsIT : AbstractTest() {
             builder.systemAdmin.metaforms.createFromJsonFile("simple-slug")
             val parsedMetaform2 = builder.systemAdmin.metaforms.readMetaform("simple-slug")
             builder.systemAdmin.metaforms.assertCreateFailStatus(409, parsedMetaform2!!)
-        }
-    }
-
-    @Test
-    @Throws(Exception::class)
-    fun testCreateMetaformScript() {
-        TestBuilder().use { builder ->
-            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-script")
-            assertNotNull(metaform)
-            assertNotNull(metaform.id)
-            assertNotNull(metaform.scripts)
-            assertNotNull(metaform.scripts!!.afterCreateReply)
-            assertEquals(2, metaform.scripts.afterCreateReply!!.size)
-            assertEquals("create-test", metaform.scripts.afterCreateReply[0].name)
-            assertEquals("js", metaform.scripts.afterCreateReply[0].language)
-            assertEquals("form.setVariableValue('postdata', 'Text value: ' + form.getReplyData().get('text'));", metaform.scripts.afterCreateReply[0].content)
-            assertNotNull(metaform.scripts.afterUpdateReply)
-            assertEquals("update-test", metaform.scripts.afterUpdateReply!![0].name)
-            assertEquals("js", metaform.scripts.afterUpdateReply[0].language)
-            assertEquals("const xhr = new XMLHttpRequest(); xhr.open('GET', 'http://test-wiremock:8080/externalmock'); xhr.send();", metaform.scripts.afterUpdateReply[0].content)
         }
     }
 
