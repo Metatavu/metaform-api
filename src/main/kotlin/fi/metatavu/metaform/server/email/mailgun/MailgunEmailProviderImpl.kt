@@ -6,9 +6,12 @@ import net.sargue.mailgun.Mail
 import org.apache.commons.lang3.StringUtils
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
+
 
 /**
  * Mailgun email provider implementation
@@ -68,6 +71,32 @@ class MailgunEmailProviderImpl : EmailProvider {
                 return
             }
         }
+        val response = mailBuilder.build().send()
+        if (response.isOk) {
+            logger.info("Send email to {}", toEmail)
+        } else {
+            logger.info("Sending email to {} failed with message {}", toEmail, response.responseMessage())
+        }
+    }
+
+    override fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?, attachment: ByteArray?) {
+        logger.info("Sending email to {}", toEmail)
+
+        var mailBuilder = Mail.using(configuration)
+                .to(toEmail)
+                .subject(subject)
+        mailBuilder = when (format) {
+            MailFormat.HTML -> mailBuilder.html(content)
+            MailFormat.PLAIN -> mailBuilder.text(content)
+            else -> {
+                logger.error("Unknown mail format {}", format)
+                return
+            }
+        }
+
+        val targetStream: InputStream = ByteArrayInputStream(attachment)
+        mailBuilder.multipart().attachment(targetStream)
+
         val response = mailBuilder.build().send()
         if (response.isOk) {
             logger.info("Send email to {}", toEmail)

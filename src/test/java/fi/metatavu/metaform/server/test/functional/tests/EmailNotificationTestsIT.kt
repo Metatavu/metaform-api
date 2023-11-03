@@ -356,4 +356,6 @@ class EmailNotificationTestsIT : AbstractTest() {
         val port = ConfigProvider.getConfig().getValue("wiremock.port", String::class.java).toInt()
         WireMock.configureFor(host, port)
     }
+
+
 }

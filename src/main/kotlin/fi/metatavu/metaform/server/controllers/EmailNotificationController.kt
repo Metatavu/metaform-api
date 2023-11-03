@@ -182,8 +182,29 @@ class EmailNotificationController {
                     subject = subject,
                     content = content,
                     format = MailFormat.HTML,
-                    transactionPhase = TransactionPhase.AFTER_SUCCESS
+                    transactionPhase = TransactionPhase.AFTER_SUCCESS,
+                    attachment = byteArrayOf()
                 )
+            )
+        }
+    }
+
+    fun sendEmailNotification(emailNotification: EmailNotification, replyEntity: Reply?, emails: Set<String>, attachment: ByteArray?) {
+        val id = emailNotification.id!!
+        val data = toFreemarkerData(replyEntity)
+        val subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE)
+        val content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE)
+
+        emails.forEach { email ->
+            emailEvent.fire(
+                    SendEmailEvent(
+                            toEmail = email,
+                            subject = subject,
+                            content = content,
+                            format = MailFormat.HTML,
+                            transactionPhase = TransactionPhase.AFTER_SUCCESS,
+                            attachment = attachment
+                    )
             )
         }
     }

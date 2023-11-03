@@ -1,13 +1,22 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import com.github.tomakehurst.wiremock.client.WireMock
+import fi.metatavu.metaform.api.client.models.ExportThemeFile
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.Reply
+import fi.metatavu.metaform.api.spec.model.MetaformReplyDeliveryMethod
+import fi.metatavu.metaform.server.exceptions.PdfRenderException
+import fi.metatavu.metaform.server.exportTheme.ExportThemeFreemarkerRenderer
+import fi.metatavu.metaform.server.exportTheme.ReplyExportDataModel
+import fi.metatavu.metaform.server.pdf.PdfPrinter
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
+import fi.metatavu.metaform.server.test.functional.MailgunMocker
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
+import fi.metatavu.metaform.server.test.functional.builder.resources.MailgunResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
@@ -15,10 +24,18 @@ import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import io.restassured.RestAssured
+import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.ArrayUtils
+import org.eclipse.microprofile.config.ConfigProvider
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -33,14 +50,22 @@ import kotlin.arrayOf
 /**
  * Tests that test Metaform replies
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @QuarkusTest
 @QuarkusTestResource.List(
     QuarkusTestResource(MysqlResource::class),
     QuarkusTestResource(MetaformKeycloakResource::class),
-    QuarkusTestResource(PdfRendererResource::class)
+    QuarkusTestResource(PdfRendererResource::class),
+    QuarkusTestResource(MailgunResource::class)
 )
 @TestProfile(GeneralTestProfile::class)
 class ReplyTestsIT : AbstractTest() {
+    @BeforeAll
+    fun setMocker() {
+        val host = ConfigProvider.getConfig().getValue("wiremock.host", String::class.java)
+        val port = ConfigProvider.getConfig().getValue("wiremock.port", String::class.java).toInt()
+        WireMock.configureFor(host, port)
+    }
 
     @Test
     @Throws(Exception::class)
@@ -67,9 +92,9 @@ class ReplyTestsIT : AbstractTest() {
             val reply: Reply = builder.test1.replies.createReplyWithData(replyData)
             val reply1 = builder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), reply)
             val foundReply: Reply = builder.systemAdmin.replies.findReply(metaform.id, reply1.id!!, null)
-            Assertions.assertNotNull(foundReply)
-            Assertions.assertNotNull(foundReply.id)
-            Assertions.assertNotNull(foundReply.data)
+            assertNotNull(foundReply)
+            assertNotNull(foundReply.id)
+            assertNotNull(foundReply.data)
             assertEquals("Test text value", foundReply.data!!["text"])
         }
     }
@@ -88,14 +113,14 @@ class ReplyTestsIT : AbstractTest() {
             val reply2: Reply = builder.systemAdmin.replies.createReplyWithData(replyData2)
             val createdReply1: Reply = builder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
             try {
-                Assertions.assertNotNull(createdReply1)
-                Assertions.assertNotNull(createdReply1.id)
-                Assertions.assertNotNull(createdReply1.data)
+                assertNotNull(createdReply1)
+                assertNotNull(createdReply1.id)
+                assertNotNull(createdReply1.data)
                 assertEquals("Test text value", createdReply1.data!!["text"])
                 val createdReply2: Reply = builder.systemAdmin.replies.create(metaform.id, null, ReplyMode.UPDATE.toString(), reply2)
-                Assertions.assertNotNull(createdReply2)
+                assertNotNull(createdReply2)
                 assertEquals(createdReply1.id, createdReply2.id)
-                Assertions.assertNotNull(createdReply2.data)
+                assertNotNull(createdReply2.data)
                 assertEquals("Updated text value", createdReply2.data!!["text"])
             } finally {
                 builder.systemAdmin.replies.delete(metaform.id, createdReply1.id!!, null)
@@ -117,18 +142,18 @@ class ReplyTestsIT : AbstractTest() {
             replyData2["text"] = "Updated text value"
             val reply2: Reply = builder.systemAdmin.replies.createReplyWithData(replyData2)
             val createdReply1: Reply = builder.test1.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
-            Assertions.assertNotNull(createdReply1)
-            Assertions.assertNotNull(createdReply1.id)
+            assertNotNull(createdReply1)
+            assertNotNull(createdReply1.id)
             assertEquals("Test text value", createdReply1.data!!["text"])
             val createdReply2: Reply = builder.test1.replies.create(metaform.id, null, ReplyMode.REVISION.toString(), reply2)
-            Assertions.assertNotNull(createdReply2)
+            assertNotNull(createdReply2)
             Assertions.assertNotEquals(createdReply1.id, createdReply2.id)
             assertEquals("Updated text value", createdReply2.data!!["text"])
             val replies = builder.systemAdmin.replies.listReplies(metaform.id,
                     USER_1_ID, null, null, null, null, true,
                     null, null, null, null, null).clone().toList()
             assertEquals(2, replies.size)
-            Assertions.assertNotNull(replies[0].revision)
+            assertNotNull(replies[0].revision)
             assertEquals("Test text value", replies[0].data!!["text"])
             Assertions.assertNull(replies[1].revision)
             assertEquals("Updated text value", replies[1].data!!["text"])
@@ -140,7 +165,7 @@ class ReplyTestsIT : AbstractTest() {
     fun createReplyCumulative() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
-            Assertions.assertNotNull(metaform)
+            assertNotNull(metaform)
             builder.test1.replies.createSimpleReply(metaform.id!!, "val 1", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 2", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
@@ -247,7 +272,7 @@ class ReplyTestsIT : AbstractTest() {
     fun listRepliesByTextFields() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
-            Assertions.assertNotNull(metaform)
+            assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
@@ -278,7 +303,7 @@ class ReplyTestsIT : AbstractTest() {
     fun listRepliesByListFields() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
-            Assertions.assertNotNull(metaform)
+            assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
@@ -309,7 +334,7 @@ class ReplyTestsIT : AbstractTest() {
     fun listRepliesByNumberFields() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
-            Assertions.assertNotNull(metaform)
+            assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
@@ -340,7 +365,7 @@ class ReplyTestsIT : AbstractTest() {
     fun listRepliesByBooleanFields() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
-            Assertions.assertNotNull(metaform)
+            assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
@@ -365,7 +390,7 @@ class ReplyTestsIT : AbstractTest() {
     fun listRepliesByMultiFields() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("tbnc")
-            Assertions.assertNotNull(metaform)
+            assertNotNull(metaform)
             testBuilder.test1.replies.createTBNCReply(metaform.id!!, "test 1", true, 1.0, arrayOf("option 1"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 2", false, 2.5, arrayOf("option 2"))
             testBuilder.test1.replies.createTBNCReply(metaform.id, "test 3", null, 0.0, emptyArray())
@@ -517,8 +542,8 @@ class ReplyTestsIT : AbstractTest() {
             val reply1 = replies[0]
             val reply2 = replies[1]
 
-            Assertions.assertNotNull(reply1.ownerKey)
-            Assertions.assertNotNull(reply2.ownerKey)
+            assertNotNull(reply1.ownerKey)
+            assertNotNull(reply2.ownerKey)
             Assertions.assertNotEquals(reply1.ownerKey, reply2.ownerKey)
             testBuilder.anonymousToken.replies.findReply(metaform.id, reply1.id!!, reply1.ownerKey)
             testBuilder.anonymousToken.replies.assertReplyOwnerKeyFindForbidden(metaform.id, reply1.id, null)
@@ -555,8 +580,8 @@ class ReplyTestsIT : AbstractTest() {
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
-            Assertions.assertNotNull(reply1.ownerKey)
-            Assertions.assertNotNull(reply2.ownerKey)
+            assertNotNull(reply1.ownerKey)
+            assertNotNull(reply2.ownerKey)
             Assertions.assertNotEquals(reply1.ownerKey, reply2.ownerKey)
             testBuilder.anonymousToken.replies.updateReply(metaform.id, reply1.id!!, reply1, reply1.ownerKey)
             testBuilder.anonymousToken.replies.assertReplyOwnerKeyFindForbidden(metaform.id, reply1.id, null)
@@ -572,8 +597,8 @@ class ReplyTestsIT : AbstractTest() {
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val reply1: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.CUMULATIVE)
             val reply2: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id, "test 2", ReplyMode.CUMULATIVE)
-            Assertions.assertNotNull(reply1.ownerKey)
-            Assertions.assertNotNull(reply2.ownerKey)
+            assertNotNull(reply1.ownerKey)
+            assertNotNull(reply2.ownerKey)
             Assertions.assertNotEquals(reply1.ownerKey, reply2.ownerKey)
             testBuilder.anonymousToken.replies.assertReplyOwnerKeyFindForbidden(metaform.id, reply1.id!!, null)
             testBuilder.anonymousToken.replies.assertReplyOwnerKeyFindForbidden(metaform.id, reply1.id,
@@ -700,7 +725,7 @@ class ReplyTestsIT : AbstractTest() {
     fun testReplyPagination() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            // dont need to save the replies to a variable
+            // don't need to save the replies to a variable
             testBuilder.test1.replies.createSimpleReply(metaform.id!!, "pagination-test-1", ReplyMode.CUMULATIVE)
             testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-2", ReplyMode.CUMULATIVE)
             testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-3", ReplyMode.CUMULATIVE)
@@ -723,6 +748,65 @@ class ReplyTestsIT : AbstractTest() {
             val reply3 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 2, null, null, null)
             assertEquals(reply3.size, 1)
             assertEquals(reply3[0].data!!["text"], "pagination-test-3")
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testSendReplyDataAsPdfAttachment() {
+        TestBuilder().use { testBuilder ->
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(
+                exportTheme.id!!,
+                "reply/pdf.ftl",
+                "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>"
+            )
+
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple_delivery_method")
+
+            assertNotNull(metaform.id)
+            assertNotNull(metaform.replyDelivery)
+            assertNotNull(metaform.replyDelivery!!.method)
+            testBuilder.systemAdmin.metaforms.assertJsonsEqual(MetaformReplyDeliveryMethod.PDF_TO_EMAIL, metaform.replyDelivery.method)
+            assertNotNull(metaform.sections!![0])
+            assertNotNull(metaform.sections[0].fields!![0])
+            assertNotNull(metaform.sections[0].fields!![0].classifiers!![0])
+            assertEquals("ReplierEmailClassifier", metaform.sections[0].fields!![0].classifiers!![0])
+
+            testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user@example.com"))
+
+            val mailgunMocker: MailgunMocker = startMailgunMocker()
+            try {
+                val newMetaform = Metaform(
+                        id = metaform.id,
+                        visibility = metaform.visibility,
+                        exportThemeId = exportTheme.id,
+                        allowAnonymous = metaform.allowAnonymous,
+                        allowDrafts = metaform.allowDrafts,
+                        allowReplyOwnerKeys = metaform.allowReplyOwnerKeys,
+                        allowInvitations = metaform.allowInvitations,
+                        autosave = metaform.autosave,
+                        title = metaform.title,
+                        slug = metaform.slug,
+                        sections = metaform.sections,
+                        filters = metaform.filters,
+                        scripts = metaform.scripts)
+
+                testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
+
+                val replyData: MutableMap<String, Any> = HashMap()
+                replyData["text"] = "This should be found from the PDF"
+                val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
+                val reply = testBuilder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+
+                testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
+
+                mailgunMocker.verifyHtmlMessageSent(2,"Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content")
+            }
+            finally {
+                stopMailgunMocker(mailgunMocker)
+            }
         }
     }
 

@@ -18,4 +18,6 @@ interface EmailProvider {
      * @param format email format
      */
     fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?)
+
+    fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?, attachment: ByteArray?)
 }

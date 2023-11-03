@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.github.slugify.Slugify
 import fi.metatavu.metaform.api.spec.model.MetaformField
+import fi.metatavu.metaform.api.spec.model.MetaformReplyDeliveryMethod
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.api.spec.model.PermissionGroups
 import fi.metatavu.metaform.server.exceptions.AuthzException
@@ -20,6 +21,7 @@ import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
+import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import org.apache.commons.lang3.StringUtils
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.UserResource
@@ -59,6 +61,9 @@ class MetaformController {
 
     @Inject
     lateinit var permissionController: PermissionController
+
+    @Inject
+    lateinit var metaformTranslator: MetaformTranslator
 
     /**
      * Creates new Metaform
@@ -284,16 +289,42 @@ class MetaformController {
             .minus(loggedUserId)
             .toSet()
 
-        emailNotificationController.listEmailNotificationByMetaform(metaform)
-            .forEach{ emailNotification: EmailNotification ->
-                sendReplyEmailNotification(
-                        adminClient,
-                        replyCreated,
-                        emailNotification,
-                        replyEntity,
-                        notifyUserIds
+        val translatedMetaform = metaformTranslator.translate(metaform)
+
+        if (translatedMetaform.replyDelivery != null && translatedMetaform.replyDelivery.method == MetaformReplyDeliveryMethod.PDF_TO_EMAIL) {
+            val replyPdf = replyController.getReplyPdf(
+                exportThemeName = metaform.exportTheme!!.name,
+                metaformEntity = translatedMetaform,
+                replyEntity = replyEntity,
+                attachmentMap = emptyMap(),
+                locale = Locale.getDefault()
                 )
-            }
+            emailNotificationController.listEmailNotificationByMetaform(metaform)
+                    .forEach{ emailNotification: EmailNotification ->
+                        sendReplyEmailNotification(
+                                keycloak = adminClient,
+                                replyCreated = replyCreated,
+                                emailNotification =  emailNotification,
+                                replyEntity =  replyEntity,
+                                notifyUserIds = notifyUserIds,
+                                attachment = replyPdf
+                        )
+                    }
+        }
+        else {
+            emailNotificationController.listEmailNotificationByMetaform(metaform)
+                .forEach{ emailNotification: EmailNotification ->
+                    sendReplyEmailNotification(
+                            keycloak = adminClient,
+                            replyCreated = replyCreated,
+                            emailNotification =  emailNotification,
+                            replyEntity =  replyEntity,
+                            notifyUserIds = notifyUserIds,
+                            attachment = byteArrayOf()
+                    )
+                }
+        }
+
     }
 
     /**
@@ -304,7 +335,7 @@ class MetaformController {
      * @param replyEntity reply REST entity
      * @param notifyUserIds notify user ids
      */
-    private fun sendReplyEmailNotification(keycloak: Keycloak, replyCreated: Boolean, emailNotification: EmailNotification, replyEntity: fi.metatavu.metaform.api.spec.model.Reply, notifyUserIds: Set<UUID>) {
+    private fun sendReplyEmailNotification(keycloak: Keycloak, replyCreated: Boolean, emailNotification: EmailNotification, replyEntity: fi.metatavu.metaform.api.spec.model.Reply, notifyUserIds: Set<UUID>, attachment: ByteArray?) {
         if (!emailNotificationController.evaluateEmailNotificationNotifyIf(emailNotification, replyEntity)) {
             return
         }
@@ -319,7 +350,7 @@ class MetaformController {
                 .map { obj: UserRepresentation -> obj.email }
         val emails: MutableSet<String> = HashSet(directEmails)
         emails.addAll(groupEmails)
-        emailNotificationController.sendEmailNotification(emailNotification, replyEntity, emails.filter { cs: String? -> StringUtils.isNotEmpty(cs) }.toSet())
+        emailNotificationController.sendEmailNotification(emailNotification, replyEntity, emails.filter { cs: String? -> StringUtils.isNotEmpty(cs) }.toSet(), attachment)
     }
 
     /**

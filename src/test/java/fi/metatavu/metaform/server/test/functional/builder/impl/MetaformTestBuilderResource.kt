@@ -7,6 +7,7 @@ import fi.metatavu.metaform.api.client.infrastructure.ApiClient.Companion.access
 import fi.metatavu.metaform.api.client.infrastructure.ClientException
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.MetaformMemberRole
+import fi.metatavu.metaform.api.client.models.MetaformReplyDelivery
 import fi.metatavu.metaform.api.client.models.MetaformVisibility
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
@@ -254,5 +255,9 @@ class MetaformTestBuilderResource(
     @Throws(IOException::class)
     fun createFromJsonFile(form: String): Metaform {
         return create(readMetaform(form)!!)
+    }
+
+    fun assertReplyDeliveryEqual(expected: MetaformReplyDelivery?, actual: MetaformReplyDelivery?) {
+        assertJsonsEqual(expected, actual)
     }
 }

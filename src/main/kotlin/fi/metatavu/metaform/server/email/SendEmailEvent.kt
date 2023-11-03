@@ -12,4 +12,4 @@ import javax.enterprise.event.TransactionPhase
  * @param format format
  * @param transactionPhase transaction phase when the email should be sent
  */
-data class SendEmailEvent(val toEmail: String, val subject: String?, val content: String?, val format: MailFormat, val transactionPhase: TransactionPhase)
+data class SendEmailEvent(val toEmail: String, val subject: String?, val content: String?, val format: MailFormat, val transactionPhase: TransactionPhase, val attachment: ByteArray?)

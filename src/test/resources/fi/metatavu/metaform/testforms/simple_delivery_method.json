@@ -1,0 +1,26 @@
+{
+  "title": "Simple",
+  "allowDrafts": true,
+  "visibility": "PUBLIC",
+  "replyDelivery":
+    {
+      "method": "PDF_TO_EMAIL"
+    },
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field",
+          "classifiers": [
+            "ReplierEmailClassifier",
+            "b",
+            "c"
+          ]
+        }
+      ]
+    }
+  ]
+}
