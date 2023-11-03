@@ -615,7 +615,7 @@ class ReplyTestsIT : AbstractTest() {
                     metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
                     metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
             testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
-            val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
+            val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
             assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaform, reply)
         }
     }
