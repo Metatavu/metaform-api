@@ -434,8 +434,6 @@ class ReplyController {
             ?.replace("ß", "&szlig;")
 
         try {
-            print("getReplyPdf: html: $html")
-
             IOUtils.toInputStream(html, StandardCharsets.UTF_8).use { htmlStream ->
                 ByteArrayOutputStream().use { pdfStream ->
                     pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream)
