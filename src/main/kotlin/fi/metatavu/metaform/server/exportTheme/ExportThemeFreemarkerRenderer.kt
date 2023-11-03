@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.exportTheme
 
 import fi.metatavu.metaform.server.controllers.SystemSettingController
 import freemarker.cache.NullCacheStorage
+import freemarker.core.HTMLOutputFormat
 import freemarker.ext.beans.BeansWrapperBuilder
 import freemarker.template.Configuration
 import freemarker.template.Template
@@ -47,6 +48,8 @@ class ExportThemeFreemarkerRenderer {
         configuration.logTemplateExceptions = false
         configuration.objectWrapper = BeansWrapperBuilder(VERSION).build()
         configuration.localizedLookup = false
+        configuration.outputFormat = HTMLOutputFormat.INSTANCE
+
         if (systemSettingController.inTestMode()) {
             configuration.cacheStorage = NullCacheStorage()
         }

@@ -66,7 +66,7 @@ class PdfPrinter {
                     val html = htmlData.toString(StandardCharsets.UTF_8)
 
                     httpPost.entity = StringEntity(jacksonObjectMapper().writeValueAsString(mapOf(
-                        "html" to StringEscapeUtils.escapeHtml4(html)
+                        "html" to html
                     )))
 
                     client.execute(httpPost).use { response ->
