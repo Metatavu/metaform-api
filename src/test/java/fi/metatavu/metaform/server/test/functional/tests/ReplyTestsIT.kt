@@ -606,18 +606,16 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun testExportReplyPdf() {
-        TestBuilder().use { testBuilder ->
-            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
-            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
-                    metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
-                    metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
-            testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
-            val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "test 1", ReplyMode.UPDATE)
-            assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaform, reply)
-        }
+    fun testExportReplyPdf() = TestBuilder().use { testBuilder ->
+        val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+        testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+        val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+        val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
+                metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
+                metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
+        testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
+        val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
+        assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaform, reply)
     }
 
     @Test
