@@ -425,6 +425,14 @@ class ReplyController {
     ): ByteArray {
         val dataModel = ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.createdAt), getDate(replyEntity.modifiedAt))
         val html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale)
+            ?.replace("ä", "&auml;")
+            ?.replace("ö", "&ouml;")
+            ?.replace("ü", "&uuml;")
+            ?.replace("Ä", "&Auml;")
+            ?.replace("Ö", "&Ouml;")
+            ?.replace("Ü", "&Uuml;")
+            ?.replace("ß", "&szlig;")
+
         try {
             print("getReplyPdf: html: $html")
 
