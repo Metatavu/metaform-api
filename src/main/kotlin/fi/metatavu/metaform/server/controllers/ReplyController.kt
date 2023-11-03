@@ -426,6 +426,8 @@ class ReplyController {
         val dataModel = ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.createdAt), getDate(replyEntity.modifiedAt))
         val html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale)
         try {
+            print("getReplyPdf: html: $html")
+
             IOUtils.toInputStream(html, StandardCharsets.UTF_8).use { htmlStream ->
                 ByteArrayOutputStream().use { pdfStream ->
                     pdfPrinter.printHtmlAsPdf(htmlStream, pdfStream)

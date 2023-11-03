@@ -48,7 +48,6 @@ class ExportThemeFreemarkerRenderer {
         configuration.logTemplateExceptions = false
         configuration.objectWrapper = BeansWrapperBuilder(VERSION).build()
         configuration.localizedLookup = false
-        configuration.outputFormat = HTMLOutputFormat.INSTANCE
 
         if (systemSettingController.inTestMode()) {
             configuration.cacheStorage = NullCacheStorage()
