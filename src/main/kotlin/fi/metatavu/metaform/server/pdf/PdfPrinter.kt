@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.pdf
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import org.apache.commons.io.IOUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -62,8 +63,10 @@ class PdfPrinter {
                     val httpPost = HttpPost(pdfRendererUrl)
                     httpPost.setHeader("x-api-key", pdfRendererApiKey)
 
+                    val html = htmlData.toString(StandardCharsets.UTF_8)
+
                     httpPost.entity = StringEntity(jacksonObjectMapper().writeValueAsString(mapOf(
-                        "html" to htmlData.toString(StandardCharsets.UTF_8)
+                        "html" to StringEscapeUtils.escapeHtml4(html)
                     )))
 
                     client.execute(httpPost).use { response ->
