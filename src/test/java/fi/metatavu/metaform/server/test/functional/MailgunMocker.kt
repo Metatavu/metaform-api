@@ -68,9 +68,14 @@ class MailgunMocker(private val basePath: String, private val domain: String, ap
      * @param to        to email
      * @param subject   subject
      * @param content   content
+     * @param attachmentName attachment name (optional)
      */
-    fun verifyHtmlMessageSent(count: Int, fromName: String, fromEmail: String, to: String, subject: String, content: String) {
-        verifyMessageSent(count, createParameterList(fromName, fromEmail, to, subject, content))
+    fun verifyHtmlMessageSent(count: Int, fromName: String, fromEmail: String, to: String, subject: String, content: String, attachmentName: String?) {
+        if (attachmentName != null) {
+            verifyMessageSentWithAttachment(count, createParameterList(fromName, fromEmail, to, subject, content), attachmentName)
+        } else {
+            verifyMessageSent(count, createParameterList(fromName, fromEmail, to, subject, content))
+        }
     }
 
     /**
@@ -112,6 +117,27 @@ class MailgunMocker(private val basePath: String, private val domain: String, ap
         val parameters: List<NameValuePair> = ArrayList(parametersList)
         val form = URLEncodedUtils.format(parameters, "UTF-8")
         WireMock.verify(count, WireMock.postRequestedFor(WireMock.urlEqualTo(apiUrl)).withRequestBody(WireMock.equalTo(form)))
+    }
+
+    /**
+     * Verifies that email with parameters has been sent n-times
+     *
+     * @param count count
+     * @param parametersList parameters
+     * @param attachmentName attachment name
+     */
+    private fun verifyMessageSentWithAttachment(count: Int, parametersList: List<NameValuePair>, attachmentName: String) {
+        val parameters: List<NameValuePair> = ArrayList(parametersList)
+        val form = URLEncodedUtils.format(parameters, "UTF-8")
+
+        WireMock.verify(count, WireMock.postRequestedFor(WireMock.urlEqualTo(apiUrl))
+            .withRequestBody(WireMock.equalTo(form))
+            .withRequestBodyPart(
+                WireMock.aMultipart()
+                    .withName(attachmentName)
+                    .build()
+            )
+        )
     }
 
     /**
