@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.email.mailgun
 
+import fi.metatavu.metaform.server.email.EmailAttachment
 import fi.metatavu.metaform.server.email.EmailProvider
 import net.sargue.mailgun.Configuration
 import net.sargue.mailgun.Mail
@@ -79,7 +80,7 @@ class MailgunEmailProviderImpl : EmailProvider {
         }
     }
 
-    override fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?, attachment: ByteArray?) {
+    override fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?, attachments: List<EmailAttachment>?) {
         logger.info("Sending email to {}", toEmail)
 
         var mailBuilder = Mail.using(configuration)
@@ -94,8 +95,10 @@ class MailgunEmailProviderImpl : EmailProvider {
             }
         }
 
-        val targetStream: InputStream = ByteArrayInputStream(attachment)
-        mailBuilder.multipart().attachment(targetStream)
+        attachments?.forEach {attachment ->
+            val targetStream: InputStream = ByteArrayInputStream(attachment.data)
+            mailBuilder.multipart().attachment(targetStream, attachment.filename)
+        }
 
         val response = mailBuilder.build().send()
         if (response.isOk) {

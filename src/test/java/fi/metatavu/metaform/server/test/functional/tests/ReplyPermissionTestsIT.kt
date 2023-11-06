@@ -274,8 +274,8 @@ class ReplyPermissionTestsIT : AbstractTest() {
                     body = builder.test3.replies.createPermissionSelectReply("group-1")
                 )
 
-                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content")
-                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content")
+                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user2@example.com", "Permission context subject", "Permission context content",null)
+                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "user1@example.com", "Permission context subject", "Permission context content", null)
             }
         } finally {
             stopMailgunMocker(mailgunMocker)
@@ -374,7 +374,8 @@ class ReplyPermissionTestsIT : AbstractTest() {
                             fromEmail = "metaform-test@example.com",
                             to = to,
                             subject = subject,
-                            content = content
+                            content = content,
+                            attachmentName = null
                         )
                     }
 

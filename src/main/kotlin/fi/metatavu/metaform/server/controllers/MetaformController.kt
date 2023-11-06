@@ -8,6 +8,7 @@ import fi.metatavu.metaform.api.spec.model.MetaformField
 import fi.metatavu.metaform.api.spec.model.MetaformReplyDeliveryMethod
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.api.spec.model.PermissionGroups
+import fi.metatavu.metaform.server.email.EmailAttachment
 import fi.metatavu.metaform.server.exceptions.AuthzException
 import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.exceptions.ResourceNotFoundException
@@ -29,6 +30,7 @@ import org.keycloak.representations.idm.UserRepresentation
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 /**
  * Metaform controller
@@ -292,6 +294,7 @@ class MetaformController {
         val translatedMetaform = metaformTranslator.translate(metaform)
 
         if (translatedMetaform.replyDelivery != null && translatedMetaform.replyDelivery.method == MetaformReplyDeliveryMethod.PDF_TO_EMAIL) {
+
             val replyPdf = replyController.getReplyPdf(
                 exportThemeName = metaform.exportTheme!!.name,
                 metaformEntity = translatedMetaform,
@@ -299,6 +302,14 @@ class MetaformController {
                 attachmentMap = emptyMap(),
                 locale = Locale.getDefault()
                 )
+
+            val attachment = EmailAttachment(
+                    data = replyPdf,
+                    filename = "reply.pdf"
+            )
+            val attachments = ArrayList<EmailAttachment>()
+            attachments.add(attachment)
+
             emailNotificationController.listEmailNotificationByMetaform(metaform)
                     .forEach{ emailNotification: EmailNotification ->
                         sendReplyEmailNotification(
@@ -307,7 +318,7 @@ class MetaformController {
                                 emailNotification =  emailNotification,
                                 replyEntity =  replyEntity,
                                 notifyUserIds = notifyUserIds,
-                                attachment = replyPdf
+                                attachments = attachments
                         )
                     }
         }
@@ -320,7 +331,7 @@ class MetaformController {
                             emailNotification =  emailNotification,
                             replyEntity =  replyEntity,
                             notifyUserIds = notifyUserIds,
-                            attachment = byteArrayOf()
+                            attachments = emptyList()
                     )
                 }
         }
@@ -335,10 +346,11 @@ class MetaformController {
      * @param replyEntity reply REST entity
      * @param notifyUserIds notify user ids
      */
-    private fun sendReplyEmailNotification(keycloak: Keycloak, replyCreated: Boolean, emailNotification: EmailNotification, replyEntity: fi.metatavu.metaform.api.spec.model.Reply, notifyUserIds: Set<UUID>, attachment: ByteArray?) {
+    private fun sendReplyEmailNotification(keycloak: Keycloak, replyCreated: Boolean, emailNotification: EmailNotification, replyEntity: fi.metatavu.metaform.api.spec.model.Reply, notifyUserIds: Set<UUID>, attachments: List<EmailAttachment>?) {
         if (!emailNotificationController.evaluateEmailNotificationNotifyIf(emailNotification, replyEntity)) {
             return
         }
+        val attachmentList: List<EmailAttachment> = attachments?: emptyList()
         val directEmails = if (replyCreated) emailNotificationController.getEmailNotificationEmails(emailNotification) else emptyList()
         val usersResource = keycloak.realm(metaformKeycloakController.configuration.realm).users()
         val groupEmails = notifyUserIds
@@ -350,7 +362,7 @@ class MetaformController {
                 .map { obj: UserRepresentation -> obj.email }
         val emails: MutableSet<String> = HashSet(directEmails)
         emails.addAll(groupEmails)
-        emailNotificationController.sendEmailNotification(emailNotification, replyEntity, emails.filter { cs: String? -> StringUtils.isNotEmpty(cs) }.toSet(), attachment)
+        emailNotificationController.sendEmailNotification(emailNotification, replyEntity, emails.filter { cs: String? -> StringUtils.isNotEmpty(cs) }.toSet(), attachmentList)
     }
 
     /**

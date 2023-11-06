@@ -1,14 +1,9 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
 import com.github.tomakehurst.wiremock.client.WireMock
-import fi.metatavu.metaform.api.client.models.ExportThemeFile
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.Reply
 import fi.metatavu.metaform.api.spec.model.MetaformReplyDeliveryMethod
-import fi.metatavu.metaform.server.exceptions.PdfRenderException
-import fi.metatavu.metaform.server.exportTheme.ExportThemeFreemarkerRenderer
-import fi.metatavu.metaform.server.exportTheme.ReplyExportDataModel
-import fi.metatavu.metaform.server.pdf.PdfPrinter
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
@@ -24,7 +19,6 @@ import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import io.restassured.RestAssured
-import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.eclipse.microprofile.config.ConfigProvider
 import org.junit.jupiter.api.Assertions
@@ -33,9 +27,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -753,7 +744,7 @@ class ReplyTestsIT : AbstractTest() {
 
     @Test
     @Throws(Exception::class)
-    fun testSendReplyDataAsPdfAttachment() {
+    fun testReplyDeliveryMethodAndSendingAttachmentWithEmail() {
         TestBuilder().use { testBuilder ->
             val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
 
@@ -768,7 +759,9 @@ class ReplyTestsIT : AbstractTest() {
             assertNotNull(metaform.id)
             assertNotNull(metaform.replyDelivery)
             assertNotNull(metaform.replyDelivery!!.method)
+
             testBuilder.systemAdmin.metaforms.assertJsonsEqual(MetaformReplyDeliveryMethod.PDF_TO_EMAIL, metaform.replyDelivery.method)
+
             assertNotNull(metaform.sections!![0])
             assertNotNull(metaform.sections[0].fields!![0])
             assertNotNull(metaform.sections[0].fields!![0].classifiers!![0])
@@ -796,13 +789,19 @@ class ReplyTestsIT : AbstractTest() {
                 testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
 
                 val replyData: MutableMap<String, Any> = HashMap()
-                replyData["text"] = "This should be found from the PDF"
-                val replyRaw = testBuilder.test2.replies.createReplyWithData(replyData)
-                val reply = testBuilder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.REVISION.toString(), replyRaw)
+                replyData["text"] = "test test test"
 
-                testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
+                val replyRaw = testBuilder.test1.replies.createReplyWithData(replyData)
+                val reply = testBuilder.test1.replies.create(newMetaform.id, null, ReplyMode.REVISION.toString(), replyRaw)
 
-                mailgunMocker.verifyHtmlMessageSent(2,"Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content")
+                assertNotNull(reply.id)
+
+                testBuilder.test1.replies.createSimpleReply(newMetaform.id, "val 1", ReplyMode.CUMULATIVE)
+                testBuilder.test1.replies.createSimpleReply(newMetaform.id, "val 2", ReplyMode.CUMULATIVE)
+
+                //checking attachment not done
+                mailgunMocker.verifyHtmlMessageSent(3,"Metaform Test", "metaform-test@example.com", "user@example.com", "Simple subject", "Simple content", null)
+
             }
             finally {
                 stopMailgunMocker(mailgunMocker)

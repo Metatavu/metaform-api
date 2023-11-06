@@ -19,5 +19,5 @@ interface EmailProvider {
      */
     fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?)
 
-    fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?, attachment: ByteArray?)
+    fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?, attachments: List<EmailAttachment>?)
 }

@@ -1,6 +1,8 @@
 package fi.metatavu.metaform.server.email
 
 import org.slf4j.Logger
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.enterprise.context.ApplicationScoped
 import javax.enterprise.event.Observes
@@ -60,12 +62,13 @@ class EmailObserver {
      */
     private fun sendEmail(event: SendEmailEvent, attemptsLeft: Int = 3) {
         try {
+
             emailProvider.sendMail(
                 toEmail = event.toEmail,
                 subject = event.subject,
                 content = event.content,
                 format = event.format,
-                attachment = event.attachment
+                attachments = event.attachments?: emptyList()
             )
         } catch (e: Exception) {
             if (attemptsLeft > 0) {

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.FieldRule
 import fi.metatavu.metaform.api.spec.model.Reply
+import fi.metatavu.metaform.server.email.EmailAttachment
 import fi.metatavu.metaform.server.email.SendEmailEvent
 import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer
 import fi.metatavu.metaform.server.email.EmailTemplateSource
@@ -183,13 +184,13 @@ class EmailNotificationController {
                     content = content,
                     format = MailFormat.HTML,
                     transactionPhase = TransactionPhase.AFTER_SUCCESS,
-                    attachment = byteArrayOf()
+                    attachments = emptyList()
                 )
             )
         }
     }
 
-    fun sendEmailNotification(emailNotification: EmailNotification, replyEntity: Reply?, emails: Set<String>, attachment: ByteArray?) {
+    fun sendEmailNotification(emailNotification: EmailNotification, replyEntity: Reply?, emails: Set<String>, attachments: List<EmailAttachment>?) {
         val id = emailNotification.id!!
         val data = toFreemarkerData(replyEntity)
         val subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE)
@@ -203,7 +204,7 @@ class EmailNotificationController {
                             content = content,
                             format = MailFormat.HTML,
                             transactionPhase = TransactionPhase.AFTER_SUCCESS,
-                            attachment = attachment
+                            attachments = attachments?: emptyList()
                     )
             )
         }

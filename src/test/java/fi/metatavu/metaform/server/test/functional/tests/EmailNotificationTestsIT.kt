@@ -63,8 +63,8 @@ class EmailNotificationTestsIT : AbstractTest() {
                 testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "subject", "content", listOf("val2@example.com"), createFieldRule("text", "val 2", null))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
-                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content")
-                mailgunMocker.verifyHtmlMessageSent(0, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content")
+                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content", null)
+                mailgunMocker.verifyHtmlMessageSent(0, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content", null)
             } finally {
                 stopMailgunMocker(mailgunMocker)
             }
@@ -82,8 +82,8 @@ class EmailNotificationTestsIT : AbstractTest() {
                 testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "subject", "content", listOf("val2@example.com"), createFieldRule("text", null, "val 2"))
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 1", ReplyMode.CUMULATIVE)
                 testBuilder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
-                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content")
-                mailgunMocker.verifyHtmlMessageSent(2, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content")
+                mailgunMocker.verifyHtmlMessageSent(1, "Metaform Test", "metaform-test@example.com", "val1@example.com", "subject", "content", null)
+                mailgunMocker.verifyHtmlMessageSent(2, "Metaform Test", "metaform-test@example.com", "val2@example.com", "subject", "content", null)
             } finally {
                 stopMailgunMocker(mailgunMocker)
             }
