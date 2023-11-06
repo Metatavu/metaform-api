@@ -19,7 +19,6 @@ import fi.metatavu.metaform.server.permissions.GroupMemberPermission
 import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
-import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator

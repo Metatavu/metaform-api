@@ -1,8 +1,6 @@
 package fi.metatavu.metaform.server.email
 
 import org.slf4j.Logger
-import java.io.ByteArrayInputStream
-import java.io.InputStream
 import javax.annotation.PostConstruct
 import javax.enterprise.context.ApplicationScoped
 import javax.enterprise.event.Observes
