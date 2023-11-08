@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.github.slugify.Slugify
-import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.api.spec.model.MetaformField
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.api.spec.model.PermissionGroups
@@ -18,7 +17,6 @@ import fi.metatavu.metaform.server.permissions.GroupMemberPermission
 import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
-import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import org.apache.commons.lang3.StringUtils
@@ -61,18 +59,6 @@ class MetaformController {
 
     @Inject
     lateinit var permissionController: PermissionController
-
-    @Inject
-    lateinit var metaformStatisticsController: MetaformStatisticsController
-
-    @Inject
-    lateinit var replyCreatedEvent: Event<ReplyCreatedEvent>
-
-    @Inject
-    lateinit var replyDeletedEvent: Event<ReplyDeletedEvent>
-
-    @Inject
-    lateinit var replyUpdatedEvent: Event<ReplyUpdatedEvent>
 
     /**
      * Creates new Metaform
