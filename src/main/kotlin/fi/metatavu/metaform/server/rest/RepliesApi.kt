@@ -177,6 +177,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       action = null,
       type = AuditLogEntryType.CREATE_REPLY
     )
+
+    replyController.triggerReplyEvent(reply = createdReply, replyCreated = true)
+
     return createOk(replyEntity)
   }
 
@@ -236,6 +239,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     auditLogEntryController.generateAuditLog(metaform, userId, reply.id!!, null, null, AuditLogEntryType.DELETE_REPLY)
     replyController.deleteReply(reply)
+
 
     return createNoContent()
   }
@@ -538,6 +542,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val replyEntity: Reply = replyTranslator.translate(metaformEntity, foundReply, null)
 
     auditLogEntryController.generateAuditLog(metaform, userId, foundReply.id!!, null, null, AuditLogEntryType.MODIFY_REPLY)
+
     try {
       val groupMemberPermissions = getGroupPermissions(
         metaformEntity = metaformEntity,
@@ -555,9 +560,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       )
 
       replyController.updateReplyLastModifierId(foundReply, userId)
+
     } catch (e: AuthzException) {
       return createInternalServerError(e.message!!)
     }
+
+    replyController.triggerReplyEvent(reply = foundReply, replyCreated = false)
 
     return createNoContent()
   }

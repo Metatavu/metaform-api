@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.github.slugify.Slugify
+import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.api.spec.model.MetaformField
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.api.spec.model.PermissionGroups
@@ -26,6 +27,7 @@ import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.UserRepresentation
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
+import javax.enterprise.event.Event
 import javax.inject.Inject
 
 /**
@@ -59,6 +61,18 @@ class MetaformController {
 
     @Inject
     lateinit var permissionController: PermissionController
+
+    @Inject
+    lateinit var metaformStatisticsController: MetaformStatisticsController
+
+    @Inject
+    lateinit var replyCreatedEvent: Event<ReplyCreatedEvent>
+
+    @Inject
+    lateinit var replyDeletedEvent: Event<ReplyDeletedEvent>
+
+    @Inject
+    lateinit var replyUpdatedEvent: Event<ReplyUpdatedEvent>
 
     /**
      * Creates new Metaform
@@ -257,14 +271,14 @@ class MetaformController {
 
         val resourceName = replyController.getReplyResourceName(reply)
         val notifiedUserIds =
-                if (replyCreated) emptySet()
-                else metaformKeycloakController.getResourcePermittedUsers(
-                        adminClient,
-                        keycloakClient,
-                    reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
-                        resourceName,
-                        listOf(AuthorizationScope.REPLY_NOTIFY)
-                )
+            if (replyCreated) emptySet()
+            else metaformKeycloakController.getResourcePermittedUsers(
+                    adminClient,
+                    keycloakClient,
+                reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
+                    resourceName,
+                    listOf(AuthorizationScope.REPLY_NOTIFY)
+            )
 
         val resourceId =  permissionController.updateReplyPermissions(
             reply = reply,
@@ -287,14 +301,15 @@ class MetaformController {
         emailNotificationController.listEmailNotificationByMetaform(metaform)
             .forEach{ emailNotification: EmailNotification ->
                 sendReplyEmailNotification(
-                        adminClient,
-                        replyCreated,
-                        emailNotification,
-                        replyEntity,
-                        notifyUserIds
+                    adminClient,
+                    replyCreated,
+                    emailNotification,
+                    replyEntity,
+                    notifyUserIds
                 )
             }
     }
+
 
     /**
      * Sends reply email notifications

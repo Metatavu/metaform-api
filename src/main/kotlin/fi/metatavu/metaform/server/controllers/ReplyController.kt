@@ -34,6 +34,7 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
 import javax.enterprise.context.ApplicationScoped
+import javax.enterprise.event.Event
 import javax.inject.Inject
 
 /**
@@ -105,6 +106,15 @@ class ReplyController {
     @Inject
     lateinit var formRuntimeContext: FormRuntimeContext
 
+    @Inject
+    lateinit var replyCreatedEvent: Event<ReplyCreatedEvent>
+
+    @Inject
+    lateinit var replyDeletedEvent: Event<ReplyDeletedEvent>
+
+    @Inject
+    lateinit var replyUpdatedEvent: Event<ReplyUpdatedEvent>
+
     /**
      * Creates new reply
      *
@@ -120,15 +130,22 @@ class ReplyController {
         loggedUserId: UUID
     ): Reply {
         val id = UUID.randomUUID()
-        return replyDAO.create(
-            id = id,
-            userId = userId,
-            metaform = metaform,
-            resourceId = null,
-            privateKey = privateKey?.encoded,
-            revision = null,
-            lastModifierId = loggedUserId
+        val createdReply = replyDAO.create(
+                id = id,
+                userId = userId,
+                metaform = metaform,
+                resourceId = null,
+                privateKey = privateKey?.encoded,
+                revision = null,
+                lastModifierId = loggedUserId
         )
+        replyCreatedEvent.fire(
+                ReplyCreatedEvent(
+                        replyId = createdReply.id!!,
+                        metaformId = metaform.id!!
+                )
+        )
+        return createdReply
     }
 
     /**
@@ -171,6 +188,12 @@ class ReplyController {
      */
     fun updateResourceId(reply: Reply, resourceId: UUID?): Reply {
         replyDAO.updateResourceId(reply, resourceId)
+        replyUpdatedEvent.fire(
+                ReplyUpdatedEvent(
+                        replyId = reply.id!!,
+                        metaformId = reply.metaform.id!!
+                )
+        )
         return reply
     }
 
@@ -346,6 +369,12 @@ class ReplyController {
     fun deleteReply(reply: Reply) {
         anyReplyFieldDAO.listByReply(reply).forEach { deleteField(it) }
         replyDAO.delete(reply)
+        replyDeletedEvent.fire(
+            ReplyDeletedEvent(
+                replyId = reply.id!!,
+                metaformId = reply.metaform.id!!
+            )
+        )
     }
 
     /**
@@ -1005,6 +1034,24 @@ class ReplyController {
                 convertToRevision(foundReply)
                 createReply(userId, metaform, privateKey, loggedUserId)
             } else foundReply
+        }
+    }
+
+    fun triggerReplyEvent(reply: Reply, replyCreated: Boolean) {
+        if (replyCreated) {
+            replyCreatedEvent.fire(
+                    ReplyCreatedEvent(
+                            replyId = reply.id!!,
+                            metaformId = reply.metaform.id!!
+                    )
+            )
+        } else {
+            replyUpdatedEvent.fire(
+                    ReplyUpdatedEvent(
+                            replyId = reply.id!!,
+                            metaformId = reply.metaform.id!!
+                    )
+            )
         }
     }
 
