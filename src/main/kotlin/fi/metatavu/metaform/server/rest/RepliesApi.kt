@@ -330,6 +330,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
           action = null,
           type = AuditLogEntryType.VIEW_REPLY
     )
+
+    replyController.triggerReplyEvent(reply = reply, replyCreated = false)
+
     return createOk(replyTranslator.translate(metaformEntity, reply, null))
   }
 
@@ -566,7 +569,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     replyController.triggerReplyEvent(reply = foundReply, replyCreated = false)
-
     return createNoContent()
   }
 

@@ -49,12 +49,14 @@ class MetaformStatisticsTestsIT: AbstractTest() {
             val createdReply = builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id!!)
             val createdReply2 = builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id)
 
-            Thread.sleep(1000)
+            //Thread.sleep(1000)
+            await().atMost(Duration.ofMillis(1000))
 
             builder.systemAdmin.replies.findReply(metaform.id, createdReply.id!!, null)
             val statistics1 = builder.systemAdmin.metaformStatistics.getMetaformStatistics(metaform.id)
 
-            Thread.sleep(30000)
+            //Thread.sleep(30000)
+            await().atMost(Duration.ofMillis(30000))
 
             builder.systemAdmin.replies.findReply(metaform.id, createdReply2.id!!, null)
             val statistics2 = builder.systemAdmin.metaformStatistics.getMetaformStatistics(metaform.id)
