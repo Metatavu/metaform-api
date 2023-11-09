@@ -27,11 +27,21 @@ class MetaformStatisticsController {
     @CacheName("metaform-statistics")
     lateinit var statisticsCache: Cache
 
+    /**
+     * Recalculates statistics for given Metaform
+     * @param metaform Metaform
+     * @return MetaformStatistics for provided metaform
+     */
     fun recalculateMetaformStatistics(metaform: Metaform): MetaformStatistics {
         statisticsCache.invalidate(metaform.id.toString()).await().indefinitely()
         return getMetaformStatistics(metaform)
     }
 
+    /**
+     * Calculates statistics for given Metaform
+     * @param metaform Metaform
+     * @return MetaformStatistics object for provided metaform
+     */
     fun getMetaformStatistics(metaform: Metaform): MetaformStatistics {
         return statisticsCache.get(metaform.id.toString()) {
             calculateMetaformStatistics(metaform)

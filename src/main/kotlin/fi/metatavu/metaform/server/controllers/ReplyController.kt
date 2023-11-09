@@ -1037,20 +1037,26 @@ class ReplyController {
         }
     }
 
+    /**
+     * Triggers ReplyEvent depending on given boolean value
+     *
+     * @param reply Reply
+     * @param replyCreated Boolean
+     */
     fun triggerReplyEvent(reply: Reply, replyCreated: Boolean) {
         if (replyCreated) {
             replyCreatedEvent.fire(
-                    ReplyCreatedEvent(
-                            replyId = reply.id!!,
-                            metaformId = reply.metaform.id!!
-                    )
+                ReplyCreatedEvent(
+                    replyId = reply.id!!,
+                    metaformId = reply.metaform.id!!
+                )
             )
         } else {
             replyUpdatedEvent.fire(
-                    ReplyUpdatedEvent(
-                            replyId = reply.id!!,
-                            metaformId = reply.metaform.id!!
-                    )
+                ReplyUpdatedEvent(
+                    replyId = reply.id!!,
+                    metaformId = reply.metaform.id!!
+                )
             )
         }
     }

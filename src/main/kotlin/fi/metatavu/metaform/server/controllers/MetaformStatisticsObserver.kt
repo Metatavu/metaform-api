@@ -30,21 +30,42 @@ class MetaformStatisticsObserver {
         // this method is left empty on purpose
     }
 
+    /**
+     * Event handler for reply created event after successful transaction
+     *
+     * @param event event
+     */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyCreated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyCreatedEvent) {
         onReplyEvent(event.metaformId)
     }
 
+    /**
+     * Event handler for reply updated event after successful transaction
+     *
+     * @param event event
+     */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyUpdated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyUpdatedEvent) {
         onReplyEvent(event.metaformId)
     }
 
+    /**
+     * Event handler for reply deleted event after successful transaction
+     *
+     * @param event event
+     */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyDeleted(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyDeletedEvent) {
         onReplyEvent(event.metaformId)
     }
 
+    /**
+     * Finds Metaform by given UUID and triggers statistics recalculation for given Metaform after successful
+     * create/delete/update event
+     *
+     * @param metaformId
+     */
     private fun onReplyEvent(metaformId: UUID) {
         val metaform = metaformController.findMetaformById(metaformId)
         if (metaform != null) {
