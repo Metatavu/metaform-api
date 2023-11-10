@@ -178,7 +178,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       type = AuditLogEntryType.CREATE_REPLY
     )
 
-    replyController.triggerReplyEvent(reply = createdReply, replyCreated = true)
+    replyController.triggerReplyCreatedEvent(reply = createdReply)
 
     return createOk(replyEntity)
   }
@@ -238,9 +238,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     auditLogEntryController.generateAuditLog(metaform, userId, reply.id!!, null, null, AuditLogEntryType.DELETE_REPLY)
-    replyController.deleteReply(reply)
+    replyController.deleteReply(reply = reply)
 
-
+    replyController.triggerReplyDeletedEvent(reply = reply)
     return createNoContent()
   }
 
@@ -331,7 +331,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
           type = AuditLogEntryType.VIEW_REPLY
     )
 
-    replyController.triggerReplyEvent(reply = reply, replyCreated = false)
+    replyController.triggerReplyFoundEvent(reply = reply)
 
     return createOk(replyTranslator.translate(metaformEntity, reply, null))
   }
@@ -568,7 +568,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createInternalServerError(e.message!!)
     }
 
-    replyController.triggerReplyEvent(reply = foundReply, replyCreated = false)
+    replyController.triggerReplyUpdatedEvent(reply = foundReply)
     return createNoContent()
   }
 

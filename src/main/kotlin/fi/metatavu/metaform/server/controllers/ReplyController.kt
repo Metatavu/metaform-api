@@ -115,6 +115,9 @@ class ReplyController {
     @Inject
     lateinit var replyUpdatedEvent: Event<ReplyUpdatedEvent>
 
+    @Inject
+    lateinit var replyFoundEvent: Event<ReplyFoundEvent>
+
     /**
      * Creates new reply
      *
@@ -130,7 +133,7 @@ class ReplyController {
         loggedUserId: UUID
     ): Reply {
         val id = UUID.randomUUID()
-        val createdReply = replyDAO.create(
+        return replyDAO.create(
                 id = id,
                 userId = userId,
                 metaform = metaform,
@@ -139,13 +142,6 @@ class ReplyController {
                 revision = null,
                 lastModifierId = loggedUserId
         )
-        replyCreatedEvent.fire(
-                ReplyCreatedEvent(
-                        replyId = createdReply.id!!,
-                        metaformId = metaform.id!!
-                )
-        )
-        return createdReply
     }
 
     /**
@@ -188,12 +184,6 @@ class ReplyController {
      */
     fun updateResourceId(reply: Reply, resourceId: UUID?): Reply {
         replyDAO.updateResourceId(reply, resourceId)
-        replyUpdatedEvent.fire(
-                ReplyUpdatedEvent(
-                        replyId = reply.id!!,
-                        metaformId = reply.metaform.id!!
-                )
-        )
         return reply
     }
 
@@ -369,12 +359,6 @@ class ReplyController {
     fun deleteReply(reply: Reply) {
         anyReplyFieldDAO.listByReply(reply).forEach { deleteField(it) }
         replyDAO.delete(reply)
-        replyDeletedEvent.fire(
-            ReplyDeletedEvent(
-                replyId = reply.id!!,
-                metaformId = reply.metaform.id!!
-            )
-        )
     }
 
     /**
@@ -1038,27 +1022,59 @@ class ReplyController {
     }
 
     /**
-     * Triggers ReplyEvent depending on given boolean value
+     * Triggers Reply created event
      *
      * @param reply Reply
-     * @param replyCreated Boolean
      */
-    fun triggerReplyEvent(reply: Reply, replyCreated: Boolean) {
-        if (replyCreated) {
-            replyCreatedEvent.fire(
+    fun triggerReplyCreatedEvent(reply: Reply) {
+        replyCreatedEvent.fire(
                 ReplyCreatedEvent(
-                    replyId = reply.id!!,
-                    metaformId = reply.metaform.id!!
+                        replyId = reply.id!!,
+                        metaformId = reply.metaform.id!!
                 )
-            )
-        } else {
-            replyUpdatedEvent.fire(
+        )
+    }
+
+    /**
+     * Triggers Reply updated event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyUpdatedEvent(reply: Reply) {
+        replyUpdatedEvent.fire(
                 ReplyUpdatedEvent(
-                    replyId = reply.id!!,
-                    metaformId = reply.metaform.id!!
+                        replyId = reply.id!!,
+                        metaformId = reply.metaform.id!!
                 )
+        )
+    }
+
+    /**
+     * Triggers Reply deleted event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyDeletedEvent(reply: Reply) {
+        replyDeletedEvent.fire(
+            ReplyDeletedEvent(
+                replyId = reply.id!!,
+                metaformId = reply.metaform.id!!
             )
-        }
+        )
+    }
+
+    /**
+     * Triggers Reply found event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyFoundEvent(reply: Reply) {
+        replyFoundEvent.fire(
+            ReplyFoundEvent(
+                replyId = reply.id!!,
+                metaformId = reply.metaform.id!!
+            )
+        )
     }
 
     companion object {

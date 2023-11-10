@@ -37,7 +37,7 @@ class MetaformStatisticsObserver {
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyCreated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyCreatedEvent) {
-        onReplyEvent(event.metaformId)
+        recalculateMetaformStatistics(event.metaformId)
     }
 
     /**
@@ -47,7 +47,7 @@ class MetaformStatisticsObserver {
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyUpdated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyUpdatedEvent) {
-        onReplyEvent(event.metaformId)
+        recalculateMetaformStatistics(event.metaformId)
     }
 
     /**
@@ -57,7 +57,17 @@ class MetaformStatisticsObserver {
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyDeleted(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyDeletedEvent) {
-        onReplyEvent(event.metaformId)
+        recalculateMetaformStatistics(event.metaformId)
+    }
+
+    /**
+     * Event handler for reply found event after successful transaction
+     *
+     * @param event event
+     */
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    fun onReplyFound(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyFoundEvent) {
+        recalculateMetaformStatistics(event.metaformId)
     }
 
     /**
@@ -66,7 +76,7 @@ class MetaformStatisticsObserver {
      *
      * @param metaformId
      */
-    private fun onReplyEvent(metaformId: UUID) {
+    private fun recalculateMetaformStatistics(metaformId: UUID) {
         val metaform = metaformController.findMetaformById(metaformId)
         if (metaform != null) {
             metaformStatisticsController.recalculateMetaformStatistics(metaform = metaform)
