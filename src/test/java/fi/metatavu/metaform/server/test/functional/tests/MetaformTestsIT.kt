@@ -113,10 +113,10 @@ class MetaformTestsIT : AbstractTest() {
         TestBuilder().use { testBuilder ->
             try {
                 testBuilder.permissionTestByScopes(
-                    scope = PermissionScope.SYSTEM_ADMIN,
-                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                        authentication.metaforms.createFromJsonFile("simple")
-                    }
+                        scope = PermissionScope.SYSTEM_ADMIN,
+                        apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                            authentication.metaforms.createFromJsonFile("simple")
+                        }
                 )
             } finally {
                 val metaforms = testBuilder.systemAdmin.metaforms.list()
@@ -136,16 +136,16 @@ class MetaformTestsIT : AbstractTest() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val foundMetaformById: Metaform = builder.systemAdmin.metaforms.findMetaform(
-                metaformSlug = null,
-                metaformId = metaform.id!!,
-                replyId = null,
-                ownerKey = null
+                    metaformSlug = null,
+                    metaformId = metaform.id!!,
+                    replyId = null,
+                    ownerKey = null
             )
             val foundMetaformBySlug: Metaform = builder.systemAdmin.metaforms.findMetaform(
-                metaformSlug = metaform.slug!!,
-                metaformId = null,
-                replyId = null,
-                ownerKey = null
+                    metaformSlug = metaform.slug!!,
+                    metaformId = null,
+                    replyId = null,
+                    ownerKey = null
             )
 
             assertEquals(metaform.toString(), foundMetaformById.toString())
@@ -158,12 +158,12 @@ class MetaformTestsIT : AbstractTest() {
     fun testFindMetaformNotFound() {
         TestBuilder().use { builder ->
             builder.systemAdmin.metaforms.assertFindFailStatus(
-                expectedStatus = 404,
-                metaformId = UUID.randomUUID()
+                    expectedStatus = 404,
+                    metaformId = UUID.randomUUID()
             )
             builder.systemAdmin.metaforms.assertFindFailStatus(
-                expectedStatus = 404,
-                metaformSlug = ""
+                    expectedStatus = 404,
+                    metaformSlug = ""
             )
         }
     }
@@ -173,7 +173,7 @@ class MetaformTestsIT : AbstractTest() {
     fun testFindMetaformBadRequest() {
         TestBuilder().use { builder ->
             builder.systemAdmin.metaforms.assertFindFailStatus(
-                expectedStatus = 400
+                    expectedStatus = 400
             )
         }
     }
@@ -185,15 +185,15 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.ANONYMOUS,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaform(
-                        metaformSlug = null,
-                        metaformId = metaform.id!!,
-                        replyId = null,
-                        ownerKey = null
-                    )
-                },
+                    scope = PermissionScope.ANONYMOUS,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.findMetaform(
+                                metaformSlug = null,
+                                metaformId = metaform.id!!,
+                                replyId = null,
+                                ownerKey = null
+                        )
+                    },
             )
         }
     }
@@ -205,15 +205,15 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.ANONYMOUS,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaform(
-                        metaformSlug = metaform.slug!!,
-                        metaformId = null,
-                        replyId = null,
-                        ownerKey = null
-                    )
-                }
+                    scope = PermissionScope.ANONYMOUS,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.findMetaform(
+                                metaformSlug = metaform.slug!!,
+                                metaformId = null,
+                                replyId = null,
+                                ownerKey = null
+                        )
+                    }
             )
         }
     }
@@ -225,16 +225,16 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.USER,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaform(
-                        metaformSlug = metaform.slug!!,
-                        metaformId = null,
-                        replyId = null,
-                        ownerKey = null
-                    )
-                },
-                metaformId = metaform.id
+                    scope = PermissionScope.USER,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.findMetaform(
+                                metaformSlug = metaform.slug!!,
+                                metaformId = null,
+                                replyId = null,
+                                ownerKey = null
+                        )
+                    },
+                    metaformId = metaform.id
             )
         }
     }
@@ -246,16 +246,16 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.USER,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.findMetaform(
-                        metaformSlug = null,
-                        metaformId = metaform.id!!,
-                        replyId = null,
-                        ownerKey = null
-                    )
-                },
-                metaformId = metaform.id
+                    scope = PermissionScope.USER,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.findMetaform(
+                                metaformSlug = null,
+                                metaformId = metaform.id!!,
+                                replyId = null,
+                                ownerKey = null
+                        )
+                    },
+                    metaformId = metaform.id
             )
         }
     }
@@ -269,19 +269,19 @@ class MetaformTestsIT : AbstractTest() {
             val metaform2: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val metaform3: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
             val metaform1Modified = metaform1.copy(
-                    title="first",
-                    slug="first-slug-0",
+                    title = "first",
+                    slug = "first-slug-0",
                     visibility = MetaformVisibility.PRIVATE
             )
             val metaform2Modified = metaform2.copy(
-                    title="second",
-                    slug="second-slug-0",
+                    title = "second",
+                    slug = "second-slug-0",
                     visibility = MetaformVisibility.PUBLIC
             )
             val metaform3Modified = metaform3.copy(
-                title="third",
-                slug="third-slug-0",
-                visibility = MetaformVisibility.PUBLIC
+                    title = "third",
+                    slug = "third-slug-0",
+                    visibility = MetaformVisibility.PUBLIC
             )
             builder.systemAdmin.metaforms.updateMetaform(metaform1.id!!, metaform1Modified)
             builder.systemAdmin.metaforms.updateMetaform(metaform2.id!!, metaform2Modified)
@@ -312,10 +312,10 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-private")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.METAFORM_MANAGER,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.list(MetaformVisibility.PRIVATE)
-                },
+                    scope = PermissionScope.METAFORM_MANAGER,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.list(MetaformVisibility.PRIVATE)
+                    },
             )
         }
     }
@@ -327,10 +327,10 @@ class MetaformTestsIT : AbstractTest() {
             testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.ANONYMOUS,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.list(MetaformVisibility.PUBLIC)
-                },
+                    scope = PermissionScope.ANONYMOUS,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.list(MetaformVisibility.PUBLIC)
+                    },
             )
         }
     }
@@ -376,7 +376,7 @@ class MetaformTestsIT : AbstractTest() {
             val invalidForm = builder.systemAdmin.metaforms.readMetaform("simple-invalid-permission-groups")
 
             builder.systemAdmin.metaforms.assertUpdateFailStatus(400, metaform.id!!, metaform.copy(
-                sections = invalidForm?.sections
+                    sections = invalidForm?.sections
             ))
         }
     }
@@ -410,11 +410,11 @@ class MetaformTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
 
             testBuilder.permissionTestByScopes(
-                scope = PermissionScope.METAFORM_ADMIN,
-                apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
-                    authentication.metaforms.updateMetaform(metaform.id!!, metaform)
-                },
-                metaformId = metaform.id
+                    scope = PermissionScope.METAFORM_ADMIN,
+                    apiCaller = { authentication: TestBuilderAuthentication, _: Int ->
+                        authentication.metaforms.updateMetaform(metaform.id!!, metaform)
+                    },
+                    metaformId = metaform.id
             )
         }
     }
@@ -431,18 +431,18 @@ class MetaformTestsIT : AbstractTest() {
                 draftData["text"] = "draft value"
                 val createdDraft: Draft = testBuilder.systemAdmin.drafts.createDraft(testMetaform1, draftData, false)
                 val createdEmailNotification = testBuilder.systemAdmin.emailNotifications.createEmailNotification(
-                    metaformId = testMetaform1.id!!,
-                    subjectTemplate = "Simple subject",
-                    contentTemplate = "Simple content",
-                    emails = emptyList(),
-                    notifyIf = null,
-                    addClosable = false
+                        metaformId = testMetaform1.id!!,
+                        subjectTemplate = "Simple subject",
+                        contentTemplate = "Simple content",
+                        emails = emptyList(),
+                        notifyIf = null,
+                        addClosable = false
                 )
                 val foundMetaform = testBuilder.systemAdmin.metaforms.findMetaform(
-                    metaformId=testMetaform1.id,
-                    replyId = null,
-                    ownerKey = null,
-                    metaformSlug = null
+                        metaformId = testMetaform1.id,
+                        replyId = null,
+                        ownerKey = null,
+                        metaformSlug = null
                 )
                 val foundDraft = testBuilder.systemAdmin.drafts.findDraft(testMetaform1.id, createdDraft.id!!)
                 assertNotNull(foundMetaform)
@@ -502,47 +502,47 @@ class MetaformTestsIT : AbstractTest() {
             val metaform1: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             val metaform2: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-owner-keys")
             testBuilder.anon.metaforms.assertFindFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform1.id!!
+                    expectedStatus = 403,
+                    metaformId = metaform1.id!!
             )
             val testReply1 = testBuilder.systemAdmin.replies.createSimpleReply(metaform1.id, "TEST", ReplyMode.REVISION)
             val testReply2 = testBuilder.systemAdmin.replies.createSimpleReply(metaform1.id, "TEST", ReplyMode.REVISION)
             val testReply3 = testBuilder.systemAdmin.replies.createSimpleReply(metaform2.id!!, "TEST", ReplyMode.REVISION)
             testBuilder.anon.metaforms.assertFindFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform1.id,
-                replyId = testReply1.id,
-                ownerKey = testReply2.ownerKey
+                    expectedStatus = 403,
+                    metaformId = metaform1.id,
+                    replyId = testReply1.id,
+                    ownerKey = testReply2.ownerKey
             )
             testBuilder.anon.metaforms.assertFindFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform2.id,
-                replyId = testReply1.id,
-                ownerKey = testReply1.ownerKey
+                    expectedStatus = 403,
+                    metaformId = metaform2.id,
+                    replyId = testReply1.id,
+                    ownerKey = testReply1.ownerKey
             )
             testBuilder.anon.metaforms.assertFindFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform1.id,
-                replyId = testReply3.id,
-                ownerKey = testReply3.ownerKey
+                    expectedStatus = 403,
+                    metaformId = metaform1.id,
+                    replyId = testReply3.id,
+                    ownerKey = testReply3.ownerKey
             )
             testBuilder.anon.metaforms.assertFindFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform1.id,
-                replyId = null,
-                ownerKey = testReply1.ownerKey
+                    expectedStatus = 403,
+                    metaformId = metaform1.id,
+                    replyId = null,
+                    ownerKey = testReply1.ownerKey
             )
             testBuilder.anon.metaforms.assertFindFailStatus(
-                expectedStatus = 403,
-                metaformId = metaform1.id,
-                replyId = testReply1.id,
-                ownerKey = null
+                    expectedStatus = 403,
+                    metaformId = metaform1.id,
+                    replyId = testReply1.id,
+                    ownerKey = null
             )
             assertNotNull(testBuilder.anon.metaforms.findMetaform(
-                metaformSlug = null,
-                metaformId = metaform1.id,
-                replyId = testReply1.id!!,
-                ownerKey = testReply1.ownerKey
+                    metaformSlug = null,
+                    metaformId = metaform1.id,
+                    replyId = testReply1.id!!,
+                    ownerKey = testReply1.ownerKey
             ))
         }
     }
@@ -568,18 +568,18 @@ class MetaformTestsIT : AbstractTest() {
             builder.test2.metaforms.assertCount(0, visibility = null, memberRole = MetaformMemberRole.MANAGER)
 
             val member1 = builder.systemAdmin.metaformMembers.create(publicForms[0].id!!, MetaformMember(
-                email = "user1@example.com",
-                firstName = "Test",
-                lastName = "User",
-                role = MetaformMemberRole.ADMINISTRATOR
+                    email = "user1@example.com",
+                    firstName = "Test",
+                    lastName = "User",
+                    role = MetaformMemberRole.ADMINISTRATOR
             )
             )
 
             val member2 = builder.systemAdmin.metaformMembers.create(privateForms[0].id!!, MetaformMember(
-                email = "user2@example.com",
-                firstName = "Test",
-                lastName = "User",
-                role = MetaformMemberRole.MANAGER
+                    email = "user2@example.com",
+                    firstName = "Test",
+                    lastName = "User",
+                    role = MetaformMemberRole.MANAGER
             )
             )
 
@@ -599,7 +599,8 @@ class MetaformTestsIT : AbstractTest() {
     }
 
     @Test
-    fun testScheduledFields() = TestBuilder().use { builder ->
+    fun testScheduledFields() {
+        TestBuilder().use { builder ->
             val testMetaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-scheduled-field")
 
             assertNotNull(testMetaform)
