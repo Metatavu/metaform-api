@@ -9,6 +9,12 @@ import javax.enterprise.event.TransactionPhase
 import javax.inject.Inject
 import javax.transaction.Transactional
 
+
+/**
+ * Observer for reply statistics recalculating triggered by event
+ *
+ * @author Harri Häkkinen
+ */
 @ApplicationScoped
 @Suppress ("unused")
 class MetaformStatisticsObserver {
