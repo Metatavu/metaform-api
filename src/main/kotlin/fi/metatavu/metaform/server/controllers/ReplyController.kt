@@ -34,6 +34,7 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
 import javax.enterprise.context.ApplicationScoped
+import javax.enterprise.event.Event
 import javax.inject.Inject
 
 /**
@@ -105,6 +106,18 @@ class ReplyController {
     @Inject
     lateinit var formRuntimeContext: FormRuntimeContext
 
+    @Inject
+    lateinit var replyCreatedEvent: Event<ReplyCreatedEvent>
+
+    @Inject
+    lateinit var replyDeletedEvent: Event<ReplyDeletedEvent>
+
+    @Inject
+    lateinit var replyUpdatedEvent: Event<ReplyUpdatedEvent>
+
+    @Inject
+    lateinit var replyFoundEvent: Event<ReplyFoundEvent>
+
     /**
      * Creates new reply
      *
@@ -121,13 +134,13 @@ class ReplyController {
     ): Reply {
         val id = UUID.randomUUID()
         return replyDAO.create(
-            id = id,
-            userId = userId,
-            metaform = metaform,
-            resourceId = null,
-            privateKey = privateKey?.encoded,
-            revision = null,
-            lastModifierId = loggedUserId
+                id = id,
+                userId = userId,
+                metaform = metaform,
+                resourceId = null,
+                privateKey = privateKey?.encoded,
+                revision = null,
+                lastModifierId = loggedUserId
         )
     }
 
@@ -1014,6 +1027,62 @@ class ReplyController {
                 createReply(userId, metaform, privateKey, loggedUserId)
             } else foundReply
         }
+    }
+
+    /**
+     * Triggers Reply created event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyCreatedEvent(reply: Reply) {
+        replyCreatedEvent.fire(
+                ReplyCreatedEvent(
+                        replyId = reply.id!!,
+                        metaformId = reply.metaform.id!!
+                )
+        )
+    }
+
+    /**
+     * Triggers Reply updated event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyUpdatedEvent(reply: Reply) {
+        replyUpdatedEvent.fire(
+                ReplyUpdatedEvent(
+                        replyId = reply.id!!,
+                        metaformId = reply.metaform.id!!
+                )
+        )
+    }
+
+    /**
+     * Triggers Reply deleted event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyDeletedEvent(reply: Reply) {
+        replyDeletedEvent.fire(
+            ReplyDeletedEvent(
+                replyId = reply.id!!,
+                metaformId = reply.metaform.id!!
+            )
+        )
+    }
+
+    /**
+     * Triggers Reply found event
+     *
+     * @param reply Reply
+     */
+    fun triggerReplyFoundEvent(reply: Reply) {
+        replyFoundEvent.fire(
+            ReplyFoundEvent(
+                replyId = reply.id!!,
+                metaformId = reply.metaform.id!!
+            )
+        )
     }
 
     companion object {
