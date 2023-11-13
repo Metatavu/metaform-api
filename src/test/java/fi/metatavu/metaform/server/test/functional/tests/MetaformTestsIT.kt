@@ -599,8 +599,7 @@ class MetaformTestsIT : AbstractTest() {
     }
 
     @Test
-    fun testScheduledFields() {
-        TestBuilder().use { builder ->
+    fun testScheduledFields() = TestBuilder().use { builder ->
             val testMetaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-scheduled-field")
 
             assertNotNull(testMetaform)
