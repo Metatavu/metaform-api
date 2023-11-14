@@ -4,6 +4,8 @@ import fi.metatavu.metaform.api.spec.model.MetaformStatistics
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
+import io.quarkus.cache.Cache
+import io.quarkus.cache.CacheName
 import java.time.YearMonth
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -21,24 +23,49 @@ class MetaformStatisticsController {
     @Inject
     lateinit var replyDAO: ReplyDAO
 
+    @Inject
+    @CacheName("metaform-statistics")
+    lateinit var statisticsCache: Cache
+
+    /**
+     * Recalculates statistics for given Metaform
+     * @param metaform Metaform
+     * @return MetaformStatistics for provided metaform
+     */
+    fun recalculateMetaformStatistics(metaform: Metaform): MetaformStatistics {
+        statisticsCache.invalidate(metaform.id.toString()).await().indefinitely()
+        return getMetaformStatistics(metaform)
+    }
+
+    /**
+     * Calculates statistics for given Metaform
+     * @param metaform Metaform
+     * @return MetaformStatistics object for provided metaform
+     */
+    fun getMetaformStatistics(metaform: Metaform): MetaformStatistics {
+        return statisticsCache.get(metaform.id.toString()) {
+            calculateMetaformStatistics(metaform)
+        }.await().indefinitely()
+    }
+
     /**
      * Gets statistics for given Metaform
      *
      * @param metaform Metaform
      * @returns Metaform Statistics
      */
-    fun getMetaformStatistics(metaform: Metaform): MetaformStatistics {
+    private fun calculateMetaformStatistics(metaform: Metaform): MetaformStatistics {
         val lastReplyDate = replyDAO.getLastReplyDateByMetaform(metaform)
         val amountOfUnprocessedReplies = replyDAO.countUnprocessedReplies(metaform)
         val averageProcessDelay = auditLogEntryDAO.getAverageProcessDelayByMetaform(metaform)
         val averageMonthlyReplies = getAverageMonthlyReplies(metaform)
 
         return MetaformStatistics(
-            metaformId = metaform.id,
-            lastReplyDate = lastReplyDate,
-            averageMonthlyReplies = averageMonthlyReplies,
-            unprocessedReplies = amountOfUnprocessedReplies?.toInt(),
-            averageReplyProcessDelay = averageProcessDelay?.roundToInt()
+                metaformId = metaform.id,
+                lastReplyDate = lastReplyDate,
+                averageMonthlyReplies = averageMonthlyReplies,
+                unprocessedReplies = amountOfUnprocessedReplies?.toInt(),
+                averageReplyProcessDelay = averageProcessDelay?.roundToInt()
         )
     }
 

@@ -17,7 +17,6 @@ import fi.metatavu.metaform.server.permissions.GroupMemberPermission
 import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
-import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import org.apache.commons.lang3.StringUtils
@@ -257,14 +256,14 @@ class MetaformController {
 
         val resourceName = replyController.getReplyResourceName(reply)
         val notifiedUserIds =
-                if (replyCreated) emptySet()
-                else metaformKeycloakController.getResourcePermittedUsers(
-                        adminClient,
-                        keycloakClient,
-                    reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
-                        resourceName,
-                        listOf(AuthorizationScope.REPLY_NOTIFY)
-                )
+            if (replyCreated) emptySet()
+            else metaformKeycloakController.getResourcePermittedUsers(
+                keycloak = adminClient,
+                client = keycloakClient,
+                resourceId = reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
+                resourceName =  resourceName,
+                scopes = listOf(AuthorizationScope.REPLY_NOTIFY)
+            )
 
         val resourceId =  permissionController.updateReplyPermissions(
             reply = reply,
@@ -287,14 +286,15 @@ class MetaformController {
         emailNotificationController.listEmailNotificationByMetaform(metaform)
             .forEach{ emailNotification: EmailNotification ->
                 sendReplyEmailNotification(
-                        adminClient,
-                        replyCreated,
-                        emailNotification,
-                        replyEntity,
-                        notifyUserIds
+                    adminClient,
+                    replyCreated,
+                    emailNotification,
+                    replyEntity,
+                    notifyUserIds
                 )
             }
     }
+
 
     /**
      * Sends reply email notifications

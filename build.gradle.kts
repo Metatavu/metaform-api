@@ -45,6 +45,8 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
+    implementation("io.quarkus:quarkus-cache")
+
     
     implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
 
