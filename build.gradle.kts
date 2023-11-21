@@ -153,12 +153,6 @@ tasks.named("clean") {
 }
 
 project.afterEvaluate {
-    /*getTasksByName("quarkusGenerateCode", true).forEach { task ->
-        task.setDependsOn(task.dependsOn.filterIsInstance<Provider<Task>>().filter { it.get().name != "processResources" })
-    }
-    getTasksByName("quarkusGenerateCodeDev", true).forEach { task ->
-        task.setDependsOn(task.dependsOn.filterIsInstance<Provider<Task>>().filter { it.get().name != "processResources" })
-    }*/
 
     project.tasks.named("kaptGenerateStubsKotlin") {
         mustRunAfter(generateApiSpec, generateKeycloackClient)
