@@ -37,18 +37,14 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-undertow")
     implementation("io.quarkus:quarkus-cache")
-    // implementation("io.ktor:ktor-server-core")
-    // implementation("io.ktor:ktor-server-netty")
 
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0-rc1")
     implementation("org.freemarker:freemarker:2.3.32")
     implementation("org.apache.poi:poi:5.2.4")
     implementation("org.apache.poi:poi-ooxml:5.2.4")
-    //implementation("org.graalvm.polyglot:polyglot:23.1.1")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.squareup.okhttp3:okhttp")
-    //implementation("net.sargue:mailgun:1.10.0")
     implementation("com.mailgun:mailgun-java:1.1.0")
 
     testImplementation("io.quarkus:quarkus-junit5")
