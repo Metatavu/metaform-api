@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.email
 
 import fi.metatavu.metaform.server.email.mailgun.MailFormat
-import javax.enterprise.event.TransactionPhase
+import jakarta.enterprise.event.TransactionPhase
 
 /**
  * Event for sending emails

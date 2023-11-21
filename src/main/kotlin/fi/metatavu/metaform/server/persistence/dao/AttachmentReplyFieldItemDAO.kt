@@ -2,8 +2,8 @@ package fi.metatavu.metaform.server.persistence.dao
 
 import fi.metatavu.metaform.server.persistence.model.*
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.criteria.Join
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.criteria.Join
 
 /**
  * DAO class for AttachmentReplyFieldItem entity

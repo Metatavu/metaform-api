@@ -3,14 +3,14 @@ package fi.metatavu.metaform.server.persistence.model.notifications
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.util.*
-import javax.persistence.Cacheable
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.ManyToOne
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.persistence.Cacheable
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.ManyToOne
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 /**
  * JPA entity representing email notification email

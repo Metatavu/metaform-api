@@ -5,8 +5,8 @@ import org.graalvm.polyglot.Context
 import org.graalvm.polyglot.Source
 import org.slf4j.Logger
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 @ApplicationScoped
 class ScriptProcessor {

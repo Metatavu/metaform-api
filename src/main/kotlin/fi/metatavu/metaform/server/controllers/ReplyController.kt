@@ -33,9 +33,9 @@ import java.security.PublicKey
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
-import javax.enterprise.context.ApplicationScoped
-import javax.enterprise.event.Event
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.enterprise.event.Event
+import jakarta.inject.Inject
 
 /**
  * Controller for Replies

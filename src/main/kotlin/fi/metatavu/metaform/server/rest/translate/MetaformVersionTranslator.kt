@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion
 import org.slf4j.Logger
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Translator for Metaform versions

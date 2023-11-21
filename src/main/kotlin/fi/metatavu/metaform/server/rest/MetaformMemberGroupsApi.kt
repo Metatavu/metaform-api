@@ -6,10 +6,10 @@ import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.rest.translate.MetaformMemberGroupTranslator
 import org.keycloak.representations.idm.GroupRepresentation
 import java.util.UUID
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.transaction.Transactional
-import javax.ws.rs.core.Response
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.transaction.Transactional
+import jakarta.ws.rs.core.Response
 
 @RequestScoped
 @Transactional

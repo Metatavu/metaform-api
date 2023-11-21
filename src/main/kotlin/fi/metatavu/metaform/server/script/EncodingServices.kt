@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.script
 
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
 class EncodingServices {

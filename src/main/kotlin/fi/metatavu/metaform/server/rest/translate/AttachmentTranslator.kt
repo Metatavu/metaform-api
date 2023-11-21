@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.rest.translate
 
 import fi.metatavu.metaform.api.spec.model.Attachment
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Translator for attachments

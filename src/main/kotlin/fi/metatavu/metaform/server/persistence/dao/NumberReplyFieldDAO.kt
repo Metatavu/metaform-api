@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.persistence.dao
 import fi.metatavu.metaform.server.persistence.model.NumberReplyField
 import fi.metatavu.metaform.server.persistence.model.Reply
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * DAO class for NumberReplyField entity

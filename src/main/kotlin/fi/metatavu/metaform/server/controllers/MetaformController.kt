@@ -24,8 +24,8 @@ import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.UserRepresentation
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Metaform controller

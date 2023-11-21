@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.rest
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import javax.ws.rs.core.StreamingOutput
+import jakarta.ws.rs.core.StreamingOutput
 
 /**
  * Implementation of JAX-RS StreamingOutput

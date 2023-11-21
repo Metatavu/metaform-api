@@ -2,7 +2,7 @@ package fi.metatavu.metaform.server.rest.translate
 
 import fi.metatavu.metaform.api.spec.model.ExportTheme
 import fi.metatavu.metaform.api.spec.model.ExportThemeFile
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Translator for export themes

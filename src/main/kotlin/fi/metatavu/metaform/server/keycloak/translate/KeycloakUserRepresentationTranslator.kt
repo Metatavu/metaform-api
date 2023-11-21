@@ -2,7 +2,7 @@ package fi.metatavu.metaform.server.keycloak.translate
 
 import fi.metatavu.metaform.api.spec.model.User
 import fi.metatavu.metaform.keycloak.client.models.UserRepresentation
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Translator for Keycloak related objects

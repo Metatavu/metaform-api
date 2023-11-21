@@ -10,9 +10,9 @@ import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
 import java.util.function.Function
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.TypedQuery
-import javax.persistence.criteria.*
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.TypedQuery
+import jakarta.persistence.criteria.*
 
 /**
  * DAO class for Reply entity

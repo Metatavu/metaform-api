@@ -3,11 +3,11 @@ package fi.metatavu.metaform.server.persistence.dao
 import org.slf4j.Logger
 import java.lang.reflect.ParameterizedType
 import java.util.*
-import javax.inject.Inject
-import javax.persistence.EntityManager
-import javax.persistence.PersistenceContext
-import javax.persistence.Query
-import javax.persistence.TypedQuery
+import jakarta.inject.Inject
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import jakarta.persistence.Query
+import jakarta.persistence.TypedQuery
 
 /**
  * Abstract base class for all DAO classes

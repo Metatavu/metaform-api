@@ -12,8 +12,8 @@ import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Custom change for creating authorization resources for all replies

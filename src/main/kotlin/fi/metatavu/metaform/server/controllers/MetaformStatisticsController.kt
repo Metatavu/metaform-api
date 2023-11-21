@@ -7,8 +7,8 @@ import fi.metatavu.metaform.server.persistence.model.Metaform
 import io.quarkus.cache.Cache
 import io.quarkus.cache.CacheName
 import java.time.YearMonth
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import kotlin.math.roundToInt
 
 /**

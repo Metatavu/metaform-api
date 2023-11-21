@@ -5,9 +5,9 @@ import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion_
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
 
 /**
  * DAO class for Metaform version entities

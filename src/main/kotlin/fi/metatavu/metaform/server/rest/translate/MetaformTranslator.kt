@@ -6,8 +6,8 @@ import fi.metatavu.metaform.server.exceptions.MalformedMetaformJsonException
 import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import java.io.IOException
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Translator for Metaforms

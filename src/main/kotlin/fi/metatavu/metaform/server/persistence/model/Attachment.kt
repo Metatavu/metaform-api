@@ -2,12 +2,12 @@ package fi.metatavu.metaform.server.persistence.model
 
 import org.hibernate.annotations.Type
 import java.util.*
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.Lob
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Lob
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 /**
  * Class containing shared general properties of entities
@@ -34,7 +34,7 @@ class Attachment : Metadata() {
 
   @Column(nullable = false)
   @Lob
-  @Type(type = "org.hibernate.type.BinaryType")
+  /*@Type(type = "org.hibernate.type.BinaryType")*/
   lateinit var content: ByteArray
 
 }

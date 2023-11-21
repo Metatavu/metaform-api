@@ -5,8 +5,8 @@ import fi.metatavu.metaform.api.spec.model.Metaform
 import fi.metatavu.metaform.api.spec.model.Reply
 import fi.metatavu.metaform.server.xlsx.XlsxBuilder
 import java.util.*
-import javax.annotation.PostConstruct
-import javax.enterprise.context.RequestScoped
+import jakarta.annotation.PostConstruct
+import jakarta.enterprise.context.RequestScoped
 
 @RequestScoped
 class FormRuntimeContext {

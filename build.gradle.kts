@@ -1,41 +1,33 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-    kotlin("jvm") version "1.6.10"
-    kotlin("plugin.allopen") version "1.6.10"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.allopen") version "1.9.10"
     id("io.quarkus")
-    id("org.openapi.generator") version "6.3.0"
-    id("org.jetbrains.kotlin.kapt") version "1.6.10"
-}
-
-configurations {
-    all() {
-        exclude(group = "commons-logging", module = "commons-logging")
-    }
+    id("org.openapi.generator") version "7.1.0"
+    id("org.jetbrains.kotlin.kapt") version "1.9.20"
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
-    maven { setUrl("https://jitpack.io") }
+    mavenLocal()
 }
 
 val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
-val testContainersKeycloakVersion: String by project
-val moshiVersion: String by project
 val wiremockVersion: String by project
-val freemarkerVersion: String by project
-val quarkusPoiVersion: String by project
+val testContainersKeycloakVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
+    implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-hibernate-orm")
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("io.quarkus:quarkus-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-oidc")
     implementation("io.quarkus:quarkus-keycloak-admin-client")
     implementation("io.quarkus:quarkus-resteasy-jackson")
@@ -43,27 +35,25 @@ dependencies {
     implementation("io.quarkus:quarkus-liquibase")
     implementation("io.quarkus:quarkus-jdbc-mysql")
     implementation("io.quarkus:quarkus-scheduler")
-    implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-undertow")
     implementation("io.quarkus:quarkus-cache")
+    // implementation("io.ktor:ktor-server-core")
+    // implementation("io.ktor:ktor-server-netty")
 
-    
-    implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
-
-    implementation("org.jboss.logmanager:log4j-jboss-logmanager")
-    implementation("org.jboss.logmanager:log4j2-jboss-logmanager")
-    implementation("org.jboss.spec.javax.security.jacc:jboss-jacc-api_1.5_spec:2.0.0.Final")
-    implementation("org.freemarker:freemarker:$freemarkerVersion")
-
-    implementation("net.sargue:mailgun:1.9.2")
-    implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.github.slugify:slugify:2.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0-rc1")
+    implementation("org.freemarker:freemarker:2.3.32")
+    implementation("org.apache.poi:poi:5.2.4")
+    implementation("org.apache.poi:poi-ooxml:5.2.4")
+    //implementation("org.graalvm.polyglot:polyglot:23.1.1")
+    implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
     implementation("com.squareup.okhttp3:okhttp")
+    //implementation("net.sargue:mailgun:1.10.0")
+    implementation("com.mailgun:mailgun-java:1.1.0")
 
     testImplementation("io.quarkus:quarkus-junit5")
-    testImplementation("io.rest-assured:rest-assured")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
+    testImplementation("io.rest-assured:rest-assured")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:mysql")
     testImplementation("org.awaitility:awaitility:3.1.2")
@@ -72,15 +62,17 @@ dependencies {
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
 
-    kapt("org.hibernate:hibernate-jpamodelgen:5.5.7.Final")
+
+    // compileOnly("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
+    kapt("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
 }
 
-group = "fi.metatavu.metaform-api"
+group = "fi.metatavu.metaform"
 version = "2.0.1-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 sourceSets["main"].java {
@@ -92,15 +84,18 @@ sourceSets["test"].java {
     srcDir("build/generated/api-client/src/main/kotlin")
 }
 
+tasks.withType<Test> {
+    systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+}
 allOpen {
-    annotation("javax.ws.rs.Path")
-    annotation("javax.enterprise.context.ApplicationScoped")
-    annotation("javax.persistence.Entity")
+    annotation("jakarta.ws.rs.Path")
+    annotation("jakarta.enterprise.context.ApplicationScoped")
     annotation("io.quarkus.test.junit.QuarkusTest")
+    annotation("jakarta.persistence.Entity")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
     kotlinOptions.javaParameters = true
 }
 
@@ -111,6 +106,7 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     setProperty("apiPackage", "fi.metatavu.metaform.api.spec")
     setProperty("invokerPackage", "fi.metatavu.metaform.api.spec.invoker")
     setProperty("modelPackage", "fi.metatavu.metaform.api.spec.model")
+    setProperty("templateDir", "$rootDir/openapi/api-spec")
 
     this.configOptions.put("library", "jaxrs-spec")
     this.configOptions.put("dateLibrary", "java8")
@@ -119,6 +115,7 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     this.configOptions.put("enumPropertyNaming", "UPPERCASE")
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")
+    this.configOptions.put("useJakartaEe", "true")
     this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
 }
 
@@ -156,5 +153,22 @@ tasks.named("compileTestKotlin") {
 tasks.named("clean") {
     this.doFirst {
         file("$rootDir/src/gen").deleteRecursively()
+    }
+}
+
+project.afterEvaluate {
+    /*getTasksByName("quarkusGenerateCode", true).forEach { task ->
+        task.setDependsOn(task.dependsOn.filterIsInstance<Provider<Task>>().filter { it.get().name != "processResources" })
+    }
+    getTasksByName("quarkusGenerateCodeDev", true).forEach { task ->
+        task.setDependsOn(task.dependsOn.filterIsInstance<Provider<Task>>().filter { it.get().name != "processResources" })
+    }*/
+
+    project.tasks.named("kaptGenerateStubsKotlin") {
+        mustRunAfter(generateApiSpec, generateKeycloackClient)
+    }
+
+    project.tasks.named("kaptGenerateStubsTestKotlin") {
+        mustRunAfter(generateApiClient)
     }
 }

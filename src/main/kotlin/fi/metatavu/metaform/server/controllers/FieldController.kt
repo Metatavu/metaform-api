@@ -14,8 +14,8 @@ import org.slf4j.Logger
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller for Fields

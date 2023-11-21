@@ -2,8 +2,8 @@ package fi.metatavu.metaform.server.persistence.model
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import javax.persistence.Cacheable
-import javax.persistence.Entity
+import jakarta.persistence.Cacheable
+import jakarta.persistence.Entity
 
 /**
  * JPA entity representing attachment field in reply

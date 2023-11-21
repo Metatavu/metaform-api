@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 /**
@@ -135,21 +136,47 @@ class MetaformTestsIT : AbstractTest() {
     fun testFindMetaform() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            assertNotNull(metaform)
+
             val foundMetaformById: Metaform = builder.systemAdmin.metaforms.findMetaform(
                 metaformSlug = null,
                 metaformId = metaform.id!!,
                 replyId = null,
                 ownerKey = null
             )
+            assertNotNull(foundMetaformById)
+
             val foundMetaformBySlug: Metaform = builder.systemAdmin.metaforms.findMetaform(
                 metaformSlug = metaform.slug!!,
                 metaformId = null,
                 replyId = null,
                 ownerKey = null
             )
+            assertNotNull(foundMetaformBySlug)
 
-            assertEquals(metaform.toString(), foundMetaformById.toString())
-            assertEquals(metaform.toString(), foundMetaformBySlug.toString())
+            assertOffsetDateTimeEquals(metaform.createdAt!!, foundMetaformById.createdAt!!, ChronoUnit.MILLIS)
+            assertOffsetDateTimeEquals(metaform.modifiedAt!!, foundMetaformById.modifiedAt!!, ChronoUnit.MILLIS)
+            assertOffsetDateTimeEquals(metaform.createdAt, foundMetaformBySlug.createdAt!!, ChronoUnit.MILLIS)
+            assertOffsetDateTimeEquals(metaform.modifiedAt, foundMetaformBySlug.modifiedAt!!, ChronoUnit.MILLIS)
+
+            assertEquals(1, metaform.sections?.size)
+            assertEquals(1, foundMetaformById.sections?.size)
+            assertEquals(1, foundMetaformBySlug.sections?.size)
+
+            assertEquals(metaform.sections!![0].title, foundMetaformById.sections!![0].title)
+            assertEquals(metaform.sections[0].title, foundMetaformBySlug.sections!![0].title)
+
+            assertEquals(1, metaform.sections[0].fields!!.size)
+            assertEquals(1, foundMetaformById.sections[0].fields!!.size)
+            assertEquals(1, foundMetaformBySlug.sections[0].fields!!.size)
+
+            assertEquals(metaform.sections[0].fields!![0].title, foundMetaformById.sections[0].fields!![0].title)
+            assertEquals(metaform.sections[0].fields!![0].title, foundMetaformBySlug.sections[0].fields!![0].title)
+
+            assertEquals(0, metaform.scripts?.size)
+            assertEquals(0, foundMetaformById.scripts?.size)
+            assertEquals(0, foundMetaformBySlug.scripts?.size)
+
         }
     }
 

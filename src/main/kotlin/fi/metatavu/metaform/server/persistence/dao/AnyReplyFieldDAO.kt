@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.persistence.dao
 
 import fi.metatavu.metaform.server.persistence.model.ReplyField
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * DAO class for handling any reply field entity

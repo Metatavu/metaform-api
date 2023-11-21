@@ -1,10 +1,10 @@
 package fi.metatavu.metaform.server.persistence.model
 
 import java.time.OffsetDateTime
-import javax.persistence.Column
-import javax.persistence.MappedSuperclass
-import javax.persistence.PrePersist
-import javax.persistence.PreUpdate
+import jakarta.persistence.Column
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.PrePersist
+import jakarta.persistence.PreUpdate
 
 /**
  * Class containing shared general properties of entities

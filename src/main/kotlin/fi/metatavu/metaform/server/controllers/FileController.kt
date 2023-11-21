@@ -15,8 +15,8 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller for Files

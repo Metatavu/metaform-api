@@ -4,11 +4,11 @@ import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification_
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.EntityManager
-import javax.persistence.TypedQuery
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.EntityManager
+import jakarta.persistence.TypedQuery
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
 
 /**
  * DAO class for EmailNotification entity

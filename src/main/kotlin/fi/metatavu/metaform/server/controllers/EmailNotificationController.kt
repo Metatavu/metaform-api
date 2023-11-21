@@ -20,10 +20,10 @@ import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator
 import org.slf4j.Logger
 import java.io.IOException
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.enterprise.event.Event
-import javax.enterprise.event.TransactionPhase
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.enterprise.event.Event
+import jakarta.enterprise.event.TransactionPhase
+import jakarta.inject.Inject
 
 /**
  * Controller for Email notifications
