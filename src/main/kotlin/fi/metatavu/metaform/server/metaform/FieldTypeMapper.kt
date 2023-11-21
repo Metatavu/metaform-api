@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.metaform
 
 import fi.metatavu.metaform.api.spec.model.MetaformFieldType
 import org.slf4j.Logger
-import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 
 /**

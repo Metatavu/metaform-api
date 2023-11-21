@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.persistence.model
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import java.util.*
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotEmpty

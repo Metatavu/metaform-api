@@ -1,6 +1,5 @@
 package fi.metatavu.metaform.server.rest.translate
 
-import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.server.persistence.model.AuditLogEntry
 import jakarta.enterprise.context.ApplicationScoped
 

@@ -5,7 +5,6 @@ import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotifica
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotificationEmail_
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.EntityManager
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Root

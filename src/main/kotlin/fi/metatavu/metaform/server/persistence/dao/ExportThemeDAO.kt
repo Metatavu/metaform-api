@@ -4,7 +4,6 @@ import fi.metatavu.metaform.server.persistence.model.ExportTheme
 import fi.metatavu.metaform.server.persistence.model.ExportTheme_
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.persistence.EntityManager
 import jakarta.persistence.TypedQuery
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery

@@ -5,9 +5,6 @@ import io.vertx.core.MultiMap
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.client.WebClient
-/*import net.sargue.mailgun.Configuration
-import net.sargue.mailgun.Mail*/
-import org.apache.commons.lang3.StringUtils
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
 import jakarta.annotation.PostConstruct
@@ -22,8 +19,6 @@ import jakarta.inject.Inject
  */
 @ApplicationScoped
 class MailgunEmailProviderImpl : EmailProvider {
-    /*lateinit var configuration: Configuration*/
-
     @Inject
     lateinit var logger: Logger
 

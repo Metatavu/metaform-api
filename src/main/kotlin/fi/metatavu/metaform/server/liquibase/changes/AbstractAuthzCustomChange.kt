@@ -10,8 +10,6 @@ import org.keycloak.representations.idm.authorization.ResourceRepresentation
 import org.keycloak.representations.idm.authorization.ScopeRepresentation
 import java.io.IOException
 import java.io.InputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.*
 import jakarta.ws.rs.BadRequestException
 
