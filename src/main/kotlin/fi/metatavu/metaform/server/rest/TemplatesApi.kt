@@ -111,7 +111,7 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
 
         val updatedTemplate = templateController.updateTemplate(
                 template = foundTemplate,
-                templateData = template.data,
+                templateData = newTemplateData,
                 templateVisibility = template.visibility,
                 lastModifier = userId
         )
