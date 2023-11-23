@@ -56,7 +56,7 @@ dependencies {
     testImplementation("org.apache.pdfbox:pdfbox:2.0.26")
     testImplementation("org.apache.pdfbox:pdfbox-tools:2.0.26")
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
-    testImplementation("com.github.tomakehurst:wiremock-jre8:$wiremockVersion")
+    testImplementation("org.wiremock:wiremock:$wiremockVersion")
 
 
     // compileOnly("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
