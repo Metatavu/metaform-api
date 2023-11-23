@@ -57,7 +57,7 @@ class MetaformScriptController {
       }
 
       metaform.scripts.forEach { scriptId ->
-        if (existingMetaformScripts.none { metaformScript -> metaformScript.script?.id == scriptId }) {
+        if (existingMetaformScripts.none { metaformScript -> metaformScript.script.id == scriptId }) {
           val script = scriptsController.findScript(scriptId)
           metaformScriptDAO.createMetaformScript(id = UUID.randomUUID(), metaform = updatedMetaform, script = script!!, creatorId = creatorId)
         }

@@ -37,7 +37,7 @@ class MetaformTranslator {
       throw MalformedMetaformJsonException(String.format("Failed to translate metaform %s", entity.id.toString()), e)
     }
 
-    val scripts = metaformScriptDAO.listByMetaform(entity).mapNotNull { metaformScript -> metaformScript.script?.id}
+    val scripts = metaformScriptDAO.listByMetaform(entity).mapNotNull { metaformScript -> metaformScript.script.id}
 
     return result.copy(
       id = entity.id,
