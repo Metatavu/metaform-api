@@ -41,8 +41,10 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
             return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
         }
 
+        val newTemplateData = cleanTemplateData(templateData = template.data)
+
         val createdTemplate = templateController.createTemplate(
-                templateData = template.data,
+                templateData = newTemplateData,
                 visibility = template.visibility,
                 creatorId = userId
         )
@@ -105,6 +107,8 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
         val foundTemplate = templateController.findTemplateById(templateId)
                 ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
+        val newTemplateData = cleanTemplateData(templateData = template.data)
+
         val updatedTemplate = templateController.updateTemplate(
                 template = foundTemplate,
                 templateData = template.data,
@@ -131,4 +135,23 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
 
         return createOk(templates.map(templateTranslator::translateTemplate))
     }
+
+    /**
+     * Function to clean TemplateData from excessive data (i.e. PermissionGroup)
+     *
+     * @param templateData TemplateData
+     */
+    private fun cleanTemplateData(templateData: TemplateData) = templateData.copy(
+            sections = templateData.sections?.map { cleanTemplateSection(it) }
+    )
+
+    /**
+     * Sets PermissionGroup data to null.
+     *
+     * @param section MetaformSection
+     */
+    private fun cleanTemplateSection(section: MetaformSection) = section.copy(
+            fields = section.fields?.map { field ->
+                field.copy(options = field.options?.map { it.copy(permissionGroups = null) })
+            })
 }
