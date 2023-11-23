@@ -1,0 +1,51 @@
+{
+  "title": "Simple",
+  "allowDrafts": true,
+  "visibility": "PUBLIC",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field",
+          "classifiers": [
+            "a",
+            "b",
+            "c"
+          ],
+          "schedule": {
+            "startTime": "2023-01-01T10:33:19.51Z",
+            "endTime": "2023-12-31T11:33:19.51Z"
+          }
+        },
+        {
+          "name": "text2",
+          "type": "text",
+          "title": "Text field",
+          "classifiers": [
+            "d",
+            "e",
+            "f"
+          ],
+          "schedule": {
+          }
+        },
+        {
+          "name": "text3",
+          "type": "text",
+          "title": "Text field",
+          "classifiers": [
+            "g",
+            "h",
+            "j"
+          ],
+          "schedule": {
+            "startTime": "2023-02-01T10:33:19.51Z"
+          }
+        }
+      ]
+    }
+  ]
+}
