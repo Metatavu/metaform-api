@@ -27,7 +27,6 @@ dependencies {
     implementation("io.quarkus:quarkus-container-image-docker")
     implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("io.quarkus:quarkus-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-oidc")
     implementation("io.quarkus:quarkus-keycloak-admin-client")
     implementation("io.quarkus:quarkus-resteasy-jackson")
@@ -38,9 +37,10 @@ dependencies {
     implementation("io.quarkus:quarkus-undertow")
     implementation("io.quarkus:quarkus-cache")
 
+    implementation("io.quarkiverse.freemarker:quarkus-freemarker:1.0.0")
+
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.freemarker:freemarker:2.3.32")
     implementation("org.apache.poi:poi:5.2.4")
     implementation("org.apache.poi:poi-ooxml:5.2.4")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0") {
@@ -48,6 +48,7 @@ dependencies {
     }
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.mailgun:mailgun-java:1.1.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion") {
