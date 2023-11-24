@@ -161,4 +161,8 @@ project.afterEvaluate {
     project.tasks.named("kaptGenerateStubsTestKotlin") {
         mustRunAfter(generateApiClient)
     }
+
+    project.tasks.named("compileQuarkusGeneratedSourcesJava") {
+        mustRunAfter(project.tasks.named("compileJava"))
+    }
 }
