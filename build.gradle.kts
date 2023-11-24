@@ -38,16 +38,14 @@ dependencies {
     implementation("io.quarkus:quarkus-cache")
 
     implementation("io.quarkiverse.freemarker:quarkus-freemarker:1.0.0")
+    implementation("io.quarkiverse.poi:quarkus-poi:2.0.4")
 
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.apache.poi:poi:5.2.4")
-    implementation("org.apache.poi:poi-ooxml:5.2.4")
     implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0") {
         exclude(group="org.graalvm.js", module="js")
     }
     implementation("com.squareup.okhttp3:okhttp")
-    implementation("com.mailgun:mailgun-java:1.1.0")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
     testImplementation("io.quarkus:quarkus-junit5")
