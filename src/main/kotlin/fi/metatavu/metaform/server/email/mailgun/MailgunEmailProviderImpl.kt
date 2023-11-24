@@ -45,11 +45,6 @@ class MailgunEmailProviderImpl : EmailProvider {
     @Inject
     lateinit var vertx: Vertx
 
-    @PostConstruct
-    fun init() {
-
-    }
-
     /**
      * Sends an email
      *
