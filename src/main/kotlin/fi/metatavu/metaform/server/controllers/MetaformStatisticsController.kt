@@ -81,7 +81,7 @@ class MetaformStatisticsController {
         var repliesCount = 0
 
         repliesGroupedByYearMonth.keys.forEach { yearMonth ->
-            repliesCount += repliesGroupedByYearMonth[yearMonth]!!.size
+            repliesCount += repliesGroupedByYearMonth[yearMonth]?.size ?: 0
         }
 
         return if (repliesGroupedByYearMonth.keys.isEmpty()) {

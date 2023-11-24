@@ -255,15 +255,17 @@ class MetaformController {
         }
 
         val resourceName = replyController.getReplyResourceName(reply)
-        val notifiedUserIds =
-            if (replyCreated) emptySet()
-            else metaformKeycloakController.getResourcePermittedUsers(
+
+        val notifiedUserIds = if (replyCreated) {
+            emptySet()
+        } else {
+            metaformKeycloakController.getResourcePermittedUsers(
                 keycloak = adminClient,
                 client = keycloakClient,
                 resourceId = reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
                 resourceName =  resourceName,
                 scopes = listOf(AuthorizationScope.REPLY_NOTIFY)
-            )
+            )}
 
         val resourceId =  permissionController.updateReplyPermissions(
             reply = reply,

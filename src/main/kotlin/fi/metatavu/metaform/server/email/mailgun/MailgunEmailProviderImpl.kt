@@ -7,7 +7,6 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.client.WebClient
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
-import jakarta.annotation.PostConstruct
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 

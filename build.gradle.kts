@@ -39,16 +39,22 @@ dependencies {
     implementation("io.quarkus:quarkus-cache")
 
     implementation("com.github.slugify:slugify:2.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.16.0-rc1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.freemarker:freemarker:2.3.32")
     implementation("org.apache.poi:poi:5.2.4")
     implementation("org.apache.poi:poi-ooxml:5.2.4")
-    implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0")
+    implementation("fi.metatavu.polyglot:polyglot-xhr:1.0.0") {
+        exclude(group="org.graalvm.js", module="js")
+    }
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.mailgun:mailgun-java:1.1.0")
 
     testImplementation("io.quarkus:quarkus-junit5")
-    testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
+    testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion") {
+        exclude(group="com.fasterxml.jackson.core", module="jackson-core")
+        exclude(group="com.fasterxml.jackson.core", module="jackson-databind")
+        exclude(group="com.fasterxml.jackson.datatype", module="jackson-datatype-jsr310")
+    }
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:mysql")
