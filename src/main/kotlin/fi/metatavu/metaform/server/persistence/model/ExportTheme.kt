@@ -29,7 +29,6 @@ class ExportTheme : Metadata() {
   var parent: ExportTheme? = null
 
   @Lob
-  /*@Type(type = "org.hibernate.type.TextType")*/
   var locales: String? = null
 
   @Column(nullable = false)

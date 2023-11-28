@@ -21,14 +21,12 @@ class EmailNotification : fi.metatavu.metaform.server.persistence.model.Metadata
   var id: UUID? = null
 
   @Lob
-  /*@Type(type = "org.hibernate.type.TextType")*/
   @Column
   @NotNull
   @NotEmpty
   lateinit var subjectTemplate: String
 
   @Lob
-  /*@Type(type = "org.hibernate.type.TextType")*/
   @Column
   @NotNull
   @NotEmpty

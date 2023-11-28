@@ -16,6 +16,8 @@ repositories {
 val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
+val quarkusPoiVersion: String by project
+val quarkusFreemarkerVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
 val wiremockVersion: String by project
 val testContainersKeycloakVersion: String by project
@@ -37,8 +39,8 @@ dependencies {
     implementation("io.quarkus:quarkus-undertow")
     implementation("io.quarkus:quarkus-cache")
 
-    implementation("io.quarkiverse.freemarker:quarkus-freemarker:1.0.0")
-    implementation("io.quarkiverse.poi:quarkus-poi:2.0.4")
+    implementation("io.quarkiverse.freemarker:quarkus-freemarker:$quarkusFreemarkerVersion")
+    implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
 
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

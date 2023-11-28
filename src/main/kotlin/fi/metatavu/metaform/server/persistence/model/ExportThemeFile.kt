@@ -36,7 +36,6 @@ class ExportThemeFile : Metadata() {
 
   @Lob
   @Column(nullable = false)
-  /*@Type(type = "org.hibernate.type.TextType")*/
   @NotEmpty
   @NotNull
   lateinit var content: String

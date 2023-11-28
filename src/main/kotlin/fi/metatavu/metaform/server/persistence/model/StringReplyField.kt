@@ -14,9 +14,6 @@ import jakarta.persistence.Lob
 @Cacheable(true)
 class StringReplyField : ReplyField() {
   @Lob
-/*
-  @Type(type = "org.hibernate.type.TextType")
-*/
   @Column
   var value: String? = null
 }
