@@ -91,6 +91,6 @@ class ExportThemeFreemarkerRenderer {
     }
 
     companion object {
-        private val VERSION = Configuration.VERSION_2_3_32
+        private val VERSION = Configuration.VERSION_2_3_23
     }
 }
