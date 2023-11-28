@@ -47,7 +47,7 @@ class MailgunEmailProviderImpl : EmailProvider {
     /**
      * Sends an email in HTML format.
      *
-     * @param to email which will receive this email
+     * @param toEmail email which will receive this email
      * @param subject email subject
      * @param content email content
      */
