@@ -39,6 +39,7 @@ dependencies {
 
     implementation("io.quarkiverse.freemarker:quarkus-freemarker:1.0.0")
     implementation("io.quarkiverse.poi:quarkus-poi:2.0.4")
+    implementation("org.freemarker:freemarker:2.3.32")
 
     implementation("com.github.slugify:slugify:2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
