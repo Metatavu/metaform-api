@@ -3,10 +3,10 @@ package fi.metatavu.metaform.server.rest
 import fi.metatavu.metaform.server.controllers.MetaformController
 import fi.metatavu.metaform.server.controllers.MetaformStatisticsController
 import java.util.*
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.transaction.Transactional
-import javax.ws.rs.core.Response
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.transaction.Transactional
+import jakarta.ws.rs.core.Response
 
 /**
  * Implementation for Metaform Statistics API

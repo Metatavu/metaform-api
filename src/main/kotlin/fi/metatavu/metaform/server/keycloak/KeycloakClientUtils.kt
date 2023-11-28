@@ -9,9 +9,9 @@ import java.io.IOException
 import java.io.InputStream
 import java.util.*
 import java.util.regex.Pattern
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
-import javax.ws.rs.core.Response
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
+import jakarta.ws.rs.core.Response
 
 /**
  * Keycloak client utilities

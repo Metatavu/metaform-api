@@ -9,8 +9,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection
 import liquibase.database.Database
 import liquibase.exception.CustomChangeException
 import org.keycloak.representations.idm.authorization.DecisionStrategy
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Custom change for creating authorization resources for all replies

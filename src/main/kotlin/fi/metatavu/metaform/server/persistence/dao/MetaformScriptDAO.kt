@@ -1,11 +1,10 @@
 package fi.metatavu.metaform.server.persistence.dao
 
-import fi.metatavu.metaform.api.spec.model.ScriptType
 import fi.metatavu.metaform.server.persistence.model.*
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
 
 /**
  * DAO class for MetaformScript-entity

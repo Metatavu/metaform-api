@@ -7,8 +7,8 @@ import fi.metatavu.metaform.server.persistence.model.Draft
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import org.slf4j.Logger
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 
 /**

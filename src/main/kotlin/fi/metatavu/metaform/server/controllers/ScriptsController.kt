@@ -5,8 +5,8 @@ import fi.metatavu.metaform.server.persistence.dao.MetaformScriptDAO
 import fi.metatavu.metaform.server.persistence.dao.ScriptDAO
 import fi.metatavu.metaform.server.persistence.model.Script
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Scripts controller

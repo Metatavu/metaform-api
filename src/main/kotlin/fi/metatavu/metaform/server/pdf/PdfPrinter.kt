@@ -3,7 +3,6 @@ package fi.metatavu.metaform.server.pdf
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import org.apache.commons.io.IOUtils
-import org.apache.commons.text.StringEscapeUtils
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -14,8 +13,8 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Class for converting HTML documents to PDF documents

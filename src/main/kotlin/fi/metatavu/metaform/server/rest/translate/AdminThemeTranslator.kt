@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.metaform.api.spec.model.AdminTheme
 import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import org.slf4j.Logger
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Translator for Admin themes

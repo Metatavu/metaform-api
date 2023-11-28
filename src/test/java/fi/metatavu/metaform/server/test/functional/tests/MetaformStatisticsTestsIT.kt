@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import java.time.OffsetDateTime
 import org.awaitility.Awaitility.await
 import java.time.Duration
+import java.time.temporal.ChronoUnit
 
 /**
  * Tests for Metaform Statistics
@@ -36,8 +37,16 @@ class MetaformStatisticsTestsIT: AbstractTest() {
             val reply2 = builder.systemAdmin.metaformStatistics.createReplyForMetaform(metaform.id)
             val metaformStatistics2 = builder.systemAdmin.metaformStatistics.getMetaformStatistics(metaform.id)
 
-            assertEquals(OffsetDateTime.parse(reply1.createdAt), OffsetDateTime.parse(metaformStatistics1.lastReplyDate))
-            assertEquals(OffsetDateTime.parse(reply2.createdAt), OffsetDateTime.parse(metaformStatistics2.lastReplyDate))
+            assertOffsetDateTimeEquals(
+                    expectedDateTime = reply1.createdAt!!,
+                    actualDateTime = metaformStatistics1.lastReplyDate!!,
+                    ChronoUnit.MILLIS
+            )
+            assertOffsetDateTimeEquals(
+                    expectedDateTime = reply2.createdAt!!,
+                    actualDateTime = metaformStatistics2.lastReplyDate!!,
+                    ChronoUnit.MILLIS
+            )
             assertTrue(OffsetDateTime.parse(metaformStatistics2.lastReplyDate) > OffsetDateTime.parse(metaformStatistics1.lastReplyDate))
         }
     }

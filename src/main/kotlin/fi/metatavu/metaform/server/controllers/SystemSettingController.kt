@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.controllers
 
 import org.eclipse.microprofile.config.ConfigProvider
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Controller for System settings

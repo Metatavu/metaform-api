@@ -4,11 +4,10 @@ import fi.metatavu.metaform.server.persistence.model.ExportTheme
 import fi.metatavu.metaform.server.persistence.model.ExportThemeFile
 import fi.metatavu.metaform.server.persistence.model.ExportThemeFile_
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.EntityManager
-import javax.persistence.TypedQuery
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.TypedQuery
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
 
 /**
  * DAO class for ExportThemeFile entity

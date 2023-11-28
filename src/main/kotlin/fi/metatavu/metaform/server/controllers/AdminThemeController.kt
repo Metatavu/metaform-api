@@ -8,8 +8,8 @@ import fi.metatavu.metaform.server.metaform.SlugValidation
 import fi.metatavu.metaform.server.persistence.dao.AdminThemeDAO
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import java.util.UUID
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import org.apache.commons.lang3.StringUtils
 
 /**

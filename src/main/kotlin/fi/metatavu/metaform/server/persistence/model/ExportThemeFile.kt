@@ -2,12 +2,10 @@ package fi.metatavu.metaform.server.persistence.model
 
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
-import java.time.OffsetDateTime
 import java.util.*
-import javax.persistence.*
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 /**
  * JPA entity representing an export theme file
@@ -38,7 +36,6 @@ class ExportThemeFile : Metadata() {
 
   @Lob
   @Column(nullable = false)
-  @Type(type = "org.hibernate.type.TextType")
   @NotEmpty
   @NotNull
   lateinit var content: String

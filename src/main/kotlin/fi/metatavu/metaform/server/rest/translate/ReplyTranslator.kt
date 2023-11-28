@@ -7,8 +7,8 @@ import fi.metatavu.metaform.server.controllers.CryptoController
 import fi.metatavu.metaform.server.controllers.FieldController
 import fi.metatavu.metaform.server.utils.MetaformUtils
 import java.security.PublicKey
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 @ApplicationScoped
 class ReplyTranslator {

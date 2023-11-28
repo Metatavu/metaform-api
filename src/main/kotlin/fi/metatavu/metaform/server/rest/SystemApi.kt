@@ -1,8 +1,8 @@
 package fi.metatavu.metaform.server.rest
 
-import javax.enterprise.context.RequestScoped
-import javax.transaction.Transactional
-import javax.ws.rs.core.Response
+import jakarta.enterprise.context.RequestScoped
+import jakarta.transaction.Transactional
+import jakarta.ws.rs.core.Response
 
 /**
  * Healthcheck to check if the API is running.

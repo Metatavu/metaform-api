@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.persistence.dao
 import fi.metatavu.metaform.api.spec.model.ScriptType
 import fi.metatavu.metaform.server.persistence.model.Script
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * DAO class for Script-entity

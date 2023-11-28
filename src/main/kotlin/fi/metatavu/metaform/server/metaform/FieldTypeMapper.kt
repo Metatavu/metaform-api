@@ -2,8 +2,7 @@ package fi.metatavu.metaform.server.metaform
 
 import fi.metatavu.metaform.api.spec.model.MetaformFieldType
 import org.slf4j.Logger
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.inject.Inject
 
 /**
  * Mapper for mapping field types into store data types

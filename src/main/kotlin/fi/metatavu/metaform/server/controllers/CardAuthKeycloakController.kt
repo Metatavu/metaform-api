@@ -7,8 +7,8 @@ import fi.metatavu.metaform.server.keycloak.KeycloakControllerToken
 import fi.metatavu.metaform.server.keycloak.KeycloakSource
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller for Card Auth Keycloak related operations.

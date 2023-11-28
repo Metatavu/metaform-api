@@ -1,8 +1,8 @@
 package fi.metatavu.metaform.server.script
 
 import fi.metatavu.metaform.api.spec.model.Reply
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 @ApplicationScoped
 class FormScriptBinding {

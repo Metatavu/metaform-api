@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.persistence.dao
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldRow
 import fi.metatavu.metaform.server.persistence.model.TableReplyFieldStringRowCell
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * DAO class for TableReplyFieldStringRowCell entity

@@ -3,11 +3,10 @@ package fi.metatavu.metaform.server.persistence.model.notifications
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
-import org.hibernate.annotations.Type
 import java.util.*
-import javax.persistence.*
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 /**
  * JPA entity representing Metaform email notications
@@ -22,14 +21,12 @@ class EmailNotification : fi.metatavu.metaform.server.persistence.model.Metadata
   var id: UUID? = null
 
   @Lob
-  @Type(type = "org.hibernate.type.TextType")
   @Column
   @NotNull
   @NotEmpty
   lateinit var subjectTemplate: String
 
   @Lob
-  @Type(type = "org.hibernate.type.TextType")
   @Column
   @NotNull
   @NotEmpty

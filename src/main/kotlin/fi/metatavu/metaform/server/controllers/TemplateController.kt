@@ -10,8 +10,8 @@ import fi.metatavu.metaform.server.persistence.dao.TemplateDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import org.slf4j.Logger
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Template controller

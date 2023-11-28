@@ -9,8 +9,8 @@ import fi.metatavu.metaform.server.persistence.dao.MetaformVersionDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.MetaformVersion
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Metaform version controller

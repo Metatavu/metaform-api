@@ -6,8 +6,8 @@ import fi.metatavu.metaform.api.spec.model.UserFederationSource
 import fi.metatavu.metaform.keycloak.client.models.UserRepresentation
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.UUID
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Translator for Users

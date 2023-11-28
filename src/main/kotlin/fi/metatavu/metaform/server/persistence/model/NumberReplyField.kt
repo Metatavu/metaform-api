@@ -1,8 +1,8 @@
 package fi.metatavu.metaform.server.persistence.model
 
-import javax.persistence.Cacheable
-import javax.persistence.Column
-import javax.persistence.Entity
+import jakarta.persistence.Cacheable
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
 
 /**
  * JPA entity representing number field in reply
