@@ -153,7 +153,7 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
       )
     )
 
-   criteria.where(criteriaBuilder.equal(root.get(Metaform_.id), metaform.id!!))
+    criteria.where(criteriaBuilder.equal(root.get(Metaform_.id), metaform.id!!))
 
     return getSingleResult(entityManager.createQuery(criteria))
   }
