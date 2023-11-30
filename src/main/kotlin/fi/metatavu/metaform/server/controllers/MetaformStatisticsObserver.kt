@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.controllers
 
 import org.slf4j.Logger
-import java.util.*
 import jakarta.annotation.PostConstruct
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
