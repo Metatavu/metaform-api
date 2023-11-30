@@ -81,6 +81,6 @@ class MetaformStatisticsObserver {
     fun onReplyFound(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyFoundEvent) {
         logger.info("Reply found, clearing related caches...")
 
-        metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateAverageReplyProcessDelayCache(metaformId = event.metaformId)
     }
 }
