@@ -1,13 +1,11 @@
 package fi.metatavu.metaform.server.controllers
 
 import org.slf4j.Logger
-import java.util.*
 import jakarta.annotation.PostConstruct
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.enterprise.event.Observes
 import jakarta.enterprise.event.TransactionPhase
 import jakarta.inject.Inject
-import jakarta.transaction.Transactional
 
 
 /**
@@ -41,9 +39,13 @@ class MetaformStatisticsObserver {
      *
      * @param event event
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyCreated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyCreatedEvent) {
-        recalculateMetaformStatistics(event.metaformId)
+        logger.info("Reply created, clearing related caches...")
+
+        metaformStatisticsController.invalidateLastReplyDateCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateAverageReplyProcessDelayCache(metaformId = event.metaformId)
     }
 
     /**
@@ -51,9 +53,10 @@ class MetaformStatisticsObserver {
      *
      * @param event event
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyUpdated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyUpdatedEvent) {
-        recalculateMetaformStatistics(event.metaformId)
+        logger.info("Reply updated, clearing related caches...")
+
+        metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
     }
 
     /**
@@ -61,9 +64,13 @@ class MetaformStatisticsObserver {
      *
      * @param event event
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyDeleted(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyDeletedEvent) {
-        recalculateMetaformStatistics(event.metaformId)
+        logger.info("Reply deleted, clearing related caches...")
+
+        metaformStatisticsController.invalidateLastReplyDateCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
+        metaformStatisticsController.invalidateAverageReplyProcessDelayCache(metaformId = event.metaformId)
     }
 
     /**
@@ -71,23 +78,9 @@ class MetaformStatisticsObserver {
      *
      * @param event event
      */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
     fun onReplyFound(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyFoundEvent) {
-        recalculateMetaformStatistics(event.metaformId)
-    }
+        logger.info("Reply found, clearing related caches...")
 
-    /**
-     * Finds Metaform by given UUID and triggers statistics recalculation for given Metaform after successful
-     * create/delete/update event
-     *
-     * @param metaformId
-     */
-    private fun recalculateMetaformStatistics(metaformId: UUID) {
-        val metaform = metaformController.findMetaformById(metaformId)
-        if (metaform != null) {
-            metaformStatisticsController.recalculateMetaformStatistics(metaform = metaform)
-        } else {
-            logger.error("Could not recalculate Metaform statistics")
-        }
+        metaformStatisticsController.invalidateAverageReplyProcessDelayCache(metaformId = event.metaformId)
     }
 }
