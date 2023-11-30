@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.persistence.model
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * JPA entity representing single item in attachment reply field

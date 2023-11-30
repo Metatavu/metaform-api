@@ -4,7 +4,7 @@ import fi.metatavu.metaform.api.spec.model.MetaformVersionType
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * JPA entity representing single Metaform version

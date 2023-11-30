@@ -4,10 +4,10 @@ import fi.metatavu.metaform.api.spec.model.AuditLogEntryType
 import fi.metatavu.metaform.server.persistence.model.*
 import java.time.OffsetDateTime
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.Expression
-import javax.persistence.criteria.Predicate
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.Expression
+import jakarta.persistence.criteria.Predicate
 import kotlin.collections.ArrayList
 
 
@@ -153,7 +153,7 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
       )
     )
 
-   criteria.where(criteriaBuilder.equal(root.get(Metaform_.id), metaform.id!!))
+    criteria.where(criteriaBuilder.equal(root.get(Metaform_.id), metaform.id!!))
 
     return getSingleResult(entityManager.createQuery(criteria))
   }

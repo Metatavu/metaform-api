@@ -4,8 +4,8 @@ import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.time.OffsetDateTime
 import java.util.*
-import javax.persistence.*
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
 
 /**
  * JPA entity representing reply

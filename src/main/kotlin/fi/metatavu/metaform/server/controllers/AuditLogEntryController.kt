@@ -7,8 +7,8 @@ import fi.metatavu.metaform.server.persistence.model.Metaform
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller for Audit logs

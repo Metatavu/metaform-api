@@ -2,8 +2,8 @@ package fi.metatavu.metaform.server.script
 
 import fi.metatavu.metaform.server.controllers.ReplyController
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 @ApplicationScoped
 class PdfServices {

@@ -35,6 +35,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 /**
@@ -456,6 +457,20 @@ class AbstractTest {
      */
     protected fun stopMailgunMocker(mailgunMocker: MailgunMocker) {
         mailgunMocker.stopMock()
+    }
+
+    /**
+     * Asserts that given OffsetDateTimes match. Default retention: SECONDS
+     *
+     * @param expectedDateTime string Expected DateTime as string
+     * @param actualDateTime string Actual DateTime as string
+     * @param retention ChronoUnit Selected accuracy for time comparison. DEFAULT: SECONDS
+     */
+    protected fun assertOffsetDateTimeEquals(expectedDateTime: String, actualDateTime: String, retention: ChronoUnit = ChronoUnit.SECONDS) {
+        Assert.assertEquals(
+            OffsetDateTime.parse(expectedDateTime).toInstant().truncatedTo(retention),
+            OffsetDateTime.parse(actualDateTime).toInstant().truncatedTo(retention)
+        )
     }
 
     companion object {

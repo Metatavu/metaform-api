@@ -2,7 +2,7 @@ package fi.metatavu.metaform.server.persistence.model
 
 import java.time.OffsetDateTime
 import java.util.*
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * JPA entity represeting MetaformReplyViewed View

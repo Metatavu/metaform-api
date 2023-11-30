@@ -15,11 +15,11 @@ import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.time.OffsetDateTime
 import java.util.*
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.SecurityContext
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.ws.rs.core.Context
+import jakarta.ws.rs.core.Response
+import jakarta.ws.rs.core.SecurityContext
 
 /**
  * Abstract base class for all API services

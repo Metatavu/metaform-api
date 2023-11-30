@@ -3,7 +3,7 @@ package fi.metatavu.metaform.server.rest.translate
 import fi.metatavu.metaform.api.spec.model.MetaformMemberGroup
 import org.keycloak.representations.idm.GroupRepresentation
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Translator for Metaform member group

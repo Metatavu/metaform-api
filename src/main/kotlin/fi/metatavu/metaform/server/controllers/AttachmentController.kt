@@ -6,8 +6,8 @@ import fi.metatavu.metaform.server.persistence.dao.AttachmentReplyFieldItemDAO
 import fi.metatavu.metaform.server.persistence.model.Attachment
 import fi.metatavu.metaform.server.persistence.model.Reply
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller for Attachments

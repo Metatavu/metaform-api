@@ -7,8 +7,8 @@ import fi.metatavu.metaform.server.controllers.EmailNotificationController
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.Logger
 import java.io.IOException
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Translator for email notifications

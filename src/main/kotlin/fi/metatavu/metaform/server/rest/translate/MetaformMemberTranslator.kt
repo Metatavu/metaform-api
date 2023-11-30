@@ -4,7 +4,7 @@ import fi.metatavu.metaform.api.spec.model.MetaformMember
 import fi.metatavu.metaform.api.spec.model.MetaformMemberRole
 import fi.metatavu.metaform.keycloak.client.models.UserRepresentation
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Translator for Metaform members

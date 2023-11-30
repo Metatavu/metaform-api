@@ -2,9 +2,9 @@ package fi.metatavu.metaform.server.persistence.model
 
 import fi.metatavu.metaform.api.spec.model.ScriptType
 import java.util.*
-import javax.persistence.*
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.NotNull
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 /**
  * JPA entity representing a script

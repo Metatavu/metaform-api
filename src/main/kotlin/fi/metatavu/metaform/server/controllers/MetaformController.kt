@@ -24,8 +24,8 @@ import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.UserRepresentation
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Metaform controller
@@ -255,15 +255,17 @@ class MetaformController {
         }
 
         val resourceName = replyController.getReplyResourceName(reply)
-        val notifiedUserIds =
-            if (replyCreated) emptySet()
-            else metaformKeycloakController.getResourcePermittedUsers(
+
+        val notifiedUserIds = if (replyCreated) {
+            emptySet()
+        } else {
+            metaformKeycloakController.getResourcePermittedUsers(
                 keycloak = adminClient,
                 client = keycloakClient,
                 resourceId = reply.resourceId ?: throw ResourceNotFoundException("Resource not found"),
                 resourceName =  resourceName,
                 scopes = listOf(AuthorizationScope.REPLY_NOTIFY)
-            )
+            )}
 
         val resourceId =  permissionController.updateReplyPermissions(
             reply = reply,

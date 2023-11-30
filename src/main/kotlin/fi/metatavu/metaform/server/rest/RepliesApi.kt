@@ -20,10 +20,10 @@ import org.slf4j.Logger
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.transaction.Transactional
-import javax.ws.rs.core.Response
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.transaction.Transactional
+import jakarta.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
@@ -68,7 +68,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
   /**
    * Create reply
-   * 
+   *
    * @param metaformId Metaform id
    * @param reply Reply to create
    * @param updateExisting If true, existing reply will be updated
@@ -246,7 +246,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
   /**
    * Export reply
-   * 
+   *
    * @param metaformId metaform id
    * @param format format
    */
@@ -294,7 +294,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
   /**
    * Find a reply by id
-   * 
+   *
    * @param metaformId metaform id
    * @param replyId reply id
    * @param ownerKey owner key
@@ -338,7 +338,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
   /**
    * List replies
-   * 
+   *
    * @param metaformId metaform id
    * @param userId user id
    * @param createdBeforeParam created before
@@ -484,7 +484,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
   /**
    * Update a reply by id
-   * 
+   *
    * @param metaformId metaform id
    * @param replyId reply id
    * @param reply reply data

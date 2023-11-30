@@ -10,10 +10,8 @@ import org.keycloak.representations.idm.authorization.ResourceRepresentation
 import org.keycloak.representations.idm.authorization.ScopeRepresentation
 import java.io.IOException
 import java.io.InputStream
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.*
-import javax.ws.rs.BadRequestException
+import jakarta.ws.rs.BadRequestException
 
 /**
  * Abstract base class for custom Liquibase changes regarding authz operations

@@ -1,14 +1,14 @@
 package fi.metatavu.metaform.server.email.mailgun
 
 import fi.metatavu.metaform.server.email.EmailProvider
-import net.sargue.mailgun.Configuration
-import net.sargue.mailgun.Mail
-import org.apache.commons.lang3.StringUtils
+import io.vertx.core.MultiMap
+import io.vertx.core.Vertx
+import io.vertx.core.http.HttpMethod
+import io.vertx.ext.web.client.WebClient
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
-import javax.annotation.PostConstruct
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Mailgun email provider implementation
@@ -18,8 +18,6 @@ import javax.inject.Inject
  */
 @ApplicationScoped
 class MailgunEmailProviderImpl : EmailProvider {
-    lateinit var configuration: Configuration
-
     @Inject
     lateinit var logger: Logger
 
@@ -43,37 +41,28 @@ class MailgunEmailProviderImpl : EmailProvider {
     @ConfigProperty(name = "mailgun.api_url")
     lateinit var apiUrl: String
 
-    @PostConstruct
-    fun init() {
-        configuration = Configuration()
-                .domain(domain)
-                .apiKey(apiKey)
-                .from(senderName, senderEmail)
-        if (StringUtils.isNotEmpty(apiUrl)) {
-            configuration.apiUrl(apiUrl)
-        }
+    @Inject
+    lateinit var vertx: Vertx
+
+    /**
+     * Sends an email in HTML format.
+     *
+     * @param toEmail email which will receive this email
+     * @param subject email subject
+     * @param content email content
+     */
+    override fun sendMail(toEmail: String?, subject: String?, content: String?) {
+        val client: WebClient = WebClient.create(vertx)
+        client.requestAbs(
+                HttpMethod.POST,
+                "$apiUrl/$domain/messages",
+        ).basicAuthentication("api", apiKey)
+                .sendForm(
+                        MultiMap.caseInsensitiveMultiMap()
+                                .add("to", toEmail)
+                                .add("subject", subject)
+                                .add("html", content)
+                                .add("from", "$senderName <$senderEmail>")
+                )
     }
-
-    override fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?) {
-        logger.info("Sending email to {}", toEmail)
-
-        var mailBuilder = Mail.using(configuration)
-                .to(toEmail)
-                .subject(subject)
-        mailBuilder = when (format) {
-            MailFormat.HTML -> mailBuilder.html(content)
-            MailFormat.PLAIN -> mailBuilder.text(content)
-            else -> {
-                logger.error("Unknown mail format {}", format)
-                return
-            }
-        }
-        val response = mailBuilder.build().send()
-        if (response.isOk) {
-            logger.info("Send email to {}", toEmail)
-        } else {
-            logger.info("Sending email to {} failed with message {}", toEmail, response.responseMessage())
-        }
-    }
-
 }

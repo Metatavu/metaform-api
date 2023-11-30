@@ -215,7 +215,13 @@ class ReplyTestsIT : AbstractTest() {
             metaformAdminAuthentication.replies.updateReply(metaform.id, secondReply.id!!, secondReply, null)
             val foundReply = testBuilder.systemAdmin.replies.findReply(metaform.id, reply.id!!, null)
             assertEquals("Updated text value", foundReply.data!!["text"])
-            assertEquals(reply.createdAt, foundReply.createdAt)
+            
+            assertOffsetDateTimeEquals(
+                    expectedDateTime = reply.createdAt!!,
+                    actualDateTime = foundReply.createdAt!!,
+                    retention = ChronoUnit.MILLIS
+            )
+
             Assertions.assertNotEquals(reply.lastModifierId, foundReply.lastModifierId)
             Assertions.assertNotEquals(reply.modifiedAt, foundReply.modifiedAt)
         }

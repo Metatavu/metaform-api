@@ -8,8 +8,8 @@ import fi.metatavu.metaform.server.exceptions.DeserializationFailedException
 import fi.metatavu.metaform.server.exceptions.MalformedTemplateJsonException
 import org.slf4j.Logger
 import java.io.IOException
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Translator for templates

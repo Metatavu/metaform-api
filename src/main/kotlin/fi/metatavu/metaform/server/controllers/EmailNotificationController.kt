@@ -9,7 +9,6 @@ import fi.metatavu.metaform.api.spec.model.Reply
 import fi.metatavu.metaform.server.email.SendEmailEvent
 import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer
 import fi.metatavu.metaform.server.email.EmailTemplateSource
-import fi.metatavu.metaform.server.email.mailgun.MailFormat
 import fi.metatavu.metaform.server.metaform.FieldRuleEvaluator
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO
@@ -20,10 +19,10 @@ import fi.metatavu.metaform.server.rest.translate.EmailNotificationTranslator
 import org.slf4j.Logger
 import java.io.IOException
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.enterprise.event.Event
-import javax.enterprise.event.TransactionPhase
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.enterprise.event.Event
+import jakarta.enterprise.event.TransactionPhase
+import jakarta.inject.Inject
 
 /**
  * Controller for Email notifications
@@ -181,7 +180,6 @@ class EmailNotificationController {
                     toEmail = email,
                     subject = subject,
                     content = content,
-                    format = MailFormat.HTML,
                     transactionPhase = TransactionPhase.AFTER_SUCCESS
                 )
             )

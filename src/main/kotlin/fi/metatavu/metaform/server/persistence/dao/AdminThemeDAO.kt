@@ -3,9 +3,9 @@ package fi.metatavu.metaform.server.persistence.dao
 import fi.metatavu.metaform.server.persistence.model.AdminTheme
 import fi.metatavu.metaform.server.persistence.model.AdminTheme_
 import java.util.UUID
-import javax.enterprise.context.ApplicationScoped
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.CriteriaQuery
 
 @ApplicationScoped
 class AdminThemeDAO : AbstractDAO<AdminTheme>() {

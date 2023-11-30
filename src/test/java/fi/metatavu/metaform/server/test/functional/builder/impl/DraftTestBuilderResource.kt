@@ -110,7 +110,6 @@ class DraftTestBuilderResource(
      * @param metaformId     metaform id
      * @param draftId     draft id
      */
-    @JvmOverloads
     @Throws(IOException::class)
     fun assertFindFailStatus(expectedStatus: Int, metaformId: UUID, draftId: UUID) {
         try {

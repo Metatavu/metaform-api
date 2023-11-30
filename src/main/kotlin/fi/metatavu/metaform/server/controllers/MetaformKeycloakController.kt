@@ -33,9 +33,9 @@ import org.keycloak.representations.idm.authorization.*
 import org.keycloak.representations.idm.authorization.PolicyEvaluationResponse.EvaluationResultRepresentation
 import org.slf4j.Logger
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
-import javax.ws.rs.InternalServerErrorException
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
+import jakarta.ws.rs.InternalServerErrorException
 
 /**
  * Controller for Metaform Keycloak related operations.

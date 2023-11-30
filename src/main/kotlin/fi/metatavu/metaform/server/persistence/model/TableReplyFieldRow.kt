@@ -3,10 +3,10 @@ package fi.metatavu.metaform.server.persistence.model
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.util.*
-import javax.persistence.Cacheable
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.ManyToOne
+import jakarta.persistence.Cacheable
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.ManyToOne
 
 /**
  * JPA entity representing single row in table reply field

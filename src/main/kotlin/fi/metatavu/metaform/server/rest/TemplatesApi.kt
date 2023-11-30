@@ -6,10 +6,10 @@ import fi.metatavu.metaform.api.spec.TemplatesApi
 import fi.metatavu.metaform.server.rest.translate.TemplateTranslator
 import org.slf4j.Logger
 import java.util.*
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.transaction.Transactional
-import javax.ws.rs.core.Response
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.transaction.Transactional
+import jakarta.ws.rs.core.Response
 
 @RequestScoped
 @Transactional
@@ -41,8 +41,10 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
             return createForbidden(createNotAllowedMessage(CREATE, TEMPLATE))
         }
 
+        val newTemplateData = cleanTemplateData(templateData = template.data)
+
         val createdTemplate = templateController.createTemplate(
-                templateData = template.data,
+                templateData = newTemplateData,
                 visibility = template.visibility,
                 creatorId = userId
         )
@@ -105,9 +107,11 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
         val foundTemplate = templateController.findTemplateById(templateId)
                 ?: return createNotFound(createNotFoundMessage(TEMPLATE, templateId))
 
+        val newTemplateData = cleanTemplateData(templateData = template.data)
+
         val updatedTemplate = templateController.updateTemplate(
                 template = foundTemplate,
-                templateData = template.data,
+                templateData = newTemplateData,
                 templateVisibility = template.visibility,
                 lastModifier = userId
         )
@@ -131,4 +135,23 @@ class TemplatesApi : TemplatesApi, AbstractApi() {
 
         return createOk(templates.map(templateTranslator::translateTemplate))
     }
+
+    /**
+     * Function to clean TemplateData from excessive data (i.e. PermissionGroup)
+     *
+     * @param templateData TemplateData
+     */
+    private fun cleanTemplateData(templateData: TemplateData) = templateData.copy(
+            sections = templateData.sections?.map { cleanTemplateSection(it) }
+    )
+
+    /**
+     * Sets PermissionGroup data to null.
+     *
+     * @param section MetaformSection
+     */
+    private fun cleanTemplateSection(section: MetaformSection) = section.copy(
+            fields = section.fields?.map { field ->
+                field.copy(options = field.options?.map { it.copy(permissionGroups = null) })
+            })
 }

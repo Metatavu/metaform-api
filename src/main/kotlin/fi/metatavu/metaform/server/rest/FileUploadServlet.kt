@@ -6,14 +6,14 @@ import fi.metatavu.metaform.server.exceptions.FailStoreFailedException
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.Logger
 import java.io.IOException
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.servlet.ServletException
-import javax.servlet.annotation.MultipartConfig
-import javax.servlet.annotation.WebServlet
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.servlet.ServletException
+import jakarta.servlet.annotation.MultipartConfig
+import jakarta.servlet.annotation.WebServlet
+import jakarta.servlet.http.HttpServlet
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * Servlet that handles file upload requests

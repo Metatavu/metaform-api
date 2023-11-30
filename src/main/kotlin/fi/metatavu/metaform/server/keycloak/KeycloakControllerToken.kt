@@ -13,9 +13,9 @@ import org.slf4j.Logger
 import java.io.IOException
 import java.time.OffsetDateTime
 import java.util.EnumMap
-import javax.annotation.PostConstruct
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.annotation.PostConstruct
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Access token for Keycloak admin controller

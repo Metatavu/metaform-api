@@ -2,6 +2,9 @@
   "resources": [
     {
       "pattern": "replacements.properties"
+    },
+    {
+      "pattern": "META-INF/services/org.keycloak.protocol.oidc.client.authentication.ClientCredentialsProvider"
     }
   ]
 }

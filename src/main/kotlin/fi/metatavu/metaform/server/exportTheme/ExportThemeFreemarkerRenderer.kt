@@ -2,7 +2,6 @@ package fi.metatavu.metaform.server.exportTheme
 
 import fi.metatavu.metaform.server.controllers.SystemSettingController
 import freemarker.cache.NullCacheStorage
-import freemarker.core.HTMLOutputFormat
 import freemarker.ext.beans.BeansWrapperBuilder
 import freemarker.template.Configuration
 import freemarker.template.Template
@@ -13,9 +12,9 @@ import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
 import java.util.*
-import javax.annotation.PostConstruct
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.annotation.PostConstruct
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Freemarker renderer
