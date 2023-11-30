@@ -189,6 +189,16 @@ class ExportThemeController {
         return exportThemeFileDAO.findByThemeAndPath(theme, path)
     }
 
+    fun findBaseThemeWithinJar(): ExportThemeFile? {
+        val classLoader = javaClass.classLoader
+        val url = classLoader.getResource("pdf.ftl")
+        return if (url != null) {
+            findExportThemeFile(path = url.toString())
+        } else {
+            null
+        }
+    }
+
     /**
      * Lists theme files
      *

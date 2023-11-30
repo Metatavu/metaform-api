@@ -63,7 +63,6 @@ dependencies {
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
 
-
     // compileOnly("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
     kapt("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
 }
