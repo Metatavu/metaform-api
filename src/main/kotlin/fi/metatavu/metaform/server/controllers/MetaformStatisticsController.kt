@@ -52,7 +52,7 @@ class MetaformStatisticsController {
      * @param metaformId metaform id
      */
     fun invalidateLastReplyDateCache(metaformId: UUID) {
-        statisticsLastReplyDateCache.invalidate(metaformId)
+        statisticsLastReplyDateCache.invalidate(metaformId).await().indefinitely()
     }
 
     /**
@@ -63,18 +63,18 @@ class MetaformStatisticsController {
      * @param metaformId metaform id
      */
     fun invalidateAverageMonthlyRepliesCache(metaformId: UUID) {
-        statisticsAverageMonthlyRepliesCache.invalidate(metaformId)
+        statisticsAverageMonthlyRepliesCache.invalidate(metaformId).await().indefinitely()
     }
 
     /**
      * Invalidates unprocessed replies cache.
      *
-     * This method should be called when new replies are added or when replies are viewed or deleted
+     * This method should be called when new replies are added or when replies are updated or deleted
      *
      * @param metaformId metaform id
      */
     fun invalidateUnprocessedRepliesCache(metaformId: UUID) {
-        statisticsUnprocessedRepliesCache.invalidate(metaformId)
+        statisticsUnprocessedRepliesCache.invalidate(metaformId).await().indefinitely()
     }
 
     /**
@@ -85,7 +85,7 @@ class MetaformStatisticsController {
      * @param metaformId metaform id
      */
     fun invalidateAverageReplyProcessDelayCache(metaformId: UUID) {
-        statisticsAverageReplyProcessDelayCache.invalidate(metaformId)
+        statisticsAverageReplyProcessDelayCache.invalidate(metaformId).await().indefinitely()
     }
 
     /**

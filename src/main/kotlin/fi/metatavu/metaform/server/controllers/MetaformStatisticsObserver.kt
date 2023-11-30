@@ -41,6 +41,8 @@ class MetaformStatisticsObserver {
      * @param event event
      */
     fun onReplyCreated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyCreatedEvent) {
+        logger.info("Reply created, clearing related caches...")
+
         metaformStatisticsController.invalidateLastReplyDateCache(metaformId = event.metaformId)
         metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
         metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
@@ -53,7 +55,9 @@ class MetaformStatisticsObserver {
      * @param event event
      */
     fun onReplyUpdated(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyUpdatedEvent) {
-        metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
+        logger.info("Reply updated, clearing related caches...")
+
+        metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
     }
 
     /**
@@ -62,6 +66,8 @@ class MetaformStatisticsObserver {
      * @param event event
      */
     fun onReplyDeleted(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyDeletedEvent) {
+        logger.info("Reply deleted, clearing related caches...")
+
         metaformStatisticsController.invalidateLastReplyDateCache(metaformId = event.metaformId)
         metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
         metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
@@ -74,6 +80,8 @@ class MetaformStatisticsObserver {
      * @param event event
      */
     fun onReplyFound(@Observes(during = TransactionPhase.AFTER_SUCCESS) event: ReplyFoundEvent) {
-        metaformStatisticsController.invalidateUnprocessedRepliesCache(metaformId = event.metaformId)
+        logger.info("Reply found, clearing related caches...")
+
+        metaformStatisticsController.invalidateAverageMonthlyRepliesCache(metaformId = event.metaformId)
     }
 }
