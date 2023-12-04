@@ -40,4 +40,10 @@ class Reply : Metadata() {
   @Column(nullable = false)
   lateinit var lastModifierId: UUID
 
+  @Column
+  var firstViewedAt: OffsetDateTime? = null
+
+  @Column
+  var lastViewedAt: OffsetDateTime? = null
+
 }

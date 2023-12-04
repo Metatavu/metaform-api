@@ -693,4 +693,26 @@
     </createTable>
   </changeSet>
 
+  <changeSet id="reply-viewed" author="Harri Häkkinen">
+    <addColumn tableName="reply">
+      <column name="firstViewedAt" type="datetime(6)"/>
+      <column name="lastViewedAt" type="datetime(6)"/>
+    </addColumn>
+    <sql>
+      UPDATE
+        Reply r
+      LEFT JOIN
+        (SELECT min(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid) rfv
+      ON
+        r.id = rfv.reply_id
+      LEFT JOIN
+        (SELECT max(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid) rlv
+      ON
+        r.id = rlv.reply_id
+      SET
+        firstViewedAt = rfv.replyViewed,
+        lastViewedAt = rlv.replyViewed
+    </sql>
+  </changeSet>
+
 </databaseChangeLog>

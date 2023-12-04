@@ -114,7 +114,7 @@ class MetaformStatisticsController {
 
         val averageProcessDelay = statisticsAverageReplyProcessDelayCache.get(metaform.id) {
             recalculateStatistic(statistic = "average process delay", metaform = metaform) {
-                auditLogEntryDAO.getAverageProcessDelayByMetaform(metaform)
+                replyDAO.getAverageProcessDelayByMetaform(metaform)
             }
         }.await().indefinitely()
 
