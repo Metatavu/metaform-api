@@ -330,6 +330,31 @@ class ReplyDAO : AbstractDAO<Reply>() {
   }
 
   /**
+   * Gets average process delay for given Metaforms replies
+   *
+   * @param metaform metaform
+   * @returns average reply process delay
+   */
+  fun getAverageProcessDelayByMetaform(metaform: Metaform): Double? {
+    val criteriaBuilder = entityManager.criteriaBuilder
+    val criteria = criteriaBuilder.createQuery(Double::class.java)
+    val root = criteria.from(Reply::class.java)
+
+    criteria.select(
+            criteriaBuilder.avg(
+                    criteriaBuilder.diff(
+                            createToSecondsSqlFunction(criteriaBuilder, root.get(Reply_.firstViewedAt)),
+                            createToSecondsSqlFunction(criteriaBuilder, root.get(Reply_.createdAt))
+                    )
+            )
+    )
+
+    criteria.where(criteriaBuilder.equal(root.get(Reply_.metaform), metaform))
+
+    return getSingleResult(entityManager.createQuery(criteria))
+  }
+
+  /**
    * Creates subquery for quering existing fields by name
    *
    * @param criteriaBuilder criteria builder
@@ -469,5 +494,20 @@ class ReplyDAO : AbstractDAO<Reply>() {
     )
 
     return fieldSubquery
+  }
+
+  /**
+   * Creates SQL TO_SECONDS function for Criteria Query
+   *
+   * @param criteriaBuilder criteria builder
+   * @param value value to convert to seconds
+   * @returns
+   */
+  private fun createToSecondsSqlFunction(criteriaBuilder: CriteriaBuilder, value: Expression<*>): Expression<Int>? {
+    return criteriaBuilder.function(
+            "TO_SECONDS",
+            Int::class.java,
+            value
+    )
   }
 }
