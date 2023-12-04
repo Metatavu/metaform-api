@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.controllers
 
 import fi.metatavu.metaform.api.spec.model.MetaformStatistics
-import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import io.quarkus.cache.Cache
