@@ -18,6 +18,7 @@ import io.restassured.RestAssured
 import org.apache.commons.lang3.ArrayUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -613,13 +614,17 @@ class ReplyTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
     fun testExportReplyPdf() = TestBuilder().use { testBuilder ->
-        val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
-        testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+        //val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+        //testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+
         val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-        val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
+
+        val newMetaform = Metaform(metaform.id, metaform.visibility, null, metaform.allowAnonymous,
                 metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
                 metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
+
         testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
+
         val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
         assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaform, reply)
     }
@@ -729,6 +734,51 @@ class ReplyTestsIT : AbstractTest() {
             assertEquals(reply3[0].data!!["text"], "pagination-test-3")
         }
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun testPdfFromBaseTheme() {
+        TestBuilder().use { testBuilder ->
+
+            //val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme("simple")
+            assertNotNull(exportTheme)
+
+            val doc = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>"
+
+            val classLoader = javaClass.classLoader
+            val url = classLoader.getResource("resources/export-themes/base/reply/pdf.ftl")
+            if (url != null) {
+                testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, url.path.toString(), doc)
+            }
+
+
+
+            //testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+
+            /*
+            val classLoader = javaClass.classLoader
+            val url = classLoader.getResource("pdf.ftl")
+            return if (url != null) {
+
+            } else {
+
+            }
+            */
+
+            /*
+            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
+            */
+
+            /*
+            (AbstractTest) assertPdfContains
+            */
+
+        }
+    }
+
 
     /**
      * Cleans replies using system admin privileges

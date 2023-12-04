@@ -32,15 +32,19 @@ class ExportThemeFreemarkerTemplateLoader: TemplateLoader {
         val exportThemeFile = findExportThemeFile(path)
         return if (exportThemeFile != null) {
             exportThemeFile.modifiedAt!!.toInstant().toEpochMilli()
-        } else 0
+        } else -1
     }
 
     @Throws(IOException::class)
     override fun getReader(templateSource: Any?, encoding: String?): Reader? {
-        val path = templateSource as String?
+        val path = templateSource as String
         val exportThemeFile = findExportThemeFile(path)
         if (exportThemeFile != null) {
             return StringReader(exportThemeFile.content)
+        }
+        val baseReader = exportThemeController.findBaseThemeWithinJar(path)?.bufferedReader()
+        if (baseReader != null) {
+            return baseReader
         }
         logger.warn("Could not find export theme file {}", path)
         return StringReader(String.format("!! export theme file %s not found !!", path))
@@ -51,6 +55,6 @@ class ExportThemeFreemarkerTemplateLoader: TemplateLoader {
     }
 
     private fun findExportThemeFile(path: String?): ExportThemeFile? {
-        return exportThemeController.findExportThemeFile(path = path) ?: exportThemeController.findBaseThemeWithinJar()
+        return exportThemeController.findExportThemeFile(path = path)
     }
 }
