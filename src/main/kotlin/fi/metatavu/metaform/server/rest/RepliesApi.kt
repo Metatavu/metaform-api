@@ -612,6 +612,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     return result
   }
 
+  /**
+   * Sets reply firstViewedAt and lastViewedAt
+   *
+   * @param reply reply
+   * @param viewedAtDateTime OffsetDateTime
+   */
   fun setReplyViewedAt(reply: fi.metatavu.metaform.server.persistence.model.Reply, viewedAtDateTime: OffsetDateTime) {
     if (reply.firstViewedAt == null) {
       reply.firstViewedAt = viewedAtDateTime

@@ -23,9 +23,6 @@ class MetaformStatisticsController {
     lateinit var logger: Logger
 
     @Inject
-    lateinit var auditLogEntryDAO: AuditLogEntryDAO
-
-    @Inject
     lateinit var replyDAO: ReplyDAO
 
     @Inject
