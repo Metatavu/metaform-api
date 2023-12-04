@@ -332,10 +332,8 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
           type = AuditLogEntryType.VIEW_REPLY
     )
 
-    setReplyViewedAt(viewedAtDateTime = OffsetDateTime.now(), reply = reply)
-
+    replyController.setReplyViewedAt(viewedAtDateTime = OffsetDateTime.now(), reply = reply)
     replyController.triggerReplyFoundEvent(reply = reply)
-
     return createOk(replyTranslator.translate(metaformEntity, reply, null))
   }
 
@@ -571,8 +569,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       return createInternalServerError(e.message!!)
     }
 
-    setReplyViewedAt(viewedAtDateTime = OffsetDateTime.now(), reply = foundReply)
-
     replyController.triggerReplyUpdatedEvent(reply = foundReply)
     return createNoContent()
   }
@@ -610,18 +606,5 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     return result
-  }
-
-  /**
-   * Sets reply firstViewedAt and lastViewedAt
-   *
-   * @param reply reply
-   * @param viewedAtDateTime OffsetDateTime
-   */
-  fun setReplyViewedAt(reply: fi.metatavu.metaform.server.persistence.model.Reply, viewedAtDateTime: OffsetDateTime) {
-    if (reply.firstViewedAt == null) {
-      reply.firstViewedAt = viewedAtDateTime
-    }
-    reply.lastViewedAt = viewedAtDateTime
   }
 }

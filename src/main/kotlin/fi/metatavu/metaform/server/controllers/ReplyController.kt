@@ -1085,6 +1085,19 @@ class ReplyController {
         )
     }
 
+    /**
+     * Sets reply firstViewedAt and lastViewedAt
+     *
+     * @param reply reply
+     * @param viewedAtDateTime OffsetDateTime
+     */
+    fun setReplyViewedAt(reply: Reply, viewedAtDateTime: OffsetDateTime) {
+        if (reply.firstViewedAt == null) {
+            reply.firstViewedAt = viewedAtDateTime
+        }
+        reply.lastViewedAt = viewedAtDateTime
+    }
+
     companion object {
         val SUPPORTED_TABLE_COLUMN_TYPES = arrayOf(
                 MetaformTableColumnType.TEXT,
