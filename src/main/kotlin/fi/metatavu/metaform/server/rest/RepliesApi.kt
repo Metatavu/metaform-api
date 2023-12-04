@@ -24,6 +24,7 @@ import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.core.Response
+import java.time.OffsetDateTime
 
 @RequestScoped
 @Transactional
@@ -331,8 +332,8 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
           type = AuditLogEntryType.VIEW_REPLY
     )
 
+    replyController.setReplyViewedAt(viewedAtDateTime = OffsetDateTime.now(), reply = reply)
     replyController.triggerReplyFoundEvent(reply = reply)
-
     return createOk(replyTranslator.translate(metaformEntity, reply, null))
   }
 
@@ -606,5 +607,4 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     return result
   }
-
 }

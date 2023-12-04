@@ -1,7 +1,6 @@
 package fi.metatavu.metaform.server.controllers
 
 import fi.metatavu.metaform.api.spec.model.MetaformStatistics
-import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.ReplyDAO
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import io.quarkus.cache.Cache
@@ -21,9 +20,6 @@ class MetaformStatisticsController {
 
     @Inject
     lateinit var logger: Logger
-
-    @Inject
-    lateinit var auditLogEntryDAO: AuditLogEntryDAO
 
     @Inject
     lateinit var replyDAO: ReplyDAO
@@ -114,7 +110,7 @@ class MetaformStatisticsController {
 
         val averageProcessDelay = statisticsAverageReplyProcessDelayCache.get(metaform.id) {
             recalculateStatistic(statistic = "average process delay", metaform = metaform) {
-                auditLogEntryDAO.getAverageProcessDelayByMetaform(metaform)
+                replyDAO.getAverageProcessDelayByMetaform(metaform)
             }
         }.await().indefinitely()
 
