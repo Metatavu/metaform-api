@@ -735,51 +735,6 @@ class ReplyTestsIT : AbstractTest() {
         }
     }
 
-    @Test
-    @Throws(Exception::class)
-    fun testPdfFromBaseTheme() {
-        TestBuilder().use { testBuilder ->
-
-            //val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-
-            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme("simple")
-            assertNotNull(exportTheme)
-
-            val doc = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>"
-
-            val classLoader = javaClass.classLoader
-            val url = classLoader.getResource("resources/export-themes/base/reply/pdf.ftl")
-            if (url != null) {
-                testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, url.path.toString(), doc)
-            }
-
-
-
-            //testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-
-            /*
-            val classLoader = javaClass.classLoader
-            val url = classLoader.getResource("pdf.ftl")
-            return if (url != null) {
-
-            } else {
-
-            }
-            */
-
-            /*
-            val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
-            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-            */
-
-            /*
-            (AbstractTest) assertPdfContains
-            */
-
-        }
-    }
-
-
     /**
      * Cleans replies using system admin privileges
      */
