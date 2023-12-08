@@ -43,16 +43,16 @@ class ReplyDAO : AbstractDAO<Reply>() {
     lastModifierId: UUID
   ): Reply {
     val reply = Reply()
-    val odtNow = OffsetDateTime.now()
+    val now = OffsetDateTime.now()
     reply.id = id
     reply.metaform = metaform
     reply.userId = userId
     reply.resourceId = resourceId
     reply.privateKey = privateKey
     reply.revision = revision
-    reply.createdAt = odtNow
+    reply.createdAt = now
     reply.lastModifierId = lastModifierId
-    reply.modifiedAt = odtNow
+    reply.modifiedAt = now
     return persist(reply)
   }
 
