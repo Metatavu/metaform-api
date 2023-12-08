@@ -35,5 +35,4 @@ abstract class Metadata {
   fun onUpdate() {
     modifiedAt = OffsetDateTime.now()
   }
-
 }

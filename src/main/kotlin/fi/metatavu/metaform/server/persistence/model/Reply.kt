@@ -15,7 +15,7 @@ import jakarta.validation.constraints.NotNull
 @Entity
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
-class Reply : Metadata() {
+class Reply {
 
   @Id
   var id: UUID? = null
@@ -39,6 +39,12 @@ class Reply : Metadata() {
 
   @Column(nullable = false)
   lateinit var lastModifierId: UUID
+
+  @Column(nullable = false)
+  lateinit var createdAt: OffsetDateTime
+
+  @Column(nullable = false)
+  lateinit var modifiedAt: OffsetDateTime
 
   @Column
   var firstViewedAt: OffsetDateTime? = null

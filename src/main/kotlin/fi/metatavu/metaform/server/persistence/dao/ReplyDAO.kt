@@ -43,13 +43,16 @@ class ReplyDAO : AbstractDAO<Reply>() {
     lastModifierId: UUID
   ): Reply {
     val reply = Reply()
+    val odtNow = OffsetDateTime.now()
     reply.id = id
     reply.metaform = metaform
     reply.userId = userId
     reply.resourceId = resourceId
     reply.privateKey = privateKey
     reply.revision = revision
+    reply.createdAt = odtNow
     reply.lastModifierId = lastModifierId
+    reply.modifiedAt = odtNow
     return persist(reply)
   }
 
@@ -263,6 +266,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    */
   fun updateRevision(reply: Reply, revision: OffsetDateTime?): Reply? {
     reply.revision = revision
+    reply.modifiedAt = OffsetDateTime.now()
     return persist(reply)
   }
 
@@ -275,6 +279,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    */
   fun updateResourceId(reply: Reply, resourceId: UUID?): Reply {
     reply.resourceId = resourceId
+    reply.modifiedAt = OffsetDateTime.now()
     return persist(reply)
   }
 
@@ -287,6 +292,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    */
   fun updateLastModifierId(reply: Reply, lastModifierId: UUID): Reply {
     reply.lastModifierId = lastModifierId
+    reply.modifiedAt = OffsetDateTime.now()
     return persist(reply)
   }
 
