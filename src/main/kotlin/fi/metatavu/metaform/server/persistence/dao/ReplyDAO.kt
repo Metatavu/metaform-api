@@ -120,106 +120,183 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @return replies list of replies
    */
   fun list(
-    metaform: Metaform?,
-    userId: UUID?,
-    includeRevisions: Boolean,
-    createdBefore: OffsetDateTime?,
-    createdAfter: OffsetDateTime?,
-    modifiedBefore: OffsetDateTime?,
-    modifiedAfter: OffsetDateTime?,
-    fieldFilters: FieldFilters?,
-    firstResult: Int?,
-    maxResults: Int?,
-    orderBy: ReplyOrderCriteria,
-    latestFirst: Boolean
+          metaform: Metaform?,
+          userId: UUID?,
+          includeRevisions: Boolean,
+          createdBefore: OffsetDateTime?,
+          createdAfter: OffsetDateTime?,
+          modifiedBefore: OffsetDateTime?,
+          modifiedAfter: OffsetDateTime?,
+          fieldFilters: FieldFilters?,
+          firstResult: Int?,
+          maxResults: Int?,
+          orderBy: ReplyOrderCriteria,
+          latestFirst: Boolean
   ): List<Reply> {
-    val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
-    val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
-      Reply::class.java
-    )
-    val root = criteria.from(
-      Reply::class.java
-    )
-    val restrictions: MutableList<Predicate> = ArrayList()
-    if (metaform != null) {
-      restrictions.add(criteriaBuilder.equal(root.get(Reply_.metaform), metaform))
-    }
-    if (userId != null) {
-      restrictions.add(criteriaBuilder.equal(root.get(Reply_.userId), userId))
-    }
-    if (!includeRevisions) {
-      restrictions.add(criteriaBuilder.isNull(root.get(Reply_.revision)))
-    }
-    if (createdBefore != null) {
-      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(Reply_.createdAt), createdBefore))
-    }
-    if (createdAfter != null) {
-      restrictions.add(
-        criteriaBuilder.greaterThanOrEqualTo(
-          root.get(Reply_.createdAt),
-          createdAfter
-        )
+      val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
+      val criteria: CriteriaQuery<Reply> = criteriaBuilder.createQuery(
+              Reply::class.java
       )
-    }
-    if (modifiedBefore != null) {
-      restrictions.add(
-        criteriaBuilder.lessThanOrEqualTo(
-          root.get(Reply_.modifiedAt),
-          modifiedBefore
-        )
+      val root = criteria.from(
+              Reply::class.java
       )
-    }
-    if (modifiedAfter != null) {
-      restrictions.add(
-        criteriaBuilder.greaterThanOrEqualTo(
-          root.get(Reply_.modifiedAt),
-          modifiedAfter
-        )
+
+      val restrictions: MutableList<Predicate> = handleReplyQueryCriteriaList(
+              criteriaBuilder = criteriaBuilder,
+              root = root,
+              metaform = metaform,
+              userId = userId,
+              includeRevisions = includeRevisions,
+              createdBefore = createdBefore,
+              createdAfter = createdAfter,
+              modifiedBefore = modifiedBefore,
+              modifiedAfter = modifiedAfter,
+              fieldFilters = fieldFilters,
+              criteria = criteria
       )
-    }
 
-    val attr = root.get(when (orderBy) {
-      ReplyOrderCriteria.CREATED -> Reply_.createdAt
-      ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
-    })
+      val attr = root.get(when (orderBy) {
+          ReplyOrderCriteria.CREATED -> Reply_.createdAt
+          ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
+      })
 
-    criteria.orderBy(if (latestFirst) {
-      criteriaBuilder.desc(attr)
-    } else {
-      criteriaBuilder.asc(attr)
-    })
-
-    fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
-      val valuePredicate =
-        getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
-      if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
-        restrictions.add(
-          criteriaBuilder.or(
-            valuePredicate,
-            criteriaBuilder.not(
-              criteriaBuilder.`in`(root)
-                .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
-            )
-          )
-        )
+      criteria.orderBy(if (latestFirst) {
+          criteriaBuilder.desc(attr)
       } else {
-        restrictions.add(valuePredicate)
+          criteriaBuilder.asc(attr)
+      })
+
+      criteria.select(root)
+      criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
+      val query = entityManager.createQuery(criteria)
+
+      if (firstResult != null) {
+          query.firstResult = firstResult
       }
-    })
-    criteria.select(root)
-    criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
-    val query = entityManager.createQuery(criteria)
 
-    if (firstResult != null) {
-      query.firstResult = firstResult
-    }
+      if (maxResults != null) {
+          query.maxResults = maxResults
+      }
 
-    if (maxResults != null) {
-      query.maxResults = maxResults
-    }
-
-    return query.resultList
+      return query.resultList
   }
+
+  /**
+   * Returns replies total count by multiple filters.
+   *
+   * All parameters can be nulled. Nulled parameters will be ignored.
+   *
+   * @param metaform Metaform
+   * @param userId userId
+   * @param revisionNull true to include only null replies with null revision, false to only non null revisions.
+   * @param createdBefore filter results by created before specified time.
+   * @param createdAfter filter results by created after specified time.
+   * @param modifiedBefore filter results by modified before specified time.
+   * @param modifiedAfter filter results by modified after specified time.
+   * @param fieldFilters field filters
+   * @return Long count of replies
+   */
+  fun count(
+          metaform: Metaform?,
+          userId: UUID?,
+          includeRevisions: Boolean,
+          createdBefore: OffsetDateTime?,
+          createdAfter: OffsetDateTime?,
+          modifiedBefore: OffsetDateTime?,
+          modifiedAfter: OffsetDateTime?,
+          fieldFilters: FieldFilters?
+  ): Long {
+
+      val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
+
+      val criteria: CriteriaQuery<Long> = criteriaBuilder.createQuery(
+              Long::class.java
+      )
+
+      val root = criteria.from(
+              Reply::class.java
+      )
+
+      val restrictions: MutableList<Predicate> = handleReplyQueryCriteriaList(
+              criteriaBuilder = criteriaBuilder,
+              root = root,
+              metaform = metaform,
+              userId = userId,
+              includeRevisions = includeRevisions,
+              createdBefore = createdBefore,
+              createdAfter = createdAfter,
+              modifiedBefore = modifiedBefore,
+              modifiedAfter = modifiedAfter,
+              fieldFilters = fieldFilters,
+              criteria = criteria
+      )
+
+      criteria.select(criteriaBuilder.count(criteria.from(Reply::class.java)))
+
+      criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
+      val query = entityManager.createQuery(criteria)
+
+      return query.singleResult
+  }
+
+    private fun <T> handleReplyQueryCriteriaList(
+            criteriaBuilder: CriteriaBuilder,
+            root: Root<Reply>,
+            metaform: Metaform?,
+            userId: UUID?,
+            includeRevisions: Boolean,
+            createdBefore: OffsetDateTime?,
+            createdAfter: OffsetDateTime?,
+            modifiedBefore: OffsetDateTime?,
+            modifiedAfter: OffsetDateTime?,
+            fieldFilters: FieldFilters?,
+            criteria: CriteriaQuery<T>
+
+    ): MutableList<Predicate> {
+        val restrictions: MutableList<Predicate> = ArrayList()
+
+        if (metaform != null) {
+            restrictions.add(criteriaBuilder.equal(root.get(Reply_.metaform), metaform))
+        }
+        if (userId != null) {
+            restrictions.add(criteriaBuilder.equal(root.get(Reply_.userId), userId))
+        }
+        if (!includeRevisions) {
+            restrictions.add(criteriaBuilder.isNull(root.get(Reply_.revision)))
+        }
+        if (createdBefore != null) {
+            restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(Reply_.createdAt), createdBefore))
+        }
+        if (createdAfter != null) {
+            restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(Reply_.createdAt), createdAfter))
+        }
+        if (modifiedBefore != null) {
+            restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(Reply_.modifiedAt), modifiedBefore))
+        }
+        if (modifiedAfter != null) {
+            restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(Reply_.modifiedAt), modifiedAfter))
+        }
+
+        fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
+            val valuePredicate =
+                    getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
+            if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
+                restrictions.add(
+                        criteriaBuilder.or(
+                                valuePredicate,
+                                criteriaBuilder.not(
+                                        criteriaBuilder.`in`(root)
+                                                .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
+                                )
+                        )
+                )
+            } else {
+                restrictions.add(valuePredicate)
+            }
+        })
+
+        return restrictions
+    }
 
   /**
    * Returns value predicate for field filter query
@@ -230,9 +307,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param fieldFilter filter
    * @return value predicate for field filter query
    */
-  private fun getFieldFilterValuePredicate(
+  private fun <R> getFieldFilterValuePredicate(
     criteriaBuilder: CriteriaBuilder,
-    criteria: CriteriaQuery<Reply>,
+    criteria: CriteriaQuery<R>,
     root: Root<Reply>,
     fieldFilter: FieldFilter
   ): Predicate {
@@ -368,15 +445,15 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param field field name
    * @return subquery for quering existing fields by name
    */
-  private fun createFieldPresentQuery(
+  private fun <R> createFieldPresentQuery(
     criteriaBuilder: CriteriaBuilder,
-    criteria: CriteriaQuery<Reply>,
+    criteria: CriteriaQuery<R>,
     field: String
   ): Subquery<Reply> {
     val fieldSubquery: Subquery<Reply> = criteria.subquery(
       Reply::class.java
     )
-    val root: Root<ReplyField> = fieldSubquery.from<ReplyField>(
+    val root: Root<ReplyField> = fieldSubquery.from(
       ReplyField::class.java
     )
     fieldSubquery.select(root.get(ReplyField_.reply))
@@ -435,9 +512,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param filters filters
    * @return field filter subquery
    */
-  private fun createListFieldFilterSubquery(
+  private fun <R> createListFieldFilterSubquery(
     criteriaBuilder: CriteriaBuilder,
-    criteria: CriteriaQuery<Reply>,
+    criteria: CriteriaQuery<R>,
     filter: FieldFilter
   ): Subquery<Reply> {
     val fieldSubquery: Subquery<Reply> = criteria.subquery(
@@ -469,11 +546,11 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param valueFieldFunction function for resolving value field
    * @return field filter subquery
    */
-  private fun <T : ReplyField?> createFieldFilterSubquery(
+  private fun <T : ReplyField?, R> createFieldFilterSubquery(
       rootClass: Class<T>?,
       fieldFilter: FieldFilter,
       criteriaBuilder: CriteriaBuilder,
-      criteria: CriteriaQuery<Reply>,
+      criteria: CriteriaQuery<R>,
       valueFieldFunction: Function<Root<T>, Expression<*>?>
   ): Subquery<Reply> {
     val fieldSubquery: Subquery<Reply> = criteria.subquery(
