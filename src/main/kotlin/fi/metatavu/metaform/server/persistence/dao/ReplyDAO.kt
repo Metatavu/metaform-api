@@ -222,6 +222,113 @@ class ReplyDAO : AbstractDAO<Reply>() {
   }
 
   /**
+   * Returns replies total count by multiple filters.
+   *
+   * All parameters can be nulled. Nulled parameters will be ignored.
+   *
+   * @param metaform Metaform
+   * @param userId userId
+   * @param revisionNull true to include only null replies with null revision, false to only non null revisions.
+   * @param createdBefore filter results by created before specified time.
+   * @param createdAfter filter results by created after specified time.
+   * @param modifiedBefore filter results by modified before specified time.
+   * @param modifiedAfter filter results by modified after specified time.
+   * @param fieldFilters field filters
+   * @param orderBy criteria to order by
+   * @param latestFirst return the latest result first according to the criteria in orderBy
+   * @return replies list of replies
+   */
+  fun count(
+          metaform: Metaform?,
+          userId: UUID?,
+          includeRevisions: Boolean,
+          createdBefore: OffsetDateTime?,
+          createdAfter: OffsetDateTime?,
+          modifiedBefore: OffsetDateTime?,
+          modifiedAfter: OffsetDateTime?,
+          fieldFilters: FieldFilters?,
+          firstResult: Int?,
+          maxResults: Int?,
+          orderBy: ReplyOrderCriteria,
+          latestFirst: Boolean
+  ): Long {
+
+    val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
+
+    val criteria: CriteriaQuery<Long> = criteriaBuilder.createQuery(
+            Long::class.java
+    )
+
+    val root = criteria.from(
+            Reply::class.java
+    )
+
+    val restrictions: MutableList<Predicate> = ArrayList()
+    if (metaform != null) {
+      restrictions.add(criteriaBuilder.equal(root.get(Reply_.metaform), metaform))
+    }
+    if (userId != null) {
+      restrictions.add(criteriaBuilder.equal(root.get(Reply_.userId), userId))
+    }
+    if (!includeRevisions) {
+      restrictions.add(criteriaBuilder.isNull(root.get(Reply_.revision)))
+    }
+    if (createdBefore != null) {
+      restrictions.add(criteriaBuilder.lessThanOrEqualTo(root.get(Reply_.createdAt), createdBefore))
+    }
+    if (createdAfter != null) {
+      restrictions.add(
+              criteriaBuilder.greaterThanOrEqualTo(
+                      root.get(Reply_.createdAt),
+                      createdAfter
+              )
+      )
+    }
+    if (modifiedBefore != null) {
+      restrictions.add(
+              criteriaBuilder.lessThanOrEqualTo(
+                      root.get(Reply_.modifiedAt),
+                      modifiedBefore
+              )
+      )
+    }
+    if (modifiedAfter != null) {
+      restrictions.add(
+              criteriaBuilder.greaterThanOrEqualTo(
+                      root.get(Reply_.modifiedAt),
+                      modifiedAfter
+              )
+      )
+    }
+
+
+    fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
+      val valuePredicate =
+              getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
+      if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
+        restrictions.add(
+                criteriaBuilder.or(
+                        valuePredicate,
+                        criteriaBuilder.not(
+                                criteriaBuilder.`in`(root)
+                                        .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
+                        )
+                )
+        )
+      } else {
+        restrictions.add(valuePredicate)
+      }
+    })
+
+    criteria.select(criteriaBuilder.count(criteria.from(Reply::class.java)))
+
+    criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
+    val query = entityManager.createQuery(criteria)
+
+    return query.singleResult
+  }
+
+  /**
    * Returns value predicate for field filter query
    *
    * @param criteriaBuilder criteria builder
@@ -230,9 +337,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param fieldFilter filter
    * @return value predicate for field filter query
    */
-  private fun getFieldFilterValuePredicate(
+  private fun <R> getFieldFilterValuePredicate(
     criteriaBuilder: CriteriaBuilder,
-    criteria: CriteriaQuery<Reply>,
+    criteria: CriteriaQuery<R>,
     root: Root<Reply>,
     fieldFilter: FieldFilter
   ): Predicate {
@@ -368,15 +475,15 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param field field name
    * @return subquery for quering existing fields by name
    */
-  private fun createFieldPresentQuery(
+  private fun <R> createFieldPresentQuery(
     criteriaBuilder: CriteriaBuilder,
-    criteria: CriteriaQuery<Reply>,
+    criteria: CriteriaQuery<R>,
     field: String
   ): Subquery<Reply> {
     val fieldSubquery: Subquery<Reply> = criteria.subquery(
       Reply::class.java
     )
-    val root: Root<ReplyField> = fieldSubquery.from<ReplyField>(
+    val root: Root<ReplyField> = fieldSubquery.from(
       ReplyField::class.java
     )
     fieldSubquery.select(root.get(ReplyField_.reply))
@@ -435,9 +542,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param filters filters
    * @return field filter subquery
    */
-  private fun createListFieldFilterSubquery(
+  private fun <R> createListFieldFilterSubquery(
     criteriaBuilder: CriteriaBuilder,
-    criteria: CriteriaQuery<Reply>,
+    criteria: CriteriaQuery<R>,
     filter: FieldFilter
   ): Subquery<Reply> {
     val fieldSubquery: Subquery<Reply> = criteria.subquery(
@@ -469,11 +576,11 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param valueFieldFunction function for resolving value field
    * @return field filter subquery
    */
-  private fun <T : ReplyField?> createFieldFilterSubquery(
+  private fun <T : ReplyField?, R> createFieldFilterSubquery(
       rootClass: Class<T>?,
       fieldFilter: FieldFilter,
       criteriaBuilder: CriteriaBuilder,
-      criteria: CriteriaQuery<Reply>,
+      criteria: CriteriaQuery<R>,
       valueFieldFunction: Function<Root<T>, Expression<*>?>
   ): Subquery<Reply> {
     val fieldSubquery: Subquery<Reply> = criteria.subquery(

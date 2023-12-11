@@ -409,6 +409,39 @@ class ReplyController {
         )
     }
 
+    fun countReplies(
+            metaform: Metaform? = null,
+            userId: UUID? = null,
+            createdBefore: OffsetDateTime? = null,
+            createdAfter: OffsetDateTime? = null,
+            modifiedBefore: OffsetDateTime? = null,
+            modifiedAfter: OffsetDateTime? = null,
+            includeRevisions: Boolean,
+            fieldFilters: FieldFilters? = null,
+            firstResult: Int? = null,
+            maxResults: Int? = null,
+            orderBy: ReplyOrderCriteria? = null,
+            latestFirst: Boolean? = null
+    ): Long {
+        val orderByReal = orderBy ?: ReplyOrderCriteria.CREATED
+        val latestFirstReal = latestFirst ?: false
+
+        return replyDAO.count(
+                metaform,
+                userId,
+                includeRevisions,
+                createdBefore,
+                createdAfter,
+                modifiedBefore,
+                modifiedAfter,
+                fieldFilters,
+                firstResult,
+                maxResults,
+                orderByReal,
+                latestFirstReal
+        )
+    }
+
     /**
      * Lists reply fields by reply
      *
