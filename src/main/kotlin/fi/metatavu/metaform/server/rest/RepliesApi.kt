@@ -428,11 +428,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
           modifiedBefore = modifiedBefore,
           modifiedAfter = modifiedAfter,
           includeRevisions = includeRevisions != null && includeRevisions,
-          fieldFilters = fieldFilters,
-          firstResult = firstResult,
-          maxResults = maxResults,
-          orderBy = orderBy,
-          latestFirst = latestFirst
+          fieldFilters = fieldFilters
         )
       )
     }
