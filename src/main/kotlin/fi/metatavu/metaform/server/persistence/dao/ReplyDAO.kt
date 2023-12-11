@@ -150,7 +150,9 @@ class ReplyDAO : AbstractDAO<Reply>() {
               createdBefore = createdBefore,
               createdAfter = createdAfter,
               modifiedBefore = modifiedBefore,
-              modifiedAfter = modifiedAfter
+              modifiedAfter = modifiedAfter,
+              fieldFilters = fieldFilters,
+              criteria = criteria
       )
 
       val attr = root.get(when (orderBy) {
@@ -164,23 +166,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
           criteriaBuilder.asc(attr)
       })
 
-      fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
-          val valuePredicate =
-                  getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
-          if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
-              restrictions.add(
-                      criteriaBuilder.or(
-                              valuePredicate,
-                              criteriaBuilder.not(
-                                      criteriaBuilder.`in`(root)
-                                              .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
-                              )
-                      )
-              )
-          } else {
-              restrictions.add(valuePredicate)
-          }
-      })
       criteria.select(root)
       criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
       val query = entityManager.createQuery(criteria)
@@ -241,26 +226,10 @@ class ReplyDAO : AbstractDAO<Reply>() {
               createdBefore = createdBefore,
               createdAfter = createdAfter,
               modifiedBefore = modifiedBefore,
-              modifiedAfter = modifiedAfter
+              modifiedAfter = modifiedAfter,
+              fieldFilters = fieldFilters,
+              criteria = criteria
       )
-
-      fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
-          val valuePredicate =
-                  getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
-          if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
-              restrictions.add(
-                      criteriaBuilder.or(
-                              valuePredicate,
-                              criteriaBuilder.not(
-                                      criteriaBuilder.`in`(root)
-                                              .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
-                              )
-                      )
-              )
-          } else {
-              restrictions.add(valuePredicate)
-          }
-      })
 
       criteria.select(criteriaBuilder.count(criteria.from(Reply::class.java)))
 
@@ -270,7 +239,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
       return query.singleResult
   }
 
-    private fun handleReplyQueryCriteriaList(
+    private fun <T> handleReplyQueryCriteriaList(
             criteriaBuilder: CriteriaBuilder,
             root: Root<Reply>,
             metaform: Metaform?,
@@ -279,7 +248,10 @@ class ReplyDAO : AbstractDAO<Reply>() {
             createdBefore: OffsetDateTime?,
             createdAfter: OffsetDateTime?,
             modifiedBefore: OffsetDateTime?,
-            modifiedAfter: OffsetDateTime?
+            modifiedAfter: OffsetDateTime?,
+            fieldFilters: FieldFilters?,
+            criteria: CriteriaQuery<T>
+
     ): MutableList<Predicate> {
         val restrictions: MutableList<Predicate> = ArrayList()
 
@@ -304,6 +276,24 @@ class ReplyDAO : AbstractDAO<Reply>() {
         if (modifiedAfter != null) {
             restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(Reply_.modifiedAt), modifiedAfter))
         }
+
+        fieldFilters?.filters?.stream()?.forEach(Consumer { fieldFilter: FieldFilter ->
+            val valuePredicate =
+                    getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
+            if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
+                restrictions.add(
+                        criteriaBuilder.or(
+                                valuePredicate,
+                                criteriaBuilder.not(
+                                        criteriaBuilder.`in`(root)
+                                                .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
+                                )
+                        )
+                )
+            } else {
+                restrictions.add(valuePredicate)
+            }
+        })
 
         return restrictions
     }
