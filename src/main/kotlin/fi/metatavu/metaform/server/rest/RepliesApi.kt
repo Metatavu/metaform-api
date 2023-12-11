@@ -416,7 +416,6 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val result: List<Reply> = getPermittedReplies(metaformId, replies, AuthorizationScope.REPLY_VIEW)
             .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 
-    //return createOk(result).also { it.headers.add("X-Total-Count", result.size) }
     return createOk(result).also {
       it.headers.add(
         "X-Total-Count",
