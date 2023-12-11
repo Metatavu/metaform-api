@@ -234,7 +234,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param modifiedBefore filter results by modified before specified time.
    * @param modifiedAfter filter results by modified after specified time.
    * @param fieldFilters field filters
-   * @return singleresult: count of replies
+   * @return Long count of replies
    */
   fun count(
           metaform: Metaform?,
