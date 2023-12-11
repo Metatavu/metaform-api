@@ -434,11 +434,7 @@ class ReplyController {
                 createdAfter,
                 modifiedBefore,
                 modifiedAfter,
-                fieldFilters,
-                firstResult,
-                maxResults,
-                orderByReal,
-                latestFirstReal
+                fieldFilters
         )
     }
 

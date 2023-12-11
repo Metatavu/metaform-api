@@ -234,9 +234,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    * @param modifiedBefore filter results by modified before specified time.
    * @param modifiedAfter filter results by modified after specified time.
    * @param fieldFilters field filters
-   * @param orderBy criteria to order by
-   * @param latestFirst return the latest result first according to the criteria in orderBy
-   * @return replies list of replies
+   * @return singleresult: count of replies
    */
   fun count(
           metaform: Metaform?,
@@ -246,11 +244,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
           createdAfter: OffsetDateTime?,
           modifiedBefore: OffsetDateTime?,
           modifiedAfter: OffsetDateTime?,
-          fieldFilters: FieldFilters?,
-          firstResult: Int?,
-          maxResults: Int?,
-          orderBy: ReplyOrderCriteria,
-          latestFirst: Boolean
+          fieldFilters: FieldFilters?
   ): Long {
 
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
