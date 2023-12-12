@@ -416,21 +416,18 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     val result: List<Reply> = getPermittedReplies(metaformId, replies, AuthorizationScope.REPLY_VIEW)
             .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 
-    return createOk(result).also {
-      it.headers.add(
-        "X-Total-Count",
-        replyController.countReplies(
-          metaform = metaform,
-          userId = userId,
-          createdBefore = createdBefore,
-          createdAfter = createdAfter,
-          modifiedBefore = modifiedBefore,
-          modifiedAfter = modifiedAfter,
-          includeRevisions = includeRevisions != null && includeRevisions,
-          fieldFilters = fieldFilters
-        )
-      )
-    }
+    val repliesCount: Long = replyController.countReplies(
+            metaform = metaform,
+            userId = userId,
+            createdBefore = createdBefore,
+            createdAfter = createdAfter,
+            modifiedBefore = modifiedBefore,
+            modifiedAfter = modifiedAfter,
+            includeRevisions = includeRevisions != null && includeRevisions,
+            fieldFilters = fieldFilters
+    )
+
+    return createOk(result, repliesCount)
   }
 
   /**
