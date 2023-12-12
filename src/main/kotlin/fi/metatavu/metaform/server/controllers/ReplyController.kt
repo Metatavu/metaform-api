@@ -433,14 +433,14 @@ class ReplyController {
             fieldFilters: FieldFilters? = null
     ): Long {
         return replyDAO.count(
-                metaform,
-                userId,
-                includeRevisions,
-                createdBefore,
-                createdAfter,
-                modifiedBefore,
-                modifiedAfter,
-                fieldFilters
+                metaform = metaform,
+                userId = userId,
+                includeRevisions = includeRevisions,
+                createdBefore = createdBefore,
+                createdAfter = createdAfter,
+                modifiedBefore = modifiedBefore,
+                modifiedAfter = modifiedAfter,
+                fieldFilters = fieldFilters
         )
     }
 
