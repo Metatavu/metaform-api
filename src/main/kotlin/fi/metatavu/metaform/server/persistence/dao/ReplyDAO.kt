@@ -109,7 +109,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
    *
    * @param metaform Metaform
    * @param userId userId
-   * @param revisionNull true to include only null replies with null revision, false to only non null revisions.
    * @param createdBefore filter results by created before specified time.
    * @param createdAfter filter results by created after specified time.
    * @param modifiedBefore filter results by modified before specified time.
@@ -188,7 +187,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
    *
    * @param metaform Metaform
    * @param userId userId
-   * @param revisionNull true to include only null replies with null revision, false to only non null revisions.
    * @param createdBefore filter results by created before specified time.
    * @param createdAfter filter results by created after specified time.
    * @param modifiedBefore filter results by modified before specified time.
@@ -282,13 +280,13 @@ class ReplyDAO : AbstractDAO<Reply>() {
                     getFieldFilterValuePredicate(criteriaBuilder, criteria, root, fieldFilter)
             if (fieldFilter.operator == FieldFilterOperator.NOT_EQUALS) {
                 restrictions.add(
-                        criteriaBuilder.or(
-                                valuePredicate,
-                                criteriaBuilder.not(
-                                        criteriaBuilder.`in`(root)
-                                                .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
-                                )
+                    criteriaBuilder.or(
+                        valuePredicate,
+                        criteriaBuilder.not(
+                                criteriaBuilder.`in`(root)
+                                        .value(createFieldPresentQuery(criteriaBuilder, criteria, fieldFilter.field))
                         )
+                    )
                 )
             } else {
                 restrictions.add(valuePredicate)
@@ -509,7 +507,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
    *
    * @param criteriaBuilder criteria builder
    * @param criteria criteria
-   * @param filters filters
+   * @param filter filters
    * @return field filter subquery
    */
   private fun <R> createListFieldFilterSubquery(

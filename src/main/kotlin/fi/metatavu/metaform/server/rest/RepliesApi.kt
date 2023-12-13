@@ -73,14 +73,14 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @param metaformId Metaform id
    * @param reply Reply to create
    * @param updateExisting If true, existing reply will be updated
-   * @param replyModeParam Reply mode
+   * @param replyMode Reply mode
    * @return Created reply
    */
   override fun createReply(
-    metaformId: UUID,
-    reply: Reply,
-    updateExisting: Boolean?,
-    replyModeParam: String?
+          metaformId: UUID,
+          reply: Reply,
+          updateExisting: Boolean?,
+          replyMode: String?
   ): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -92,18 +92,18 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     val replyUserId = if (!isMetatavuAdmin || !isRealmSystemAdmin || reply.userId == null) loggedUserId!! else reply.userId
-    var replyMode = try {
-      replyModeParam?.let { ReplyMode.valueOf(it) }
+    var newReplyMode = try {
+      replyMode?.let { ReplyMode.valueOf(it) }
     } catch (ex: IllegalArgumentException) {
       return createBadRequest(createInvalidMessage(REPLY_MODE))
     }
 
     if (updateExisting != null) {
-      replyMode = if (updateExisting) ReplyMode.UPDATE else ReplyMode.REVISION
+      newReplyMode = if (updateExisting) ReplyMode.UPDATE else ReplyMode.REVISION
     }
 
-    if (replyMode == null) {
-      replyMode = ReplyMode.UPDATE
+    if (newReplyMode == null) {
+      newReplyMode = ReplyMode.UPDATE
     }
 
     val metaformEntity = try {
@@ -124,12 +124,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     // TODO: Support multiple
 
     val createdReply: fi.metatavu.metaform.server.persistence.model.Reply = replyController.createReplyResolveReply(
-      replyMode,
-      metaform,
-      isAnonymous,
-      replyUserId,
-      privateKey,
-      userId
+            newReplyMode,
+            metaform,
+            isAnonymous,
+            replyUserId,
+            privateKey,
+            userId
     )
 
     val replyData = reply.data?.filter { (fieldName, fieldValue) ->
@@ -152,18 +152,18 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     try {
       val groupMemberPermissions = getGroupPermissions(
-        metaformEntity = metaformEntity,
-        replyData = replyData,
-        fieldMap = fieldMap
+              metaformEntity = metaformEntity,
+              replyData = replyData,
+              fieldMap = fieldMap
       )
 
       metaformController.handleReplyPostPersist(
-        replyCreated = true,
-        metaform = metaform,
-        reply = createdReply,
-        replyEntity = replyEntity,
-        loggedUserId = userId,
-        groupMemberPermissions = groupMemberPermissions
+              replyCreated = true,
+              metaform = metaform,
+              reply = createdReply,
+              replyEntity = replyEntity,
+              loggedUserId = userId,
+              groupMemberPermissions = groupMemberPermissions
       )
 
     } catch (e: AuthzException) {
@@ -171,12 +171,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     auditLogEntryController.generateAuditLog(
-      metaform = metaform,
-      userId = replyUserId,
-      replyId = createdReply.id!!,
-      attachmentId = null,
-      action = null,
-      type = AuditLogEntryType.CREATE_REPLY
+            metaform = metaform,
+            userId = replyUserId,
+            replyId = createdReply.id!!,
+            attachmentId = null,
+            action = null,
+            type = AuditLogEntryType.CREATE_REPLY
     )
 
     replyController.triggerReplyCreatedEvent(reply = createdReply)
@@ -213,9 +213,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     return fieldController.getFieldNamesByType(metaformEntity, MetaformFieldType.FILES)
             .map { fieldName ->
               val attachmentIds = replyEntity.data?.get(fieldName) as List<UUID>?
-                attachmentIds
-                  ?.mapNotNull { attachmentId -> attachmentController.findAttachmentById(attachmentId) }
-                  ?.map{ attachment -> attachmentTranslator.translate(attachment) }
+              attachmentIds
+                      ?.mapNotNull { attachmentId -> attachmentController.findAttachmentById(attachmentId) }
+                      ?.map{ attachment -> attachmentTranslator.translate(attachment) }
             }
             .flatMap { it?.toList() ?: emptyList() }
             .associateBy { attachment -> attachment.id.toString() }
@@ -232,7 +232,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     val metaform = metaformController.findMetaformById(metaformId)
-      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     if (reply.metaform.id != metaform.id) {
       return createNotFound(createNotBelongMessage(REPLY))
@@ -274,12 +274,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
       replies.forEach{ reply ->
         auditLogEntryController.generateAuditLog(
-          metaform = metaform,
-          userId = userId,
-          replyId = reply.id!!,
-          attachmentId = null,
-          action = null,
-          type = AuditLogEntryType.EXPORT_REPLY_XLSX
+                metaform = metaform,
+                userId = userId,
+                replyId = reply.id!!,
+                attachmentId = null,
+                action = null,
+                type = AuditLogEntryType.EXPORT_REPLY_XLSX
         )}
 
       try {
@@ -324,12 +324,12 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     auditLogEntryController.generateAuditLog(
-          metaform = metaform,
-          userId = userId,
-          replyId = reply.id!!,
-          attachmentId = null,
-          action = null,
-          type = AuditLogEntryType.VIEW_REPLY
+            metaform = metaform,
+            userId = userId,
+            replyId = reply.id!!,
+            attachmentId = null,
+            action = null,
+            type = AuditLogEntryType.VIEW_REPLY
     )
 
     replyController.setReplyViewedAt(viewedAtDateTime = OffsetDateTime.now(), reply = reply)
@@ -342,10 +342,10 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    *
    * @param metaformId metaform id
    * @param userId user id
-   * @param createdBeforeParam created before
-   * @param createdAfterParam created after
-   * @param modifiedBeforeParam modified before
-   * @param modifiedAfterParam modified after
+   * @param createdBefore created before
+   * @param createdAfter created after
+   * @param modifiedBefore modified before
+   * @param modifiedAfter modified after
    * @param includeRevisions include revisions
    * @param fields fields
    * @param firstResult first result
@@ -355,79 +355,67 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @return list of replies
    */
   override fun listReplies(
-    metaformId: UUID,
-    userId: UUID?,
-    createdBeforeParam: String?,
-    createdAfterParam: String?,
-    modifiedBeforeParam: String?,
-    modifiedAfterParam: String?,
-    includeRevisions: Boolean?,
-    fields: List<String>?,
-    firstResult: Int?,
-    maxResults: Int?,
-    orderBy: ReplyOrderCriteria?,
-    latestFirst: Boolean?
+          metaformId: UUID,
+          userId: UUID?,
+          createdBefore: String?,
+          createdAfter: String?,
+          modifiedBefore: String?,
+          modifiedAfter: String?,
+          includeRevisions: Boolean?,
+          fields: List<String>?,
+          firstResult: Int?,
+          maxResults: Int?,
+          orderBy: ReplyOrderCriteria?,
+          latestFirst: Boolean?
   ): Response {
-    val auditLogUser = loggedUserId ?: return createForbidden(UNAUTHORIZED)
+      val auditLogUser = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
-    val createdBefore = parseTime(createdBeforeParam)
-    val createdAfter = parseTime(createdAfterParam)
-    val modifiedBefore = parseTime(modifiedBeforeParam)
-    val modifiedAfter = parseTime(modifiedAfterParam)
+      val parsedCreatedBefore = parseTime(createdBefore)
+      val parsedCreatedAfter = parseTime(createdAfter)
+      val parsedModifiedBefore = parseTime(modifiedBefore)
+      val parsedModifiedAfter = parseTime(modifiedAfter)
 
-    val metaform = metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
-    val metaformEntity = try {
-      metaformTranslator.translate(metaform)
-    } catch (e: MalformedMetaformJsonException) {
-      return createInternalServerError(e.message)
-    }
+      val metaform = metaformController.findMetaformById(metaformId)
+              ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val fieldFilters = fieldController.parseFilters(metaformEntity, fields)
+      val metaformEntity = try {
+          metaformTranslator.translate(metaform)
+      } catch (e: MalformedMetaformJsonException) {
+          return createInternalServerError(e.message)
+      }
 
-    val replies = replyController.listReplies(
-      metaform = metaform,
-      userId = userId,
-      createdBefore = createdBefore,
-      createdAfter = createdAfter,
-      modifiedBefore = modifiedBefore,
-      modifiedAfter = modifiedAfter,
-      includeRevisions = includeRevisions != null && includeRevisions,
-      fieldFilters = fieldFilters,
-      firstResult = firstResult,
-      maxResults = maxResults,
-      orderBy = orderBy,
-      latestFirst = latestFirst
-    )
+      val fieldFilters = fieldController.parseFilters(metaformEntity, fields)
 
-    replies.forEach { reply -> auditLogEntryController.generateAuditLog(
-        metaform = metaform,
-        userId = auditLogUser,
-        replyId = reply.id!!,
-        attachmentId = null,
-        action = null,
-        type = AuditLogEntryType.LIST_REPLY
+      val replies = replyController.listReplies(
+              metaform = metaform,
+              userId = userId,
+              createdBefore = parsedCreatedBefore,
+              createdAfter = parsedCreatedAfter,
+              modifiedBefore = parsedModifiedBefore,
+              modifiedAfter = parsedModifiedAfter,
+              includeRevisions = includeRevisions != null && includeRevisions,
+              fieldFilters = fieldFilters,
+              firstResult = firstResult,
+              maxResults = maxResults,
+              orderBy = orderBy,
+              latestFirst = latestFirst
       )
-    }
 
-    if (isMetaformAdmin(metaformId)) {
-      return createOk(replies.map { replyTranslator.translate(metaformEntity, it, null) })
-    }
+      val result: List<Reply> = getPermittedReplies(metaformId, replies, AuthorizationScope.REPLY_VIEW)
+              .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
 
-    val result: List<Reply> = getPermittedReplies(metaformId, replies, AuthorizationScope.REPLY_VIEW)
-            .map { entity -> replyTranslator.translate(metaformEntity, entity, null) }
+      result.forEach { reply ->
+          auditLogEntryController.generateAuditLog(
+                  metaform = metaform,
+                  userId = auditLogUser,
+                  replyId = reply.id!!,
+                  attachmentId = null,
+                  action = null,
+                  type = AuditLogEntryType.LIST_REPLY
+          )
+      }
 
-    val repliesCount: Long = replyController.countReplies(
-            metaform = metaform,
-            userId = userId,
-            createdBefore = createdBefore,
-            createdAfter = createdAfter,
-            modifiedBefore = modifiedBefore,
-            modifiedAfter = modifiedAfter,
-            includeRevisions = includeRevisions != null && includeRevisions,
-            fieldFilters = fieldFilters
-    )
-
-    return createOk(result, repliesCount)
+      return createOk(result, result.count().toLong())
   }
 
   /**
@@ -439,19 +427,16 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @return filtered list
    */
   private fun getPermittedReplies(
-    metaformId: UUID,
-    replies: List<fi.metatavu.metaform.server.persistence.model.Reply>,
-    authorizationScope: AuthorizationScope
+          metaformId: UUID,
+          replies: List<fi.metatavu.metaform.server.persistence.model.Reply>,
+          authorizationScope: AuthorizationScope
   ): List<fi.metatavu.metaform.server.persistence.model.Reply> {
-    if (isMetaformAdmin(metaformId)) {
-      return replies
-    }
-    val resourceIds = replies
-            .mapNotNull(fi.metatavu.metaform.server.persistence.model.Reply::resourceId).toSet()
-
-    val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
-    return replies
-            .filter { reply -> permittedResourceIds.contains(reply.resourceId) }
+      if (isMetaformAdmin(metaformId)) {
+          return replies
+      }
+      val resourceIds = replies.mapNotNull(fi.metatavu.metaform.server.persistence.model.Reply::resourceId).toSet()
+      val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
+      return replies.filter { reply -> permittedResourceIds.contains(reply.resourceId) }
   }
 
   override fun replyExport(metaformId: UUID, replyId: UUID, format: String): Response {
@@ -465,7 +450,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     val metaform = metaformController.findMetaformById(metaformId)
-      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     if (reply.metaform.id != metaform.id) {
       return createNotFound(createNotBelongMessage(REPLY))
@@ -504,10 +489,10 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @return updated reply
    */
   override fun updateReply(
-    metaformId: UUID,
-    replyId: UUID,
-    reply: Reply,
-    ownerKey: String?
+          metaformId: UUID,
+          replyId: UUID,
+          reply: Reply,
+          ownerKey: String?
   ): Response {
     val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -515,7 +500,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             ?: return createNotFound(createNotFoundMessage(REPLY, replyId))
 
     val metaform = metaformController.findMetaformById(metaformId)
-      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+            ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     if (foundReply.metaform.id != metaform.id) {
       return createNotFound(createNotBelongMessage(REPLY))
@@ -532,7 +517,7 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     val newPermissionGroups = EnumMap<AuthorizationScope, MutableList<String>>(AuthorizationScope::class.java)
-    AuthorizationScope.values().forEach { scope -> newPermissionGroups[scope] = mutableListOf() }
+    AuthorizationScope.entries.forEach { scope -> newPermissionGroups[scope] = mutableListOf() }
 
     val fieldNames = replyController.listFieldNames(foundReply).toMutableList()
     val fieldMap = fieldController.getFieldMap(metaformEntity)
@@ -560,18 +545,18 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     try {
       val groupMemberPermissions = getGroupPermissions(
-        metaformEntity = metaformEntity,
-        replyData = replyData,
-        fieldMap = fieldMap
+              metaformEntity = metaformEntity,
+              replyData = replyData,
+              fieldMap = fieldMap
       )
 
       metaformController.handleReplyPostPersist(
-        replyCreated = false,
-        metaform = metaform,
-        reply = foundReply,
-        replyEntity = replyEntity,
-        loggedUserId = userId,
-        groupMemberPermissions = groupMemberPermissions
+              replyCreated = false,
+              metaform = metaform,
+              reply = foundReply,
+              replyEntity = replyEntity,
+              loggedUserId = userId,
+              groupMemberPermissions = groupMemberPermissions
       )
 
       replyController.updateReplyLastModifierId(foundReply, userId)
@@ -593,9 +578,9 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
    * @return group permissions based on metaform and reply data
    */
   private fun getGroupPermissions(
-    metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform,
-    fieldMap: Map<String, MetaformField>,
-    replyData: Map<String, Any>
+          metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform,
+          fieldMap: Map<String, MetaformField>,
+          replyData: Map<String, Any>
   ): Set<GroupMemberPermission> {
     val result = mutableSetOf<GroupMemberPermission>()
 
@@ -603,16 +588,16 @@ class RepliesApi: fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
       val field = fieldMap[fieldName] ?: return@forEach
 
       result.addAll(permissionController.getFieldGroupMemberPermissions(
-        field = field,
-        fieldValue = fieldValue
+              field = field,
+              fieldValue = fieldValue
       ))
     }
 
     if (result.isEmpty()) {
       result.addAll(
-        permissionController.getDefaultGroupMemberPermissions(
-          metaform = metaformEntity
-        )
+              permissionController.getDefaultGroupMemberPermissions(
+                      metaform = metaformEntity
+              )
       )
     }
 
