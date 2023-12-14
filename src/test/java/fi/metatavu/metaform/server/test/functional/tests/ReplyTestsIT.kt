@@ -704,26 +704,21 @@ class ReplyTestsIT : AbstractTest() {
     fun testReplyPagination() {
         TestBuilder().use { testBuilder ->
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            // dont need to save the replies to a variable
             testBuilder.test1.replies.createSimpleReply(metaform.id!!, "pagination-test-1", ReplyMode.CUMULATIVE)
             testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-2", ReplyMode.CUMULATIVE)
             testBuilder.test1.replies.createSimpleReply(metaform.id, "pagination-test-3", ReplyMode.CUMULATIVE)
-
             val allReplies = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, null, null, null)
             assertEquals(allReplies.size, 3)
             assertEquals(allReplies[0].data!!["text"], "pagination-test-1")
             assertEquals(allReplies[1].data!!["text"], "pagination-test-2")
             assertEquals(allReplies[2].data!!["text"], "pagination-test-3")
-
-            val replies1To2 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, 2, null, null)
+            val replies1To2 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 0, 2, null, null)
             assertEquals(replies1To2.size, 2)
             assertEquals(replies1To2[0].data!!["text"], "pagination-test-1")
             assertEquals(replies1To2[1].data!!["text"], "pagination-test-2")
-
             val reply2 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 1, 1, null, null)
             assertEquals(reply2.size, 1)
             assertEquals(reply2[0].data!!["text"], "pagination-test-2")
-
             val reply3 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 2, null, null, null)
             assertEquals(reply3.size, 1)
             assertEquals(reply3[0].data!!["text"], "pagination-test-3")
