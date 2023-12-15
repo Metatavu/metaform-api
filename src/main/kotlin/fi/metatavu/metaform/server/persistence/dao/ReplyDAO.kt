@@ -117,6 +117,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
      * @param latestFirst return the latest result first according to the criteria in orderBy
      * @return replies list of replies
      */
+    @SuppressWarnings
     fun listIdsAndResourceIds(
             metaform: Metaform?,
             userId: UUID?,
