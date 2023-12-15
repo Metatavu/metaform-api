@@ -619,10 +619,6 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
         val lastResult = firstResult + maxResults!!
 
-        if (lastResult > replyIds.count()) {
-            return emptyList()
-        }
-
         return replyIds.subList(firstResult, min(lastResult, replyIds.count()))
     }
 
