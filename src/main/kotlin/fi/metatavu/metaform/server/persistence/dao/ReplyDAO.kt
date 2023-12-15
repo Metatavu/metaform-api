@@ -117,7 +117,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
      * @param latestFirst return the latest result first according to the criteria in orderBy
      * @return replies list of replies
      */
-    @SuppressWarnings
     fun listIdsAndResourceIds(
             metaform: Metaform?,
             userId: UUID?,
@@ -130,6 +129,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
             orderBy: ReplyOrderCriteria,
             latestFirst: Boolean
     ): List<Tuple> {
+
         val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
         val criteria: CriteriaQuery<Tuple> = criteriaBuilder.createTupleQuery()
         val root = criteria.from(
@@ -155,11 +155,12 @@ class ReplyDAO : AbstractDAO<Reply>() {
             ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
         })
 
-        criteria.orderBy(if (latestFirst) {
-            criteriaBuilder.desc(attr)
-        } else {
-            criteriaBuilder.asc(attr)
-        })
+        setCriteriaOrderBy(
+                criteriaBuilder = criteriaBuilder,
+                criteria = criteria,
+                orderCriteria = attr,
+                latestFirst = latestFirst
+        )
 
         criteria.multiselect(
                 root.get(Reply_.id).alias("id"),
@@ -224,16 +225,17 @@ class ReplyDAO : AbstractDAO<Reply>() {
                 criteria = criteria
         )
 
-        val attr = root.get(when (orderBy) {
+        val orderCriteria = root.get(when (orderBy) {
             ReplyOrderCriteria.CREATED -> Reply_.createdAt
             ReplyOrderCriteria.MODIFIED -> Reply_.modifiedAt
         })
 
-        criteria.orderBy(if (latestFirst) {
-            criteriaBuilder.desc(attr)
-        } else {
-            criteriaBuilder.asc(attr)
-        })
+        setCriteriaOrderBy(
+                criteriaBuilder = criteriaBuilder,
+                criteria = criteria,
+                orderCriteria = orderCriteria,
+                latestFirst = latestFirst
+        )
 
         criteria.select(root)
         criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
@@ -250,6 +252,38 @@ class ReplyDAO : AbstractDAO<Reply>() {
         return query.resultList
     }
 
+    /**
+     * Set criteria order by
+     *
+     * @param criteriaBuilder CriteriaBuilder
+     * @param criteria Criteria
+     * @param attr expression
+     * @param latestFirst latestFirst
+     *
+     */
+    private fun <T> setCriteriaOrderBy(criteriaBuilder: CriteriaBuilder, criteria: CriteriaQuery<T>, orderCriteria: Expression<*>, latestFirst: Boolean) {
+        criteria.orderBy(if (latestFirst) {
+            criteriaBuilder.desc(orderCriteria)
+        } else {
+            criteriaBuilder.asc(orderCriteria)
+        })
+    }
+
+    /**
+     * Create restrictions for reply query based on given paramaters
+     *
+     * @param criteriaBuilder criteriaBuilder
+     * @param root root
+     * @param metaform metaform
+     * @param userId userId
+     * @param includeRevisions includeRevisions
+     * @param createdBefore createdBefore
+     * @param createdAfter createdAfter
+     * @param modifiedBefore modifiedBefore
+     * @param modifiedAfter modifiedAfter
+     * @param fieldFilters fieldFilters
+     * @param criteria criteria
+     */
     private fun <T> handleReplyQueryCriteriaList(
             criteriaBuilder: CriteriaBuilder,
             root: Root<Reply>,
@@ -262,7 +296,6 @@ class ReplyDAO : AbstractDAO<Reply>() {
             modifiedAfter: OffsetDateTime?,
             fieldFilters: FieldFilters?,
             criteria: CriteriaQuery<T>
-
     ): MutableList<Predicate> {
         val restrictions: MutableList<Predicate> = ArrayList()
 
