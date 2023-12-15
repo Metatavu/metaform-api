@@ -104,9 +104,7 @@ class ReplyDAO : AbstractDAO<Reply>() {
     }
 
     /**
-     * List replies by multiple filters.
-     *
-     * All parameters can be nulled. Nulled parameters will be ignored.
+     * List Tuples of reply id's and resource id's by multiple filters.
      *
      * @param metaform Metaform
      * @param userId userId
@@ -162,7 +160,10 @@ class ReplyDAO : AbstractDAO<Reply>() {
             criteriaBuilder.asc(attr)
         })
 
-        criteria.multiselect(root.get(Reply_.id).alias("id"), root.get(Reply_.resourceId).alias("resourceId"))
+        criteria.multiselect(
+                root.get(Reply_.id).alias("id"),
+                root.get(Reply_.resourceId).alias("resourceId")
+        )
         criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
         val query = entityManager.createQuery(criteria)
 

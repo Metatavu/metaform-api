@@ -427,52 +427,6 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         return createOk(result, resultCount)
     }
 
-    private fun getReplyIdList(replyIds: List<UUID>, firstResult: Int?, maxResults: Int?): List<UUID> {
-        if (firstResult == null && maxResults == null) {
-            return replyIds
-        }
-
-        firstResult ?: return replyIds
-
-        if (maxResults == null) {
-            return replyIds.subList(firstResult, replyIds.count())
-        }
-
-        val lastResult = firstResult + maxResults
-
-        if (lastResult > maxResults) {
-            return replyIds.subList(firstResult, replyIds.count()-1)
-        }
-
-        if (lastResult > replyIds.count()) {
-            return emptyList()
-        }
-
-        println("sublist requested from index $firstResult to $lastResult")
-        return replyIds.subList(firstResult, lastResult)
-    }
-
-    /**
-     * Filters out replies without permission
-     *
-     * @param metaformId metaform id
-     * @param replies replies
-     * @param authorizationScope scope
-     * @return filtered list
-     */
-    private fun getPermittedReplies(
-            metaformId: UUID,
-            replyIdAndResourceIds: List<ReplyIdAndResourceId>,
-            authorizationScope: AuthorizationScope
-    ): List<ReplyIdAndResourceId> {
-        if (isMetaformAdmin(metaformId)) {
-            return replyIdAndResourceIds
-        }
-        val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
-        val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
-        return replyIdAndResourceIds.filter { reply -> permittedResourceIds.contains(reply.resourceId) }
-    }
-
     override fun replyExport(metaformId: UUID, replyId: UUID, format: String): Response {
         val userId = loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
@@ -636,5 +590,59 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         }
 
         return result
+    }
+
+    /**
+     * Creates sublist of replyIds from original list of replyIds based on parameters given.
+     *
+     * @param replyIds
+     * @param firstResult
+     * @param maxResults
+     * @return List<UUID> list of replyIds
+     */
+    private fun getReplyIdList(replyIds: List<UUID>, firstResult: Int?, maxResults: Int?): List<UUID> {
+
+        if (firstResult == null && maxResults == null) {
+            return replyIds
+        }
+
+        if (firstResult != null && maxResults == null) {
+            return replyIds.subList(firstResult, replyIds.count())
+        }
+
+        firstResult ?: return replyIds.subList(0, maxResults!!)
+
+        val lastResult = firstResult + maxResults!!
+
+        if (lastResult > maxResults) {
+            return replyIds.subList(firstResult, replyIds.count()-1)
+        }
+
+        if (lastResult > replyIds.count()) {
+            return emptyList()
+        }
+
+        return replyIds.subList(firstResult, lastResult)
+    }
+
+    /**
+     * Filters out replies without permission
+     *
+     * @param metaformId metaform id
+     * @param replyIdAndResourceIds List<replyIdAndResourceIds>
+     * @param authorizationScope scope
+     * @return filtered list
+     */
+    private fun getPermittedReplies(
+            metaformId: UUID,
+            replyIdAndResourceIds: List<ReplyIdAndResourceId>,
+            authorizationScope: AuthorizationScope
+    ): List<ReplyIdAndResourceId> {
+        if (isMetaformAdmin(metaformId)) {
+            return replyIdAndResourceIds
+        }
+        val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
+        val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
+        return replyIdAndResourceIds.filter { reply -> permittedResourceIds.contains(reply.resourceId) }
     }
 }

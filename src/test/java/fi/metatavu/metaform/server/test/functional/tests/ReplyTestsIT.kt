@@ -712,7 +712,7 @@ class ReplyTestsIT : AbstractTest() {
             assertEquals(allReplies[0].data!!["text"], "pagination-test-1")
             assertEquals(allReplies[1].data!!["text"], "pagination-test-2")
             assertEquals(allReplies[2].data!!["text"], "pagination-test-3")
-            val replies1To2 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 0, 2, null, null)
+            val replies1To2 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, null, 2, null, null)
             assertEquals(replies1To2.size, 2)
             assertEquals(replies1To2[0].data!!["text"], "pagination-test-1")
             assertEquals(replies1To2[1].data!!["text"], "pagination-test-2")
