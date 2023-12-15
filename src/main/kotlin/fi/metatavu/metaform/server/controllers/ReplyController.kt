@@ -38,8 +38,15 @@ import jakarta.enterprise.event.Event
 import jakarta.inject.Inject
 
 /**
+ * Reply id and resource id data class
+ *
+ * @author Harri Häkkinen
+ */
+data class ReplyIdAndResourceId(val id: UUID, val resourceId: UUID?)
+/**
  * Controller for Replies
  */
+
 @ApplicationScoped
 class ReplyController {
 
@@ -362,6 +369,51 @@ class ReplyController {
     }
 
     /**
+     * Returns list of ReplyIdAndResourceId's
+     *
+     * @param metaform Metaform
+     * @param userId userId
+     * @param createdBefore filter results by created before specified time.
+     * @param createdAfter filter results by created after specified time.
+     * @param modifiedBefore filter results by modified before specified time.
+     * @param modifiedAfter filter results by modified after specified time.
+     * @param includeRevisions
+     * @param fieldFilters
+     * @param orderBy criteria to order by
+     * @param latestFirst return the latest result first according to the criteria in orderBy
+     * @return List<ReplyIdAndResourceIds> list of ReplyIdAndResourceId's
+     */
+    fun listIdsAndResourceIds(
+            metaform: Metaform? = null,
+            userId: UUID? = null,
+            createdBefore: OffsetDateTime? = null,
+            createdAfter: OffsetDateTime? = null,
+            modifiedBefore: OffsetDateTime? = null,
+            modifiedAfter: OffsetDateTime? = null,
+            includeRevisions: Boolean,
+            fieldFilters: FieldFilters? = null,
+            orderBy: ReplyOrderCriteria? = null,
+            latestFirst: Boolean? = null
+    ): List<ReplyIdAndResourceId> {
+        // mimic the original behavior
+        val orderByReal = orderBy ?: ReplyOrderCriteria.CREATED
+        val latestFirstReal = latestFirst ?: false
+
+        return replyDAO.listIdsAndResourceIds(
+                metaform,
+                userId,
+                includeRevisions,
+                createdBefore,
+                createdAfter,
+                modifiedBefore,
+                modifiedAfter,
+                fieldFilters,
+                orderByReal,
+                latestFirstReal
+        ).map { ReplyIdAndResourceId(it.get("id") as UUID, it.get("resourceId") as UUID?) }
+    }
+
+    /**
      * Lists replies
      *
      * @param metaform Metaform
@@ -406,41 +458,6 @@ class ReplyController {
                 maxResults,
                 orderByReal,
                 latestFirstReal
-        )
-    }
-
-    /**
-     * Returns count of replies affected by filters
-     *
-     * @param metaform Metaform
-     * @param userId userId
-     * @param createdBefore filter results by created before specified time.
-     * @param createdAfter filter results by created after specified time.
-     * @param modifiedBefore filter results by modified before specified time.
-     * @param modifiedAfter filter results by modified after specified time.
-     * @param includeRevisions
-     * @param fieldFilters field filters
-     * @return Long Count of replies
-     */
-    fun countReplies(
-            metaform: Metaform? = null,
-            userId: UUID? = null,
-            createdBefore: OffsetDateTime? = null,
-            createdAfter: OffsetDateTime? = null,
-            modifiedBefore: OffsetDateTime? = null,
-            modifiedAfter: OffsetDateTime? = null,
-            includeRevisions: Boolean,
-            fieldFilters: FieldFilters? = null
-    ): Long {
-        return replyDAO.count(
-                metaform = metaform,
-                userId = userId,
-                includeRevisions = includeRevisions,
-                createdBefore = createdBefore,
-                createdAfter = createdAfter,
-                modifiedBefore = modifiedBefore,
-                modifiedAfter = modifiedAfter,
-                fieldFilters = fieldFilters
         )
     }
 

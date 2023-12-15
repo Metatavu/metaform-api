@@ -94,6 +94,7 @@ abstract class AbstractApi {
                 .status(Response.Status.OK)
                 .entity(entity)
                 .header("Total-Results", totalHits)
+                .header("Access-Control-Expose-Headers", "Total-Results")
                 .build()
     }
 
