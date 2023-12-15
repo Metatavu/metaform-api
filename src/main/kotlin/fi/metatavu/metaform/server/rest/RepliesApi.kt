@@ -25,6 +25,7 @@ import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.core.Response
 import java.time.OffsetDateTime
+import kotlin.math.min
 
 @RequestScoped
 @Transactional
@@ -602,6 +603,10 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
      */
     private fun getReplyIdList(replyIds: List<UUID>, firstResult: Int?, maxResults: Int?): List<UUID> {
 
+        if (firstResult != null && firstResult >= replyIds.count()) {
+            return emptyList()
+        }
+
         if (firstResult == null && maxResults == null) {
             return replyIds
         }
@@ -614,15 +619,11 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
         val lastResult = firstResult + maxResults!!
 
-        if (lastResult > maxResults) {
-            return replyIds.subList(firstResult, replyIds.count()-1)
-        }
-
         if (lastResult > replyIds.count()) {
             return emptyList()
         }
 
-        return replyIds.subList(firstResult, lastResult)
+        return replyIds.subList(firstResult, min(lastResult, replyIds.count()))
     }
 
     /**
