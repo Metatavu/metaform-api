@@ -36,6 +36,10 @@
     padding-bottom: 10px;
     position: running(header);
   }
+
+  .header-time {
+    float: right;
+  }
   
   .footer {
     display: block;
@@ -195,6 +199,12 @@
   
   .reply-field {
     margin-bottom: 10px;
+  }
+
+  .slider-container {
+    display: flex;
+      flex-direction: column;
+      align-items: center;
   }
   
 </style>

@@ -1,1 +1,1 @@
-<p></p>
+<div class="header-time">${.now}</div>

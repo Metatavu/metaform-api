@@ -354,11 +354,36 @@ class AbstractTest {
             .header("Authorization", String.format("Bearer %s", accessToken))["/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.id.toString(), reply.id.toString()]
 
         val data = response.body.asByteArray()
+
         Assert.assertNotNull(data)
         response.then().assertThat().statusCode(200)
 
         assertPdfContains(
             expected = expected,
+            data = data
+        )
+    }
+
+    /**
+     * Checks that pdf does not contain a string
+     *
+     * @param unexpected  unexpected string
+     * @param accessToken access token
+     * @param metaform    metaform
+     * @param reply       reply
+     */
+    protected fun assertPdfDownloadNotContents(unexpected: String, accessToken: String?, metaform: Metaform, reply: Reply) {
+        val response = RestAssured.given()
+            .baseUri(ApiTestSettings.apiBasePath)
+            .header("Content-Type", "application/json")
+            .header("Authorization", String.format("Bearer %s", accessToken))["/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.id.toString(), reply.id.toString()]
+        val data = response.body.asByteArray()
+
+        Assert.assertNotNull(data)
+        response.then().assertThat().statusCode(200)
+
+        assertPdfNotContains(
+            expected = unexpected,
             data = data
         )
     }
@@ -372,11 +397,18 @@ class AbstractTest {
      * @throws IOException thrown on PDF read failure
      */
     @Throws(IOException::class)
-    protected fun assertPdfContains(expected: String?, data: ByteArray?) {
+    fun assertPdfContains(expected: String?, data: ByteArray?) {
         val document = PDDocument.load(ByteArrayInputStream(data))
         val pdfText = PDFTextStripper().getText(document)
         document.close()
         Assert.assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
+    }
+
+    protected fun assertPdfNotContains(expected: String?, data: ByteArray?) {
+        val document = PDDocument.load(ByteArrayInputStream(data))
+        val pdfText = PDFTextStripper().getText(document)
+        document.close()
+        Assert.assertFalse(String.format("PDF text (%s) contains unexpected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
     }
 
     /**

@@ -7,9 +7,9 @@
   </head>
   <body>
     <#include "templates/header.ftl">
-    <#include "templates/footer.ftl">
     <div class="content">
-      <#include "templates/reply.ftl">
-    </div>
+          <#include "templates/reply.ftl">
+        </div>
+    <#include "templates/footer.ftl">
   </body>
 </html>

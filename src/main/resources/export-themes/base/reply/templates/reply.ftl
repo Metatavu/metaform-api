@@ -11,6 +11,7 @@
               <#case 'text'>
               <#case 'number'>
               <#case 'email'>
+              <#case 'html'>
               <#case 'memo'>
                 <#assign fieldValue = reply.getData()[fieldName]!''>
                 <#if fieldValue?has_content>
@@ -18,6 +19,13 @@
                   <div>${fieldValue?html?replace("\n", "<br/>")}</div>
                 </#if>
               <#break>
+            <#case 'url'>
+              <#assign fieldValue = reply.getData()[fieldName]!''>
+              <#if fieldValue?has_content>
+                <div><label><b>${field.getTitle()!''}</b></label></div>
+                <a href="${fieldValue}">${fieldValue}</a>
+              </#if>
+            <#break>
               <#case 'date'>
                 <#assign fieldValue = reply.getData()[fieldName]!''>
                 <#if fieldValue?has_content>
@@ -61,7 +69,7 @@
                       </#if>
                     </#list>
                     <div><label><b>${field.getTitle()!''}</b></label></div>
-                    <div>${optionText}</div>
+                    <div>${optionText!''}</div>
                   </#if>
                 </#if>
               <#break>
@@ -75,7 +83,7 @@
                       </#if>
                     </#list>
                     <div><label><b>${field.getTitle()!''}</b></label></div>
-                    <div>${optionText}</div>
+                    <div>${optionText!''}</div>
                   </#if>
                 </#if>
               <#break>
@@ -95,19 +103,20 @@
               <#break>
               <#case 'table'>
                 <#assign fieldValue = reply.getData()[fieldName]!''>
+                <#assign table = field.table>
                 <#if fieldValue?has_content>
-                  <#if field.getColumns()??>
+                  <#if table.getColumns()??>
                     <div><label><b>${field.getTitle()!''}</b></label></div>
                     <table style="width: 100%">
                       <tr>
-                        <#list field.getColumns() as column>
+                        <#list table.getColumns() as column>
                           <th>${column.getTitle()!''}</th>
                         </#list>
                       </tr>                                      
                       <#list fieldValue as row>
                         <#if row??>
                           <tr>
-                            <#list field.getColumns() as column>
+                            <#list table.getColumns() as column>
                               <td>${row[column.getName()]!''}</td>
                             </#list>
                           </tr>
@@ -120,9 +129,11 @@
               <#case 'boolean'>
                 <#assign fieldValue = reply.getData()[fieldName]!''>
                 <#if fieldValue?has_content>
+                  <div><label><b>${field.getTitle()!''}</b></label></div>
                   <div><b>[X]</b> ${field.getText()!''}</div>
                 </#if>
                 <#if !fieldValue?has_content>
+                  <div><label><b>${field.getTitle()!''}</b></label></div>
                   <div><b>[_]</b> ${field.getText()!''}</div>
                 </#if>
               <#break>
@@ -141,6 +152,7 @@
               <#break>
               <#case 'files'>
                 <#if reply.getData()[fieldName]??>
+                  <div><label><b>${field.getTitle()!''}</b></label></div>
                   <#list reply.getData()[fieldName] as attachmentId>
                     <#if attachments[attachmentId]??>
                       <pre>${attachments[attachmentId].getName()}</pre>
@@ -148,9 +160,24 @@
                   </#list>
                 </#if>
               <#break>
-              <#case 'html'>
+                <#case 'slider'>
+                  <#if reply.getData()[fieldName]??>
+                  <#assign fieldValue = reply.getData()[fieldName]!''>
+                    <#if fieldValue?has_content>
+                      <div>
+                        <div><label><b>${field.getTitle()!''}</b></label></div>
+                        <div class="slider-container">
+                         <div>
+                           ${field.getMin()!0}<input type="range" min="${field.getMin()!0}" max="${field.getMax()!100}" value="${fieldValue}"> ${field.getMax()!100}
+                         </div>
+                          ${fieldValue}
+                        <div>
+                      </div>
+                    </#if>
+                  </#if>
+                <#break>
               <#case 'hidden'>
-              <#case 'submit'>
+              <#case 'small-text'>
               <#break>
               <#default>
                 <pre style="color: red">Unknown field type ${field.getType()}</pre>
