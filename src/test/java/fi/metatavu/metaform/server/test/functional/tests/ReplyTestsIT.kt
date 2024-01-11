@@ -747,6 +747,7 @@ class ReplyTestsIT : AbstractTest() {
             }
     }
 
+
     companion object {
         private val TIMEZONE = ZoneId.of("Europe/Helsinki")
     }
