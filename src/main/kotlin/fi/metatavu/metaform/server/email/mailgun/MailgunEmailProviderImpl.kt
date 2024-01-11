@@ -45,13 +45,13 @@ class MailgunEmailProviderImpl : EmailProvider {
     lateinit var vertx: Vertx
 
     /**
-     * Sends an email
+     * Sends an email in HTML format.
      *
-     * @param to email which will receive this email
+     * @param toEmail email which will receive this email
      * @param subject email subject
      * @param content email content
      */
-    override fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?) {
+    override fun sendMail(toEmail: String?, subject: String?, content: String?) {
         val client: WebClient = WebClient.create(vertx)
         client.requestAbs(
                 HttpMethod.POST,

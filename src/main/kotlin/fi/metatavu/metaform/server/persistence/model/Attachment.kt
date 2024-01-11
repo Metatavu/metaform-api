@@ -33,7 +33,6 @@ class Attachment : Metadata() {
 
   @Column(nullable = false)
   @Lob
-  /*@Type(type = "org.hibernate.type.BinaryType")*/
   lateinit var content: ByteArray
 
 }

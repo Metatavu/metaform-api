@@ -9,7 +9,6 @@ import fi.metatavu.metaform.api.spec.model.Reply
 import fi.metatavu.metaform.server.email.SendEmailEvent
 import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer
 import fi.metatavu.metaform.server.email.EmailTemplateSource
-import fi.metatavu.metaform.server.email.mailgun.MailFormat
 import fi.metatavu.metaform.server.metaform.FieldRuleEvaluator
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationEmailDAO
@@ -181,7 +180,6 @@ class EmailNotificationController {
                     toEmail = email,
                     subject = subject,
                     content = content,
-                    format = MailFormat.HTML,
                     transactionPhase = TransactionPhase.AFTER_SUCCESS
                 )
             )

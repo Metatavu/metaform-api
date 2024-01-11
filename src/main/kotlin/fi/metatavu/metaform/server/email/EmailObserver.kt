@@ -64,7 +64,6 @@ class EmailObserver {
                 toEmail = event.toEmail,
                 subject = event.subject,
                 content = event.content,
-                format = event.format
             )
         } catch (e: Exception) {
             if (attemptsLeft > 0) {

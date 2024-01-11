@@ -47,9 +47,6 @@ class MetaformStatisticsTestsIT: AbstractTest() {
                     actualDateTime = metaformStatistics2.lastReplyDate!!,
                     ChronoUnit.MILLIS
             )
-
-            /*assertEquals(OffsetDateTime.parse(reply1.createdAt), OffsetDateTime.parse(metaformStatistics1.lastReplyDate))
-            assertEquals(OffsetDateTime.parse(reply2.createdAt), OffsetDateTime.parse(metaformStatistics2.lastReplyDate))*/
             assertTrue(OffsetDateTime.parse(metaformStatistics2.lastReplyDate) > OffsetDateTime.parse(metaformStatistics1.lastReplyDate))
         }
     }

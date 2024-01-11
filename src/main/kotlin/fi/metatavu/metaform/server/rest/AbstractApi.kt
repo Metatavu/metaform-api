@@ -83,6 +83,22 @@ abstract class AbstractApi {
     }
 
     /**
+     * Constructs ok response
+     *
+     * @param entity payload
+     * @param totalHits total hits
+     * @return response
+     */
+    protected fun createOk(entity: Any?, totalHits: Long?): Response {
+        return Response
+                .status(Response.Status.OK)
+                .entity(entity)
+                .header("Total-Results", totalHits)
+                .header("Access-Control-Expose-Headers", "Total-Results")
+                .build()
+    }
+
+    /**
      * Constructs no content response
      *
      * @return response

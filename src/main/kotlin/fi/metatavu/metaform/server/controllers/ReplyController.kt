@@ -38,8 +38,15 @@ import java.util.*
 import java.util.function.Consumer
 
 /**
+ * Reply id and resource id data class
+ *
+ * @author Harri Häkkinen
+ */
+data class ReplyIdAndResourceId(val id: UUID, val resourceId: UUID?)
+/**
  * Controller for Replies
  */
+
 @ApplicationScoped
 class ReplyController {
 
@@ -359,6 +366,51 @@ class ReplyController {
     fun deleteReply(reply: Reply) {
         anyReplyFieldDAO.listByReply(reply).forEach { deleteField(it) }
         replyDAO.delete(reply)
+    }
+
+    /**
+     * Returns list of ReplyIdAndResourceId's
+     *
+     * @param metaform Metaform
+     * @param userId userId
+     * @param createdBefore filter results by created before specified time.
+     * @param createdAfter filter results by created after specified time.
+     * @param modifiedBefore filter results by modified before specified time.
+     * @param modifiedAfter filter results by modified after specified time.
+     * @param includeRevisions
+     * @param fieldFilters
+     * @param orderBy criteria to order by
+     * @param latestFirst return the latest result first according to the criteria in orderBy
+     * @return List<ReplyIdAndResourceIds> list of ReplyIdAndResourceId's
+     */
+    fun listIdsAndResourceIds(
+            metaform: Metaform? = null,
+            userId: UUID? = null,
+            createdBefore: OffsetDateTime? = null,
+            createdAfter: OffsetDateTime? = null,
+            modifiedBefore: OffsetDateTime? = null,
+            modifiedAfter: OffsetDateTime? = null,
+            includeRevisions: Boolean,
+            fieldFilters: FieldFilters? = null,
+            orderBy: ReplyOrderCriteria? = null,
+            latestFirst: Boolean? = null
+    ): List<ReplyIdAndResourceId> {
+        // mimic the original behavior
+        val orderByReal = orderBy ?: ReplyOrderCriteria.CREATED
+        val latestFirstReal = latestFirst ?: false
+
+        return replyDAO.listIdsAndResourceIds(
+                metaform,
+                userId,
+                includeRevisions,
+                createdBefore,
+                createdAfter,
+                modifiedBefore,
+                modifiedAfter,
+                fieldFilters,
+                orderByReal,
+                latestFirstReal
+        ).map { ReplyIdAndResourceId(it.get("id") as UUID, it.get("resourceId") as UUID?) }
     }
 
     /**
@@ -1089,6 +1141,19 @@ class ReplyController {
                 metaformId = reply.metaform.id!!
             )
         )
+    }
+
+    /**
+     * Sets reply firstViewedAt and lastViewedAt
+     *
+     * @param reply reply
+     * @param viewedAtDateTime OffsetDateTime
+     */
+    fun setReplyViewedAt(reply: Reply, viewedAtDateTime: OffsetDateTime) {
+        if (reply.firstViewedAt == null) {
+            reply.firstViewedAt = viewedAtDateTime
+        }
+        reply.lastViewedAt = viewedAtDateTime
     }
 
     companion object {

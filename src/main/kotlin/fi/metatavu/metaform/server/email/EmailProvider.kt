@@ -1,7 +1,5 @@
 package fi.metatavu.metaform.server.email
 
-import fi.metatavu.metaform.server.email.mailgun.MailFormat
-
 /**
  * Interface that describes a single email provider
  *
@@ -10,12 +8,11 @@ import fi.metatavu.metaform.server.email.mailgun.MailFormat
  */
 interface EmailProvider {
     /**
-     * Sends an email
+     * Sends an email in HTML format
      *
      * @param toEmail recipient's email address
      * @param subject email's subject
      * @param content email's content
-     * @param format email format
      */
-    fun sendMail(toEmail: String?, subject: String?, content: String?, format: MailFormat?)
+    fun sendMail(toEmail: String?, subject: String?, content: String?)
 }
