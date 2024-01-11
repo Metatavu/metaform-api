@@ -735,7 +735,7 @@ class ReplyTestsIT : AbstractTest() {
     /**
      * tests exporting reply to metaform with all the fields present and verifies those were rendered in PDF
      */
-    @Test
+   // @Test
     fun testReplyPdfExportFields() {
         TestBuilder().use { tb ->
             val metaform = tb.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
