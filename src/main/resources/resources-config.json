@@ -7,7 +7,7 @@
       "pattern": "META-INF/services/org.keycloak.protocol.oidc.client.authentication.ClientCredentialsProvider"
     },
     {
-      "pattern": ".*\\.ftl"
+      "pattern": "export-themes/.*"
     }
   ]
 }
