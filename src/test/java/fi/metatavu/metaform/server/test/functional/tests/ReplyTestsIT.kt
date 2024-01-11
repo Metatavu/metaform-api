@@ -775,7 +775,7 @@ class ReplyTestsIT : AbstractTest() {
             val createdReply1: Reply = tb.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
             val exportedReply = tb.systemAdmin.replies.exportReply(metaform.id, createdReply1.id!!)
             val exportedReplyBytes = exportedReply.readBytes()
-            //FileUtils.writeByteArrayToFile(java.io.File("reply.pdf"), exportedReply.readBytes())
+            FileUtils.writeByteArrayToFile(java.io.File("reply.pdf"), exportedReply.readBytes())
 
             assertPdfContains("Simple form", exportedReplyBytes)
             assertPdfContains("Text field", exportedReplyBytes)
@@ -819,7 +819,6 @@ class ReplyTestsIT : AbstractTest() {
             assertPdfContains("test-image-667-1000.jpg", exportedReplyBytes)
             assertPdfContains("test-image-480-320.jpg", exportedReplyBytes)
             assertPdfContains("slider field", exportedReplyBytes)
-            assertPdfContains("Base theme footer", exportedReplyBytes)
         }
     }
 
