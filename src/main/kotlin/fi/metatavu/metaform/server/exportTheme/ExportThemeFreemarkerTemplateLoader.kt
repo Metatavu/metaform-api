@@ -32,7 +32,7 @@ class ExportThemeFreemarkerTemplateLoader: TemplateLoader {
         val exportThemeFile = findExportThemeFile(path)
         return if (exportThemeFile != null) {
             exportThemeFile.modifiedAt!!.toInstant().toEpochMilli()
-        } else -1
+        } else 0
     }
 
     @Throws(IOException::class)

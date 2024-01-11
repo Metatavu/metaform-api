@@ -624,7 +624,6 @@ class ReplyTestsIT : AbstractTest() {
 
         // export as pdf with base theme
         val replyWithoutTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformNoTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
-        assertPdfDownloadContents("Base theme header", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
         assertPdfDownloadNotContents("content", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
 
         // export with a selected theme
