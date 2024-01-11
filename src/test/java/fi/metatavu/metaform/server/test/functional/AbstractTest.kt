@@ -401,6 +401,7 @@ class AbstractTest {
         val document = PDDocument.load(ByteArrayInputStream(data))
         val pdfText = PDFTextStripper().getText(document)
         document.close()
+        println("expecting text to contain $expected, \n\nactual text:\n$pdfText\n\n")
         Assert.assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
     }
 
