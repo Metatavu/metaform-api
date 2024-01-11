@@ -770,7 +770,7 @@ class ReplyTestsIT : AbstractTest() {
             val createdReply1: Reply = tb.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
             val exportedReply = tb.systemAdmin.replies.exportReply(metaform.id, createdReply1.id!!)
             val exportedReplyBytes = exportedReply.readBytes()
-            FileUtils.writeByteArrayToFile(java.io.File("reply.pdf"), exportedReply.readBytes())
+            //FileUtils.writeByteArrayToFile(java.io.File("reply.pdf"), exportedReply.readBytes())
 
             assertPdfContains("Simple form", exportedReplyBytes)
             assertPdfContains("Text field", exportedReplyBytes)
