@@ -1,8 +1,7 @@
 package fi.metatavu.metaform.server.metaform
 
 import fi.metatavu.metaform.api.spec.model.MetaformFieldType
-import org.slf4j.Logger
-import jakarta.inject.Inject
+import org.slf4j.LoggerFactory
 
 /**
  * Mapper for mapping field types into store data types
@@ -11,8 +10,7 @@ import jakarta.inject.Inject
  */
 object FieldTypeMapper {
 
-    @Inject
-    lateinit var logger: Logger
+    private val logger = LoggerFactory.getLogger(FieldTypeMapper::class.java)
 
     /**
      * Maps field type into store data types
