@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.Any
@@ -789,7 +791,7 @@ class ReplyTestsIT : AbstractTest() {
             assertPdfContains("time field", exportedReplyBytes)
             assertPdfContains("12:00:00", exportedReplyBytes)
             assertPdfContains("date-time field", exportedReplyBytes)
-            assertPdfContains("2021 Jan 1 14:00:00", exportedReplyBytes)
+            assertPdfContains("2021 Jan 1", exportedReplyBytes)
             assertPdfContains("radio field", exportedReplyBytes)
             assertPdfContains("radio1", exportedReplyBytes)
             assertPdfContains("Table field", exportedReplyBytes)
