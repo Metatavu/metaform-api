@@ -145,7 +145,7 @@ class ReplyTestsIT : AbstractTest() {
             builder.test1.replies.createSimpleReply(metaform.id!!, "val 1", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 2", ReplyMode.CUMULATIVE)
             builder.test1.replies.createSimpleReply(metaform.id, "val 3", ReplyMode.CUMULATIVE)
-            val replies = builder.systemAdmin.replies.listReplies(metaform.id!!, USER_1_ID, null,
+            val replies = builder.systemAdmin.replies.listReplies(metaform.id, USER_1_ID, null,
                     null, null, null, true, null, null, null, null, null).clone().toList()
             assertEquals(3, replies.size)
             assertEquals("val 1", replies[0].data!!["text"])
@@ -155,8 +155,13 @@ class ReplyTestsIT : AbstractTest() {
             // List with filters
             val withFilters = builder.systemAdmin.replies.listReplies(metaform.id, USER_1_ID, null,
                 null, null, null, true,
-                arrayOf("status:waiting"), 0, 25, ReplyOrderCriteria.CREATED, true).clone().toList()
-            assertEquals(0, withFilters.size)
+                arrayOf("text:val 1"), 0, 25, ReplyOrderCriteria.CREATED, true).clone().toList()
+            assertEquals(1, withFilters.size)
+
+            val withInvalidFieldFilter = builder.systemAdmin.replies.listReplies(metaform.id, USER_1_ID, null,
+                null, null, null, true,
+                arrayOf("nonexistent:val 1"), 0, 25, ReplyOrderCriteria.CREATED, true).clone().toList()
+            assertEquals(3, withInvalidFieldFilter.size)
         }
     }
 
