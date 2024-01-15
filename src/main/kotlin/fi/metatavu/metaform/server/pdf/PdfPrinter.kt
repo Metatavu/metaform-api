@@ -2,6 +2,8 @@ package fi.metatavu.metaform.server.pdf
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.server.exceptions.PdfRenderException
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
@@ -13,8 +15,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
 
 /**
  * Class for converting HTML documents to PDF documents
@@ -64,10 +64,10 @@ class PdfPrinter {
 
                     val html = htmlData.toString(StandardCharsets.UTF_8)
 
-                    httpPost.entity = StringEntity(jacksonObjectMapper().writeValueAsString(mapOf(
-                        "html" to html
-                    )))
-
+                    httpPost.entity = StringEntity(
+                        jacksonObjectMapper().writeValueAsString(mapOf("html" to html)),
+                        charset("utf-8")
+                    )
                     client.execute(httpPost).use { response ->
                         if (response.statusLine.statusCode != 200) {
                             val errorMessage = IOUtils.toString(response.entity.content, StandardCharsets.UTF_8)

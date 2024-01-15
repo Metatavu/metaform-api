@@ -482,21 +482,20 @@ class ReplyController {
      */
     @Throws(PdfRenderException::class)
     fun getReplyPdf(
-            exportThemeName: String,
+            exportThemeName: String?,
             metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform,
             replyEntity: fi.metatavu.metaform.api.spec.model.Reply,
             attachmentMap: Map<String, fi.metatavu.metaform.api.spec.model.Attachment>,
             locale: Locale
     ): ByteArray {
+        val themeName = if (!exportThemeName.isNullOrEmpty()) {
+            exportThemeName
+        } else {
+            BASE_THEME_NAME
+        }
+
         val dataModel = ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.createdAt), getDate(replyEntity.modifiedAt))
-        val html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", exportThemeName), dataModel, locale)
-            ?.replace("ä", "&auml;")
-            ?.replace("ö", "&ouml;")
-            ?.replace("ü", "&uuml;")
-            ?.replace("Ä", "&Auml;")
-            ?.replace("Ö", "&Ouml;")
-            ?.replace("Ü", "&Uuml;")
-            ?.replace("ß", "&szlig;")
+        val html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", themeName), dataModel, locale)
 
         try {
             IOUtils.toInputStream(html, StandardCharsets.UTF_8).use { htmlStream ->
@@ -1158,6 +1157,7 @@ class ReplyController {
 
         const val  REPLY_RESOURCE_URI_TEMPLATE = "/v1/metaforms/%s/replies/%s"
         const val  REPLY_RESOURCE_NAME_TEMPLATE = "reply-%s"
+        const val  BASE_THEME_NAME = "base"
     }
 
 }
