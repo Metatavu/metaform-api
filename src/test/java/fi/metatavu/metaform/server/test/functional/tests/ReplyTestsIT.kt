@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.test.functional.tests
 
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.Reply
+import fi.metatavu.metaform.api.client.models.ReplyOrderCriteria
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
@@ -150,6 +151,17 @@ class ReplyTestsIT : AbstractTest() {
             assertEquals("val 1", replies[0].data!!["text"])
             assertEquals("val 2", replies[1].data!!["text"])
             assertEquals("val 3", replies[2].data!!["text"])
+
+            // List with filters
+            val withFilters = builder.systemAdmin.replies.listReplies(metaform.id, USER_1_ID, null,
+                null, null, null, true,
+                arrayOf("text:val 1"), 0, 25, ReplyOrderCriteria.CREATED, true).clone().toList()
+            assertEquals(1, withFilters.size)
+
+            val withInvalidFieldFilter = builder.systemAdmin.replies.listReplies(metaform.id, USER_1_ID, null,
+                null, null, null, true,
+                arrayOf("nonexistent:val 1"), 0, 25, ReplyOrderCriteria.CREATED, true).clone().toList()
+            assertEquals(3, withInvalidFieldFilter.size)
         }
     }
 
