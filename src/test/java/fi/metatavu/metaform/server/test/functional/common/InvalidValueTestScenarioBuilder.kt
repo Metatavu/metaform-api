@@ -8,7 +8,7 @@ import io.restassured.http.Method
  * @param path path
  * @param method request method
  */
-class InvalidValueTestScenarioBuilder(private val path: String, private val method: Method) {
+class InvalidValueTestScenarioBuilder(private val path: String, private val method: Method, private val token: String? = null) {
 
     private val parameters: MutableList<InvalidValueTestScenarioBase> = mutableListOf()
 
@@ -58,6 +58,7 @@ class InvalidValueTestScenarioBuilder(private val path: String, private val meth
                 scenarios.add(InvalidValueTestScenario(
                     path = path,
                     method = method,
+                    token = token,
                     queryParams = queryParams,
                     pathParams = pathParams,
                     expectedStatus = parameter.expectedStatus

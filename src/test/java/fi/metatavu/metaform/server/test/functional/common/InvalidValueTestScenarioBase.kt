@@ -1,7 +1,5 @@
 package fi.metatavu.metaform.server.test.functional.common
 
-import fi.metatavu.metaform.server.test.functional.common.InvalidValueProvider
-
 /**
  * Base class for test scenario builder scenario parameter
  *

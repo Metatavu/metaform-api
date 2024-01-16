@@ -1,8 +1,5 @@
 package fi.metatavu.metaform.server.test.functional.common
 
-import fi.metatavu.metaform.server.test.functional.common.InvalidValueProvider
-import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBase
-
 /**
  * Single query parameter for invalid value test scenario builder
  *

@@ -8,12 +8,15 @@ import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthe
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.PdfRendererResource
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBuilder
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioPath
+import fi.metatavu.metaform.server.test.functional.common.InvalidValues
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
+import io.restassured.http.Method
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.util.UUID.randomUUID
 
 /**
  * Tests for Admin Theme API
@@ -70,7 +73,10 @@ class AdminThemeTestsIT : AbstractTest() {
             val adminTheme: AdminTheme = builder.systemAdmin.adminThemes.createSimpleTheme()
 
             Assertions.assertNotNull(adminTheme)
-            builder.systemAdmin.adminThemes.assertSearchFailStatus(404, randomUUID())
+            InvalidValueTestScenarioBuilder(path = "v1/adminThemes/{themeId}", method = Method.GET, token = builder.systemAdmin.token)
+                .path(InvalidValueTestScenarioPath(name = "themeId", values = InvalidValues.UUID_NOT_NULL, default = adminTheme.id, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 
