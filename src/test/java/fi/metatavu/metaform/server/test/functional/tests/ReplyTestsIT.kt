@@ -16,15 +16,12 @@ import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import io.restassured.RestAssured
-import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.Any
@@ -626,11 +623,12 @@ class ReplyTestsIT : AbstractTest() {
 
         // export as pdf with base theme
         val replyWithoutTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformNoTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
-        assertPdfDownloadNotContents("content", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
+        // verify that the "content" from exportTheme did not apply to the base theme export
+        assertPdfDownloadDoesNotContain("content", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
 
         // export with a selected theme
         val replyWithTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformWithTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
-        assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaformWithTheme, replyWithTheme)
+        assertPdfDownloadContains("content", testBuilder.systemAdmin.token, metaformWithTheme, replyWithTheme)
     }
 
     @Test

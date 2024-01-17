@@ -54,6 +54,12 @@ class ExportThemeFreemarkerTemplateLoader: TemplateLoader {
         // Template loader is id, so no need to close
     }
 
+    /**
+     * Finds export theme file by path
+     *
+     * @param path path
+     * @return found export theme file or null if not found
+     */
     private fun findExportThemeFile(path: String?): ExportThemeFile? {
         return exportThemeController.findExportThemeFile(path = path)
     }
