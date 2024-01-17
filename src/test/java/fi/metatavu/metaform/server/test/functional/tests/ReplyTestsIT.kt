@@ -623,11 +623,13 @@ class ReplyTestsIT : AbstractTest() {
 
         // export as pdf with base theme
         val replyWithoutTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformNoTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
-        assertPdfDownloadContents("Test 1, Ääkköstesti ÅÅ, Правда", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
+        // verify that the "content" from exportTheme did not apply to the base theme export
+        assertPdfDownloadDoesNotContain("content", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
+        assertPdfDownloadContains("Test 1, Ääkköstesti ÅÅ, Правда", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
 
         // export with a selected theme
         val replyWithTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformWithTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
-        assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaformWithTheme, replyWithTheme)
+        assertPdfDownloadContains("content", testBuilder.systemAdmin.token, metaformWithTheme, replyWithTheme)
     }
 
     @Test

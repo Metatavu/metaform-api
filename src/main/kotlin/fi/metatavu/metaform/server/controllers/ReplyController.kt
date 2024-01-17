@@ -5,7 +5,6 @@ import fi.metatavu.metaform.server.exceptions.PdfRenderException
 import fi.metatavu.metaform.server.exceptions.XlsxException
 import fi.metatavu.metaform.server.exportTheme.ExportThemeFreemarkerRenderer
 import fi.metatavu.metaform.server.exportTheme.ReplyExportDataModel
-import fi.metatavu.metaform.server.utils.MetaformUtils
 import fi.metatavu.metaform.server.metaform.FieldFilters
 import fi.metatavu.metaform.server.pdf.PdfPrinter
 import fi.metatavu.metaform.server.persistence.dao.*
@@ -15,9 +14,13 @@ import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.Reply
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.script.FormRuntimeContext
+import fi.metatavu.metaform.server.utils.MetaformUtils
 import fi.metatavu.metaform.server.xlsx.CellSource
 import fi.metatavu.metaform.server.xlsx.CellSourceType
 import fi.metatavu.metaform.server.xlsx.XlsxBuilder
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.enterprise.event.Event
+import jakarta.inject.Inject
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.ArrayUtils
 import org.apache.commons.lang3.StringUtils
@@ -33,9 +36,6 @@ import java.security.PublicKey
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.enterprise.event.Event
-import jakarta.inject.Inject
 
 /**
  * Reply id and resource id data class
