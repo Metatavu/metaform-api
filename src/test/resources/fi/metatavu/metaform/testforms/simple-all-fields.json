@@ -1,0 +1,153 @@
+{
+  "title": "Simple",
+  "allowDrafts": true,
+  "visibility": "PUBLIC",
+  "sections": [
+    {
+      "title": "Simple form",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "name": "number",
+          "type": "number",
+          "title": "Number field"
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "title": "Email field"
+        },
+        {
+          "name": "html",
+            "type": "html",
+            "title": "HTML field"
+        },
+        {
+          "name": "hidden",
+          "type": "hidden",
+          "title": "Hidden field"
+        },
+        {
+          "name": "small-text",
+          "type": "small-text",
+          "title": "small-text field"
+        },
+        {
+          "name": "url",
+          "type": "url",
+          "title": "URL field"
+        },
+        {
+          "name": "memo",
+          "type": "memo",
+          "title": "memo field"
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "title": "date field"
+        },
+        {
+          "name": "time",
+          "type": "time",
+          "title": "time field"
+        },
+        {
+          "name": "date-time",
+          "type": "date-time",
+          "title": "date-time field"
+        },
+        {
+          "name": "radio",
+          "type": "radio",
+          "title": "radio field",
+          "options": [{
+            "name": "1",
+            "text": "radio1"
+          }, {
+            "name": "2",
+            "text": "radio2"
+          }]
+        },
+        {
+          "name": "table",
+          "title": "Table field",
+          "type": "table",
+          "table": {
+            "addRows": true,
+            "columns": [
+              {
+                "type": "text",
+                "name": "tabletext",
+                "title": "Text table field"
+              },
+              {
+                "type": "number",
+                "name": "tablenumber",
+                "title": "Number table field",
+                "calculate-sum": true,
+                "sum-postfix": "€"
+              }
+            ]
+          }
+        },
+        {
+          "name": "select",
+          "type": "select",
+          "title": "select field",
+          "options": [{
+            "name": "select1",
+            "text": "select1"
+          }, {
+            "name": "select2",
+            "text": "select2"
+          }]
+        },
+        {
+          "name": "autocomplete",
+          "type": "autocomplete",
+          "title": "autocomplete field",
+          "options": [{
+            "name": "autocomplete1",
+            "text": "autocomplete1"
+          }, {
+            "name": "autocomplete2",
+            "text": "autocomplete2"
+          }]
+        },
+        {
+          "name": "checklist",
+          "type": "checklist",
+          "title": "checklist field",
+          "options": [{
+            "name": "1",
+            "text": "1"
+          }, {
+            "name": "2",
+            "text": "2"
+          }]
+        },
+        {
+          "name": "boolean",
+          "type": "boolean",
+          "title": "boolean field"
+        },
+        {
+          "name": "files",
+          "type": "files",
+          "title": "files field"
+        },
+        {
+          "name": "slider",
+          "type": "slider",
+          "title": "slider field",
+          "min": -200
+        }
+      ]
+    }
+  ]
+}

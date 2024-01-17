@@ -451,22 +451,18 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             return createInternalServerError(e.message)
         }
 
-        if (metaform.exportTheme == null) {
-            return createBadRequest("Metaform does not have an export theme")
-        }
-
         val replyEntity: Reply = replyTranslator.translate(metaformEntity, reply, null)
         val attachmentMap = getAttachmentMap(metaformEntity, replyEntity)
 
         return try {
-            val pdfData = replyController.getReplyPdf(metaform.exportTheme!!.name, metaformEntity, replyEntity, attachmentMap, locale)
+            val pdfData = replyController.getReplyPdf(metaform.exportTheme?.name, metaformEntity, replyEntity, attachmentMap, locale)
             auditLogEntryController.generateAuditLog(metaform, userId, replyId, null, null, AuditLogEntryType.EXPORT_REPLY_PDF)
             streamResponse(pdfData, "application/pdf")
         } catch (e: PdfRenderException) {
             logger.error("Failed to generate PDF", e)
             createInternalServerError(e.message!!)
         }
-    }
+  }
 
     /**
      * Update a reply by id
