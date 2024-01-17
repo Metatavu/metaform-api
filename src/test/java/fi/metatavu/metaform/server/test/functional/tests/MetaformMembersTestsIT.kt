@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.api.client.models.*
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
@@ -7,9 +8,14 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBuilder
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioPath
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioQuery
+import fi.metatavu.metaform.server.test.functional.common.InvalidValues
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
+import io.restassured.http.Method
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -80,16 +86,22 @@ class MetaformMembersTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun createMetaformMemberNotFound() {
         TestBuilder().use { testBuilder ->
-            testBuilder.systemAdmin.metaformMembers.assertCreateFailStatus(
-                404,
-                UUID.randomUUID(),
-                MetaformMember(
-                    email = "tommi@example.com",
-                    firstName = "tommi",
-                    lastName = "tommi",
-                    role = MetaformMemberRole.ADMINISTRATOR
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}/members",
+                method = Method.POST,
+                token = testBuilder.systemAdmin.token,
+                body = jacksonObjectMapper().writeValueAsString(
+                    MetaformMember(
+                        email = "tommi@example.com",
+                        firstName = "tommi",
+                        lastName = "tommi",
+                        role = MetaformMemberRole.ADMINISTRATOR
+                    )
                 )
             )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 
@@ -120,8 +132,15 @@ class MetaformMembersTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val metaformMember = testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
-            testBuilder.systemAdmin.metaformMembers.assertFindFailStatus(404, UUID.randomUUID(), metaformMember.id!!)
-            testBuilder.systemAdmin.metaformMembers.assertFindFailStatus(404, metaform.id, UUID.randomUUID())
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}/members/{memberId}",
+                method = Method.GET,
+                token = testBuilder.systemAdmin.token
+            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING, default = metaformMember.id, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 
@@ -155,7 +174,15 @@ class MetaformMembersTestsIT : AbstractTest() {
             val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id!!, "tommi")
 
-            testBuilder.systemAdmin.metaformMembers.assertListFailStatus(404, UUID.randomUUID(), MetaformMemberRole.MANAGER)
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}/members",
+                method = Method.GET,
+                token = testBuilder.systemAdmin.token
+            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
+                .query(InvalidValueTestScenarioQuery(name = "role", values = InvalidValues.STRING_NOT_NULL, default = MetaformMemberRole.MANAGER, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 
@@ -228,8 +255,15 @@ class MetaformMembersTestsIT : AbstractTest() {
 
             val foundMember = testBuilder.systemAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
-            testBuilder.systemAdmin.metaformMembers.assertDeleteFailStatus(404, UUID.randomUUID(), foundMember.id!!)
-            testBuilder.systemAdmin.metaformMembers.assertDeleteFailStatus(404, metaform.id, UUID.randomUUID())
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}/members/{memberId}",
+                method = Method.DELETE,
+                token = testBuilder.systemAdmin.token
+            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING, default = foundMember.id, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 
@@ -274,8 +308,16 @@ class MetaformMembersTestsIT : AbstractTest() {
 
             val foundMember = testBuilder.systemAdmin.metaformMembers.findMember(metaform.id, metaformMember.id!!)
 
-            testBuilder.systemAdmin.metaformMembers.assertUpdateFailStatus(404, UUID.randomUUID(), foundMember.id!!, foundMember)
-            testBuilder.systemAdmin.metaformMembers.assertUpdateFailStatus(404, metaform.id, UUID.randomUUID(), foundMember)
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}/members/{memberId}",
+                method = Method.PUT,
+                token = testBuilder.systemAdmin.token,
+                body = jacksonObjectMapper().writeValueAsString(foundMember)
+            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING, default = foundMember.id, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 

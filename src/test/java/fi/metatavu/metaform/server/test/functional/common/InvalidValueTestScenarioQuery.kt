@@ -13,7 +13,7 @@ class InvalidValueTestScenarioQuery(
     name: String,
     values: Collection<InvalidValueProvider>,
     except: Collection<Any?> = emptyList(),
-    default: Any?,
+    default: Any? = null,
     expectedStatus: Int
 ): InvalidValueTestScenarioBase(name, values, except, default, expectedStatus) {
 

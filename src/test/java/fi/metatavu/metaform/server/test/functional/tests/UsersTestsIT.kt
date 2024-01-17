@@ -8,9 +8,13 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.resources.CardAuthKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBuilder
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioPath
+import fi.metatavu.metaform.server.test.functional.common.InvalidValues
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
+import io.restassured.http.Method
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -88,7 +92,14 @@ class UsersTestsIT: AbstractTest() {
     @Throws(Exception::class)
     fun findUserNotFound() {
         TestBuilder().use { testBuilder ->
-            testBuilder.systemAdmin.users.assertFindFailStatus(404, UUID.randomUUID())
+            InvalidValueTestScenarioBuilder(
+                path = "v1/users/{userId}",
+                method = Method.GET,
+                token = testBuilder.systemAdmin.token
+            )
+                .path(InvalidValueTestScenarioPath(name = "userId", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 

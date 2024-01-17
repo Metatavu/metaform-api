@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.api.client.models.*
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
@@ -8,9 +9,14 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBuilder
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioPath
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioQuery
+import fi.metatavu.metaform.server.test.functional.common.InvalidValues
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
+import io.restassured.http.Method
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -184,14 +190,15 @@ class MetaformTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testFindMetaformNotFound() {
         TestBuilder().use { builder ->
-            builder.systemAdmin.metaforms.assertFindFailStatus(
-                    expectedStatus = 404,
-                    metaformId = UUID.randomUUID()
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}",
+                method = Method.DELETE,
+                token = builder.systemAdmin.token
             )
-            builder.systemAdmin.metaforms.assertFindFailStatus(
-                    expectedStatus = 404,
-                    metaformSlug = ""
-            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, expectedStatus = 404))
+                .query(InvalidValueTestScenarioQuery(name = "metaformSlug", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 

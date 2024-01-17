@@ -7,8 +7,15 @@ import io.restassured.http.Method
  *
  * @param path path
  * @param method request method
+ * @param token token if applicable
+ * @param body body if needed
  */
-class InvalidValueTestScenarioBuilder(private val path: String, private val method: Method, private val token: String? = null) {
+class InvalidValueTestScenarioBuilder(
+    private val path: String,
+    private val method: Method,
+    private val token: String? = null,
+    private val body: String? = null
+) {
 
     private val parameters: MutableList<InvalidValueTestScenarioBase> = mutableListOf()
 
@@ -45,7 +52,7 @@ class InvalidValueTestScenarioBuilder(private val path: String, private val meth
         parameters.forEach { parameter ->
             val parameterValues = parameter.values.map(InvalidValueProvider::value)
 
-            parameterValues.minus(parameter.except).forEach { parameterValue ->
+            parameterValues.minus(parameter.except.toSet()).forEach { parameterValue ->
                 val queryParams = buildDefaultQueryParams().toMutableMap()
                 val pathParams = buildDefaultPathParams().toMutableMap()
 
@@ -59,6 +66,7 @@ class InvalidValueTestScenarioBuilder(private val path: String, private val meth
                     path = path,
                     method = method,
                     token = token,
+                    body = body,
                     queryParams = queryParams,
                     pathParams = pathParams,
                     expectedStatus = parameter.expectedStatus
@@ -75,10 +83,9 @@ class InvalidValueTestScenarioBuilder(private val path: String, private val meth
      * @return default query parameter map
      */
     private fun buildDefaultQueryParams(): Map<String, Any?> {
-        return parameters.filterIsInstance<InvalidValueTestScenarioQuery>()
-            .map {
-                it.name to it.default
-            }.toMap()
+        return parameters.filterIsInstance<InvalidValueTestScenarioQuery>().associate {
+            it.name to it.default
+        }
     }
 
     /**
@@ -87,10 +94,9 @@ class InvalidValueTestScenarioBuilder(private val path: String, private val meth
      * @return default path parameter map
      */
     private fun buildDefaultPathParams(): Map<String, Any?> {
-        return parameters.filterIsInstance<InvalidValueTestScenarioPath>()
-            .map {
-                it.name to it.default
-            }.toMap()
+        return parameters.filterIsInstance<InvalidValueTestScenarioPath>().associate {
+            it.name to it.default
+        }
     }
 
 }
