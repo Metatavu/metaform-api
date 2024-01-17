@@ -496,13 +496,6 @@ class ReplyController {
 
         val dataModel = ReplyExportDataModel(metaformEntity, replyEntity, attachmentMap, getDate(replyEntity.createdAt), getDate(replyEntity.modifiedAt))
         val html = exportThemeFreemarkerRenderer.render(String.format("%s/reply/pdf.ftl", themeName), dataModel, locale)
-            ?.replace("ä", "&auml;")
-            ?.replace("ö", "&ouml;")
-            ?.replace("ü", "&uuml;")
-            ?.replace("Ä", "&Auml;")
-            ?.replace("Ö", "&Ouml;")
-            ?.replace("Ü", "&Uuml;")
-            ?.replace("ß", "&szlig;")
 
         try {
             IOUtils.toInputStream(html, StandardCharsets.UTF_8).use { htmlStream ->
