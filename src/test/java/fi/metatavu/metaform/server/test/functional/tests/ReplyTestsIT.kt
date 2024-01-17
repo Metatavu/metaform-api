@@ -6,6 +6,7 @@ import fi.metatavu.metaform.api.client.models.ReplyOrderCriteria
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
 import fi.metatavu.metaform.server.test.functional.ApiTestSettings.Companion.apiBasePath
+import fi.metatavu.metaform.server.test.functional.FileUploadResponse
 import fi.metatavu.metaform.server.test.functional.builder.PermissionScope
 import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
@@ -625,15 +626,22 @@ class ReplyTestsIT : AbstractTest() {
     @Test
     @Throws(Exception::class)
     fun testExportReplyPdf() = TestBuilder().use { testBuilder ->
+        val metaformNoTheme: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+
         val exportTheme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
         testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(exportTheme.id!!, "reply/pdf.ftl", "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"></meta><title>title</title></head><body>content</body></html>")
-        val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-        val newMetaform = Metaform(metaform.id, metaform.visibility, exportTheme.id, metaform.allowAnonymous,
-                metaform.allowDrafts, metaform.allowReplyOwnerKeys, metaform.allowInvitations, metaform.autosave,
-                metaform.title, metaform.slug, metaform.sections, metaform.filters, metaform.scripts)
-        testBuilder.systemAdmin.metaforms.updateMetaform(newMetaform.id!!, newMetaform)
-        val reply: Reply = testBuilder.test1.replies.createSimpleReply(metaform.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
-        assertPdfDownloadContents("content", testBuilder.systemAdmin.token, metaform, reply)
+        val simple2 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+        val metaformWithTheme = testBuilder.systemAdmin.metaforms.updateMetaform(simple2.id!!, simple2.copy(exportThemeId = exportTheme.id))
+
+        // export as pdf with base theme
+        val replyWithoutTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformNoTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
+        // verify that the "content" from exportTheme did not apply to the base theme export
+        assertPdfDownloadDoesNotContain("content", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
+        assertPdfDownloadContains("Test 1, Ääkköstesti ÅÅ, Правда", testBuilder.systemAdmin.token, metaformNoTheme, replyWithoutTheme)
+
+        // export with a selected theme
+        val replyWithTheme: Reply = testBuilder.test1.replies.createSimpleReply(metaformWithTheme.id!!, "Test 1, Ääkköstesti ÅÅ, Правда", ReplyMode.UPDATE)
+        assertPdfDownloadContains("content", testBuilder.systemAdmin.token, metaformWithTheme, replyWithTheme)
     }
 
     @Test
@@ -734,6 +742,90 @@ class ReplyTestsIT : AbstractTest() {
             val reply3 = testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null, null, null, 2, null, null, null)
             assertEquals(reply3.size, 1)
             assertEquals(reply3[0].data!!["text"], "pagination-test-3")
+        }
+    }
+
+    /**
+     * tests exporting reply to metaform with all the fields present and verifies those were rendered in PDF
+     */
+    @Test
+    fun testReplyPdfExportFields() {
+        TestBuilder().use { tb ->
+            val metaform = tb.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
+            val replyData1: MutableMap<String, Any> = HashMap()
+            replyData1["text"] = "Test text REPLY"
+            replyData1["number"] = 100
+            replyData1["email"] = "testemail@example.com"
+            replyData1["html"] = "<p>HTML REPLY</p>"
+            replyData1["hidden"] = "Hidden value"
+            replyData1["small-text"] = "small text"
+            replyData1["url"] = "https://google.com"
+            replyData1["memo"] = "Memo REPLY"
+            replyData1["date"] = "2021-01-01"
+            replyData1["time"] = "12:00"
+            replyData1["date-time"] = "2021-01-01T12:00:00Z"
+            replyData1["radio"] = "1"
+            replyData1["select"] = "select1"
+            replyData1["autocomplete"] = "autocomplete2"
+            val tableData: List<Map<String, Any>> = listOf(
+                createSimpleTableRow("Text 1", 10.0),
+                createSimpleTableRow("Text 2", 20.0)
+            )
+            replyData1["table"] = tableData
+            replyData1["boolean"] = true
+            replyData1["checklist"] = "1"
+            val fileUpload1: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
+            val fileUpload2: FileUploadResponse = uploadResourceFile("test-image-667-1000.jpg")
+            replyData1["files"] = arrayOf(fileUpload1.fileRef, fileUpload2.fileRef)
+            replyData1["slider"] = 300
+            val reply1: Reply = tb.systemAdmin.replies.createReplyWithData(replyData1)
+            val createdReply1: Reply = tb.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
+            val exportedReply = tb.systemAdmin.replies.exportReply(metaform.id, createdReply1.id!!)
+            val exportedReplyBytes = exportedReply.readBytes()
+            //FileUtils.writeByteArrayToFile(java.io.File("reply.pdf"), exportedReply.readBytes())
+
+            assertPdfContains("Simple form", exportedReplyBytes)
+            assertPdfContains("Text field", exportedReplyBytes)
+            assertPdfContains("Test text REPLY", exportedReplyBytes)
+            assertPdfContains("Number field", exportedReplyBytes)
+            assertPdfContains("100", exportedReplyBytes)
+            assertPdfContains("Email field", exportedReplyBytes)
+            assertPdfContains("testemail@example.com", exportedReplyBytes)
+            assertPdfContains("HTML field", exportedReplyBytes)
+            assertPdfContains("<p>HTML REPLY</p>", exportedReplyBytes)
+            assertPdfContains("URL field", exportedReplyBytes)
+            assertPdfContains("google", exportedReplyBytes)
+            assertPdfContains("memo field", exportedReplyBytes)
+            assertPdfContains("Memo REPLY", exportedReplyBytes)
+            assertPdfContains("date field", exportedReplyBytes)
+            assertPdfContains("2021 Jan 1", exportedReplyBytes)
+            assertPdfContains("time field", exportedReplyBytes)
+            assertPdfContains("12:00:00", exportedReplyBytes)
+            assertPdfContains("date-time field", exportedReplyBytes)
+            assertPdfContains("2021 Jan 1", exportedReplyBytes)
+            assertPdfContains("radio field", exportedReplyBytes)
+            assertPdfContains("radio1", exportedReplyBytes)
+            assertPdfContains("Table field", exportedReplyBytes)
+            assertPdfContains("Text table field", exportedReplyBytes)
+            assertPdfContains("Number table field", exportedReplyBytes)
+            assertPdfContains("Text 1", exportedReplyBytes)
+            assertPdfContains("10", exportedReplyBytes)
+            assertPdfContains("Text 2", exportedReplyBytes)
+            assertPdfContains("20", exportedReplyBytes)
+            assertPdfContains("select field", exportedReplyBytes)
+            assertPdfContains("select1", exportedReplyBytes)
+
+            assertPdfContains("autocomplete field", exportedReplyBytes)
+            assertPdfContains("autocomplete2", exportedReplyBytes)
+            assertPdfContains("checklist field", exportedReplyBytes)
+            assertPdfContains("[X] 1", exportedReplyBytes)
+            assertPdfContains("[_] 2", exportedReplyBytes)
+            assertPdfContains("boolean field", exportedReplyBytes)
+            assertPdfContains("[X]", exportedReplyBytes)
+            assertPdfContains("files field", exportedReplyBytes)
+            assertPdfContains("test-image-667-1000.jpg", exportedReplyBytes)
+            assertPdfContains("test-image-480-320.jpg", exportedReplyBytes)
+            assertPdfContains("slider field", exportedReplyBytes)
         }
     }
 
