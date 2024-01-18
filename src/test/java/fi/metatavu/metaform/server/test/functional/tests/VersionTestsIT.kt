@@ -382,8 +382,8 @@ class VersionTestsIT : AbstractTest() {
                 token = testBuilder.systemAdmin.token,
                 body = jacksonObjectMapper().writeValueAsString(createdVersion)
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
-                .path(InvalidValueTestScenarioPath(name = "versionId", values = InvalidValues.STRING, default = createdVersion.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "versionId", values = InvalidValues.STRING_NOT_NULL, default = createdVersion.id, expectedStatus = 404))
                 .build()
                 .test()
         }

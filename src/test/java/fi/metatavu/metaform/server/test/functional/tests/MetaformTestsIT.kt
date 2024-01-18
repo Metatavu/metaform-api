@@ -1,6 +1,5 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.api.client.models.*
 import fi.metatavu.metaform.server.rest.ReplyMode
 import fi.metatavu.metaform.server.test.functional.AbstractTest
@@ -195,7 +194,7 @@ class MetaformTestsIT : AbstractTest() {
                 method = Method.DELETE,
                 token = builder.systemAdmin.token
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
                 .query(InvalidValueTestScenarioQuery(name = "metaformSlug", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
                 .build()
                 .test()

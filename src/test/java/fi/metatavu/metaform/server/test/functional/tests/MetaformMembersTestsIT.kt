@@ -99,7 +99,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                     )
                 )
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
                 .build()
                 .test()
         }
@@ -137,8 +137,8 @@ class MetaformMembersTestsIT : AbstractTest() {
                 method = Method.GET,
                 token = testBuilder.systemAdmin.token
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
-                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING, default = metaformMember.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING_NOT_NULL, default = metaformMember.id, expectedStatus = 404))
                 .build()
                 .test()
         }
@@ -179,7 +179,7 @@ class MetaformMembersTestsIT : AbstractTest() {
                 method = Method.GET,
                 token = testBuilder.systemAdmin.token
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, default = metaform.id, expectedStatus = 404))
                 .query(InvalidValueTestScenarioQuery(name = "role", values = InvalidValues.STRING_NOT_NULL, default = MetaformMemberRole.MANAGER, expectedStatus = 404))
                 .build()
                 .test()
@@ -260,8 +260,8 @@ class MetaformMembersTestsIT : AbstractTest() {
                 method = Method.DELETE,
                 token = testBuilder.systemAdmin.token
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
-                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING, default = foundMember.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING_NOT_NULL, default = foundMember.id, expectedStatus = 404))
                 .build()
                 .test()
         }
@@ -314,8 +314,8 @@ class MetaformMembersTestsIT : AbstractTest() {
                 token = testBuilder.systemAdmin.token,
                 body = jacksonObjectMapper().writeValueAsString(foundMember)
             )
-                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING, default = metaform.id, expectedStatus = 404))
-                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING, default = foundMember.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "memberId", values = InvalidValues.STRING_NOT_NULL, default = foundMember.id, expectedStatus = 404))
                 .build()
                 .test()
         }
