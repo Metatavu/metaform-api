@@ -57,6 +57,7 @@ dependencies {
         exclude(group="com.fasterxml.jackson.datatype", module="jackson-datatype-jsr310")
     }
     testImplementation("io.rest-assured:rest-assured")
+    testImplementation("io.rest-assured:kotlin-extensions")
     testImplementation("org.testcontainers:testcontainers")
     testImplementation("org.testcontainers:mysql")
     testImplementation("org.awaitility:awaitility:3.1.2")

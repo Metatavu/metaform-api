@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.metaform.api.client.models.MetaformVersion
 import fi.metatavu.metaform.api.client.models.MetaformVersionType
 import fi.metatavu.metaform.server.test.functional.AbstractTest
@@ -8,9 +9,13 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBuilder
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioPath
+import fi.metatavu.metaform.server.test.functional.common.InvalidValues
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
+import io.restassured.http.Method
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -371,18 +376,16 @@ class VersionTestsIT : AbstractTest() {
             )
             val createdVersion = testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version)
 
-            testBuilder.systemAdmin.metaformVersions.assertUpdateFailStatus(
-                expectedStatus = 404,
-                metaformId = UUID.randomUUID(),
-                versionId = createdVersion.id!!,
-                metaformVersion = createdVersion
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}/versions/{versionId}",
+                method = Method.PUT,
+                token = testBuilder.systemAdmin.token,
+                body = jacksonObjectMapper().writeValueAsString(createdVersion)
             )
-            testBuilder.systemAdmin.metaformVersions.assertUpdateFailStatus(
-                expectedStatus = 404,
-                metaformId = metaform.id,
-                versionId = UUID.randomUUID(),
-                metaformVersion = createdVersion
-            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, default = metaform.id, expectedStatus = 404))
+                .path(InvalidValueTestScenarioPath(name = "versionId", values = InvalidValues.STRING_NOT_NULL, default = createdVersion.id, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 }
