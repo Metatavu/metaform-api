@@ -1,3 +1,6 @@
 [submodule "metaform-api-spec"]
 	path = metaform-api-spec
 	url = https://github.com/Metatavu/metaform-api-spec.git
+[submodule "keycloak-openapi"]
+	path = keycloak-openapi
+	url = https://github.com/dahag-ag/keycloak-openapi.git

@@ -1,0 +1,42 @@
+{
+  "title": "Simple Status",
+  "allowDrafts": true,
+  "visibility": "PUBLIC",
+  "sections": [
+    {
+      "title": "Simple form with status field",
+      "fields": [
+        {
+          "name": "text",
+          "type": "text",
+          "title": "Text field"
+        },
+        {
+          "type": "radio",
+          "name": "status",
+          "title": "Status",
+          "contexts": [
+            "MANAGEMENT_LIST"
+          ],
+          "flags": {
+            "managementEditable": true
+          },
+          "options": [
+            {
+              "name": "waiting",
+              "text": "Waiting"
+            },
+            {
+              "name": "processing",
+              "text": "Processing"
+            },
+            {
+              "name": "done",
+              "text": "Done"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

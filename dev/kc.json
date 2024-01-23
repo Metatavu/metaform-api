@@ -38,21 +38,7 @@
     "realm": [
       {
         "id": "5737df81-d139-478b-9cba-09dc402d827c",
-        "name": "user",
-        "composite": false,
-        "clientRole": false,
-        "containerId": "test-1"
-      },
-      {
-        "id": "d1954be1-cc17-4a45-948a-ad16e7002cec",
-        "name": "metaform-super",
-        "composite": false,
-        "clientRole": false,
-        "containerId": "test-1"
-      },
-      {
-        "id": "67bd196e-5832-4ffd-ac9a-ffd7d6398bb4",
-        "name": "metaform-view-all-replies",
+        "name": "metaform-user",
         "composite": false,
         "clientRole": false,
         "containerId": "test-1"
@@ -75,7 +61,7 @@
       },
       {
         "id": "b87c1a3f-fd65-46e4-bcb3-65c00c335cca",
-        "name": "metaform-admin",
+        "name": "system-admin",
         "composite": false,
         "clientRole": false,
         "containerId": "test-1"
@@ -278,7 +264,7 @@
       "test": [
         {
           "id": "1a142a9e-a309-459e-a689-6b71a68c0910",
-          "name": "metaform-admin",
+          "name": "system-admin",
           "composite": false,
           "clientRole": true,
           "containerId": "62d9ef30-5bce-4468-aa40-7a595eee9f61"

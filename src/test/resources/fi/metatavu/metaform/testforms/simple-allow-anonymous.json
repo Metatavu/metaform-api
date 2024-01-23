@@ -2,6 +2,7 @@
   "title": "Simple",
   "allowDrafts": true,
   "allowAnonymous": true,
+  "visibility": "PUBLIC",
   "sections": [
     {
       "title": "Simple form",

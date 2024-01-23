@@ -6,11 +6,6 @@
 			"fields": [
 				{
 					"type": "select",
-					"permission-contexts": {
-						"view-group": true,
-						"edit-group": true,
-						"notify-group": true
-					},
 					"name": "permission-select",
 					"title": "Permission select",
 					"required": true,

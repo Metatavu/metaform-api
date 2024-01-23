@@ -1,0 +1,45 @@
+{
+	"title": "Simple permission context",
+	"sections": [
+		{
+			"title": "Simple",
+			"fields": [
+				{
+					"type": "select",
+					"name": "permission-select",
+					"title": "Permission select",
+					"required": true,
+					"contexts": [
+						"FORM",
+						"MANAGEMENT_LIST",
+						"MANAGEMENT"
+					],
+					"flags": {
+						"managementEditable": true
+					},
+					"options": [
+						{
+							"name": "group-1",
+							"text": "Group 1",
+							"permissionGroups": {
+								"viewGroupIds": [
+									"889A77A8-DA62-48FF-8C1C-7CAF1D5CA0F8"
+								],
+								"editGroupIds": [
+									"889A77A8-DA62-48FF-8C1C-7CAF1D5CA0F8"
+								],
+								"notifyGroupIds": [
+									"889A77A8-DA62-48FF-8C1C-7CAF1D5CA0F8"
+								]
+							}
+						},
+						{
+							"name": "group-2",
+							"text": "Group 2"
+						}
+					]
+				}
+			]
+		}
+	]
+}

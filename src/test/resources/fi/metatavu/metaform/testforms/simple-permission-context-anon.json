@@ -1,17 +1,13 @@
 {
 	"title": "Simple permission context",
 	"allowAnonymous": true,
+	"visibility": "PUBLIC",
 	"sections": [
 		{
 			"title": "Simple",
 			"fields": [
 				{
 					"type": "select",
-					"permission-contexts": {
-						"view-group": true,
-						"edit-group": true,
-						"notify-group": true
-					},
 					"name": "permission-select",
 					"title": "Permission select",
 					"required": true,
@@ -31,6 +27,10 @@
 						{
 							"name": "group-2",
 							"text": "Group 2"
+						},
+						{
+							"name": "group-3",
+							"text": "Group 3"
 						}
 					]
 				}

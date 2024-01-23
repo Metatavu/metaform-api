@@ -1,6 +1,7 @@
 {
   "title": "Simple",
   "allowDrafts": true,
+  "visibility": "PUBLIC",
   "sections": [
     {
       "title": "Simple form",
@@ -8,7 +9,12 @@
         {
           "name": "text",
           "type": "text",
-          "title": "Text field"
+          "title": "Text field",
+          "classifiers": [
+            "a",
+            "b",
+            "c"
+          ]
         }
       ]
     }

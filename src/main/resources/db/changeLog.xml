@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
   <changeSet id="initial" author="antti.leppa">
     <createTable tableName="metaform">
@@ -477,5 +481,255 @@
       </column>
     </createTable>
   </changeSet>
+
+  <changeSet id="metaform-version" author="Tianxing">
+    <createTable tableName="metaformVersion">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="type" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="metaform_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_METAFORMVERSION_METAFORM_ID" referencedColumnNames="id" referencedTableName="metaform"/>
+      </column>
+      <column name="modifiedat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifierid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="admin-themes" author="Valio">
+    <createTable tableName="admintheme">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="slug" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+    <changeSet id="metaform-visibility" author="Tianxing">
+      <addColumn tableName="metaform">
+        <column name="visibility" type="varchar(16)"/>
+      </addColumn>
+    </changeSet>
   
+  <changeSet id="metaform-metadata" author="Ville Juutila">
+    <addColumn tableName="metaform">
+      <column name="createdat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastmodifierid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <sql>UPDATE metaform SET creatorid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
+    <sql>UPDATE metaform SET lastmodifierid = (UNHEX(REPLACE(UUID(), "-", "")))</sql>
+    <sql>UPDATE metaform SET createdat = now()</sql>
+    <sql>UPDATE metaform SET modifiedat = now()</sql>
+  </changeSet>
+
+  <changeSet id="reply-last-modifier-id" author="Ville Juutila">
+    <addColumn tableName="reply">
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <sql>UPDATE reply SET lastmodifierid = userid</sql>
+  </changeSet>
+
+  <changeSet id="auditlogentrytype-string-value" author="Ville Juutila">
+    <modifyDataType tableName="auditlogentry" columnName="logentrytype" newDataType="varchar(32)"/>
+    <sql>UPDATE auditlogentry SET logentrytype = 'VIEW_REPLY' WHERE logentrytype = '0'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'LIST_REPLY' WHERE logentrytype = '1'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'MODIFY_REPLY' WHERE logentrytype = '2'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'DELETE_REPLY' WHERE logentrytype = '3'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'CREATE_REPLY' WHERE logentrytype = '4'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'VIEW_REPLY_ATTACHMENT' WHERE logentrytype = '5'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'DOWNLOAD_REPLY_ATTACHMENT' WHERE logentrytype = '6'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'EXPORT_REPLY_PDF' WHERE logentrytype = '7'</sql>
+    <sql>UPDATE auditlogentry SET logentrytype = 'EXPORT_REPLY_XLSX' WHERE logentrytype = '8'</sql>
+  </changeSet>
+
+  <changeSet id="metaform-reply-viewed-view" author="Ville Juutila">
+    <createView
+      viewName="MetaformReplyCreated"
+    >SELECT metaform_id, min(createdat) as replyCreated, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'CREATE_REPLY' GROUP BY replyid</createView>
+    <createView
+      viewName="MetaformReplyViewed"
+    >SELECT metaform_id, min(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid</createView>
+  </changeSet>
+  
+  <changeSet id="system-wide-scripts" author="Simeon Platonov">
+    <createTable tableName="script">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="name" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="language" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="scripttype" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="metaformscript">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="metaform_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_METAFORMSCRIPT_METAFORM_ID" referencedColumnNames="id" referencedTableName="metaform"/>
+      </column>
+      <column name="script_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_METAFORMSCRIPT_SCRIPT_ID" referencedColumnNames="id" referencedTableName="script"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="antti.leppa" id="deprecated-field-proprties">
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateDeprecatedFieldProperties"/>
+  </changeSet>
+
+  <changeSet author="Simeon Platonov" id="remove-property-class">
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateRemovePropertyClass"/>
+  </changeSet>
+
+  <changeSet author="Simeon Platonov" id="deprecated-field-proprties-2">
+    <customChange class="fi.metatavu.metaform.server.liquibase.changes.MigrateDeprecatedFieldProperties2"/>
+  </changeSet>
+
+  <changeSet id="templates" author="Harri Häkkinen">
+    <createTable tableName="template">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="data" type="longtext">
+        <constraints nullable="false"/>
+      </column>
+      <column name="visibility" type="varchar(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creatorId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="lastModifierId" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="modifiedAt" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+
+    </createTable>
+  </changeSet>
+
+  <changeSet id="reply-viewed" author="Harri Häkkinen">
+    <addColumn tableName="reply">
+      <column name="firstViewedAt" type="datetime(6)"/>
+      <column name="lastViewedAt" type="datetime(6)"/>
+    </addColumn>
+    <sql>
+      UPDATE
+        Reply r
+      LEFT JOIN
+        (SELECT min(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid) rfv
+      ON
+        r.id = rfv.reply_id
+      LEFT JOIN
+        (SELECT max(createdat) as replyViewed, replyid as reply_id FROM auditlogentry WHERE logentrytype = 'VIEW_REPLY' GROUP BY replyid) rlv
+      ON
+        r.id = rlv.reply_id
+      SET
+        firstViewedAt = rfv.replyViewed,
+        lastViewedAt = rlv.replyViewed
+    </sql>
+  </changeSet>
+
+  <changeSet id="remove-deprecated-base-themes" author="Antti Leppä">
+    <sql>
+      UPDATE
+        exporttheme childtheme
+      LEFT JOIN
+        exporttheme basetheme
+      ON
+        childtheme.parent_id = basetheme.id
+      SET
+        childtheme.parent_id = NULL
+      WHERE
+        basetheme.name = 'base'
+    </sql>
+    <sql>DELETE FROM exportthemefile WHERE theme_id IN (SELECT ID FROM exporttheme WHERE name = 'base')</sql>
+    <sql>DELETE FROM exporttheme WHERE name = 'base'</sql>
+  </changeSet>
+
 </databaseChangeLog>

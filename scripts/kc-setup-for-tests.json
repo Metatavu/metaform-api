@@ -2184,13 +2184,7 @@
   "roles" : {
     "realm" : [ {
       "id" : "5d5ab654-f345-4033-999c-1ad372ccd150",
-      "name" : "user",
-      "composite" : false,
-      "clientRole" : false,
-      "containerId" : "test-1"
-    }, {
-      "id" : "5df15086-d654-4f40-8d68-b2a5d9ccb9d8",
-      "name" : "metaform-super",
+      "name" : "metaform-user",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "test-1"
@@ -2429,7 +2423,7 @@
     "clientRoles" : { },
     "subGroups" : [ ]
   } ],
-  "defaultRoles" : [ "uma_authorization", "user", "offline_access" ],
+  "defaultRoles" : [ "uma_authorization", "metaform-user", "offline_access" ],
   "requiredCredentials" : [ "password" ],
   "otpPolicyType" : "totp",
   "otpPolicyAlgorithm" : "HmacSHA1",
@@ -2462,34 +2456,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "metaform-admin", "uma_authorization" ],
-    "clientRoles" : {
-      "account" : [ "manage-account", "view-profile" ]
-    },
-    "notBefore" : 0,
-    "groups" : [ ]
-  }, {
-    "id" : "7650eef3-0800-4f93-b634-d2e4e4b30e47",
-    "createdTimestamp" : 1535526140415,
-    "username" : "metaform-super",
-    "enabled" : true,
-    "totp" : false,
-    "emailVerified" : true,
-    "credentials" : [ {
-      "type" : "password",
-      "hashedSaltedValue" : "BdJtL9cS9O/gHt4DRdBwpl7uzUZ4qSjEUzhjvVxntQFQLtMpjH/SYL5vZ3BhrnVSMxYcWlcL343ri87mmaCveQ==",
-      "salt" : "pxvc5JRJKad6F5dWJh9SJw==",
-      "hashIterations" : 27500,
-      "counter" : 0,
-      "algorithm" : "pbkdf2-sha256",
-      "digits" : 0,
-      "period" : 0,
-      "createdDate" : 1535526164965,
-      "config" : { }
-    } ],
-    "disableableCredentialTypes" : [ "password" ],
-    "requiredActions" : [ ],
-    "realmRoles" : [ "user", "metaform-super", "offline_access", "metaform-admin", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "metaform-admin", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -2519,7 +2486,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "realm-management" : [ "realm-admin" ],
       "account" : [ "manage-account", "view-profile" ]
@@ -2538,7 +2505,7 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "metaform-api" : [ "uma_protection" ],
       "account" : [ "manage-account", "view-profile" ]
@@ -2557,7 +2524,7 @@
     "credentials" : [ ],
     "disableableCredentialTypes" : [ ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -2587,7 +2554,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -2617,7 +2584,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -2647,7 +2614,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "user", "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "metaform-user", "offline_access", "uma_authorization" ],
     "clientRoles" : {
       "account" : [ "manage-account", "view-profile" ]
     },
@@ -4466,7 +4433,7 @@
       "containerId" : "test-2"
     }, {
       "id" : "43ec45b6-8845-48ff-9350-b77f6e380855",
-      "name" : "user",
+      "name" : "metaform-user",
       "composite" : false,
       "clientRole" : false,
       "containerId" : "test-2"
@@ -4718,7 +4685,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "offline_access", "uma_authorization", "user", "metaform-admin" ],
+    "realmRoles" : [ "offline_access", "uma_authorization", "metaform-user", "metaform-admin" ],
     "clientRoles" : {
       "metaform-management" : [ "admin", "manager" ],
       "account" : [ "manage-account", "view-profile" ]

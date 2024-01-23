@@ -1,4 +1,5 @@
 {
+  "visibility": "PRIVATE",
   "sections": [
     {
       "title": "Text, boolean, number, checklist form",
