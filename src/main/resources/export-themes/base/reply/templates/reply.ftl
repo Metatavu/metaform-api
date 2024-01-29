@@ -178,6 +178,7 @@
                 <#break>
               <#case 'hidden'>
               <#case 'small-text'>
+              <#case 'submit'>
               <#break>
               <#default>
                 <pre style="color: red">Unknown field type ${field.getType()}</pre>
