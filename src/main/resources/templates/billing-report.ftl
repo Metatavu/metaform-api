@@ -39,12 +39,14 @@
     <p style="display: inline">Eloisa Metaform</p>
   </div>
   <div class="total">
+    <p>${from} - ${to}</p>
+    <p>Monthly invoices: ${totalInvoices}</p>
     <table style="border-collapse: seperate; border-spacing: 0.5rem;">
       <tr class="table-row">
         <th class="table-header">Artikelli</th>
-        <th class="table-header">Määrä</th>
-        <th class="table-header">Yksikköhinta</th>
-        <th class="table-header">Kokonaishinta</th>
+        <th class="table-header">amount</th>
+        <th class="table-header">price for one</th>
+        <th class="table-header">total price</th>
         <th></th>
       </tr>
 <#assign strongAuthenticationTotalCost = strongAuthenticationCount * strongAuthenticationCost>
@@ -58,19 +60,19 @@
         <td>${strongAuthenticationTotalCost} €</td>
       </tr>
       <tr>
-        <td>Lomakkeet</td>
+        <td>forms</td>
         <td>${formsCount}</td>
         <td>${formCost} €</td>
         <td>${formsTotalCost} €</td>
       </tr>
       <tr>
-        <td>Käsittelijät</td>
+        <td>managers</td>
         <td>${managersCount}</td>
         <td>${managerCost} €</td>
         <td>${managersTotalCost} €</td>
       </tr>
       <tr>
-        <td>Ylläpitäjät</td>
+        <td>admins</td>
         <td>${adminsCount}</td>
         <td>${adminCost} €</td>
         <td>${adminsTotalCost} €</td>
@@ -88,16 +90,16 @@
     <table style="border-collapse: seperate; border-spacing: 0.5rem;">
       <tr>
         <th class="table-header">
-          Lomakkeet
+          forms
         </th>
         <th class="table-header">
           Suomi.fi
         </th>
         <th class="table-header">
-          Käsittelijät
+          managersCount
         </th>
         <th class="table-header">
-          Käsittelijäryhmät
+          groupsCount
         </th>
       </tr>
       <#list forms as form>

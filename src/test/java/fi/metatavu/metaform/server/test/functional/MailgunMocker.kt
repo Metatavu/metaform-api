@@ -73,6 +73,19 @@ class MailgunMocker(private val basePath: String, private val domain: String, ap
         verifyMessageSent(count, createParameterList(fromName, fromEmail, to, subject, content))
     }
 
+    fun verifyMessageSent(fromName: String, fromEmail: String, to: String, subject: String) {
+        val parameters: List<NameValuePair> = ArrayList(
+            listOf<NameValuePair>(
+                BasicNameValuePair("to", to),
+                BasicNameValuePair("subject", subject),
+                BasicNameValuePair("from", String.format("%s <%s>", fromName, fromEmail))
+            )
+        )
+        val form = URLEncodedUtils.format(parameters, "UTF-8")
+        WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo(apiUrl)).withRequestBody(WireMock.equalTo(form)))
+
+    }
+
     /**
      * Creates parameter list
      *

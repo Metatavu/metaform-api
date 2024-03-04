@@ -51,11 +51,8 @@ class Metaform: Metadata() {
   lateinit var lastModifierId: UUID
 
   @Column(nullable = false)
-  var publishedAt: OffsetDateTime? = null
-
-  @Column(nullable = false)
   @NotNull
-  var nonBillable: Boolean = true
+  var active: Boolean = true
 
   @OneToMany(mappedBy = "metaform", targetEntity = MetaformReplyViewed::class)
   lateinit var metaformReplyViewed: List<MetaformReplyViewed>

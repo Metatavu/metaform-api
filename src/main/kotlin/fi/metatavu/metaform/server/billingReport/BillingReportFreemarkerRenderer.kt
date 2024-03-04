@@ -5,13 +5,13 @@ import freemarker.template.Configuration
 import freemarker.template.Template
 import freemarker.template.TemplateException
 import freemarker.template.TemplateExceptionHandler
+import jakarta.annotation.PostConstruct
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import org.slf4j.Logger
 import java.io.File
 import java.io.IOException
 import java.io.StringWriter
-import javax.annotation.PostConstruct
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
 
 /**
  * Freemarker renderer
@@ -26,6 +26,7 @@ class BillingReportFreemarkerRenderer {
 
     /**
      * Initializes renderer
+     * todo unite with other rederer
      */
     @PostConstruct
     fun init() {

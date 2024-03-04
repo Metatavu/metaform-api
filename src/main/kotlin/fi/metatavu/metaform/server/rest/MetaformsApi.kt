@@ -88,8 +88,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       exportTheme = exportTheme,
       allowAnonymous = metaform.allowAnonymous ?: false,
       visibility = metaform.visibility ?: MetaformVisibility.PRIVATE,
-      publishedAt = metaform.publishedAt,
-      nonBillable = metaform.nonBillable,
+      active = metaform.active,
       title = metaform.title,
       slug = metaform.slug,
       data = metaformData,
@@ -101,6 +100,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     }
 
     return try {
+      println("Created metaform")
       createOk(metaformTranslator.translate(createdMetaform))
     } catch (e: MalformedMetaformJsonException) {
       createInternalServerError(e.message)
