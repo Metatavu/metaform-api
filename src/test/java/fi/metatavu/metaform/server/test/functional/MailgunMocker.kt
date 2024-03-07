@@ -73,17 +73,26 @@ class MailgunMocker(private val basePath: String, private val domain: String, ap
         verifyMessageSent(count, createParameterList(fromName, fromEmail, to, subject, content))
     }
 
-    fun verifyMessageSent(fromName: String, fromEmail: String, to: String, subject: String) {
+    /**
+     * Counts the number of near misses for the request. Can be used for the requests where content is generated dynamically
+     * on the api and test does not know which exactly contents to expect. Manual verification of contens is required.
+     *
+     * @param fromName  sender
+     * @param fromEmail sender email
+     * @param to        recipient
+     * @param subject   subject
+     */
+    fun countMessagesSentPartialMatch(fromName: String, fromEmail: String, to: String, subject: String): Int {
         val parameters: List<NameValuePair> = ArrayList(
             listOf<NameValuePair>(
                 BasicNameValuePair("to", to),
                 BasicNameValuePair("subject", subject),
-                BasicNameValuePair("from", String.format("%s <%s>", fromName, fromEmail))
+                BasicNameValuePair("from", String.format("%s <%s>", fromName, fromEmail)),
             )
         )
         val form = URLEncodedUtils.format(parameters, "UTF-8")
-        WireMock.verify(WireMock.postRequestedFor(WireMock.urlEqualTo(apiUrl)).withRequestBody(WireMock.equalTo(form)))
-
+        val nearMisses = WireMock.findNearMissesFor(WireMock.postRequestedFor(WireMock.urlEqualTo(apiUrl)).withRequestBody(WireMock.containing(form)));
+        return nearMisses.size
     }
 
     /**

@@ -100,7 +100,6 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     }
 
     return try {
-      println("Created metaform")
       createOk(metaformTranslator.translate(createdMetaform))
     } catch (e: MalformedMetaformJsonException) {
       createInternalServerError(e.message)

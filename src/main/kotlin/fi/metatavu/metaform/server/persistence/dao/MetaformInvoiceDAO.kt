@@ -43,7 +43,7 @@ class MetaformInvoiceDAO: AbstractDAO<MetaformInvoice>() {
         }
 
         if (metaform != null) {
-            criteria.where(criteriaBuilder.equal(root.get(MetaformInvoice_.metaform), metaform))
+            criteria.where(criteriaBuilder.equal(root.get(MetaformInvoice_.metaformId), metaform.id))
         }
 
         val query: TypedQuery<MetaformInvoice> = entityManager.createQuery(criteria)
@@ -54,7 +54,7 @@ class MetaformInvoiceDAO: AbstractDAO<MetaformInvoice>() {
      * Creates a new MetaformInvoice
      *
      * @param id id
-     * @param metaform metaform
+     * @param metaformId metaformId
      * @param monthlyInvoice monthly invoice
      * @param metaformVisibility metaform visibility
      * @param groupsCount groups count
@@ -64,7 +64,7 @@ class MetaformInvoiceDAO: AbstractDAO<MetaformInvoice>() {
      */
     fun create(
         id: UUID,
-        metaform: Metaform,
+        metaformId: UUID,
         monthlyInvoice: MonthlyInvoice,
         metaformVisibility: MetaformVisibility?,
         groupsCount: Int,
@@ -74,7 +74,7 @@ class MetaformInvoiceDAO: AbstractDAO<MetaformInvoice>() {
     ): MetaformInvoice {
         val metaformInvoice = MetaformInvoice()
         metaformInvoice.id = id
-        metaformInvoice.metaform = metaform
+        metaformInvoice.metaformId = metaformId
         metaformInvoice.monthlyInvoice = monthlyInvoice
         metaformInvoice.title = metaformTitle
         metaformInvoice.visibility = metaformVisibility

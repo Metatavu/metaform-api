@@ -187,9 +187,6 @@ class MetaformController {
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
         auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
 
-        val monthlyInvoices = metaformInvoiceDAO.listInvoices(metaform = metaform)
-        monthlyInvoices.forEach { metaformInvoice: MetaformInvoice -> metaformInvoiceDAO.delete(metaformInvoice)}
-
         metaformDAO.delete(metaform)
         metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)
     }

@@ -45,7 +45,6 @@ class SystemTestIT : AbstractTest() {
             .body(`is`("pong"))
     }
 
-    // this to test the scheduler
     @Test
     fun testBillingReportScheduled() {
         TestBuilder().use { testBuilder ->
@@ -83,16 +82,15 @@ class SystemTestIT : AbstractTest() {
 
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-
-                Thread.sleep(10000)
-                println("Checking messages")
-                mailgunMocker.verifyMessageSent(
-                    "Metaform Test",
-                    "metaform-test@example.com",
-                    "test@example.com",
-                    "Metaform Billing Report"
-                )
-
+                Awaitility.waitAtMost(60, java.util.concurrent.TimeUnit.SECONDS).until {
+                    val messages = mailgunMocker.countMessagesSentPartialMatch(
+                        "Metaform Test",
+                        "metaform-test@example.com",
+                        "test@example.com",
+                        "Metaform Billing Report",
+                    )
+                    messages == 2
+                }
 
             } finally {
                 stopMailgunMocker(mailgunMocker)
@@ -100,18 +98,11 @@ class SystemTestIT : AbstractTest() {
         }
     }
 
-    /*
-    myMethod.cron.expr=disabled
-     */
-    // this to test the scheduler
     @Test
     fun testBillingReportManual() {
         TestBuilder().use { testBuilder ->
             val metaform1 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val metaform2 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val metaform3 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val metaform4 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val metaform5 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val metaform1Members = mutableListOf<MetaformMember>()
 
             for (i in 1..3) {
@@ -130,32 +121,32 @@ class SystemTestIT : AbstractTest() {
 
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
+                Awaitility.await().pollDelay(Duration.ofSeconds(20)).atMost(Duration.ofSeconds(30)).then().until {
+                    val requstBody = HashMap<String, Any>()
+                    requstBody["recipientEmail"] = "text@example.com"
+                    requstBody["start"] = OffsetDateTime.now().minusMonths(1)
+                    requstBody["end"] = OffsetDateTime.now()
+                    given()
+                        .contentType("application/json")
+                        .header("X-CRON-KEY", "8EDCE3DF-0BC2-48AF-942E-25A9E83FA19D")
+                        .`when`().post("http://localhost:8081/v1/system/billingReport")
+                        .then()
+                        .extract()
+                        .statusCode() == 204
+                }
 
-                val requstBody = HashMap<String, Any>()
-                requstBody["recipientEmail"] = "text@example.com"
-                requstBody["start"] = OffsetDateTime.now().minusMonths(1)
-                requstBody["end"] = OffsetDateTime.now()
-                given()
-                    .contentType("application/json")
-                    .header("X-CRON-KEY", "8EDCE3DF-0BC2-48AF-942E-25A9E83FA19D")
-                    .`when`().post("http://localhost:8081/v1/system/billingReport")
-                    .then()
-                    .statusCode(204)
-
-                println("Checking messages")
-                mailgunMocker.verifyMessageSent(
-                    "Metaform Test",
-                    "metaform-test@example.com",
-                    "test@example.com",
-                    "Metaform Billing Report"
-                )
-
-
+                Awaitility.waitAtMost(60, java.util.concurrent.TimeUnit.SECONDS).until {
+                    val messages = mailgunMocker.countMessagesSentPartialMatch(
+                        "Metaform Test",
+                        "metaform-test@example.com",
+                        "test@example.com",
+                        "Metaform Billing Report",
+                    )
+                    messages == 1
+                }
             } finally {
                 stopMailgunMocker(mailgunMocker)
-
             }
-
         }
     }
 

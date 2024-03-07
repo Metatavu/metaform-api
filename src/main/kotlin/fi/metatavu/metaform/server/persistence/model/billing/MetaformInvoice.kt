@@ -1,10 +1,8 @@
 package fi.metatavu.metaform.server.persistence.model.billing
 
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
-import fi.metatavu.metaform.server.persistence.model.Metaform
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
-import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -17,8 +15,8 @@ class MetaformInvoice {
     @Id
     lateinit var id: UUID
 
-    @ManyToOne
-    lateinit var metaform: Metaform
+    @Column(nullable = false)
+    lateinit var metaformId: UUID
 
     @ManyToOne
     lateinit var monthlyInvoice: MonthlyInvoice

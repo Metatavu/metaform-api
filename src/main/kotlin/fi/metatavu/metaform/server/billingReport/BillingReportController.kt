@@ -1,8 +1,8 @@
-package fi.metatavu.metaform.server.controllers
+package fi.metatavu.metaform.server.billingReport
 
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
-import fi.metatavu.metaform.server.billingReport.BillingReportFreemarkerRenderer
-import fi.metatavu.metaform.server.billingReport.BillingReportMetaform
+import fi.metatavu.metaform.server.controllers.MetaformController
+import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.email.EmailProvider
 import fi.metatavu.metaform.server.persistence.dao.MetaformInvoiceDAO
 import fi.metatavu.metaform.server.persistence.dao.MonthlyInvoiceDAO
@@ -65,23 +65,27 @@ class BillingReportController {
     lateinit var logger: Logger
 
     /**
-     * Periodic job that runs in the beginning of the month and creates the invoices for the starting month based on the
-     * metaforms and their managers and groups
+     * Periodic job that creates the invoices for the starting month based on the
+     * metaforms and their managers and groups.
+     * Does not matter when it runs, as it will only create the invoice once per month
      */
     @Scheduled(
-        every = "2s", // first day of every month at 00 10
+        cron = "\${createInvoices.cron.expr}",
         concurrentExecution = Scheduled.ConcurrentExecution.SKIP,
         delay = 10,
         delayUnit = TimeUnit.SECONDS,
     )
     @Transactional
     fun createInvoices() {
-        val now = OffsetDateTime.now()  //invoices are created at 01.00
+        val now = OffsetDateTime.now()
         logger.info("Creating the billing reports for the period of the starting month")
 
+        val currentMonthStart = getCurrentMonthStart(now)
+        val currentMonthEnd = getCurrentMonthEnd(now)
+
         val monthlyInvoices = monthlyInvoiceDAO.listInvoices(
-            start = now,
-            end = now.withDayOfMonth(now.month.length(now.toLocalDate().isLeapYear)).withHour(23).withMinute(59),
+            start = currentMonthStart,
+            end = currentMonthEnd
         )
 
         if (monthlyInvoices.isNotEmpty()) {
@@ -104,23 +108,23 @@ class BillingReportController {
 
             metaformInvoiceDAO.create(
                 id = UUID.randomUUID(),
-                metaform = metaform,
+                metaformId = metaform.id!!,
                 metaformTitle = title,
                 monthlyInvoice = newMontlyInvoice,
                 groupsCount = groupsCount,
                 managersCount = managersCount,
                 metaformVisibility = metaform.visibility,
-                created = now.withHour(1).withMinute(0)
+                created = now
             )
         }
     }
 
     /**
-     * Periodic job that runs in the end of the month and sends the billing invoices to the configured email addresses
+     * Periodic job that sends the billing invoices to the configured email addresses. Can be run anytime after the createInvoices
      */
     @Scheduled(
-        every = "5s", // last day of every month
-        delay = 15,
+        cron = "\${sendInvoices.cron.expr}",
+        delay = 20,
         delayUnit = TimeUnit.SECONDS,
         concurrentExecution = Scheduled.ConcurrentExecution.SKIP
     )
@@ -132,9 +136,9 @@ class BillingReportController {
             return
         }
         val now = OffsetDateTime.now()
-        val start = now.withDayOfMonth(1).withHour(0).withMinute(0)
-        val end = now.withDayOfMonth(now.month.length(now.toLocalDate().isLeapYear)).withHour(23).withMinute(59)
-        createBillingReport(start, end)
+        val start = getCurrentMonthStart(now)
+        val end = getCurrentMonthEnd(now)
+        sendBillingReports(start, end, null)
     }
 
     /**
@@ -142,8 +146,9 @@ class BillingReportController {
      *
      * @param start start date
      * @param end end date
+     * @param specialReceiverEmails recipient email (if not used the default system recipient emails are used)
      */
-    fun createBillingReport(start: OffsetDateTime?, end: OffsetDateTime?) {
+    fun sendBillingReports(start: OffsetDateTime?, end: OffsetDateTime?, specialReceiverEmails: String?) {
         val invoices = monthlyInvoiceDAO.listInvoices(
             start = start,
             end = end,
@@ -176,22 +181,43 @@ class BillingReportController {
         dataModelMap["adminsCount"] = totalAdminsCount
         dataModelMap["adminCost"] = adminCost!!
         dataModelMap["forms"] = billingReportMetaforms
-        dataModelMap["from"] = formatter.format(start)
-        dataModelMap["to"] = formatter.format(end)
+        dataModelMap["from"] = if (start == null)  "-" else formatter.format(start)
+        dataModelMap["to"] = if (end == null)  "-" else formatter.format(end)
         dataModelMap["totalInvoices"] = invoices.size
 
         val rendered = billingReportFreemarkerRenderer.render("billing-report.ftl", dataModelMap)
         println("Billing report rendered: \n$rendered")
-        billingReportRecipientEmails.get().split(",").forEach {
+
+        val recipientEmailLong = specialReceiverEmails ?: billingReportRecipientEmails.get()
+        recipientEmailLong.replace(",", " ").split(" ").forEach {
             emailProvider.sendMail(
-                toEmail = it,
+                toEmail = it.trim(),
                 subject = BILLING_REPORT_MAIL_SUBJECT,
                 content = rendered
             )
         }
     }
 
-    // todo what is to happen to the invoice if metaform is deleted later along the way?
+    /**
+     * Gets the start of the current month
+     *
+     * @param time time
+     * @return start of the current month
+     */
+    private fun getCurrentMonthStart(time: OffsetDateTime): OffsetDateTime {
+        return time.withDayOfMonth(1).withHour(0).withMinute(0)
+    }
+
+    /**
+     * Gets the end of the current month
+     *
+     * @param time time
+     * @return end of the current month
+     */
+    private fun getCurrentMonthEnd(time: OffsetDateTime): OffsetDateTime {
+        return time.withDayOfMonth(time.month.length(time.toLocalDate().isLeapYear)).withHour(23).withMinute(59)
+    }
+
     /**
      * Creates Billing Report Metaform
      *

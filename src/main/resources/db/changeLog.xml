@@ -757,8 +757,8 @@
       <column name="monthlyinvoice_id" type="binary(16)">
         <constraints nullable="false" foreignKeyName="FK_METAFORMINVOICE_MONTHLYINVOICE_ID" referencedColumnNames="id" referencedTableName="monthlyinvoice"/>
       </column>
-      <column name="metaform_id" type="binary(16)">
-        <constraints nullable="false" foreignKeyName="FK_METAFORMINVOICE_METAFORM_ID" referencedColumnNames="id" referencedTableName="metaform"/>
+      <column name="metaformid" type="binary(16)">
+        <constraints nullable="false"/>
       </column>
       <column name="groupscount" type="integer">
         <constraints nullable="false"/>

@@ -15,10 +15,9 @@ class GeneralTestProfile : QuarkusTestProfile {
         properties["metaforms.features.auditlog"] = "true"
         properties["metaforms.features.cardauth"] = "true"
         properties["billing.report.cron.key"] = "8EDCE3DF-0BC2-48AF-942E-25A9E83FA19D"
-        properties["scheduled.invoices.createCron"] = "1 0 0 ? * * *"
-        properties["scheduled.invoices.sendCron"] = "1 0 0 ? * * *"
-        properties["billing.report.recipient.emails"] = "test@example.com"
-        properties["quarkus.scheduler.enabled"] = "true"
+        properties["billing.report.recipient.emails"] = "test@example.com,test1@example.com"
+        properties["createInvoices.cron.expr"] = "0/3 * * * * ? *"
+        properties["sendInvoices.cron.expr"] = "0/3 * * * * ? *"
         return properties
     }
 }

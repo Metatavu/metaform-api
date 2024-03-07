@@ -40,13 +40,13 @@
   </div>
   <div class="total">
     <p>${from} - ${to}</p>
-    <p>Monthly invoices: ${totalInvoices}</p>
+    <p>Kuukausilaskuja yhteensä: ${totalInvoices}</p>
     <table style="border-collapse: seperate; border-spacing: 0.5rem;">
       <tr class="table-row">
         <th class="table-header">Artikelli</th>
-        <th class="table-header">amount</th>
-        <th class="table-header">price for one</th>
-        <th class="table-header">total price</th>
+        <th class="table-header">Määrä</th>
+        <th class="table-header">Yksikköhinta</th>
+        <th class="table-header">Kokonaishinta</th>
         <th></th>
       </tr>
 <#assign strongAuthenticationTotalCost = strongAuthenticationCount * strongAuthenticationCost>
@@ -60,19 +60,19 @@
         <td>${strongAuthenticationTotalCost} €</td>
       </tr>
       <tr>
-        <td>forms</td>
+        <td>Lomakkeet</td>
         <td>${formsCount}</td>
         <td>${formCost} €</td>
         <td>${formsTotalCost} €</td>
       </tr>
       <tr>
-        <td>managers</td>
+        <td>Käsittelijät</td>
         <td>${managersCount}</td>
         <td>${managerCost} €</td>
         <td>${managersTotalCost} €</td>
       </tr>
       <tr>
-        <td>admins</td>
+        <td>Ylläpitäjät</td>
         <td>${adminsCount}</td>
         <td>${adminCost} €</td>
         <td>${adminsTotalCost} €</td>
@@ -90,16 +90,16 @@
     <table style="border-collapse: seperate; border-spacing: 0.5rem;">
       <tr>
         <th class="table-header">
-          forms
+          Lomakkeet
         </th>
         <th class="table-header">
           Suomi.fi
         </th>
         <th class="table-header">
-          managersCount
+          Käsittelijät
         </th>
         <th class="table-header">
-          groupsCount
+          Käsittelijäryhmät
         </th>
       </tr>
       <#list forms as form>

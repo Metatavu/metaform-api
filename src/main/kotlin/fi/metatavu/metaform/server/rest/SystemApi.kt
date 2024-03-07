@@ -1,7 +1,7 @@
 package fi.metatavu.metaform.server.rest
 
 import fi.metatavu.metaform.api.spec.model.BillingReportRequest
-import fi.metatavu.metaform.server.controllers.BillingReportController
+import fi.metatavu.metaform.server.billingReport.BillingReportController
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
@@ -29,18 +29,13 @@ class SystemApi: fi.metatavu.metaform.api.spec.SystemApi, AbstractApi() {
   }
 
   override fun sendBillingReport(billingReportRequest: BillingReportRequest?): Response {
-    requestCronKey ?: return createForbidden(UNAUTHORIZED)
+    if (requestCronKey == null && loggedUserId == null) return createForbidden(UNAUTHORIZED)
 
     if (cronKey != requestCronKey) {
       return createForbidden(UNAUTHORIZED)
     }
 
-    val createdBillingReport = billingReportController.createBillingReport(billingReportRequest?.startDate, billingReportRequest?.endDate)
-      ?: return createBadRequest("")
-  println(createdBillingReport)
-//    val recipientEmail = billingReportRequest?.recipientEmail ?: return createBadRequest("")
-//    billingReportController.sendBillingReport(recipientEmail, createdBillingReport)
-
+    billingReportController.sendBillingReports(billingReportRequest?.startDate, billingReportRequest?.endDate, billingReportRequest?.recipientEmail)
     return createNoContent()
   }
 }

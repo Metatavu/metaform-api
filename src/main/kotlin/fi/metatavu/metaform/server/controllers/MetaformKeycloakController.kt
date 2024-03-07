@@ -593,15 +593,13 @@ class MetaformKeycloakController {
      */
     fun listMetaformMemberManager(metaformId: UUID): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         val managerGroup = getMetaformManagerGroup(metaformId)?.id ?: return emptyList()
-        val managers = groupApi.realmGroupsIdMembersGet(
+        return groupApi.realmGroupsIdMembersGet(
             realm = realm,
             id = managerGroup,
             first = null,
             max = null,
             briefRepresentation = false
         )
-        println("Got ${managers.size} for metaform $metaformId listMetaformMemberManager")
-        return managers
     }
 
     /**
@@ -713,12 +711,10 @@ class MetaformKeycloakController {
     fun listMetaformMemberGroups(metaformId: UUID): List<GroupRepresentation> {
         val managerGroup = getMetaformManagerGroup(metaformId) ?: return emptyList()
 
-        val members =  adminClient.realm(realm).groups()
+        return adminClient.realm(realm).groups()
             .group(managerGroup.id)
             .toRepresentation()
             .subGroups
-        println("Got ${members.size} for metaform $metaformId listMetaformMemberGroups")
-        return members
     }
 
     /**
