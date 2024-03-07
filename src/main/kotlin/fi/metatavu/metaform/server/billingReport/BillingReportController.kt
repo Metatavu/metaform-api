@@ -186,7 +186,6 @@ class BillingReportController {
         dataModelMap["totalInvoices"] = invoices.size
 
         val rendered = billingReportFreemarkerRenderer.render("billing-report.ftl", dataModelMap)
-        println("Billing report rendered: \n$rendered")
 
         val recipientEmailLong = specialReceiverEmails ?: billingReportRecipientEmails.get()
         recipientEmailLong.replace(",", " ").split(" ").forEach {
