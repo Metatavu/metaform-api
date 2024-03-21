@@ -7,7 +7,7 @@ import java.util.*
 
 /**
  * JPA entity representing single MonthlyInvoice
- * It is created when metaform is published
+ *
  */
 @Entity
 class MetaformInvoice {
