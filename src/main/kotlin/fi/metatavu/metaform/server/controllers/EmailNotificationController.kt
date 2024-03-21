@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.FieldRule
 import fi.metatavu.metaform.api.spec.model.Reply
 import fi.metatavu.metaform.server.email.SendEmailEvent
-import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer
+import fi.metatavu.metaform.server.email.EmailAbstractFreemarkerRenderer
 import fi.metatavu.metaform.server.email.EmailTemplateSource
 import fi.metatavu.metaform.server.metaform.FieldRuleEvaluator
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO
@@ -37,7 +37,7 @@ class EmailNotificationController {
     lateinit var emailNotificationTranslator: EmailNotificationTranslator
 
     @Inject
-    lateinit var freemarkerRenderer: EmailFreemarkerRenderer
+    lateinit var freemarkerRenderer: EmailAbstractFreemarkerRenderer
 
     @Inject
     lateinit var emailNotificationDAO: EmailNotificationDAO
@@ -171,8 +171,18 @@ class EmailNotificationController {
     fun sendEmailNotification(emailNotification: EmailNotification, replyEntity: Reply?, emails: Set<String>) {
         val id = emailNotification.id!!
         val data = toFreemarkerData(replyEntity)
-        val subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE)
-        val content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE)
+        val subject = freemarkerRenderer.render(
+            configuration = freemarkerRenderer.configuration,
+            templateName = EmailTemplateSource.EMAIL_SUBJECT.getName(id),
+            dataModel = data,
+            locale = DEFAULT_LOCALE
+        )
+        val content = freemarkerRenderer.render(
+            configuration = freemarkerRenderer.configuration,
+            templateName = EmailTemplateSource.EMAIL_CONTENT.getName(id),
+            dataModel = data,
+            locale = DEFAULT_LOCALE
+        )
 
         emails.forEach { email ->
             emailEvent.fire(

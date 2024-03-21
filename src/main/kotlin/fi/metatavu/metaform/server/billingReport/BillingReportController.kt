@@ -47,7 +47,7 @@ class BillingReportController {
     lateinit var metaformKeycloakController: MetaformKeycloakController
 
     @Inject
-    lateinit var billingReportFreemarkerRenderer: BillingReportFreemarkerRenderer
+    lateinit var billingReportFreemarkerRenderer: BillingReportAbstractFreemarkerRenderer
     
     @Inject
     lateinit var metaformTranslator: MetaformTranslator
@@ -185,7 +185,12 @@ class BillingReportController {
         dataModelMap["to"] = if (end == null) "-" else formatter.format(end)
         dataModelMap["totalInvoices"] = invoices.size
 
-        val rendered = billingReportFreemarkerRenderer.render("billing-report.ftl", dataModelMap)
+        val rendered = billingReportFreemarkerRenderer.render(
+            configuration = billingReportFreemarkerRenderer.configuration,
+            templateName = "billing-report.ftl",
+            dataModel = dataModelMap,
+            locale = null
+        )
 
         val recipientEmailLong = specialReceiverEmails ?: billingReportRecipientEmails.get()
         recipientEmailLong.replace(",", " ").split(" ").forEach {
