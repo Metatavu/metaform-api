@@ -1,4 +1,4 @@
-package fi.metatavu.metaform.server.email
+package fi.metatavu.metaform.server.billingReport
 
 import fi.metatavu.metaform.server.freemarker.AbstractFreemarkerRenderer
 import freemarker.ext.beans.BeansWrapperBuilder
@@ -6,18 +6,13 @@ import freemarker.template.Configuration
 import freemarker.template.TemplateExceptionHandler
 import jakarta.annotation.PostConstruct
 import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
+import java.io.File
 
 /**
  * Freemarker renderer
- *
- * @author Antti Leppä
  */
 @ApplicationScoped
-class EmailFreemarkerRenderer: AbstractFreemarkerRenderer() {
-
-    @Inject
-    lateinit var freemarkerTemplateLoader: EmailFreemarkerTemplateLoader
+class BillingReportFreemarkerRenderer : AbstractFreemarkerRenderer() {
 
     lateinit var configuration: Configuration
 
@@ -27,10 +22,10 @@ class EmailFreemarkerRenderer: AbstractFreemarkerRenderer() {
     @PostConstruct
     fun init() {
         configuration = Configuration(VERSION)
-        configuration.templateLoader = freemarkerTemplateLoader
         configuration.defaultEncoding = "UTF-8"
         configuration.templateExceptionHandler = TemplateExceptionHandler.RETHROW_HANDLER
         configuration.logTemplateExceptions = false
+        configuration.setDirectoryForTemplateLoading(File("src/main/resources/templates"))
         configuration.objectWrapper = BeansWrapperBuilder(VERSION).build()
     }
 

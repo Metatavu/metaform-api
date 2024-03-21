@@ -4,6 +4,7 @@ import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import fi.metatavu.metaform.server.persistence.model.ExportTheme
 import fi.metatavu.metaform.server.persistence.model.Metaform
 import fi.metatavu.metaform.server.persistence.model.Metaform_
+import java.time.OffsetDateTime
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.persistence.criteria.CriteriaBuilder
@@ -35,6 +36,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     visibility: MetaformVisibility,
     allowAnonymous: Boolean?,
     data: String,
+    active: Boolean,
     creatorId: UUID
   ): Metaform {
     val metaform = Metaform()
@@ -44,6 +46,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
+    metaform.active = active
     metaform.creatorId = creatorId
     metaform.lastModifierId = creatorId
     return persist(metaform)
@@ -155,6 +158,21 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     criteria.select(root)
     criteria.where(
       criteriaBuilder.equal(root.get(Metaform_.visibility), visibility)
+    )
+    return entityManager.createQuery(criteria).resultList
+  }
+
+  fun listByActive(active: Boolean): List<Metaform> {
+    val criteriaBuilder = entityManager.criteriaBuilder
+    val criteria = criteriaBuilder.createQuery(
+      Metaform::class.java
+    )
+    val root = criteria.from(
+      Metaform::class.java
+    )
+    criteria.select(root)
+    criteria.where(
+      criteriaBuilder.equal(root.get(Metaform_.active), active)
     )
     return entityManager.createQuery(criteria).resultList
   }

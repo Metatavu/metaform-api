@@ -197,12 +197,7 @@ class ExportThemeController {
      * @return InputStream
      */
     fun findBaseThemeWithinJar(path: String): InputStream? {
-        println("Loading resource export-themes/$path")
-        val resource = this.javaClass.classLoader.getResourceAsStream("export-themes/$path")
-        if (resource != null) {
-            println("Loaded resource ${resource.available()}")
-        }
-        return resource
+        return this.javaClass.classLoader.getResourceAsStream("export-themes/$path")
     }
 
     /**

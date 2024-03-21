@@ -88,6 +88,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       exportTheme = exportTheme,
       allowAnonymous = metaform.allowAnonymous ?: false,
       visibility = metaform.visibility ?: MetaformVisibility.PRIVATE,
+      active = metaform.active,
       title = metaform.title,
       slug = metaform.slug,
       data = metaformData,

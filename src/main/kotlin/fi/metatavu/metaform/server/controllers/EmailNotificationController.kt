@@ -171,8 +171,18 @@ class EmailNotificationController {
     fun sendEmailNotification(emailNotification: EmailNotification, replyEntity: Reply?, emails: Set<String>) {
         val id = emailNotification.id!!
         val data = toFreemarkerData(replyEntity)
-        val subject = freemarkerRenderer.render(EmailTemplateSource.EMAIL_SUBJECT.getName(id), data, DEFAULT_LOCALE)
-        val content = freemarkerRenderer.render(EmailTemplateSource.EMAIL_CONTENT.getName(id), data, DEFAULT_LOCALE)
+        val subject = freemarkerRenderer.render(
+            configuration = freemarkerRenderer.configuration,
+            templateName = EmailTemplateSource.EMAIL_SUBJECT.getName(id),
+            dataModel = data,
+            locale = DEFAULT_LOCALE
+        )
+        val content = freemarkerRenderer.render(
+            configuration = freemarkerRenderer.configuration,
+            templateName = EmailTemplateSource.EMAIL_CONTENT.getName(id),
+            dataModel = data,
+            locale = DEFAULT_LOCALE
+        )
 
         emails.forEach { email ->
             emailEvent.fire(
