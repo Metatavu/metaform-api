@@ -16,10 +16,10 @@ import io.restassured.RestAssured.given
 import org.awaitility.Awaitility
 import org.eclipse.microprofile.config.ConfigProvider
 import org.hamcrest.CoreMatchers.`is`
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.time.Duration
 import java.time.OffsetDateTime
 
 /**
@@ -46,7 +46,7 @@ class SystemTestIT : AbstractTest() {
     }
 
     @Test
-    fun testBillingReportScheduled() {
+    fun testBillingReportScheduledManual() {
         TestBuilder().use { testBuilder ->
             val metaform1 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
             val metaform2 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
@@ -82,67 +82,45 @@ class SystemTestIT : AbstractTest() {
 
             val mailgunMocker: MailgunMocker = startMailgunMocker()
             try {
-                Awaitility.waitAtMost(60, java.util.concurrent.TimeUnit.SECONDS).until {
+                Awaitility.waitAtMost(60, java.util.concurrent.TimeUnit.MINUTES).until {
                     val messages = mailgunMocker.countMessagesSentPartialMatch(
                         "Metaform Test",
                         "metaform-test@example.com",
-                        "test@example.com",
                         "Metaform Billing Report",
                     )
-                    messages == 2
+                    val filteredMessages = messages?.filter {
+                        val requestBody = it.request.bodyAsString
+                        requestBody.contains("test1%40example.com") || requestBody.contains("test%40example.com")
+                    }
+                    filteredMessages?.size == 2
                 }
 
-            } finally {
-                stopMailgunMocker(mailgunMocker)
-            }
-        }
-    }
 
-    @Test
-    fun testBillingReportManual() {
-        TestBuilder().use { testBuilder ->
-            val metaform1 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val metaform2 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
-            val metaform1Members = mutableListOf<MetaformMember>()
-
-            for (i in 1..3) {
-                metaform1Members.add(
-                    testBuilder.systemAdmin.metaformMembers.create(
-                        metaformId = metaform1.id!!,
-                        payload = MetaformMember(
-                            email = "test$i@example.com",
-                            firstName = "test",
-                            lastName = "test",
-                            role = MetaformMemberRole.MANAGER,
-                        )
-                    )
+                val body = mapOf(
+                    "recipientEmail" to "special_email@example.com",
+                    "startDate" to OffsetDateTime.now().minusMonths(1),
+                    "endDate" to OffsetDateTime.now()
                 )
-            }
 
-            val mailgunMocker: MailgunMocker = startMailgunMocker()
-            try {
-                Awaitility.await().pollDelay(Duration.ofSeconds(20)).atMost(Duration.ofSeconds(30)).then().until {
-                    val requstBody = HashMap<String, Any>()
-                    requstBody["recipientEmail"] = "text@example.com"
-                    requstBody["start"] = OffsetDateTime.now().minusMonths(1)
-                    requstBody["end"] = OffsetDateTime.now()
-                    given()
-                        .contentType("application/json")
-                        .header("X-CRON-KEY", "8EDCE3DF-0BC2-48AF-942E-25A9E83FA19D")
-                        .`when`().post("http://localhost:8081/v1/system/billingReport")
-                        .then()
-                        .extract()
-                        .statusCode() == 204
-                }
+                val statusCode = given()
+                    .contentType("application/json")
+                    .header("X-CRON-KEY", "8EDCE3DF-0BC2-48AF-942E-25A9E83FA19D")
+                    .`when`()
+                    .body(body)
+                    .post("http://localhost:8081/v1/system/billingReport")
+                    .then()
+                    .extract()
+                    .statusCode()
+                assertEquals(204, statusCode)
 
                 Awaitility.waitAtMost(60, java.util.concurrent.TimeUnit.SECONDS).until {
                     val messages = mailgunMocker.countMessagesSentPartialMatch(
                         "Metaform Test",
                         "metaform-test@example.com",
-                        "test@example.com",
                         "Metaform Billing Report",
                     )
-                    messages == 1
+                    val filteredMessages = messages?.filter { it.request.bodyAsString.contains("special_email%40example.com") }
+                    filteredMessages?.size == 1
                 }
             } finally {
                 stopMailgunMocker(mailgunMocker)

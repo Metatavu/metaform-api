@@ -2,6 +2,7 @@ package fi.metatavu.metaform.server.test.functional
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.github.tomakehurst.wiremock.verification.NearMiss
 import org.apache.commons.codec.binary.Base64
 import org.apache.http.NameValuePair
 import org.apache.http.client.utils.URLEncodedUtils
@@ -79,20 +80,18 @@ class MailgunMocker(private val basePath: String, private val domain: String, ap
      *
      * @param fromName  sender
      * @param fromEmail sender email
-     * @param to        recipient
      * @param subject   subject
      */
-    fun countMessagesSentPartialMatch(fromName: String, fromEmail: String, to: String, subject: String): Int {
+    fun countMessagesSentPartialMatch(fromName: String, fromEmail: String, subject: String): List<NearMiss> {
         val parameters: List<NameValuePair> = ArrayList(
             listOf<NameValuePair>(
-                BasicNameValuePair("to", to),
                 BasicNameValuePair("subject", subject),
                 BasicNameValuePair("from", String.format("%s <%s>", fromName, fromEmail)),
             )
         )
         val form = URLEncodedUtils.format(parameters, "UTF-8")
         val nearMisses = WireMock.findNearMissesFor(WireMock.postRequestedFor(WireMock.urlEqualTo(apiUrl)).withRequestBody(WireMock.containing(form)));
-        return nearMisses.size
+        return nearMisses
     }
 
     /**

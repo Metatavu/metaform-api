@@ -149,6 +149,7 @@ class BillingReportController {
      * @param specialReceiverEmails recipient email (if not used the default system recipient emails are used)
      */
     fun sendBillingReports(start: OffsetDateTime?, end: OffsetDateTime?, specialReceiverEmails: String?) {
+        logger.info("Sending the billing reports for the period of the given dates")
         val invoices = monthlyInvoiceDAO.listInvoices(
             start = start,
             end = end,
@@ -161,14 +162,13 @@ class BillingReportController {
         val billingReportMetaforms = allMetaformInvoices.map {
             createBillingReportMetaform(it)
         }
-
         val totalManagersCount = billingReportMetaforms
             .map { it.managersCount }
             .fold(0) { sum, element -> sum + element }
 
-        val totalAdminsCount = metaformKeycloakController.getSystemAdministrators()
-            .filter { !it.email.contains(DOMAIN_TO_EXCLUDE) }
-            .size
+        val totalAdminsCount = invoices
+            .map { it.systemAdminsCount }
+            .fold(0) { sum, element -> sum + element }
 
         val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         val dataModelMap = HashMap<String, Any>()
@@ -181,8 +181,8 @@ class BillingReportController {
         dataModelMap["adminsCount"] = totalAdminsCount
         dataModelMap["adminCost"] = adminCost!!
         dataModelMap["forms"] = billingReportMetaforms
-        dataModelMap["from"] = if (start == null)  "-" else formatter.format(start)
-        dataModelMap["to"] = if (end == null)  "-" else formatter.format(end)
+        dataModelMap["from"] = if (start == null) "-" else formatter.format(start)
+        dataModelMap["to"] = if (end == null) "-" else formatter.format(end)
         dataModelMap["totalInvoices"] = invoices.size
 
         val rendered = billingReportFreemarkerRenderer.render("billing-report.ftl", dataModelMap)
