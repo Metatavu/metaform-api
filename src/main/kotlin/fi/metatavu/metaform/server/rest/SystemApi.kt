@@ -6,7 +6,7 @@ import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.core.Response
-import org.eclipse.microprofile.config.ConfigProvider
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.*
 
 /**
@@ -19,9 +19,13 @@ class SystemApi: fi.metatavu.metaform.api.spec.SystemApi, AbstractApi() {
   @Inject
   lateinit var billingReportController: BillingReportController
 
+  @ConfigProperty(name = "billing.report.cron.key")
+  lateinit var requestCronKeyString: Optional<String>
+
   private val cronKey: UUID?
     get() {
-      return UUID.fromString(ConfigProvider.getConfig().getValue("billing.report.cron.key", String::class.java))
+      if (requestCronKeyString.isEmpty) return null
+      return UUID.fromString(requestCronKeyString.get())
     }
 
   override fun ping(): Response {
