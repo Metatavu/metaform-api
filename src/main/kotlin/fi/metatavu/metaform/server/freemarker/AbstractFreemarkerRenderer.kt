@@ -28,7 +28,7 @@ abstract class AbstractFreemarkerRenderer {
      * @param locale locale
      * @return rendered template
      */
-    fun render(configuration: Configuration, templateName: String, dataModel: Any, locale: Locale?): String? {
+    fun render(configuration: Configuration, templateName: String, dataModel: Any?, locale: Locale?): String? {
         val template = getTemplate(configuration, templateName)
         if (template == null) {
             if (logger.isErrorEnabled) {
