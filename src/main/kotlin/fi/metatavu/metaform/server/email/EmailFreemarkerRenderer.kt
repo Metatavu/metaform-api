@@ -14,7 +14,7 @@ import jakarta.inject.Inject
  * @author Antti Leppä
  */
 @ApplicationScoped
-class EmailAbstractFreemarkerRenderer: AbstractFreemarkerRenderer() {
+class EmailFreemarkerRenderer: AbstractFreemarkerRenderer() {
 
     @Inject
     lateinit var freemarkerTemplateLoader: EmailFreemarkerTemplateLoader

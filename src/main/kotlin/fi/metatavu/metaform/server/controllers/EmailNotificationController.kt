@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.metaform.api.spec.model.FieldRule
 import fi.metatavu.metaform.api.spec.model.Reply
 import fi.metatavu.metaform.server.email.SendEmailEvent
-import fi.metatavu.metaform.server.email.EmailAbstractFreemarkerRenderer
+import fi.metatavu.metaform.server.email.EmailFreemarkerRenderer
 import fi.metatavu.metaform.server.email.EmailTemplateSource
 import fi.metatavu.metaform.server.metaform.FieldRuleEvaluator
 import fi.metatavu.metaform.server.persistence.dao.EmailNotificationDAO
@@ -37,7 +37,7 @@ class EmailNotificationController {
     lateinit var emailNotificationTranslator: EmailNotificationTranslator
 
     @Inject
-    lateinit var freemarkerRenderer: EmailAbstractFreemarkerRenderer
+    lateinit var freemarkerRenderer: EmailFreemarkerRenderer
 
     @Inject
     lateinit var emailNotificationDAO: EmailNotificationDAO

@@ -47,7 +47,7 @@ class BillingReportController {
     lateinit var metaformKeycloakController: MetaformKeycloakController
 
     @Inject
-    lateinit var billingReportFreemarkerRenderer: BillingReportAbstractFreemarkerRenderer
+    lateinit var billingReportFreemarkerRenderer: BillingReportFreemarkerRenderer
     
     @Inject
     lateinit var metaformTranslator: MetaformTranslator

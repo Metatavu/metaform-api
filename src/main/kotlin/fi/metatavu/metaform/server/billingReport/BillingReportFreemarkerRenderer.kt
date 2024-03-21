@@ -12,7 +12,7 @@ import java.io.File
  * Freemarker renderer
  */
 @ApplicationScoped
-class BillingReportAbstractFreemarkerRenderer : AbstractFreemarkerRenderer() {
+class BillingReportFreemarkerRenderer : AbstractFreemarkerRenderer() {
 
     lateinit var configuration: Configuration
 
