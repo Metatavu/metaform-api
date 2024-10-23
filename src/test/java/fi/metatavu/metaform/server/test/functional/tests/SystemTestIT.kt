@@ -104,7 +104,7 @@ class SystemTestIT : AbstractTest() {
 
                 val statusCode = given()
                     .contentType("application/json")
-                    .header("X-CRON-KEY", "8EDCE3DF-0BC2-48AF-942E-25A9E83FA19D")
+                    .header("X-API-KEY", "testKey")
                     .`when`()
                     .body(body)
                     .post("http://localhost:8081/v1/system/billingReport")

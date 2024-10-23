@@ -13,29 +13,22 @@ import java.util.*
  * Implementation for System API
  */
 @RequestScoped
-@Transactional
 class SystemApi: fi.metatavu.metaform.api.spec.SystemApi, AbstractApi() {
 
   @Inject
   lateinit var billingReportController: BillingReportController
 
-  @ConfigProperty(name = "billing.report.cron.key")
-  lateinit var requestCronKeyString: Optional<String>
-
-  private val cronKey: UUID?
-    get() {
-      if (requestCronKeyString.isEmpty) return null
-      return UUID.fromString(requestCronKeyString.get())
-    }
+  @ConfigProperty(name = "billing.report.key")
+  lateinit var apiKey: Optional<String>
 
   override fun ping(): Response {
     return createOk("pong")
   }
 
+  @Transactional
   override fun sendBillingReport(billingReportRequest: BillingReportRequest?): Response {
-    if (requestCronKey == null && loggedUserId == null) return createForbidden(UNAUTHORIZED)
-
-    if (cronKey != requestCronKey) {
+    if (apiKey.isEmpty) return createForbidden(UNAUTHORIZED)
+    if (apiKey.get() != requestApiKey) {
       return createForbidden(UNAUTHORIZED)
     }
 
