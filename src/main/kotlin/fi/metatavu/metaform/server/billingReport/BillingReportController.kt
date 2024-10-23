@@ -30,18 +30,6 @@ class BillingReportController {
     @ConfigProperty(name = "billing.report.recipient.emails")
     lateinit var billingReportRecipientEmails: Optional<String>
 
-    @ConfigProperty(name = "billing.report.form.cost", defaultValue = "50")
-    var formCost: Int? = null
-
-    @ConfigProperty(name = "billing.report.manager.cost", defaultValue = "50")
-    var managerCost: Int? = null
-
-    @ConfigProperty(name = "billing.report.admin.cost", defaultValue = "0")
-    var adminCost: Int? = null
-
-    @ConfigProperty(name = "billing.report.strongAuthentication.cost", defaultValue = "25")
-    var authCost: Int? = null
-
     @Inject
     lateinit var metaformController: MetaformController
 
