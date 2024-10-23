@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.persistence.model
 import fi.metatavu.metaform.api.spec.model.MetaformVisibility
 import org.hibernate.annotations.Cache
 import org.hibernate.annotations.CacheConcurrencyStrategy
+import java.time.OffsetDateTime
 import java.util.*
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotEmpty
@@ -48,6 +49,10 @@ class Metaform: Metadata() {
 
   @Column(nullable = false)
   lateinit var lastModifierId: UUID
+
+  @Column(nullable = false)
+  @NotNull
+  var active: Boolean = true
 
   @OneToMany(mappedBy = "metaform", targetEntity = MetaformReplyViewed::class)
   lateinit var metaformReplyViewed: List<MetaformReplyViewed>

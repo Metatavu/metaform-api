@@ -732,4 +732,50 @@
     <sql>DELETE FROM exporttheme WHERE name = 'base'</sql>
   </changeSet>
 
+  <changeSet id="billing-report" author="katja danilova">
+    <addColumn tableName="metaform">
+      <column name="active" type="boolean"/>
+    </addColumn>
+    <sql>UPDATE metaform SET active = true</sql>
+
+    <createTable tableName="monthlyinvoice">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="startsat" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="createdat" type="datetime(6)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="systemadminscount" type="integer">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createTable tableName="metaforminvoice">
+      <column name="id" type="binary(16)">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="monthlyinvoice_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_METAFORMINVOICE_MONTHLYINVOICE_ID" referencedColumnNames="id" referencedTableName="monthlyinvoice"/>
+      </column>
+      <column name="metaformid" type="binary(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="groupscount" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="managerscount" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="visibility" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="title" type="varchar(191)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
 </databaseChangeLog>

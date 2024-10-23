@@ -17,12 +17,16 @@ import fi.metatavu.metaform.server.permissions.GroupMemberPermission
 import fi.metatavu.metaform.server.permissions.PermissionController
 import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
+import fi.metatavu.metaform.server.persistence.dao.MetaformInvoiceDAO
+import fi.metatavu.metaform.server.persistence.dao.MonthlyInvoiceDAO
 import fi.metatavu.metaform.server.persistence.model.*
+import fi.metatavu.metaform.server.persistence.model.billing.MetaformInvoice
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
 import org.apache.commons.lang3.StringUtils
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.representations.idm.UserRepresentation
+import java.time.OffsetDateTime
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
@@ -59,6 +63,12 @@ class MetaformController {
     @Inject
     lateinit var permissionController: PermissionController
 
+    @Inject
+    lateinit var monthlyInvoiceDAO: MonthlyInvoiceDAO
+
+    @Inject
+    lateinit var metaformInvoiceDAO: MetaformInvoiceDAO
+
     /**
      * Creates new Metaform
      *
@@ -76,6 +86,7 @@ class MetaformController {
             title: String?,
             slug: String? = null,
             data: String,
+            active: Boolean?,
             creatorId: UUID
     ): Metaform {
         return metaformDAO.create(
@@ -85,6 +96,7 @@ class MetaformController {
             visibility = visibility,
             allowAnonymous = allowAnonymous,
             data = data,
+            active = active ?: true,
             creatorId = creatorId
         ).let {
             metaformKeycloakController.createMetaformManagementGroup(it.id!!)
@@ -120,6 +132,10 @@ class MetaformController {
     fun listMetaforms(visibility: MetaformVisibility? = null): List<Metaform> {
         visibility ?: return metaformDAO.listAll()
         return metaformDAO.listByVisibility(visibility)
+    }
+
+    fun listMetaforms(active: Boolean): List<Metaform> {
+        return metaformDAO.listByActive(active)
     }
 
     /**

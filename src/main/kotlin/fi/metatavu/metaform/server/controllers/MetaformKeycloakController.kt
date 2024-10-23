@@ -405,6 +405,15 @@ class MetaformKeycloakController {
     }
 
     /**
+     * Gets system administrators
+     *
+     * @return list of user representations
+     */
+    fun getSystemAdministrators(): List<UserRepresentation> {
+        return adminClient.realm(realm).roles().get("system-admin").roleUserMembers.toList()
+    }
+
+    /**
      * Gets user group
      *
      * @param userId user id
@@ -420,7 +429,10 @@ class MetaformKeycloakController {
      * @param memberGroupId member group id
      * @param memberId member id
      */
-    fun userJoinGroup(memberGroupId: String, memberId: String) {
+    fun userJoinGroup(memberGroupId: String?, memberId: String) {
+        if (memberGroupId == null) {
+            return
+        }
         adminClient.realm(realm).users()[memberId].joinGroup(memberGroupId)
     }
 
@@ -430,7 +442,10 @@ class MetaformKeycloakController {
      * @param memberGroupId member group id
      * @param memberId member idp
      */
-    fun userLeaveGroup(memberGroupId: String, memberId: String) {
+    fun userLeaveGroup(memberGroupId: String?, memberId: String) {
+        if (memberGroupId == null) {
+            return
+        }
         adminClient.realm(realm).users()[memberId].leaveGroup(memberGroupId)
     }
 
@@ -459,10 +474,10 @@ class MetaformKeycloakController {
      *
      * @param metaformId metaform id
      */
-    fun createMetaformManagementGroup(metaformId: UUID): GroupRepresentation {
+    fun createMetaformManagementGroup(metaformId: UUID): GroupRepresentation? {
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformAdminGroupName(metaformId) })
         adminClient.realm(realm).groups().add(GroupRepresentation().apply { name = getMetaformManagerGroupName(metaformId) })
-        val metaformManagerGroup = getMetaformManagerGroup(metaformId)
+        val metaformManagerGroup = getMetaformManagerGroup(metaformId) ?: return null
         val metaformManagerRole = adminClient.realm(realm).roles().get(AbstractApi.METAFORM_MANAGER_ROLE).toRepresentation()
         adminClient.realm(realm).groups().group(metaformManagerGroup.id).roles().realmLevel().add(listOf(metaformManagerRole))
         return metaformManagerGroup
@@ -476,8 +491,12 @@ class MetaformKeycloakController {
     fun deleteMetaformManagementGroup(metaformId: UUID) {
         val adminGroup = getMetaformAdminGroup(metaformId)
         val managerGroup = getMetaformManagerGroup(metaformId)
-        adminClient.realm(realm).groups().group(adminGroup.id).remove()
-        adminClient.realm(realm).groups().group(managerGroup.id).remove()
+        if (adminGroup != null) {
+            adminClient.realm(realm).groups().group(adminGroup.id).remove()
+        }
+        if (managerGroup != null) {
+            adminClient.realm(realm).groups().group(managerGroup.id).remove()
+        }
     }
 
     /**
@@ -486,10 +505,10 @@ class MetaformKeycloakController {
      * @param metaformId metaform id
      * @return metaform manager group
      */
-    fun getMetaformManagerGroup(metaformId: UUID): GroupRepresentation {
+    fun getMetaformManagerGroup(metaformId: UUID): GroupRepresentation? {
         return adminClient.realm(realm).groups()
             .groups(getMetaformManagerGroupName(metaformId), 0, 1)
-            .first()
+            .firstOrNull()
     }
 
     /**
@@ -498,10 +517,10 @@ class MetaformKeycloakController {
      * @param metaformId metaform id
      * @return metaform admin group
      */
-    fun getMetaformAdminGroup(metaformId: UUID): GroupRepresentation {
+    fun getMetaformAdminGroup(metaformId: UUID): GroupRepresentation? {
         return adminClient.realm(realm).groups()
             .groups(getMetaformAdminGroupName(metaformId), 0, 1)
-            .first()
+            .firstOrNull()
     }
 
     /**
@@ -573,9 +592,10 @@ class MetaformKeycloakController {
      * @return listed users
      */
     fun listMetaformMemberManager(metaformId: UUID): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
+        val managerGroup = getMetaformManagerGroup(metaformId)?.id ?: return emptyList()
         return groupApi.realmGroupsIdMembersGet(
             realm = realm,
-            id = getMetaformManagerGroup(metaformId).id,
+            id = managerGroup,
             first = null,
             max = null,
             briefRepresentation = false
@@ -589,9 +609,10 @@ class MetaformKeycloakController {
      * @return listed users
      */
     fun listMetaformMemberAdmin(metaformId: UUID): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
+        val adminGroup = getMetaformAdminGroup(metaformId)?.id ?: return emptyList()
         return groupApi.realmGroupsIdMembersGet(
             realm = realm,
-            id = getMetaformAdminGroup(metaformId).id,
+            id = getMetaformAdminGroup(metaformId)!!.id,
             first = null,
             max = null,
             briefRepresentation = false
@@ -657,8 +678,8 @@ class MetaformKeycloakController {
             return findMetaformMember(userId) ?: throw KeycloakException("Failed to find the created user")
         } else {
             when (metaformMemberRole) {
-                MetaformMemberRole.ADMINISTRATOR -> userJoinGroup(getMetaformAdminGroup(metaformId).id, existingUser.id!!)
-                MetaformMemberRole.MANAGER -> userJoinGroup(getMetaformManagerGroup(metaformId).id, existingUser.id!!)
+                MetaformMemberRole.ADMINISTRATOR -> userJoinGroup(getMetaformAdminGroup(metaformId)?.id, existingUser.id!!)
+                MetaformMemberRole.MANAGER -> userJoinGroup(getMetaformManagerGroup(metaformId)?.id, existingUser.id!!)
             }
 
             return existingUser
@@ -673,8 +694,7 @@ class MetaformKeycloakController {
      * @return found group or null
      */
     fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): GroupRepresentation? {
-        val managerGroup = getMetaformManagerGroup(metaformId)
-
+        val managerGroup = getMetaformManagerGroup(metaformId) ?: return null
         return adminClient.realm(realm).groups()
             .group(managerGroup.id)
             .toRepresentation()
@@ -689,7 +709,7 @@ class MetaformKeycloakController {
      * @return member groups for given metaformId
      */
     fun listMetaformMemberGroups(metaformId: UUID): List<GroupRepresentation> {
-        val managerGroup = getMetaformManagerGroup(metaformId)
+        val managerGroup = getMetaformManagerGroup(metaformId) ?: return emptyList()
 
         return adminClient.realm(realm).groups()
             .group(managerGroup.id)
@@ -722,7 +742,7 @@ class MetaformKeycloakController {
         val managerGroups = listMetaformMemberGroups(metaformId = metaformId)
 
         managerGroups.plus(listOf(managerBaseGroup, adminGroup)).forEach {
-            userLeaveGroup(it.id, metaformMemberId.toString())
+            userLeaveGroup(it?.id, metaformMemberId.toString())
         }
     }
 
@@ -790,9 +810,9 @@ class MetaformKeycloakController {
         val prevRole = getMetaformMemberRole(metaformMember.id!!, metaformId)
         when {
             prevRole == MetaformMemberRole.ADMINISTRATOR && newRole == MetaformMemberRole.MANAGER ->
-                userLeaveGroup(getMetaformAdminGroup(metaformId).id, metaformMember.id)
+                userLeaveGroup(getMetaformAdminGroup(metaformId)?.id, metaformMember.id)
             prevRole == MetaformMemberRole.MANAGER && newRole == MetaformMemberRole.ADMINISTRATOR ->
-                userJoinGroup(getMetaformAdminGroup(metaformId).id, metaformMember.id)
+                userJoinGroup(getMetaformAdminGroup(metaformId)?.id, metaformMember.id)
             else -> return
         }
     }
@@ -806,7 +826,7 @@ class MetaformKeycloakController {
      */
     @Throws(KeycloakException::class)
     fun createMetaformMemberGroup(metaformId: UUID, memberGroup: GroupRepresentation): GroupRepresentation {
-        val managerGroup = getMetaformManagerGroup(metaformId)
+        val managerGroup = getMetaformManagerGroup(metaformId) ?: throw KeycloakException("Manager group not found")
         val response = adminClient.realm(realm).groups().group(managerGroup.id).subGroup(memberGroup)
 
         if (response.status != 201) {

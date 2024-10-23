@@ -14,6 +14,10 @@ class GeneralTestProfile : QuarkusTestProfile {
         properties["metaforms.keycloak.card.identity.provider"] = "oidc"
         properties["metaforms.features.auditlog"] = "true"
         properties["metaforms.features.cardauth"] = "true"
+        properties["billing.report.key"] = "testKey"
+        properties["billing.report.recipient.emails"] = "test@example.com,test1@example.com"
+        properties["createInvoices.cron.expr"] = "0/3 * * * * ? *"
+        properties["sendInvoices.cron.expr"] = "0/3 * * * * ? *"
         return properties
     }
 }

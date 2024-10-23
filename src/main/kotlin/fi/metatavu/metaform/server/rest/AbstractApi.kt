@@ -70,6 +70,19 @@ abstract class AbstractApi {
         } else UUID.fromString(jsonWebToken.subject)
 
     /**
+     * Returns api key from request headers
+     *
+     * @return api key
+     */
+    protected val requestApiKey: String?
+        get() {
+            val httpHeaders = request.httpHeaders
+            val apiKeyHeader = httpHeaders.getRequestHeader("X-API-KEY")
+
+            return if (apiKeyHeader.isEmpty()) null else apiKeyHeader.first()
+        }
+
+    /**
      * Constructs ok response
      *
      * @param entity payload
