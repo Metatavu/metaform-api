@@ -39,6 +39,10 @@ class SystemApi: fi.metatavu.metaform.api.spec.SystemApi, AbstractApi() {
       return createForbidden(UNAUTHORIZED)
     }
 
+    if (billingReportRequest?.startDate != null && billingReportRequest.startDate.isAfter(billingReportRequest.endDate)) {
+      return createBadRequest("Start date cannot be after end date")
+    }
+
     billingReportController.sendBillingReports(billingReportRequest?.startDate, billingReportRequest?.endDate, billingReportRequest?.recipientEmail)
     return createNoContent()
   }

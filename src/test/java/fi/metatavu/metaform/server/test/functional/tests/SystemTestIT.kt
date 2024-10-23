@@ -88,18 +88,18 @@ class SystemTestIT : AbstractTest() {
                         "metaform-test@example.com",
                         "Metaform Billing Report",
                     )
-                    val filteredMessages = messages?.filter {
+                    val filteredMessages = messages.filter {
                         val requestBody = it.request.bodyAsString
                         requestBody.contains("test1%40example.com") || requestBody.contains("test%40example.com")
                     }
-                    filteredMessages?.size == 2
+                    filteredMessages.size == 2
                 }
 
 
                 val body = mapOf(
                     "recipientEmail" to "special_email@example.com",
-                    "startDate" to OffsetDateTime.now().minusMonths(1),
-                    "endDate" to OffsetDateTime.now()
+                    "startDate" to OffsetDateTime.now().minusMonths(1).toLocalDate(),
+                    "endDate" to OffsetDateTime.now().toLocalDate()
                 )
 
                 val statusCode = given()
@@ -119,8 +119,9 @@ class SystemTestIT : AbstractTest() {
                         "metaform-test@example.com",
                         "Metaform Billing Report",
                     )
-                    val filteredMessages = messages?.filter { it.request.bodyAsString.contains("special_email%40example.com") }
-                    filteredMessages?.size == 1
+                    val filteredMessages =
+                        messages.filter { it.request.bodyAsString.contains("special_email%40example.com") }
+                    filteredMessages.size == 1
                 }
             } finally {
                 stopMailgunMocker(mailgunMocker)

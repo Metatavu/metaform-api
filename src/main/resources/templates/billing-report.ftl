@@ -43,47 +43,29 @@
     <p>Kuukausilaskuja yhteensä: ${totalInvoices}</p>
     <table style="border-collapse: seperate; border-spacing: 0.5rem;">
       <tr class="table-row">
-        <th class="table-header">Artikelli</th>
+        <th class="table-header">Artikkeli</th>
         <th class="table-header">Määrä</th>
-        <th class="table-header">Yksikköhinta</th>
-        <th class="table-header">Kokonaishinta</th>
         <th></th>
       </tr>
-<#assign strongAuthenticationTotalCost = strongAuthenticationCount * strongAuthenticationCost>
-<#assign formsTotalCost = formsCount * formCost>
-<#assign managersTotalCost = managersCount * managerCost>
-<#assign adminsTotalCost = adminsCount * adminCost>
       <tr>
         <td>Suomi.fi</td>
         <td>${strongAuthenticationCount}</td>
-        <td>${strongAuthenticationCost} €</td>
-        <td>${strongAuthenticationTotalCost} €</td>
       </tr>
       <tr>
         <td>Lomakkeet</td>
         <td>${formsCount}</td>
-        <td>${formCost} €</td>
-        <td>${formsTotalCost} €</td>
       </tr>
       <tr>
         <td>Käsittelijät</td>
         <td>${managersCount}</td>
-        <td>${managerCost} €</td>
-        <td>${managersTotalCost} €</td>
       </tr>
       <tr>
         <td>Ylläpitäjät</td>
         <td>${adminsCount}</td>
-        <td>${adminCost} €</td>
-        <td>${adminsTotalCost} €</td>
       </tr>
       <tr>
         <td colspan="3"></td>
-        <td>
-          ${strongAuthenticationTotalCost + formsTotalCost + managersTotalCost + adminsTotalCost} €
-        </td>
-        <td>${(strongAuthenticationTotalCost + formsTotalCost + managersTotalCost + adminsTotalCost) * 1.24} €</td>
-      </tr>
+        </tr>
     </table>
   </div>
   <div class="summary">

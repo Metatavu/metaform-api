@@ -7,6 +7,7 @@ import fi.metatavu.metaform.server.email.EmailProvider
 import fi.metatavu.metaform.server.persistence.dao.MetaformInvoiceDAO
 import fi.metatavu.metaform.server.persistence.dao.MonthlyInvoiceDAO
 import fi.metatavu.metaform.server.persistence.model.billing.MetaformInvoice
+import fi.metatavu.metaform.server.persistence.model.billing.MonthlyInvoice
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import io.quarkus.scheduler.Scheduled
 import jakarta.enterprise.context.ApplicationScoped
@@ -14,6 +15,7 @@ import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -65,7 +67,7 @@ class BillingReportController {
     lateinit var logger: Logger
 
     /**
-     * Periodic job that creates the invoices for the starting month based on the
+     * Periodic job that creates the invoices for the current month based on the
      * metaforms and their managers and groups.
      * Does not matter when it runs, as it will only create the invoice once per month
      */
@@ -77,11 +79,10 @@ class BillingReportController {
     )
     @Transactional
     fun createInvoices() {
+        logger.info("Creating the billing reports for the current month")
         val now = OffsetDateTime.now()
-        logger.info("Creating the billing reports for the period of the starting month")
-
-        val currentMonthStart = getCurrentMonthStart(now)
-        val currentMonthEnd = getCurrentMonthEnd(now)
+        val currentMonthStart = getMonthStart(now)
+        val currentMonthEnd = getMonthEnd(now)
 
         val monthlyInvoices = monthlyInvoiceDAO.listInvoices(
             start = currentMonthStart,
@@ -93,30 +94,7 @@ class BillingReportController {
             return
         }
 
-        val newMontlyInvoice = monthlyInvoiceDAO.create(
-            id = UUID.randomUUID(),
-            systemAdminsCount = metaformKeycloakController.getSystemAdministrators().size,
-            startsAt = now,
-        )
-
-        metaformController.listMetaforms(
-            active = true
-        ).forEach { metaform ->
-            val managersCount = metaformKeycloakController.listMetaformMemberManager(metaform.id!!).size
-            val groupsCount = metaformKeycloakController.listMetaformMemberGroups(metaform.id!!).size
-            val title = metaformTranslator.translate(metaform).title
-
-            metaformInvoiceDAO.create(
-                id = UUID.randomUUID(),
-                metaformId = metaform.id!!,
-                metaformTitle = title,
-                monthlyInvoice = newMontlyInvoice,
-                groupsCount = groupsCount,
-                managersCount = managersCount,
-                metaformVisibility = metaform.visibility,
-                created = now
-            )
-        }
+        buildInvoice()
     }
 
     /**
@@ -136,8 +114,8 @@ class BillingReportController {
             return
         }
         val now = OffsetDateTime.now()
-        val start = getCurrentMonthStart(now)
-        val end = getCurrentMonthEnd(now)
+        val start = getMonthStart(now)
+        val end = getMonthEnd(now)
         sendBillingReports(start, end, null)
     }
 
@@ -148,14 +126,22 @@ class BillingReportController {
      * @param end end date
      * @param specialReceiverEmails recipient email (if not used the default system recipient emails are used)
      */
-    fun sendBillingReports(start: OffsetDateTime?, end: OffsetDateTime?, specialReceiverEmails: String?) {
+    fun sendBillingReports(start: LocalDate?, end: LocalDate?, specialReceiverEmails: String?) {
         logger.info("Sending the billing reports for the period of the given dates")
         val invoices = monthlyInvoiceDAO.listInvoices(
             start = start,
             end = end,
-        )
-        val allMetaformInvoices = metaformInvoiceDAO.listInvoices(monthlyInvoices = invoices)
+        ).toMutableList()
 
+        val now = OffsetDateTime.now()
+        val currentMonthStart = getMonthStart(now)
+
+        // If the report is requested for no month or the current month build it immediately (if missing)
+        if ((start == null && end == null) || (end != null && end >= currentMonthStart)) {
+            if (invoices.isEmpty()) invoices.add(buildInvoice())
+        }
+
+        val allMetaformInvoices = metaformInvoiceDAO.listInvoices(monthlyInvoices = invoices)
         val privateMetaformInvoices = allMetaformInvoices.filter { it.visibility == MetaformVisibility.PRIVATE }
         val publicMetaformInvoices = allMetaformInvoices.filter { it.visibility == MetaformVisibility.PUBLIC }
 
@@ -170,16 +156,12 @@ class BillingReportController {
             .map { it.systemAdminsCount }
             .fold(0) { sum, element -> sum + element }
 
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         val dataModelMap = HashMap<String, Any>()
         dataModelMap["strongAuthenticationCount"] = privateMetaformInvoices.size
-        dataModelMap["strongAuthenticationCost"] = authCost!!
         dataModelMap["formsCount"] = privateMetaformInvoices.size + publicMetaformInvoices.size
-        dataModelMap["formCost"] = formCost!!
         dataModelMap["managersCount"] = totalManagersCount
-        dataModelMap["managerCost"] = managerCost!!
         dataModelMap["adminsCount"] = totalAdminsCount
-        dataModelMap["adminCost"] = adminCost!!
         dataModelMap["forms"] = billingReportMetaforms
         dataModelMap["from"] = if (start == null) "-" else formatter.format(start)
         dataModelMap["to"] = if (end == null) "-" else formatter.format(end)
@@ -203,23 +185,58 @@ class BillingReportController {
     }
 
     /**
-     * Gets the start of the current month
+     * Builds the invoice for the current month
      *
-     * @param time time
-     * @return start of the current month
+     * @return MonthlyInvoice
      */
-    private fun getCurrentMonthStart(time: OffsetDateTime): OffsetDateTime {
-        return time.withDayOfMonth(1).withHour(0).withMinute(0)
+    private fun buildInvoice(): MonthlyInvoice {
+        val now = OffsetDateTime.now()
+        val newMonthlyInvoice = monthlyInvoiceDAO.create(
+            id = UUID.randomUUID(),
+            systemAdminsCount = metaformKeycloakController.getSystemAdministrators().size,
+            startsAt = getMonthStart(now),
+            createdAt = now
+        )
+
+        val metaformInvoices = metaformController.listMetaforms(
+            active = true
+        ).map { metaform ->
+            val managersCount = metaformKeycloakController.listMetaformMemberManager(metaform.id!!).size
+            val groupsCount = metaformKeycloakController.listMetaformMemberGroups(metaform.id!!).size
+            val title = metaformTranslator.translate(metaform).title
+
+            metaformInvoiceDAO.create(
+                id = UUID.randomUUID(),
+                metaformId = metaform.id!!,
+                metaformTitle = title,
+                monthlyInvoice = newMonthlyInvoice,
+                groupsCount = groupsCount,
+                managersCount = managersCount,
+                metaformVisibility = metaform.visibility
+            )
+        }
+        logger.info("Created new monthly invoice for ${getMonthStart(now)} with ${metaformInvoices.size} metaform invoices")
+        return newMonthlyInvoice
     }
 
     /**
-     * Gets the end of the current month
+     * Gets the start of the month
      *
      * @param time time
-     * @return end of the current month
+     * @return start of the month
      */
-    private fun getCurrentMonthEnd(time: OffsetDateTime): OffsetDateTime {
-        return time.withDayOfMonth(time.month.length(time.toLocalDate().isLeapYear)).withHour(23).withMinute(59)
+    private fun getMonthStart(time: OffsetDateTime): LocalDate {
+        return time.withDayOfMonth(1).toLocalDate()
+    }
+
+    /**
+     * Gets the end of the month
+     *
+     * @param time time
+     * @return end of the month
+     */
+    private fun getMonthEnd(time: OffsetDateTime): LocalDate {
+        return time.withDayOfMonth(time.month.length(time.toLocalDate().isLeapYear)).toLocalDate()
     }
 
     /**

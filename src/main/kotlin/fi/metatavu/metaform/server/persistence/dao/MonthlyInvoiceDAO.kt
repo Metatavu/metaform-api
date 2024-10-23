@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped
 import jakarta.persistence.TypedQuery
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -22,8 +23,8 @@ class MonthlyInvoiceDAO: AbstractDAO<MonthlyInvoice>() {
      * @param end end date
      */
     fun listInvoices(
-        start: OffsetDateTime? = null,
-        end: OffsetDateTime? = null,
+        start: LocalDate? = null,
+        end: LocalDate? = null,
     ): List<MonthlyInvoice> {
         val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
         val criteria: CriteriaQuery<MonthlyInvoice> = criteriaBuilder.createQuery(
@@ -51,13 +52,16 @@ class MonthlyInvoiceDAO: AbstractDAO<MonthlyInvoice>() {
      *
      * @param id id
      * @param systemAdminsCount system admins count
+     * @param startsAt invoice start date
+     * @param createdAt created at
      * @param startsAt start date
      */
-    fun create(id: UUID, systemAdminsCount: Int, startsAt: OffsetDateTime): MonthlyInvoice {
+    fun create(id: UUID, systemAdminsCount: Int, startsAt: LocalDate, createdAt: OffsetDateTime): MonthlyInvoice {
         val metaformInvoice = MonthlyInvoice()
         metaformInvoice.id = id
         metaformInvoice.systemAdminsCount = systemAdminsCount
         metaformInvoice.startsAt = startsAt
+        metaformInvoice.createdAt = createdAt
         return persist(metaformInvoice)
     }
 }

@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.persistence.model.billing
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.*
 
@@ -16,7 +17,10 @@ class MonthlyInvoice {
     lateinit var id: UUID
 
     @Column(nullable = false)
-    var startsAt: OffsetDateTime? = null
+    var startsAt: LocalDate? = null
+
+    @Column(nullable = false)
+    var createdAt: OffsetDateTime? = null
 
     //some data for reporting
     @Column(nullable = false)

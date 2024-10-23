@@ -7,7 +7,6 @@ import org.apache.commons.codec.binary.Base64
 import org.apache.http.NameValuePair
 import org.apache.http.client.utils.URLEncodedUtils
 import org.apache.http.message.BasicNameValuePair
-import java.util.*
 
 /**
  * Mocker for Mailgun API
@@ -19,12 +18,8 @@ import java.util.*
  * @author Heikki Kurhinen
  */
 class MailgunMocker(private val basePath: String, private val domain: String, apiKey: String?) {
-    private val authHeader: String
+    private val authHeader: String = Base64.encodeBase64String(String.format("api:%s", apiKey).toByteArray())
     private var okStub: StubMapping? = null
-
-    init {
-        authHeader = Base64.encodeBase64String(String.format("api:%s", apiKey).toByteArray())
-    }
 
     /**
      * Starts mocking

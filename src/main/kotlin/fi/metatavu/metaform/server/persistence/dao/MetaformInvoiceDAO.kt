@@ -59,7 +59,6 @@ class MetaformInvoiceDAO: AbstractDAO<MetaformInvoice>() {
      * @param metaformVisibility metaform visibility
      * @param groupsCount groups count
      * @param managersCount managers count
-     * @param created created
      * @return created metaform invoice
      */
     fun create(
@@ -69,7 +68,6 @@ class MetaformInvoiceDAO: AbstractDAO<MetaformInvoice>() {
         metaformVisibility: MetaformVisibility?,
         groupsCount: Int,
         managersCount: Int,
-        created: OffsetDateTime,
         metaformTitle: String?
     ): MetaformInvoice {
         val metaformInvoice = MetaformInvoice()
