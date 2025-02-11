@@ -28,7 +28,7 @@ import jakarta.inject.Inject
  * Controller for Email notifications
  */
 @ApplicationScoped
-class EmailNotificationController {
+class EmailNotificationController: AbstractMetaformResourceController<EmailNotification>() {
 
     @Inject
     lateinit var logger: Logger
@@ -191,7 +191,7 @@ class EmailNotificationController {
      *
      * @param emailNotification email notification
      */
-    fun deleteEmailNotification(emailNotification: EmailNotification) {
+    override fun delete (emailNotification: EmailNotification) {
         deleteNotificationEmails(emailNotification)
         emailNotificationDAO.delete(emailNotification)
     }

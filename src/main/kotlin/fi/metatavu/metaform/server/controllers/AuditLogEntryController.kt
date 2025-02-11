@@ -14,7 +14,7 @@ import jakarta.inject.Inject
  * Controller for Audit logs
  */
 @ApplicationScoped
-class AuditLogEntryController {
+class AuditLogEntryController: AbstractMetaformResourceController<AuditLogEntry>() {
 
     @Inject
     lateinit var auditLogEntryDAO: AuditLogEntryDAO
@@ -77,7 +77,7 @@ class AuditLogEntryController {
      *
      * @param auditLogEntry auditLogEntry
      */
-    fun deleteAuditLogEntry(auditLogEntry: AuditLogEntry) {
+    override fun delete (auditLogEntry: AuditLogEntry) {
         auditLogEntryDAO.delete(auditLogEntry)
     }
 

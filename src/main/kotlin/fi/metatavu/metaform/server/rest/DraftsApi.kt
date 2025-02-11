@@ -105,7 +105,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
       return createNotFound(createNotBelongMessage(DRAFT))
     }
 
-    draftController.deleteDraft(draft)
+    draftController.delete(draft)
 
     return createNoContent()
   }

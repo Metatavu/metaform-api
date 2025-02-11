@@ -48,7 +48,7 @@ data class ReplyIdAndResourceId(val id: UUID, val resourceId: UUID?)
  */
 
 @ApplicationScoped
-class ReplyController {
+class ReplyController: AbstractMetaformResourceController<Reply>() {
 
     @Inject
     lateinit var logger: Logger
@@ -363,7 +363,7 @@ class ReplyController {
      *
      * @param reply reply
      */
-    fun deleteReply(reply: Reply) {
+    override fun delete(reply: Reply) {
         anyReplyFieldDAO.listByReply(reply).forEach { deleteField(it) }
         replyDAO.delete(reply)
     }

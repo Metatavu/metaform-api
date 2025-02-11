@@ -115,6 +115,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
+    metaformScriptController.deleteMetaformScriptsByMetaform(metaform)
     metaformController.setMetaformDeleted(metaform)
 
     return createNoContent()

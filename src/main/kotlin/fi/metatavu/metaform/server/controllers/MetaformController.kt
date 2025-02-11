@@ -163,20 +163,20 @@ class MetaformController {
      */
     fun deleteMetaform(metaform: Metaform) {
         val replies = replyController.listReplies(metaform = metaform, includeRevisions = true)
-        replies.forEach { reply: Reply -> replyController.deleteReply(reply) }
+        replies.forEach { reply: Reply -> replyController.delete(reply) }
 
         val drafts = draftController.listByMetaform(metaform)
-        drafts.forEach { draft: Draft -> draftController.deleteDraft(draft) }
+        drafts.forEach { draft: Draft -> draftController.delete(draft) }
 
         val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(metaform.id!!) +
                 metaformKeycloakController.listMetaformMemberManager(metaform.id!!)
         metaformMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id), metaform.id!!) }
 
         val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(metaform)
-        emailNotifications.forEach { emailNotification: EmailNotification -> emailNotificationController.deleteEmailNotification(emailNotification) }
+        emailNotifications.forEach { emailNotification: EmailNotification -> emailNotificationController.delete(emailNotification) }
 
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
-        auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.deleteAuditLogEntry(auditLogEntry) }
+        auditLogEntries.forEach { auditLogEntry: AuditLogEntry -> auditLogEntryController.delete(auditLogEntry) }
 
         metaformDAO.delete(metaform)
         metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)

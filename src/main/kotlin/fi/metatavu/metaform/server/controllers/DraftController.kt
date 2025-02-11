@@ -15,7 +15,7 @@ import jakarta.inject.Inject
  * Controller for Drafts
  */
 @ApplicationScoped
-class DraftController {
+class DraftController: AbstractMetaformResourceController<Draft>() {
 
     @Inject
     lateinit var logger: Logger
@@ -70,7 +70,7 @@ class DraftController {
      *
      * @param draft draft to be deleted
      */
-    fun deleteDraft(draft: Draft) {
+    override fun delete(draft: Draft) {
         draftDAO.delete(draft)
     }
 

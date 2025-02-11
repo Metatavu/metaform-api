@@ -109,7 +109,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
       return createNotFound(createNotBelongMessage(EMAIL_NOTIFICATION))
     }
 
-    emailNotificationController.deleteEmailNotification(emailNotification)
+    emailNotificationController.delete(emailNotification)
 
     return createNoContent()
   }

@@ -45,7 +45,7 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
 
     val auditLogEntry: AuditLogEntry = auditLogEntryController.findAuditLogEntryById(auditLogEntryId)
             ?: return createNotFound(createNotFoundMessage(AUDIT_LOG_ENTRY, auditLogEntryId))
-    auditLogEntryController.deleteAuditLogEntry(auditLogEntry)
+    auditLogEntryController.delete(auditLogEntry)
     return createNoContent()
   }
 
