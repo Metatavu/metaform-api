@@ -94,6 +94,13 @@ class MetaformTestBuilderResource(
     }
 
     /**
+     * Sends a request to the API to mark a form as deleted so that a scheduled job deletes it later
+     */
+    fun setMetaFormDeleted(metaformId: UUID) {
+        api.deleteMetaform(metaformId)
+    }
+
+    /**
      * Deletes a metaform from the API
      *
      * @param metaformId id of metaform to be deleted

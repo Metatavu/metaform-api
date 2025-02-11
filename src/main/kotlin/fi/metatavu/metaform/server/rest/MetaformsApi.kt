@@ -115,9 +115,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     val metaform = metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    metaformScriptController.deleteMetaformScriptsByMetaform(metaform)
-
-    metaformController.deleteMetaform(metaform)
+    metaformController.setMetaformDeleted(metaform)
 
     return createNoContent()
   }
@@ -159,6 +157,13 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
         ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
     } else {
       return createBadRequest("Invalid request")
+    }
+
+    if (metaform.deleted!!) {
+      if (metaformSlug != null) {
+        return createNotFound(createSlugNotFoundMessage(METAFORM, metaformSlug))
+      }
+      return createNotFound(createNotFoundMessage(METAFORM, metaformId!!))
     }
 
     val translatedMetaform = try {

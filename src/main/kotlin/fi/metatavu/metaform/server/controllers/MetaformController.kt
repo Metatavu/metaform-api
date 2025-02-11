@@ -118,9 +118,16 @@ class MetaformController {
      * @return list of Metaforms
      */
     fun listMetaforms(visibility: MetaformVisibility? = null): List<Metaform> {
-        visibility ?: return metaformDAO.listAll()
-        return metaformDAO.listByVisibility(visibility)
+        return metaformDAO.listByVisibility(visibility, false)
     }
+
+    /**
+     * Lists Metaforms that are marked as deleted so that a scheduled jpb can delete them
+     */
+    fun listDeletedMetaforms(): List<Metaform> {
+        return metaformDAO.listByVisibility(null, true)
+    }
+
 
     /**
      * Updates Metaform
@@ -365,5 +372,14 @@ class MetaformController {
         }
 
         return true
+    }
+
+    /**
+     * Marks a form as deleted so that a scheduled job deletes it later
+     *
+     * @param metaform
+     */
+    fun setMetaformDeleted(metaform: Metaform) {
+        metaformDAO.setMetaformDeleted(metaform)
     }
 }

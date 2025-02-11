@@ -483,8 +483,13 @@ class MetaformTestsIT : AbstractTest() {
                 assertNotNull(foundDraft)
                 assertNotNull(foundDraft.id)
                 assertNotNull(createdEmailNotification.id)
-                testBuilder.systemAdmin.metaforms.delete(foundMetaform.id!!)
+
+                assertNotNull(testBuilder.systemAdmin.metaforms.list().find { form -> form.id == foundMetaform.id })
+                testBuilder.systemAdmin.metaforms.setMetaFormDeleted(foundMetaform.id!!)
+                assertNull(testBuilder.systemAdmin.metaforms.list().find { form -> form.id == foundMetaform.id })
                 testBuilder.systemAdmin.metaforms.assertFindFailStatus(404, metaformId = foundMetaform.id)
+
+                testBuilder.systemAdmin.metaforms.delete(foundMetaform.id)
                 testBuilder.systemAdmin.drafts.assertFindFailStatus(404, metaformId = foundMetaform.id, draftId = createdDraft.id)
                 testBuilder.systemAdmin.emailNotifications.assertFindFailStatus(404, createdEmailNotification.id!!, foundMetaform.id)
             } finally {

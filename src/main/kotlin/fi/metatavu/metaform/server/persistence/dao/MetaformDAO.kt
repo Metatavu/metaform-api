@@ -145,7 +145,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    * @param visibility visibility
    * @return list of Metaforms
    */
-  fun listByVisibility(visibility: MetaformVisibility): List<Metaform> {
+  fun listByVisibility(visibility: MetaformVisibility?, deleted: Boolean): List<Metaform> {
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       Metaform::class.java
@@ -154,9 +154,28 @@ class MetaformDAO : AbstractDAO<Metaform>() {
       Metaform::class.java
     )
     criteria.select(root)
-    criteria.where(
-      criteriaBuilder.equal(root.get(Metaform_.visibility), visibility)
-    )
+
+    if (visibility != null) {
+      criteria.where(
+        criteriaBuilder.equal(root.get(Metaform_.visibility), visibility),
+        criteriaBuilder.equal(root.get(Metaform_.deleted), deleted)
+      )
+    } else {
+      criteria.where(
+        criteriaBuilder.equal(root.get(Metaform_.deleted), deleted)
+      )
+    }
+
     return entityManager.createQuery(criteria).resultList
+  }
+
+  /**
+   * Marks a form as deleted so that a scheduled job deletes it later
+   *
+   * @param metaform
+   */
+  fun setMetaformDeleted(metaform: Metaform) {
+    metaform.deleted = true
+    persist(metaform)
   }
 }
