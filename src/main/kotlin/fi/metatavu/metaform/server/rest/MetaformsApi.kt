@@ -122,6 +122,27 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
     return createNoContent()
   }
 
+  override fun deleteMetaformPermanently(metaformId: UUID): Response {
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (environment != "DEVELOPMENT") {
+      return createForbidden(createNotAllowedMessage(DELETE, METAFORM))
+    }
+
+    if (!isMetaformAdmin(metaformId)) {
+      return createForbidden(createNotAllowedMessage(DELETE, METAFORM))
+    }
+
+    val metaform = metaformController.findMetaformById(metaformId)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+
+    metaformScriptController.deleteMetaformScriptsByMetaform(metaform)
+
+    metaformController.deleteMetaform(metaform)
+
+    return createNoContent()
+  }
+
   override fun findMetaform(
     metaformSlug: String?,
     metaformId: UUID?,

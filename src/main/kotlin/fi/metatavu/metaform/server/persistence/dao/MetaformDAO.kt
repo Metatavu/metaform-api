@@ -44,6 +44,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
+    metaform.deleted = false
     metaform.creatorId = creatorId
     metaform.lastModifierId = creatorId
     return persist(metaform)

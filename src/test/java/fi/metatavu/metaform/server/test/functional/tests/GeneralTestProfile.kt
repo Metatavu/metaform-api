@@ -14,6 +14,7 @@ class GeneralTestProfile : QuarkusTestProfile {
         properties["metaforms.keycloak.card.identity.provider"] = "oidc"
         properties["metaforms.features.auditlog"] = "true"
         properties["metaforms.features.cardauth"] = "true"
+        properties["metaforms.environment"] = "DEVELOPMENT"
         return properties
     }
 }

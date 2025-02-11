@@ -44,6 +44,10 @@ class Metaform: Metadata() {
   var exportTheme: ExportTheme? = null
 
   @Column(nullable = false)
+  @NotNull
+  var deleted: Boolean? = null
+
+  @Column(nullable = false)
   lateinit var creatorId: UUID
 
   @Column(nullable = false)

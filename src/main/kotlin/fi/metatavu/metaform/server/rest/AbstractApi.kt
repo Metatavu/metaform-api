@@ -20,6 +20,7 @@ import jakarta.inject.Inject
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.SecurityContext
+import org.eclipse.microprofile.config.inject.ConfigProperty
 
 /**
  * Abstract base class for all API services
@@ -28,6 +29,9 @@ import jakarta.ws.rs.core.SecurityContext
  */
 @RequestScoped
 abstract class AbstractApi {
+    @Inject
+    @ConfigProperty(name = "metaforms.environment")
+    lateinit var environment: String
 
     @Context
     lateinit var request: HttpRequest
