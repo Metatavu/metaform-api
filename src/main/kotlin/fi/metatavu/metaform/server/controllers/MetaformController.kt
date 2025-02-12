@@ -122,7 +122,7 @@ class MetaformController {
     }
 
     /**
-     * Lists Metaforms that are marked as deleted so that a scheduled jpb can delete them
+     * Lists Metaforms that are marked as deleted so that a scheduled job can delete them
      */
     fun listDeletedMetaforms(): List<Metaform> {
         return metaformDAO.listByVisibility(null, true)
