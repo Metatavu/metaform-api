@@ -68,6 +68,15 @@ class DeletionJobs {
         }
     }
 
+    /**
+     * This function is used by the scheduled job to delete Metaform members.
+     * This is separate from the generic function below since metaformKeycloakController is logically a bit different from other entity controllers.
+     *
+     * @param currentCounter count up to ten, all exceeding entities will be deleted in future jobs
+     * @param metaform
+     *
+     * @return counter count
+     */
     private fun deleteMetaformMembers(currentCounter: Int, metaform: Metaform): Int {
         var counter = currentCounter
         val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(metaform.id!!) +
@@ -85,6 +94,15 @@ class DeletionJobs {
         return counter
     }
 
+    /**
+     * This functions is used by the scheduled job to delete entities that must be deleted before deleting the form.
+     *
+     * @param resources entities to be removed
+     * @param controller controller that can delete the entities
+     * @param currentCounter count up to ten, all exceeding entities will be deleted in future jobs
+     *
+     * @return counter count
+     */
     private fun <T> deleteMetaformResources(resources: List<T>, controller: AbstractMetaformResourceController<T>, currentCounter: Int): Int {
         var counter = currentCounter
         for (resource in resources) {
