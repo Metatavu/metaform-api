@@ -51,7 +51,6 @@ class DeletionJobsTestsIT: AbstractTest() {
 
             testBuilder.systemAdmin.metaformVersions.create(metaform.id, version, false,)
             testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "create-test", false)
-
             assertEquals(10, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
 
             testBuilder.systemAdmin.metaforms.setMetaFormDeleted(metaform.id)
