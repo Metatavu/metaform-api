@@ -74,7 +74,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
       return createNotFound(createNotBelongMessage(METAFORM_VERSION))
     }
 
-    metaformVersionController.deleteMetaformVersion(foundMetaformVersion)
+    metaformVersionController.delete(foundMetaformVersion)
 
     return createNoContent()
   }

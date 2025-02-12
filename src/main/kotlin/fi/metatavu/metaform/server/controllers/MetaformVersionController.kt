@@ -18,7 +18,7 @@ import jakarta.inject.Inject
  * @author Tianxing Wu
  */
 @ApplicationScoped
-class MetaformVersionController {
+class MetaformVersionController: AbstractMetaformResourceController<MetaformVersion>() {
     @Inject
     lateinit var metaformVersionDAO: MetaformVersionDAO
 
@@ -76,7 +76,7 @@ class MetaformVersionController {
      *
      * @param metaformVersion Metaform version
      */
-    fun deleteMetaformVersion(metaformVersion: MetaformVersion) {
+    override fun delete (metaformVersion: MetaformVersion) {
         metaformVersionDAO.delete(metaformVersion)
     }
 

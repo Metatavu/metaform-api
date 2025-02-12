@@ -33,27 +33,33 @@ class DeletionJobs {
     lateinit var metaformController: MetaformController
 
     @Inject
+    lateinit var metaformVersionController: MetaformVersionController
+
+    @Inject
     lateinit var metaformDAO: MetaformDAO
 
     @Inject
     @ConfigProperty(name = "metaforms.environment")
     lateinit var environment: String
 
+
     /**
      * Deletes replies from forms that are marked as deleted
      */
-    @Scheduled(every="5s", delayed= "10s")
+    @Scheduled(every="\${metaforms.deletion.interval}", delayed = "\${metaforms.deletion.delay}")
     fun deleteMetaform() {
         val metaform = metaformController.listDeletedMetaforms().firstOrNull() ?: return
 
         val replies = replyController.listReplies(metaform, includeRevisions = true)
         val drafts = draftController.listByMetaform(metaform)
+        val versions = metaformVersionController.listMetaformVersionsByMetaform(metaform)
         val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(metaform)
         val auditLogEntriers = auditLogEntryController.listAuditLogEntries(metaform, null, null, null, null)
 
         var counter = 0
         counter = deleteMetaformResources(replies, replyController, counter)
         counter = deleteMetaformResources(drafts, draftController, counter)
+        counter = deleteMetaformResources(versions, metaformVersionController, counter)
 
         counter = deleteMetaformMembers(counter, metaform)
 
@@ -76,6 +82,8 @@ class DeletionJobs {
             } else {
                 break
             }
+
+            counter++
         }
 
         return counter

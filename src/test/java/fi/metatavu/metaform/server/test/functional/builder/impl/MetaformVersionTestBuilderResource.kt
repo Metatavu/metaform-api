@@ -43,10 +43,11 @@ class MetaformVersionTestBuilderResource(
      * @return created metaform version
      */
     @Throws(IOException::class)
-    fun create(metaformId: UUID, payload: MetaformVersion): MetaformVersion {
+    fun create(metaformId: UUID, payload: MetaformVersion, addClosable: Boolean = true): MetaformVersion {
         val result = api.createMetaformVersion(metaformId, payload)
         versionsMetaforms[result.id] = metaformId
-        return addClosable(result)
+        if (addClosable) addClosable(result)
+        return result
     }
 
     /**

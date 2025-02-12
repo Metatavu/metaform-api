@@ -15,6 +15,8 @@ class GeneralTestProfile : QuarkusTestProfile {
         properties["metaforms.features.auditlog"] = "true"
         properties["metaforms.features.cardauth"] = "true"
         properties["metaforms.environment"] = "DEVELOPMENT"
+        properties["metaforms.deletion.interval"] = "5s"
+        properties["metaforms.deletion.delay"] = "10s"
         return properties
     }
 }
