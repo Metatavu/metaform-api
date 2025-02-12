@@ -8,6 +8,7 @@ import io.quarkus.scheduler.Scheduled
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.transaction.Transactional
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.*
 
 @Transactional
@@ -34,10 +35,14 @@ class DeletionJobs {
     @Inject
     lateinit var metaformDAO: MetaformDAO
 
+    @Inject
+    @ConfigProperty(name = "metaforms.environment")
+    lateinit var environment: String
+
     /**
      * Deletes replies from forms that are marked as deleted
      */
-    @Scheduled(every="10s")
+    @Scheduled(every="5s", delayed= "10s")
     fun deleteMetaform() {
         val metaform = metaformController.listDeletedMetaforms().firstOrNull() ?: return
 

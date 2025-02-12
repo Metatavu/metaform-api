@@ -56,10 +56,11 @@ class ReplyTestBuilderResource(
      * @return created reply
      */
     @Throws(IOException::class)
-    fun create(metaformId: UUID, updateExisting: Boolean?, replyMode: String?, payload: Reply): Reply {
+    fun create(metaformId: UUID, updateExisting: Boolean?, replyMode: String?, payload: Reply, addClosable: Boolean = true): Reply {
         val result = api.createReply(metaformId, payload, updateExisting, replyMode)
         replyMetaformIds[result.id] = metaformId
-        return addClosable(result)
+        if (addClosable) addClosable(result)
+        return result
     }
 
     /**
@@ -71,8 +72,8 @@ class ReplyTestBuilderResource(
      * @return created reply
      */
     @Throws(IOException::class)
-    fun create(metaformId: UUID, replyMode: String?, payload: Reply): Reply {
-        return create(metaformId, null, replyMode, payload)
+    fun create(metaformId: UUID, replyMode: String?, payload: Reply, addClosable: Boolean = true): Reply {
+        return create(metaformId, null, replyMode, payload, addClosable)
     }
 
 
@@ -171,11 +172,11 @@ class ReplyTestBuilderResource(
      * @return reply
      */
     @Throws(IOException::class)
-    fun createSimpleReply(metaformId: UUID, value: String, replyMode: ReplyMode): Reply {
+    fun createSimpleReply(metaformId: UUID, value: String, replyMode: ReplyMode, addClosable: Boolean = true): Reply {
         val replyData1: MutableMap<String, Any> = HashMap()
         replyData1["text"] = value
         val reply = createReplyWithData(replyData1)
-        return create(metaformId, replyMode.toString(), reply)
+        return create(metaformId, replyMode.toString(), reply, addClosable)
     }
 
     /**
