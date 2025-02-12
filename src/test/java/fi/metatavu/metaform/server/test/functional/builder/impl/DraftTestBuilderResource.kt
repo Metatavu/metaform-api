@@ -60,6 +60,10 @@ class DraftTestBuilderResource(
         return createdDraft
     }
 
+    fun listDraftsByMetaform(metaformId: UUID): List<Draft> {
+        return api.listDrafts(metaformId).toList()
+    }
+
 
     /**
      * Deletes a metaform member from the API

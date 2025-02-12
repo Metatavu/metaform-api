@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import fi.metatavu.metaform.api.client.models.Draft
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.MetaformVersion
 import fi.metatavu.metaform.api.client.models.MetaformVersionType
@@ -27,15 +28,19 @@ class DeletionJobsTestsIT: AbstractTest() {
     @Test
     fun testMetaformDeletionJob() {
         TestBuilder().use { testBuilder ->
-
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple", false)
 
+            val draftData: MutableMap<String, Any> = HashMap()
+            draftData["text"] = "draft value"
+            testBuilder.test1.drafts.createDraft(metaform, draftData, false)
+            assertEquals(1, testBuilder.test1.drafts.listDraftsByMetaform(metaform.id!!).size)
+
             for (i in 1..10) {
-                testBuilder.systemAdmin.replies.createSimpleReply(metaform.id!!, "test $i", ReplyMode.REVISION, false)
+                testBuilder.systemAdmin.replies.createSimpleReply(metaform.id, "test $i", ReplyMode.REVISION, false)
             }
 
-            for (i in 1..8) {
-                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user@example.com"), null, false)
+            for (i in 1..7) {
+                testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "Simple subject", "Simple content", listOf("user@example.com"), null, false)
             }
 
             val versionData = testBuilder.systemAdmin.metaformVersions.exampleVersionData
@@ -44,9 +49,11 @@ class DeletionJobsTestsIT: AbstractTest() {
                 data = versionData
             )
 
-            testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version, false,)
+            testBuilder.systemAdmin.metaformVersions.create(metaform.id, version, false,)
             testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "create-test", false)
+
             assertEquals(10, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
+
             testBuilder.systemAdmin.metaforms.setMetaFormDeleted(metaform.id)
 
             Thread.sleep(15000)
@@ -58,10 +65,9 @@ class DeletionJobsTestsIT: AbstractTest() {
             assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
             assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
             assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
+            assertEquals(0, testBuilder.test1.drafts.listDraftsByMetaform(metaform.id).size)
             Thread.sleep(5000)
             assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
-
-
         }
     }
 }
