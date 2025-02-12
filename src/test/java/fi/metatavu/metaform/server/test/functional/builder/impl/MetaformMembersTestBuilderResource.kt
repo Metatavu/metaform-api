@@ -59,7 +59,7 @@ class MetaformMembersTestBuilderResource(
      * @return created simple metaform member
      */
     @Throws(IOException::class)
-    fun createSimpleMember(metaformId: UUID, name: String): MetaformMember {
+    fun createSimpleMember(metaformId: UUID, name: String, addClosable: Boolean = true): MetaformMember {
         val result = api.createMetaformMember(metaformId, MetaformMember(
             firstName = name,
             lastName  = name,
@@ -67,7 +67,8 @@ class MetaformMembersTestBuilderResource(
             role = MetaformMemberRole.MANAGER
         ))
         membersMetaforms[result.id] = metaformId
-        return addClosable(result)
+        if (addClosable) addClosable(result)
+        return result
     }
 
     /**

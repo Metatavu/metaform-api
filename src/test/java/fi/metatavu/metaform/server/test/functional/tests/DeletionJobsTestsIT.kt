@@ -25,16 +25,16 @@ import org.junit.jupiter.api.Test
 @TestProfile(GeneralTestProfile::class)
 class DeletionJobsTestsIT: AbstractTest() {
     @Test
-    fun testDeleteMetaform() {
+    fun testMetaformDeletionJob() {
         TestBuilder().use { testBuilder ->
 
-            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple", false)
 
-            for (i in 1..22) {
+            for (i in 1..10) {
                 testBuilder.systemAdmin.replies.createSimpleReply(metaform.id!!, "test $i", ReplyMode.REVISION, false)
             }
 
-            for (i in 1..6) {
+            for (i in 1..8) {
                 testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id!!, "Simple subject", "Simple content", listOf("user@example.com"), null, false)
             }
 
@@ -43,19 +43,24 @@ class DeletionJobsTestsIT: AbstractTest() {
                 type = MetaformVersionType.ARCHIVED,
                 data = versionData
             )
+
             testBuilder.systemAdmin.metaformVersions.create(metaform.id!!, version, false,)
-            testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "create-test")
+            testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "create-test", false)
+            assertEquals(10, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
             testBuilder.systemAdmin.metaforms.setMetaFormDeleted(metaform.id)
 
-            Thread.sleep(20000)
+            Thread.sleep(15000)
             assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
                 true, null, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.metaformMembers.list(metaform.id, role = null).size)
             assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
                 true, null, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
+            assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
+            assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
             Thread.sleep(5000)
             assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
+
 
         }
     }

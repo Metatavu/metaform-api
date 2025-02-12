@@ -38,10 +38,6 @@ class DeletionJobs {
     @Inject
     lateinit var metaformDAO: MetaformDAO
 
-    @Inject
-    @ConfigProperty(name = "metaforms.environment")
-    lateinit var environment: String
-
 
     /**
      * Deletes replies from forms that are marked as deleted

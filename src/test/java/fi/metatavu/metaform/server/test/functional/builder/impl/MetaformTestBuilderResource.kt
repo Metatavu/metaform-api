@@ -43,8 +43,10 @@ class MetaformTestBuilderResource(
      * @return created metaform
      */
     @Throws(IOException::class)
-    fun create(payload: Metaform): Metaform {
-        return addClosable(api.createMetaform(payload))
+    fun create(payload: Metaform, addClosable: Boolean = true): Metaform {
+        val created = api.createMetaform(payload)
+        if (addClosable) addClosable(created)
+        return created
     }
 
     /**
@@ -259,7 +261,7 @@ class MetaformTestBuilderResource(
      * @return created metaform
      */
     @Throws(IOException::class)
-    fun createFromJsonFile(form: String): Metaform {
-        return create(readMetaform(form)!!)
+    fun createFromJsonFile(form: String, addClosable: Boolean = true): Metaform {
+        return create(readMetaform(form)!!, addClosable)
     }
 }
