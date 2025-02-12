@@ -39,7 +39,8 @@ class MetaformVersionTestBuilderResource(
      * Creates new metaform version
      *
      * @param metaformId metaform id
-     * @param payload    payload
+     * @param payload  payload
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created metaform version
      */
     @Throws(IOException::class)

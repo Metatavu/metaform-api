@@ -53,6 +53,7 @@ class ReplyTestBuilderResource(
      * @param updateExisting whether to update existing reply
      * @param replyMode      reply mode
      * @param payload        payload
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created reply
      */
     @Throws(IOException::class)
@@ -69,6 +70,7 @@ class ReplyTestBuilderResource(
      * @param metaformId metaform id
      * @param replyMode  reply mode
      * @param payload    payload
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created reply
      */
     @Throws(IOException::class)
@@ -169,6 +171,7 @@ class ReplyTestBuilderResource(
      * @param metaformId metaform id
      * @param value     value
      * @param replyMode reply model
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return reply
      */
     @Throws(IOException::class)

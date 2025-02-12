@@ -97,6 +97,8 @@ class MetaformTestBuilderResource(
 
     /**
      * Sends a request to the API to mark a form as deleted so that a scheduled job deletes it later
+     *
+     * @param metaformId
      */
     fun setMetaFormDeleted(metaformId: UUID) {
         api.deleteMetaform(metaformId)
@@ -258,6 +260,7 @@ class MetaformTestBuilderResource(
      * Creates new metaform using predefined test form
      *
      * @param form form's file name
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created metaform
      */
     @Throws(IOException::class)

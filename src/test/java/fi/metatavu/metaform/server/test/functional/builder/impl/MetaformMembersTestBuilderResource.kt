@@ -55,7 +55,8 @@ class MetaformMembersTestBuilderResource(
      * Creates simple metaform member
      *
      * @param metaformId metaform id
-     * @param name    name
+     * @param name name
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created simple metaform member
      */
     @Throws(IOException::class)
