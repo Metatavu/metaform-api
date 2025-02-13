@@ -15,7 +15,7 @@ import jakarta.inject.Inject
  * Controller for Drafts
  */
 @ApplicationScoped
-class DraftController: AbstractMetaformResourceController<Draft>() {
+class DraftController {
 
     @Inject
     lateinit var logger: Logger
@@ -70,7 +70,7 @@ class DraftController: AbstractMetaformResourceController<Draft>() {
      *
      * @param draft draft to be deleted
      */
-    override fun delete(draft: Draft) {
+    fun deleteDraft(draft: Draft) {
         draftDAO.delete(draft)
     }
 
@@ -78,9 +78,11 @@ class DraftController: AbstractMetaformResourceController<Draft>() {
      * Lists drafts by metaform
      *
      * @param metaform metaform
+     * @param firstResult first result
+     * @param maxResults max results
      */
-    fun listByMetaform(metaform: Metaform): List<Draft> {
-        return draftDAO.listByMetaform(metaform)
+    fun listByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<Draft> {
+        return draftDAO.listByMetaform(metaform, firstResult, maxResults)
     }
 
     /**

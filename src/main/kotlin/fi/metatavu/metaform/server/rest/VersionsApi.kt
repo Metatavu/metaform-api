@@ -74,7 +74,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
       return createNotFound(createNotBelongMessage(METAFORM_VERSION))
     }
 
-    metaformVersionController.delete(foundMetaformVersion)
+    metaformVersionController.deleteMetaformVersion(foundMetaformVersion)
 
     return createNoContent()
   }
@@ -114,7 +114,7 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     return createOk(
-      metaformVersionController.listMetaformVersionsByMetaform(foundMetaform)
+      metaformVersionController.listMetaformVersionsByMetaform(foundMetaform, null, null)
         .map(metaformVersionTranslator::translate)
     )
   }

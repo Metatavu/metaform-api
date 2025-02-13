@@ -28,7 +28,7 @@ import jakarta.inject.Inject
  * Controller for Email notifications
  */
 @ApplicationScoped
-class EmailNotificationController: AbstractMetaformResourceController<EmailNotification>() {
+class EmailNotificationController {
 
     @Inject
     lateinit var logger: Logger
@@ -92,10 +92,12 @@ class EmailNotificationController: AbstractMetaformResourceController<EmailNotif
      * Lists an email notifications from Metaform
      *
      * @param metaform metaform
+     * @param firstResult first result
+     * @param maxResults maxResults
      * @return a email notification
      */
-    fun listEmailNotificationByMetaform(metaform: Metaform): List<EmailNotification> {
-        return emailNotificationDAO.listByMetaform(metaform)
+    fun listEmailNotificationByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<EmailNotification> {
+        return emailNotificationDAO.listByMetaform(metaform, firstResult, maxResults)
     }
 
     /**
@@ -191,7 +193,7 @@ class EmailNotificationController: AbstractMetaformResourceController<EmailNotif
      *
      * @param emailNotification email notification
      */
-    override fun delete (emailNotification: EmailNotification) {
+    fun deleteEmailNotification (emailNotification: EmailNotification) {
         deleteNotificationEmails(emailNotification)
         emailNotificationDAO.delete(emailNotification)
     }

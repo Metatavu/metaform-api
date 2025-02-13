@@ -174,7 +174,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    *
    * @param metaform
    */
-  fun setMetaformDeleted(metaform: Metaform) {
+  fun updateMetaformDeleted(metaform: Metaform) {
     metaform.deleted = true
     persist(metaform)
   }

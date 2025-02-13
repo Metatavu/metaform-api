@@ -47,9 +47,11 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
    * Lists email notifications by Metaform
    *
    * @param metaform Metaform
+   * @param firstResult first result
+   * @param maxResults max results
    * @return list of email notifications
    */
-  fun listByMetaform(metaform: Metaform): List<EmailNotification> {
+  fun listByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<EmailNotification> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<EmailNotification> = criteriaBuilder.createQuery(
       EmailNotification::class.java
@@ -60,6 +62,15 @@ class EmailNotificationDAO : AbstractDAO<EmailNotification>() {
     criteria.select(root)
     criteria.where(criteriaBuilder.equal(root.get(EmailNotification_.metaform), metaform))
     val query: TypedQuery<EmailNotification> = entityManager.createQuery(criteria)
+
+    if (firstResult != null) {
+      query.firstResult = firstResult
+    }
+
+    if (maxResults != null) {
+      query.maxResults = maxResults
+    }
+
     return query.resultList
   }
 

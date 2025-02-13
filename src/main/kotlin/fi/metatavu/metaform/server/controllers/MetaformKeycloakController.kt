@@ -570,14 +570,16 @@ class MetaformKeycloakController {
      * Lists manager metaform members
      *
      * @param metaformId metaform id
+     * @param first first result
+     * @param max max results
      * @return listed users
      */
-    fun listMetaformMemberManager(metaformId: UUID): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
+    fun listMetaformMemberManager(metaformId: UUID, first: Int?, max: Int?): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return groupApi.realmGroupsIdMembersGet(
             realm = realm,
             id = getMetaformManagerGroup(metaformId).id,
-            first = null,
-            max = null,
+            first = first,
+            max = max,
             briefRepresentation = false
         )
     }
@@ -586,14 +588,16 @@ class MetaformKeycloakController {
      * Lists admin metaform members
      *
      * @param metaformId metaform id
+     * @param first first
+     * @param max max
      * @return listed users
      */
-    fun listMetaformMemberAdmin(metaformId: UUID): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
+    fun listMetaformMemberAdmin(metaformId: UUID, first: Int?, max: Int?): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return groupApi.realmGroupsIdMembersGet(
             realm = realm,
             id = getMetaformAdminGroup(metaformId).id,
-            first = null,
-            max = null,
+            first = first,
+            max = max,
             briefRepresentation = false
         )
     }

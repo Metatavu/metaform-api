@@ -18,7 +18,7 @@ import jakarta.inject.Inject
  * @author Tianxing Wu
  */
 @ApplicationScoped
-class MetaformVersionController: AbstractMetaformResourceController<MetaformVersion>() {
+class MetaformVersionController {
     @Inject
     lateinit var metaformVersionDAO: MetaformVersionDAO
 
@@ -65,10 +65,12 @@ class MetaformVersionController: AbstractMetaformResourceController<MetaformVers
      * Lists versions by Metaforms
      *
      * @param metaform Metaform
+     * @param firstResult first result
+     * @param maxResults max results
      * @return item if found
      */
-    fun listMetaformVersionsByMetaform(metaform: Metaform): List<MetaformVersion> {
-        return metaformVersionDAO.listByMetaform(metaform)
+    fun listMetaformVersionsByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<MetaformVersion> {
+        return metaformVersionDAO.listByMetaform(metaform, firstResult, maxResults)
     }
 
     /**
@@ -76,7 +78,7 @@ class MetaformVersionController: AbstractMetaformResourceController<MetaformVers
      *
      * @param metaformVersion Metaform version
      */
-    override fun delete (metaformVersion: MetaformVersion) {
+    fun deleteMetaformVersion (metaformVersion: MetaformVersion) {
         metaformVersionDAO.delete(metaformVersion)
     }
 

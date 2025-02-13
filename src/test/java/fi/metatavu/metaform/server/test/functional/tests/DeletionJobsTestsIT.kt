@@ -39,7 +39,7 @@ class DeletionJobsTestsIT: AbstractTest() {
                 testBuilder.systemAdmin.replies.createSimpleReply(metaform.id, "test $i", ReplyMode.REVISION, false)
             }
 
-            for (i in 1..7) {
+            for (i in 1..12) {
                 testBuilder.systemAdmin.emailNotifications.createEmailNotification(metaform.id, "Simple subject", "Simple content", listOf("user@example.com"), null, false)
             }
 
@@ -55,17 +55,15 @@ class DeletionJobsTestsIT: AbstractTest() {
 
             testBuilder.systemAdmin.metaforms.setMetaFormDeleted(metaform.id)
 
-            Thread.sleep(15000)
+            Thread.sleep(21000)
             assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
                 true, null, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.metaformMembers.list(metaform.id, role = null).size)
-            assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
-                true, null, null, null, null, null).size)
-            assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
+            assertEquals(0, testBuilder.systemAdmin.metaformVersions.list(metaform.id).size)
             assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
             assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
             assertEquals(0, testBuilder.test1.drafts.listDraftsByMetaform(metaform.id).size)
-            Thread.sleep(5000)
+            Thread.sleep(3000)
             assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
         }
     }

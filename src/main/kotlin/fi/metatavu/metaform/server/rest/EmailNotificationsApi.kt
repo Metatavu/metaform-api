@@ -41,7 +41,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
     val metaform: Metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    return createOk(emailNotificationController.listEmailNotificationByMetaform(metaform)
+    return createOk(emailNotificationController.listEmailNotificationByMetaform(metaform, null, null)
             .map(emailNotificationTranslator::translate))
 
   }
@@ -109,7 +109,7 @@ class EmailNotificationsApi : fi.metatavu.metaform.api.spec.EmailNotificationsAp
       return createNotFound(createNotBelongMessage(EMAIL_NOTIFICATION))
     }
 
-    emailNotificationController.delete(emailNotification)
+    emailNotificationController.deleteEmailNotification(emailNotification)
 
     return createNoContent()
   }

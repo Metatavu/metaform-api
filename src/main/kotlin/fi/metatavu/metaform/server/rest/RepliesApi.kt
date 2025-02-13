@@ -240,7 +240,7 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         }
 
         auditLogEntryController.generateAuditLog(metaform, userId, reply.id!!, null, null, AuditLogEntryType.DELETE_REPLY)
-        replyController.delete(reply = reply)
+        replyController.deleteReply(reply = reply)
 
         replyController.triggerReplyDeletedEvent(reply = reply)
         return createNoContent()

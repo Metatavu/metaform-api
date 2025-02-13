@@ -14,7 +14,7 @@ import jakarta.inject.Inject
  * Controller for Audit logs
  */
 @ApplicationScoped
-class AuditLogEntryController: AbstractMetaformResourceController<AuditLogEntry>() {
+class AuditLogEntryController {
 
     @Inject
     lateinit var auditLogEntryDAO: AuditLogEntryDAO
@@ -60,6 +60,8 @@ class AuditLogEntryController: AbstractMetaformResourceController<AuditLogEntry>
      * @param userId (optional) filter results by userId
      * @param createdBefore (optional) filter results before createdBefore
      * @param createdAfter (optional) filter results after createdAfter
+     * @param firstResult first result
+     * @param maxResults max results
      * @return list of AuditLogEntries
      */
     fun listAuditLogEntries(
@@ -67,9 +69,11 @@ class AuditLogEntryController: AbstractMetaformResourceController<AuditLogEntry>
         replyId: UUID?,
         userId: UUID?,
         createdBefore: OffsetDateTime?,
-        createdAfter: OffsetDateTime?
+        createdAfter: OffsetDateTime?,
+        firstResult: Int?,
+        maxResults: Int?
     ): List<AuditLogEntry> {
-        return auditLogEntryDAO.list(metaform, replyId, userId, createdBefore, createdAfter)
+        return auditLogEntryDAO.list(metaform, replyId, userId, createdBefore, createdAfter, firstResult, maxResults)
     }
 
     /**
@@ -77,7 +81,7 @@ class AuditLogEntryController: AbstractMetaformResourceController<AuditLogEntry>
      *
      * @param auditLogEntry auditLogEntry
      */
-    override fun delete (auditLogEntry: AuditLogEntry) {
+    fun deleteAuditLogEntry (auditLogEntry: AuditLogEntry) {
         auditLogEntryDAO.delete(auditLogEntry)
     }
 

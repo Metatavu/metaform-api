@@ -105,7 +105,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
       return createNotFound(createNotBelongMessage(DRAFT))
     }
 
-    draftController.delete(draft)
+    draftController.deleteDraft(draft)
 
     return createNoContent()
   }
@@ -168,7 +168,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     }
 
     return try {
-      createOk(draftController.listByMetaform(metaform).map(draftTranslator::translateDraft))
+      createOk(draftController.listByMetaform(metaform, null, null).map(draftTranslator::translateDraft))
     } catch (e: DeserializationFailedException) {
       createInternalServerError(e.message)
     }
