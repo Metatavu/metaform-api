@@ -377,9 +377,9 @@ class MetaformController {
     /**
      * Marks a form as deleted so that a scheduled job deletes it later
      *
-     * @param metaform
+     * @param metaform metaform to be deleted
      */
-    fun setMetaformDeleted(metaform: Metaform) {
-        metaformDAO.setMetaformDeleted(metaform)
+    fun updateMetaformDeleted(metaform: Metaform) {
+        metaformDAO.updateMetaformDeleted(metaform)
     }
 }
