@@ -33,7 +33,7 @@ class MetaformTestBuilderResource(
 
     @Throws(IOException::class)
     override fun clean(metaform: Metaform) {
-        api.deleteMetaformPermanently(metaform.id!!)
+        api.deleteMetaform(metaform.id!!, immediate = true)
     }
 
     /**
@@ -111,7 +111,7 @@ class MetaformTestBuilderResource(
      */
     @Throws(IOException::class)
     fun delete(metaformId: UUID) {
-        api.deleteMetaformPermanently(metaformId)
+        api.deleteMetaform(metaformId, immediate = true)
         removeCloseable { closable ->
             if (closable is Metaform) {
                 return@removeCloseable metaformId == closable.id
@@ -203,7 +203,7 @@ class MetaformTestBuilderResource(
     @Throws(IOException::class)
     fun assertDeleteFailStatus(expectedStatus: Int, metaformId: UUID) {
         try {
-            api.deleteMetaformPermanently(metaformId)
+            api.deleteMetaform(metaformId)
             fail(String.format("Expected delete to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
