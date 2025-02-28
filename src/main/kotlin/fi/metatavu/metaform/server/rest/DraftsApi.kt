@@ -154,6 +154,14 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
   override fun listDrafts(metaformId: UUID): Response {
     loggedUserId ?: return createForbidden(UNAUTHORIZED)
 
+    if (environment != "DEVELOPMENT") {
+      return createForbidden(createNotAllowedMessage(LIST, DRAFT))
+    }
+
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(LIST, DRAFT))
+    }
+
     val metaform = metaformController.findMetaformById(metaformId)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
@@ -164,7 +172,7 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     }
 
     if (BooleanUtils.isNotTrue(translatedMetaform.allowDrafts)) {
-      return createForbidden(createNotAllowedMessage(CREATE, DRAFT))
+      return createForbidden(createNotAllowedMessage(LIST, DRAFT))
     }
 
     return try {

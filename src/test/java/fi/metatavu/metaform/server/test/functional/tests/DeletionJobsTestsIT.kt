@@ -33,7 +33,7 @@ class DeletionJobsTestsIT: AbstractTest() {
             val draftData: MutableMap<String, Any> = HashMap()
             draftData["text"] = "draft value"
             testBuilder.test1.drafts.createDraft(metaform, draftData, false)
-            assertEquals(1, testBuilder.test1.drafts.listDraftsByMetaform(metaform.id!!).size)
+            assertEquals(1, testBuilder.systemAdmin.drafts.listDraftsByMetaform(metaform.id!!).size)
 
             for (i in 1..10) {
                 testBuilder.systemAdmin.replies.createSimpleReply(metaform.id, "test $i", ReplyMode.REVISION, false)
@@ -62,7 +62,7 @@ class DeletionJobsTestsIT: AbstractTest() {
             assertEquals(0, testBuilder.systemAdmin.metaformVersions.list(metaform.id).size)
             assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
             assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
-            assertEquals(0, testBuilder.test1.drafts.listDraftsByMetaform(metaform.id).size)
+            assertEquals(0, testBuilder.systemAdmin.drafts.listDraftsByMetaform(metaform.id).size)
             Thread.sleep(3000)
             assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
         }
