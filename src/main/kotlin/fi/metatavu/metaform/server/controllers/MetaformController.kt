@@ -128,14 +128,20 @@ class MetaformController {
      * @return list of Metaforms
      */
     fun listMetaforms(visibility: MetaformVisibility? = null): List<Metaform> {
-        return metaformDAO.listByVisibility(visibility, false)
+        return metaformDAO.listByVisibility(
+            visibility = visibility,
+            deleted = false
+        )
     }
 
     /**
      * Lists Metaforms that are marked as deleted so that a scheduled job can delete them
      */
     fun listDeletedMetaforms(): List<Metaform> {
-        return metaformDAO.listByVisibility(null, true)
+        return metaformDAO.listByVisibility(
+            visibility = null,
+            deleted = true
+        )
     }
 
 
@@ -178,11 +184,24 @@ class MetaformController {
         val drafts = draftController.listByMetaform(metaform, null, null)
         drafts.forEach { draft: Draft -> draftController.deleteDraft(draft) }
 
-        val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(metaform.id!!, null ,null) +
-                metaformKeycloakController.listMetaformMemberManager(metaform.id!!, null, null)
+        val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(
+            metaformId = metaform.id!!,
+            first = null ,
+            max = null
+        ) + metaformKeycloakController.listMetaformMemberManager(
+            metaformId = metaform.id!!,
+            first = null,
+            max = null
+        )
+
         metaformMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id), metaform.id!!) }
 
-        val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(metaform, null, null)
+        val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(
+            metaform = metaform,
+            firstResult = null,
+            maxResults = null
+        )
+
         emailNotifications.forEach { emailNotification: EmailNotification -> emailNotificationController.deleteEmailNotification(emailNotification) }
 
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
@@ -302,7 +321,10 @@ class MetaformController {
             .minus(loggedUserId)
             .toSet()
 
-        emailNotificationController.listEmailNotificationByMetaform(metaform, null, null)
+        emailNotificationController.listEmailNotificationByMetaform(
+            metaform = metaform,
+            firstResult = null,
+            maxResults = null)
             .forEach{ emailNotification: EmailNotification ->
                 sendReplyEmailNotification(
                     adminClient,
