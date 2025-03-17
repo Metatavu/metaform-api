@@ -128,19 +128,23 @@ class MetaformController {
      * @return list of Metaforms
      */
     fun listMetaforms(visibility: MetaformVisibility? = null): List<Metaform> {
-        return metaformDAO.listByVisibility(
+        return metaformDAO.listByVisibilityAndDeleted(
             visibility = visibility,
-            deleted = false
+            deleted = false,
+            first = null,
+            max = null
         )
     }
 
     /**
      * Lists Metaforms that are marked as deleted so that a scheduled job can delete them
      */
-    fun listDeletedMetaforms(): List<Metaform> {
-        return metaformDAO.listByVisibility(
+    fun listDeletedMetaforms(max: Int?): List<Metaform> {
+        return metaformDAO.listByVisibilityAndDeleted(
             visibility = null,
-            deleted = true
+            deleted = true,
+            first = null,
+            max = max
         )
     }
 
@@ -341,7 +345,7 @@ class MetaformController {
      */
     @Scheduled(every="\${metaforms.deletion.interval}", delayed = "\${metaforms.deletion.delay}")
     fun scheduledMetaformDelete() {
-        val metaform = listDeletedMetaforms().firstOrNull() ?: return
+        val metaform = listDeletedMetaforms(max = 1).firstOrNull() ?: return
 
         val replies = replyController.listReplies(
             metaform = metaform,

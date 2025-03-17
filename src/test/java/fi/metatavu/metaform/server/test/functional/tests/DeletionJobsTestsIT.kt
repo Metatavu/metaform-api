@@ -14,6 +14,8 @@ import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.org.awaitility.Awaitility
+import java.time.Duration
 
 /**
  * Tests scheduled deletion jobs
@@ -53,9 +55,13 @@ class DeletionJobsTestsIT: AbstractTest() {
             testBuilder.systemAdmin.metaformMembers.createSimpleMember(metaform.id, "create-test", false)
             assertEquals(10, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
 
-            testBuilder.systemAdmin.metaforms.setMetaFormDeleted(metaform.id)
+            testBuilder.systemAdmin.metaforms.delete(
+                metaformId = metaform.id,
+                immediate = false
+            )
 
-            Thread.sleep(21000)
+            Awaitility.await().pollDelay(Duration.ofSeconds(21)).until { true }
+
             assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
                 true, null, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.metaformMembers.list(metaform.id, role = null).size)
@@ -63,7 +69,9 @@ class DeletionJobsTestsIT: AbstractTest() {
             assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
             assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.drafts.listDraftsByMetaform(metaform.id).size)
-            Thread.sleep(3000)
+
+            Awaitility.await().pollDelay(Duration.ofSeconds(3)).until { true }
+
             assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
         }
     }

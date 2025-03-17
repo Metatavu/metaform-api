@@ -145,7 +145,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    * @param visibility visibility
    * @return list of Metaforms
    */
-  fun listByVisibility(visibility: MetaformVisibility?, deleted: Boolean): List<Metaform> {
+  fun listByVisibilityAndDeleted(
+    visibility: MetaformVisibility?,
+    deleted: Boolean,
+    first: Int?,
+    max: Int?
+  ): List<Metaform> {
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       Metaform::class.java
@@ -166,7 +171,17 @@ class MetaformDAO : AbstractDAO<Metaform>() {
       )
     }
 
-    return entityManager.createQuery(criteria).resultList
+    val query = entityManager.createQuery(criteria)
+
+    if (first != null) {
+      query.firstResult = first
+    }
+
+    if (max != null) {
+      query.maxResults = max
+    }
+
+    return query.resultList
   }
 
   /**

@@ -485,7 +485,10 @@ class MetaformTestsIT : AbstractTest() {
                 assertNotNull(createdEmailNotification.id)
 
                 assertNotNull(testBuilder.systemAdmin.metaforms.list().find { form -> form.id == foundMetaform.id })
-                testBuilder.systemAdmin.metaforms.setMetaFormDeleted(foundMetaform.id!!)
+                testBuilder.systemAdmin.metaforms.delete(
+                    metaformId = foundMetaform.id!!,
+                    immediate = false
+                )
                 assertNull(testBuilder.systemAdmin.metaforms.list().find { form -> form.id == foundMetaform.id })
                 testBuilder.systemAdmin.metaforms.assertFindFailStatus(404, metaformId = foundMetaform.id)
             } finally {
@@ -508,18 +511,18 @@ class MetaformTestsIT : AbstractTest() {
                 val managerAuthentication = testBuilder.createMetaformManagerAuthentication(testMetaformId1, false)
                 val adminAuthentication = testBuilder.createMetaformAdminAuthentication(testMetaformId2, false)
 
-                testBuilder.assertApiCallFailStatus(403) { testBuilder.anon.metaforms.setMetaFormDeleted(testMetaformId1) }
-                testBuilder.assertApiCallFailStatus(403) { testBuilder.test1.metaforms.setMetaFormDeleted(testMetaformId1) }
-                testBuilder.assertApiCallFailStatus(403) { managerAuthentication.metaforms.setMetaFormDeleted(testMetaformId1) }
-                testBuilder.assertApiCallFailStatus(204) { adminAuthentication.metaforms.setMetaFormDeleted(testMetaformId2) }
-                testBuilder.assertApiCallFailStatus(204) { testBuilder.systemAdmin.metaforms.setMetaFormDeleted(testMetaformId3) }
+                testBuilder.assertApiCallFailStatus(403) { testBuilder.anon.metaforms.delete(testMetaformId1) }
+                testBuilder.assertApiCallFailStatus(403) { testBuilder.test1.metaforms.delete(testMetaformId1) }
+                testBuilder.assertApiCallFailStatus(403) { managerAuthentication.metaforms.delete(testMetaformId1) }
+                testBuilder.assertApiCallFailStatus(204) { adminAuthentication.metaforms.delete(testMetaformId2) }
+                testBuilder.assertApiCallFailStatus(204) { testBuilder.systemAdmin.metaforms.delete(testMetaformId3) }
 
                 val testMetaformForbidden1 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
                 val testMetaformForbidden2 = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple").id!!
                 val adminAuthenticationForbidden = testBuilder.createMetaformAdminAuthentication(testMetaformForbidden1, false)
                 val managerAuthenticationForbidden = testBuilder.createMetaformManagerAuthentication(testMetaformForbidden1, false)
-                testBuilder.assertApiCallFailStatus(403) { adminAuthenticationForbidden.metaforms.setMetaFormDeleted(testMetaformForbidden2) }
-                testBuilder.assertApiCallFailStatus(403) { managerAuthenticationForbidden.metaforms.setMetaFormDeleted(testMetaformForbidden2) }
+                testBuilder.assertApiCallFailStatus(403) { adminAuthenticationForbidden.metaforms.delete(testMetaformForbidden2) }
+                testBuilder.assertApiCallFailStatus(403) { managerAuthenticationForbidden.metaforms.delete(testMetaformForbidden2) }
             } finally {
                 val metaforms = testBuilder.systemAdmin.metaforms.list()
                 metaforms.forEach { metaform ->

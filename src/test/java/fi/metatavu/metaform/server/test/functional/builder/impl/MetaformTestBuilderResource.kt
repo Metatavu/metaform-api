@@ -96,27 +96,24 @@ class MetaformTestBuilderResource(
     }
 
     /**
-     * Sends a request to the API to mark a form as deleted so that a scheduled job deletes it later
-     *
-     * @param metaformId
-     */
-    fun setMetaFormDeleted(metaformId: UUID) {
-        api.deleteMetaform(metaformId)
-    }
-
-    /**
      * Deletes a metaform from the API
      *
      * @param metaformId id of metaform to be deleted
      */
     @Throws(IOException::class)
-    fun delete(metaformId: UUID) {
-        api.deleteMetaform(metaformId, immediate = true)
-        removeCloseable { closable ->
-            if (closable is Metaform) {
-                return@removeCloseable metaformId == closable.id
+    fun delete(metaformId: UUID, immediate: Boolean? = true) {
+        api.deleteMetaform(
+            metaformId = metaformId,
+            immediate = immediate
+        )
+
+        if (immediate == true) {
+            removeCloseable { closable ->
+                if (closable is Metaform) {
+                    return@removeCloseable metaformId == closable.id
+                }
+                false
             }
-            false
         }
     }
 
