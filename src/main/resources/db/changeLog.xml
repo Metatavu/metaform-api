@@ -738,6 +738,9 @@
         <constraints nullable="false"/>
       </column>
     </addColumn>
+    <update tableName="metaform">
+      <column name="deleted" valueBoolean="false"/>
+    </update>
   </changeSet>
 
 </databaseChangeLog>
