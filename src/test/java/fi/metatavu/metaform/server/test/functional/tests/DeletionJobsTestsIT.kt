@@ -60,7 +60,7 @@ class DeletionJobsTestsIT: AbstractTest() {
                 immediate = false
             )
 
-            Awaitility.await().pollDelay(Duration.ofSeconds(21)).until { true }
+            Awaitility.await().timeout(Duration.ofSeconds(22)).pollDelay(Duration.ofSeconds(21)).until { true }
 
             assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
                 true, null, null, null, null, null).size)
