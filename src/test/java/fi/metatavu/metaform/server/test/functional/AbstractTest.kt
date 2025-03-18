@@ -64,6 +64,39 @@ class AbstractTest {
     }
 
     /**
+     * Executes a select statement and returns the results
+     *
+     * @param sql    sql
+     * @param params params
+     * @return list of rows, where each row is represented as a map with column names as keys
+     */
+    protected fun executeSelect(sql: String, vararg params: Any): List<Map<String, Any>> {
+        val results = mutableListOf<Map<String, Any>>()
+        try {
+            connection.use { connection ->
+                connection!!.prepareStatement(sql).use { statement ->
+                    applyStatementParams(statement, *params)
+                    statement.executeQuery().use { resultSet ->
+                        val metaData = resultSet.metaData
+                        val columnCount = metaData.columnCount
+                        while (resultSet.next()) {
+                            val row = mutableMapOf<String, Any>()
+                            for (i in 1..columnCount) {
+                                row[metaData.getColumnName(i)] = resultSet.getObject(i)
+                            }
+                            results.add(row)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to execute select", e)
+            Assert.fail(e.message)
+        }
+        return results
+    }
+
+    /**
      * Executes an insert statement into test database
      *
      * @param sql    sql

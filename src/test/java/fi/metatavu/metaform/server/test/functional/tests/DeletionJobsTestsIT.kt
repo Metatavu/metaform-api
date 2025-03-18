@@ -1,6 +1,5 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
-import fi.metatavu.metaform.api.client.models.Draft
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.MetaformVersion
 import fi.metatavu.metaform.api.client.models.MetaformVersionType
@@ -13,9 +12,12 @@ import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.testcontainers.shaded.org.awaitility.Awaitility
+import org.testcontainers.shaded.org.awaitility.Awaitility.await
 import java.time.Duration
+import java.util.UUID
 
 /**
  * Tests scheduled deletion jobs
@@ -27,10 +29,13 @@ import java.time.Duration
 )
 @TestProfile(GeneralTestProfile::class)
 class DeletionJobsTestsIT: AbstractTest() {
+
     @Test
     fun testMetaformDeletionJob() {
         TestBuilder().use { testBuilder ->
             val metaform: Metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple", false)
+
+            assertFalse(isMetaformDeleted(metaform.id!!))
 
             val draftData: MutableMap<String, Any> = HashMap()
             draftData["text"] = "draft value"
@@ -60,8 +65,6 @@ class DeletionJobsTestsIT: AbstractTest() {
                 immediate = false
             )
 
-            Awaitility.await().timeout(Duration.ofSeconds(22)).pollDelay(Duration.ofSeconds(21)).until { true }
-
             assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
                 true, null, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.metaformMembers.list(metaform.id, role = null).size)
@@ -70,9 +73,26 @@ class DeletionJobsTestsIT: AbstractTest() {
             assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
             assertEquals(0, testBuilder.systemAdmin.drafts.listDraftsByMetaform(metaform.id).size)
 
-            Awaitility.await().pollDelay(Duration.ofSeconds(3)).until { true }
-
             assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
+
+            await()
+                .timeout(Duration.ofMinutes(5))
+                .until {
+                    isMetaformDeleted(metaform.id)
+                }
+
+            assertTrue(isMetaformDeleted(metaform.id))
         }
     }
+
+    /**
+     * Returns whether metaform is deleted from database
+     *
+     * @param metaformId metaform id
+     * @return whether metaform is deleted from database
+     */
+    private fun isMetaformDeleted(metaformId: UUID): Boolean {
+        return executeSelect("SELECT id FROM Metaform WHERE id = ?", metaformId).isEmpty()
+    }
+
 }
