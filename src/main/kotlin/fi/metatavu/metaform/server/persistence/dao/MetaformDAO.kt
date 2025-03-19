@@ -173,12 +173,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
 
     val query = entityManager.createQuery(criteria)
 
-    if (first != null) {
-      query.firstResult = first
+    if (firstResult != null) {
+      query.firstResult = firstResult
     }
 
-    if (max != null) {
-      query.maxResults = max
+    if (maxResults != null) {
+      query.maxResults = maxResults
     }
 
     return query.resultList
