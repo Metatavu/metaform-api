@@ -148,8 +148,8 @@ class MetaformDAO : AbstractDAO<Metaform>() {
   fun listByVisibilityAndDeleted(
     visibility: MetaformVisibility?,
     deleted: Boolean,
-    first: Int?,
-    max: Int?
+    firstResult: Int?,
+    maxResults: Int?
   ): List<Metaform> {
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
