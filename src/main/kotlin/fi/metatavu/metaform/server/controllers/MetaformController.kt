@@ -436,8 +436,8 @@ class MetaformController {
             return
         }
 
-        metaformDAO.delete(metaform)
         metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)
+        metaformDAO.delete(metaform)
     }
 
 
