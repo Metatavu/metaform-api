@@ -345,7 +345,7 @@ class MetaformController {
      */
     @Scheduled(every="\${metaforms.deletion.interval}", delayed = "\${metaforms.deletion.delay}")
     fun scheduledMetaformDelete() {
-        val metaform = listDeletedMetaforms(max = 1).firstOrNull() ?: return
+        val metaform = listDeletedMetaforms(maxResults = 1).firstOrNull() ?: return
 
         val replies = replyController.listReplies(
             metaform = metaform,
