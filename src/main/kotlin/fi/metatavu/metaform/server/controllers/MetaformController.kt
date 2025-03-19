@@ -386,8 +386,8 @@ class MetaformController {
 
         val metaformManagerMembers = metaformKeycloakController.listMetaformMemberManager(
             metaformId = metaform.id!!,
-            first = 0,
-            max= 10
+            firstResult = 0,
+            maxResults = 10
         )
 
         if (metaformManagerMembers.isNotEmpty()) {
