@@ -106,20 +106,34 @@ class MetaformController {
      * Finds Metaform by id
      *
      * @param id Metaform id
+     * @param includeDeleted include deleted metaforms
      * @return Metaform
      */
-    fun findMetaformById(id: UUID): Metaform? {
-        return metaformDAO.findById(id)
+    fun findMetaformById(id: UUID, includeDeleted: Boolean? = false): Metaform? {
+        val found = metaformDAO.findById(id) ?: return null
+
+        if (includeDeleted != true && found.deleted == true) {
+            return null
+        }
+
+        return found
     }
 
     /**
      * Finds Metaform by slug
      *
      * @param slug Metaform id
+     * @param includeDeleted include deleted metaforms
      * @return Metaform
      */
-    fun findMetaformBySlug(slug: String): Metaform? {
-        return metaformDAO.findBySlug(slug)
+    fun findMetaformBySlug(slug: String, includeDeleted: Boolean? = false): Metaform? {
+        val found = metaformDAO.findBySlug(slug) ?: return null
+
+        if (includeDeleted != true && found.deleted == true) {
+            return null
+        }
+
+        return found
     }
 
     /**
@@ -131,20 +145,22 @@ class MetaformController {
         return metaformDAO.listByVisibilityAndDeleted(
             visibility = visibility,
             deleted = false,
-            first = null,
-            max = null
+            firstResult = null,
+            maxResults = null
         )
     }
 
     /**
      * Lists Metaforms that are marked as deleted so that a scheduled job can delete them
+     *
+     * @param maxResults
      */
-    fun listDeletedMetaforms(max: Int?): List<Metaform> {
+    fun listDeletedMetaforms(maxResults: Int?): List<Metaform> {
         return metaformDAO.listByVisibilityAndDeleted(
             visibility = null,
             deleted = true,
-            first = null,
-            max = max
+            firstResult = null,
+            maxResults = maxResults
         )
     }
 
@@ -190,12 +206,12 @@ class MetaformController {
 
         val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(
             metaformId = metaform.id!!,
-            first = null ,
-            max = null
+            firstResult = null ,
+            maxResults = null
         ) + metaformKeycloakController.listMetaformMemberManager(
             metaformId = metaform.id!!,
-            first = null,
-            max = null
+            firstResult = null,
+            maxResults = null
         )
 
         metaformMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id), metaform.id!!) }

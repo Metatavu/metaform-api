@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.testcontainers.shaded.org.awaitility.Awaitility
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
 import java.time.Duration
 import java.util.UUID
@@ -65,15 +66,48 @@ class DeletionJobsTestsIT: AbstractTest() {
                 immediate = false
             )
 
-            assertEquals(0, testBuilder.systemAdmin.replies.listReplies(metaform.id, null, null, null, null, null,
-                true, null, null, null, null, null).size)
-            assertEquals(0, testBuilder.systemAdmin.metaformMembers.list(metaform.id, role = null).size)
-            assertEquals(0, testBuilder.systemAdmin.metaformVersions.list(metaform.id).size)
-            assertEquals(0, testBuilder.systemAdmin.emailNotifications.listEmailNotifications(metaform.id).size)
-            assertEquals(0, testBuilder.test1.auditLogs.listAuditLogEntries(metaform.id, null, null, null, null).size)
-            assertEquals(0, testBuilder.systemAdmin.drafts.listDraftsByMetaform(metaform.id).size)
+            await().atMost(Duration.ofMinutes(2)).until {
+                testBuilder.systemAdmin.metaforms.list().isEmpty()
+            }
 
-            assertEquals(0, testBuilder.systemAdmin.metaforms.list().size)
+            testBuilder.systemAdmin.replies.assertListFailStatus(
+                expectedStatus = 404,
+                metaformId = metaform.id,
+                userId = null,
+                createdBefore = null,
+                createdAfter = null,
+                modifiedBefore = null,
+                modifiedAfter = null,
+                includeRevisions = null,
+                fields = null,
+                firstResult = null,
+                maxResults = null
+            )
+
+            testBuilder.systemAdmin.metaformMembers.assertListFailStatus(
+                expectedStatus = 404,
+                metaformId = metaform.id,
+                role = null
+            )
+
+            testBuilder.systemAdmin.metaformVersions.assertListFailStatus(
+                expectedStatus = 404,
+                metaformId = metaform.id
+            )
+
+            testBuilder.systemAdmin.emailNotifications.assertListFailStatus(
+                expectedStatus = 404,
+                metaformId = metaform.id
+            )
+
+            testBuilder.systemAdmin.auditLogs.assertListFailStatus(
+                status = 404,
+                metaformId = metaform.id,
+                userId = null,
+                replyId = null,
+                createdBefore = null,
+                createdAfter = null
+            )
 
             await()
                 .timeout(Duration.ofMinutes(5))

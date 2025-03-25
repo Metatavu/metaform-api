@@ -116,7 +116,7 @@ class MetaformsApi: fi.metatavu.metaform.api.spec.MetaformsApi, AbstractApi() {
       return createForbidden(createNotAllowedMessage(DELETE, METAFORM))
     }
 
-    val metaform = metaformController.findMetaformById(metaformId)
+    val metaform = metaformController.findMetaformById(metaformId, includeDeleted = true)
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     metaformScriptController.deleteMetaformScriptsByMetaform(metaform)

@@ -570,16 +570,16 @@ class MetaformKeycloakController {
      * Lists manager metaform members
      *
      * @param metaformId metaform id
-     * @param first first result
-     * @param max max results
+     * @param firstResult first result
+     * @param maxResults max results
      * @return listed users
      */
-    fun listMetaformMemberManager(metaformId: UUID, first: Int?, max: Int?): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
+    fun listMetaformMemberManager(metaformId: UUID, firstResult: Int?, maxResults: Int?): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return groupApi.realmGroupsIdMembersGet(
             realm = realm,
             id = getMetaformManagerGroup(metaformId).id,
-            first = first,
-            max = max,
+            first = firstResult,
+            max = maxResults,
             briefRepresentation = false
         )
     }
@@ -588,16 +588,16 @@ class MetaformKeycloakController {
      * Lists admin metaform members
      *
      * @param metaformId metaform id
-     * @param first first
-     * @param max max
+     * @param firstResult first
+     * @param maxResults max
      * @return listed users
      */
-    fun listMetaformMemberAdmin(metaformId: UUID, first: Int?, max: Int?): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
+    fun listMetaformMemberAdmin(metaformId: UUID, firstResult: Int?, maxResults: Int?): List<fi.metatavu.metaform.keycloak.client.models.UserRepresentation> {
         return groupApi.realmGroupsIdMembersGet(
             realm = realm,
             id = getMetaformAdminGroup(metaformId).id,
-            first = first,
-            max = max,
+            first = firstResult,
+            max = maxResults,
             briefRepresentation = false
         )
     }
