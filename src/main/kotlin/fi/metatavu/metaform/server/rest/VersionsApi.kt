@@ -114,8 +114,11 @@ class VersionsApi: fi.metatavu.metaform.api.spec.VersionsApi, AbstractApi() {
       ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
     return createOk(
-      metaformVersionController.listMetaformVersionsByMetaform(foundMetaform)
-        .map(metaformVersionTranslator::translate)
+      metaformVersionController.listMetaformVersionsByMetaform(
+        metaform = foundMetaform,
+        firstResult = null,
+        maxResults = null
+      ).map(metaformVersionTranslator::translate)
     )
   }
 

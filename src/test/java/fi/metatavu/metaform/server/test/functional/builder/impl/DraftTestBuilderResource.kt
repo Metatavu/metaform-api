@@ -49,6 +49,7 @@ class DraftTestBuilderResource(
      *
      * @param metaform  metaform
      * @param draftData draft data map
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created draft
      */
     @Throws(IOException::class)
@@ -58,6 +59,15 @@ class DraftTestBuilderResource(
         metaformDraftMap[metaform] = createdDraft
         if (addClosable) addClosable(createdDraft)
         return createdDraft
+    }
+
+    /**
+     * List drafts by Metaform
+     *
+     * @param metaformId
+     */
+    fun listDraftsByMetaform(metaformId: UUID): List<Draft> {
+        return api.listDrafts(metaformId).toList()
     }
 
 

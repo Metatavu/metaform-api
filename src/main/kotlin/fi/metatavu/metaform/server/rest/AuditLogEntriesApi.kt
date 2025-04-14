@@ -76,7 +76,7 @@ class AuditLogEntriesApi: fi.metatavu.metaform.api.spec.AuditLogEntriesApi, Abst
     val metaform: Metaform = metaformController.findMetaformById(metaformId)
             ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val auditLogEntries: List<AuditLogEntry> = auditLogEntryController.listAuditLogEntries(metaform, replyId, userId, createdBeforeTime, createdAfterTime)
+    val auditLogEntries: List<AuditLogEntry> = auditLogEntryController.listAuditLogEntries(metaform, replyId, userId, createdBeforeTime, createdAfterTime, null, null)
 
     val result = auditLogEntries
             .map { auditLogEntryTranslator.translate(it) }

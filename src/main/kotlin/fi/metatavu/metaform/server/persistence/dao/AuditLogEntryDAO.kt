@@ -59,6 +59,8 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
    * @param userId userId
    * @param createdBefore created before
    * @param createdAfter created after
+   * @param firstResult first result
+   * @param maxResults max results
    * @return list of AuditLogEntry
    */
   fun list(
@@ -66,7 +68,9 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
     replyId: UUID?,
     userId: UUID?,
     createdBefore: OffsetDateTime?,
-    createdAfter: OffsetDateTime?
+    createdAfter: OffsetDateTime?,
+    firstResult: Int?,
+    maxResults: Int?
   ): List<AuditLogEntry> {
     val criteriaBuilder = entityManager.criteriaBuilder
 
@@ -106,6 +110,15 @@ class AuditLogEntryDAO : AbstractDAO<AuditLogEntry>() {
     criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
     criteria.orderBy(criteriaBuilder.asc(root.get(AuditLogEntry_.createdAt)))
     val query = entityManager.createQuery(criteria)
+
+    if (firstResult != null) {
+      query.firstResult = firstResult
+    }
+
+    if (maxResults != null) {
+      query.maxResults = maxResults
+    }
+
     return query.resultList
   }
 

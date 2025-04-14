@@ -19,6 +19,7 @@ import fi.metatavu.metaform.server.persistence.dao.AuditLogEntryDAO
 import fi.metatavu.metaform.server.persistence.dao.MetaformDAO
 import fi.metatavu.metaform.server.persistence.model.*
 import fi.metatavu.metaform.server.persistence.model.notifications.EmailNotification
+import io.quarkus.scheduler.Scheduled
 import org.apache.commons.lang3.StringUtils
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.resource.UserResource
@@ -26,12 +27,15 @@ import org.keycloak.representations.idm.UserRepresentation
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import jakarta.transaction.Transactional
+import org.slf4j.Logger
 
 /**
  * Metaform controller
  *
  * @author Antti Leppä
  */
+@Transactional
 @ApplicationScoped
 class MetaformController {
 
@@ -58,6 +62,12 @@ class MetaformController {
 
     @Inject
     lateinit var permissionController: PermissionController
+
+    @Inject
+    lateinit var logger: Logger
+
+    @Inject
+    lateinit var metaformVersionController: MetaformVersionController
 
     /**
      * Creates new Metaform
@@ -96,20 +106,34 @@ class MetaformController {
      * Finds Metaform by id
      *
      * @param id Metaform id
+     * @param includeDeleted include deleted metaforms
      * @return Metaform
      */
-    fun findMetaformById(id: UUID): Metaform? {
-        return metaformDAO.findById(id)
+    fun findMetaformById(id: UUID, includeDeleted: Boolean? = false): Metaform? {
+        val found = metaformDAO.findById(id) ?: return null
+
+        if (includeDeleted != true && found.deleted == true) {
+            return null
+        }
+
+        return found
     }
 
     /**
      * Finds Metaform by slug
      *
      * @param slug Metaform id
+     * @param includeDeleted include deleted metaforms
      * @return Metaform
      */
-    fun findMetaformBySlug(slug: String): Metaform? {
-        return metaformDAO.findBySlug(slug)
+    fun findMetaformBySlug(slug: String, includeDeleted: Boolean? = false): Metaform? {
+        val found = metaformDAO.findBySlug(slug) ?: return null
+
+        if (includeDeleted != true && found.deleted == true) {
+            return null
+        }
+
+        return found
     }
 
     /**
@@ -118,9 +142,28 @@ class MetaformController {
      * @return list of Metaforms
      */
     fun listMetaforms(visibility: MetaformVisibility? = null): List<Metaform> {
-        visibility ?: return metaformDAO.listAll()
-        return metaformDAO.listByVisibility(visibility)
+        return metaformDAO.listByVisibilityAndDeleted(
+            visibility = visibility,
+            deleted = false,
+            firstResult = null,
+            maxResults = null
+        )
     }
+
+    /**
+     * Lists Metaforms that are marked as deleted so that a scheduled job can delete them
+     *
+     * @param maxResults
+     */
+    fun listDeletedMetaforms(maxResults: Int?): List<Metaform> {
+        return metaformDAO.listByVisibilityAndDeleted(
+            visibility = null,
+            deleted = true,
+            firstResult = null,
+            maxResults = maxResults
+        )
+    }
+
 
     /**
      * Updates Metaform
@@ -158,14 +201,27 @@ class MetaformController {
         val replies = replyController.listReplies(metaform = metaform, includeRevisions = true)
         replies.forEach { reply: Reply -> replyController.deleteReply(reply) }
 
-        val drafts = draftController.listByMetaform(metaform)
+        val drafts = draftController.listByMetaform(metaform, null, null)
         drafts.forEach { draft: Draft -> draftController.deleteDraft(draft) }
 
-        val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(metaform.id!!) +
-                metaformKeycloakController.listMetaformMemberManager(metaform.id!!)
+        val metaformMembers = metaformKeycloakController.listMetaformMemberAdmin(
+            metaformId = metaform.id!!,
+            firstResult = null ,
+            maxResults = null
+        ) + metaformKeycloakController.listMetaformMemberManager(
+            metaformId = metaform.id!!,
+            firstResult = null,
+            maxResults = null
+        )
+
         metaformMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id), metaform.id!!) }
 
-        val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(metaform)
+        val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(
+            metaform = metaform,
+            firstResult = null,
+            maxResults = null
+        )
+
         emailNotifications.forEach { emailNotification: EmailNotification -> emailNotificationController.deleteEmailNotification(emailNotification) }
 
         val auditLogEntries = auditLogEntryDAO.listByMetaform(metaform)
@@ -285,7 +341,10 @@ class MetaformController {
             .minus(loggedUserId)
             .toSet()
 
-        emailNotificationController.listEmailNotificationByMetaform(metaform)
+        emailNotificationController.listEmailNotificationByMetaform(
+            metaform = metaform,
+            firstResult = null,
+            maxResults = null)
             .forEach{ emailNotification: EmailNotification ->
                 sendReplyEmailNotification(
                     adminClient,
@@ -295,6 +354,106 @@ class MetaformController {
                     notifyUserIds
                 )
             }
+    }
+
+    /**
+     * Deletes replies from forms that are marked as deleted
+     */
+    @Scheduled(every="\${metaforms.deletion.interval}", delayed = "\${metaforms.deletion.delay}")
+    fun scheduledMetaformDelete() {
+        val metaform = listDeletedMetaforms(maxResults = 1).firstOrNull() ?: return
+
+        val replies = replyController.listReplies(
+            metaform = metaform,
+            includeRevisions = true,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (replies.isNotEmpty()) {
+            logger.info("Deleting ${replies.size} replies from form ${metaform.id}")
+            replies.forEach { replyController.deleteReply(it) }
+            return
+        }
+
+        val drafts = draftController.listByMetaform(
+            metaform = metaform,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (drafts.isNotEmpty()) {
+            logger.info("Deleting ${drafts.size} drafts from form ${metaform.id}")
+            drafts.forEach { draftController.deleteDraft(it) }
+            return
+        }
+
+        val metaformAdminMembers = metaformKeycloakController.listMetaformMemberAdmin(
+            metaformId = metaform.id!!,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (metaformAdminMembers.isNotEmpty()) {
+            logger.info("Deleting ${metaformAdminMembers.size} admin members from form ${metaform.id}")
+            metaformAdminMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id!!), metaform.id!!) }
+            return
+        }
+
+        val metaformManagerMembers = metaformKeycloakController.listMetaformMemberManager(
+            metaformId = metaform.id!!,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (metaformManagerMembers.isNotEmpty()) {
+            logger.info("Deleting ${metaformManagerMembers.size} admin members from form ${metaform.id}")
+            metaformManagerMembers.forEach { metaformKeycloakController.deleteMetaformMember(UUID.fromString(it.id!!), metaform.id!!) }
+            return
+        }
+
+        val versions = metaformVersionController.listMetaformVersionsByMetaform(
+            metaform = metaform,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (versions.isNotEmpty()) {
+            logger.info("Deleting ${versions.size} versions from form ${metaform.id}")
+            versions.forEach { metaformVersionController.deleteMetaformVersion(it) }
+            return
+        }
+
+        val emailNotifications = emailNotificationController.listEmailNotificationByMetaform(
+            metaform = metaform,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (emailNotifications.isNotEmpty()) {
+            logger.info("Deleting ${emailNotifications.size} email notifications from form ${metaform.id}")
+            emailNotifications.forEach { emailNotificationController.deleteEmailNotification(it) }
+            return
+        }
+
+        val auditLogEntriers = auditLogEntryController.listAuditLogEntries(
+            metaform = metaform,
+            replyId = null,
+            userId = null,
+            createdBefore = null,
+            createdAfter = null,
+            firstResult = 0,
+            maxResults = 10
+        )
+
+        if (auditLogEntriers.isNotEmpty()) {
+            logger.info("Deleting ${auditLogEntriers.size} audit log entries from form ${metaform.id}")
+            auditLogEntriers.forEach { auditLogEntryController.deleteAuditLogEntry(it) }
+            return
+        }
+
+        metaformKeycloakController.deleteMetaformManagementGroup(metaform.id!!)
+        metaformDAO.delete(metaform)
     }
 
 
@@ -365,5 +524,14 @@ class MetaformController {
         }
 
         return true
+    }
+
+    /**
+     * Marks a form as deleted so that a scheduled job deletes it later
+     *
+     * @param metaform metaform to be deleted
+     */
+    fun updateMetaformDeleted(metaform: Metaform) {
+        metaformDAO.updateMetaformDeleted(metaform)
     }
 }
