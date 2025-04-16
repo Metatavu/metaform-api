@@ -5,6 +5,21 @@
     },
     {
       "pattern": "META-INF/services/org.keycloak.protocol.oidc.client.authentication.ClientCredentialsProvider"
+    },
+    {
+      "pattern": "export-themes/base/reply/pdf.ftl"
+    },
+    {
+      "pattern": "export-themes/base/reply/templates/footer.ftl"
+    },
+    {
+      "pattern": "export-themes/base/reply/templates/header.ftl"
+    },
+    {
+      "pattern": "export-themes/base/reply/templates/reply.ftl"
+    },
+    {
+      "pattern": "export-themes/base/reply/templates/styles.ftl"
     }
   ]
 }

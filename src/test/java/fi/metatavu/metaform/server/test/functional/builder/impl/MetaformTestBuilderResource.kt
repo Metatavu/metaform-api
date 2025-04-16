@@ -33,7 +33,7 @@ class MetaformTestBuilderResource(
 
     @Throws(IOException::class)
     override fun clean(metaform: Metaform) {
-        api.deleteMetaform(metaform.id!!)
+        api.deleteMetaform(metaform.id!!, immediate = true)
     }
 
     /**
@@ -43,8 +43,10 @@ class MetaformTestBuilderResource(
      * @return created metaform
      */
     @Throws(IOException::class)
-    fun create(payload: Metaform): Metaform {
-        return addClosable(api.createMetaform(payload))
+    fun create(payload: Metaform, addClosable: Boolean = true): Metaform {
+        val created = api.createMetaform(payload)
+        if (addClosable) addClosable(created)
+        return created
     }
 
     /**
@@ -99,13 +101,19 @@ class MetaformTestBuilderResource(
      * @param metaformId id of metaform to be deleted
      */
     @Throws(IOException::class)
-    fun delete(metaformId: UUID) {
-        api.deleteMetaform(metaformId)
-        removeCloseable { closable ->
-            if (closable is Metaform) {
-                return@removeCloseable metaformId == closable.id
+    fun delete(metaformId: UUID, immediate: Boolean? = true) {
+        api.deleteMetaform(
+            metaformId = metaformId,
+            immediate = immediate
+        )
+
+        if (immediate == true) {
+            removeCloseable { closable ->
+                if (closable is Metaform) {
+                    return@removeCloseable metaformId == closable.id
+                }
+                false
             }
-            false
         }
     }
 
@@ -249,10 +257,11 @@ class MetaformTestBuilderResource(
      * Creates new metaform using predefined test form
      *
      * @param form form's file name
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created metaform
      */
     @Throws(IOException::class)
-    fun createFromJsonFile(form: String): Metaform {
-        return create(readMetaform(form)!!)
+    fun createFromJsonFile(form: String, addClosable: Boolean = true): Metaform {
+        return create(readMetaform(form)!!, addClosable)
     }
 }

@@ -151,6 +151,37 @@ class DraftsApi: fi.metatavu.metaform.api.spec.DraftsApi, AbstractApi() {
     }
   }
 
+  override fun listDrafts(metaformId: UUID): Response {
+    loggedUserId ?: return createForbidden(UNAUTHORIZED)
+
+    if (environment != "DEVELOPMENT") {
+      return createForbidden(createNotAllowedMessage(LIST, DRAFT))
+    }
+
+    if (!isMetatavuAdmin && !isRealmSystemAdmin) {
+      return createForbidden(createNotAllowedMessage(LIST, DRAFT))
+    }
+
+    val metaform = metaformController.findMetaformById(metaformId)
+      ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
+
+    val translatedMetaform = metaformTranslator.translate(metaform)
+
+    if (metaform.allowAnonymous != true && isAnonymous) {
+      return createForbidden(ANONYMOUS_USERS_METAFORM_MESSAGE)
+    }
+
+    if (BooleanUtils.isNotTrue(translatedMetaform.allowDrafts)) {
+      return createForbidden(createNotAllowedMessage(LIST, DRAFT))
+    }
+
+    return try {
+      createOk(draftController.listByMetaform(metaform, null, null).map(draftTranslator::translateDraft))
+    } catch (e: DeserializationFailedException) {
+      createInternalServerError(e.message)
+    }
+  }
+
   /**
    * Update a draft
    * 

@@ -44,6 +44,7 @@ class MetaformDAO : AbstractDAO<Metaform>() {
     metaform.data = data
     metaform.slug = slug
     metaform.allowAnonymous = allowAnonymous
+    metaform.deleted = false
     metaform.creatorId = creatorId
     metaform.lastModifierId = creatorId
     return persist(metaform)
@@ -144,7 +145,12 @@ class MetaformDAO : AbstractDAO<Metaform>() {
    * @param visibility visibility
    * @return list of Metaforms
    */
-  fun listByVisibility(visibility: MetaformVisibility): List<Metaform> {
+  fun listByVisibilityAndDeleted(
+    visibility: MetaformVisibility?,
+    deleted: Boolean,
+    firstResult: Int?,
+    maxResults: Int?
+  ): List<Metaform> {
     val criteriaBuilder = entityManager.criteriaBuilder
     val criteria = criteriaBuilder.createQuery(
       Metaform::class.java
@@ -153,9 +159,38 @@ class MetaformDAO : AbstractDAO<Metaform>() {
       Metaform::class.java
     )
     criteria.select(root)
-    criteria.where(
-      criteriaBuilder.equal(root.get(Metaform_.visibility), visibility)
-    )
-    return entityManager.createQuery(criteria).resultList
+
+    if (visibility != null) {
+      criteria.where(
+        criteriaBuilder.equal(root.get(Metaform_.visibility), visibility),
+        criteriaBuilder.equal(root.get(Metaform_.deleted), deleted)
+      )
+    } else {
+      criteria.where(
+        criteriaBuilder.equal(root.get(Metaform_.deleted), deleted)
+      )
+    }
+
+    val query = entityManager.createQuery(criteria)
+
+    if (firstResult != null) {
+      query.firstResult = firstResult
+    }
+
+    if (maxResults != null) {
+      query.maxResults = maxResults
+    }
+
+    return query.resultList
+  }
+
+  /**
+   * Marks a form as deleted so that a scheduled job deletes it later
+   *
+   * @param metaform
+   */
+  fun updateMetaformDeleted(metaform: Metaform) {
+    metaform.deleted = true
+    persist(metaform)
   }
 }

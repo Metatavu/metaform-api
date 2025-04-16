@@ -64,6 +64,39 @@ class AbstractTest {
     }
 
     /**
+     * Executes a select statement and returns the results
+     *
+     * @param sql    sql
+     * @param params params
+     * @return list of rows, where each row is represented as a map with column names as keys
+     */
+    protected fun executeSelect(sql: String, vararg params: Any): List<Map<String, Any>> {
+        val results = mutableListOf<Map<String, Any>>()
+        try {
+            connection.use { connection ->
+                connection!!.prepareStatement(sql).use { statement ->
+                    applyStatementParams(statement, *params)
+                    statement.executeQuery().use { resultSet ->
+                        val metaData = resultSet.metaData
+                        val columnCount = metaData.columnCount
+                        while (resultSet.next()) {
+                            val row = mutableMapOf<String, Any>()
+                            for (i in 1..columnCount) {
+                                row[metaData.getColumnName(i)] = resultSet.getObject(i)
+                            }
+                            results.add(row)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Failed to execute select", e)
+            Assert.fail(e.message)
+        }
+        return results
+    }
+
+    /**
      * Executes an insert statement into test database
      *
      * @param sql    sql
@@ -347,18 +380,43 @@ class AbstractTest {
      * @param metaform    metaform
      * @param reply       reply
      */
-    protected fun assertPdfDownloadContents(expected: String, accessToken: String?, metaform: Metaform, reply: Reply) {
+    protected fun assertPdfDownloadContains(expected: String, accessToken: String?, metaform: Metaform, reply: Reply) {
         val response = RestAssured.given()
             .baseUri(ApiTestSettings.apiBasePath)
             .header("Content-Type", "application/json")
             .header("Authorization", String.format("Bearer %s", accessToken))["/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.id.toString(), reply.id.toString()]
 
         val data = response.body.asByteArray()
+
         Assert.assertNotNull(data)
         response.then().assertThat().statusCode(200)
 
         assertPdfContains(
             expected = expected,
+            data = data
+        )
+    }
+
+    /**
+     * Checks that pdf does not contain a string
+     *
+     * @param unexpected  unexpected string
+     * @param accessToken access token
+     * @param metaform    metaform
+     * @param reply       reply
+     */
+    protected fun assertPdfDownloadDoesNotContain(unexpected: String, accessToken: String?, metaform: Metaform, reply: Reply) {
+        val response = RestAssured.given()
+            .baseUri(ApiTestSettings.apiBasePath)
+            .header("Content-Type", "application/json")
+            .header("Authorization", String.format("Bearer %s", accessToken))["/v1/metaforms/{metaformId}/replies/{replyId}/export?format=PDF", metaform.id.toString(), reply.id.toString()]
+        val data = response.body.asByteArray()
+
+        Assert.assertNotNull(data)
+        response.then().assertThat().statusCode(200)
+
+        assertPdfDownloadDoesNotContain(
+            unexpected = unexpected,
             data = data
         )
     }
@@ -372,11 +430,25 @@ class AbstractTest {
      * @throws IOException thrown on PDF read failure
      */
     @Throws(IOException::class)
-    protected fun assertPdfContains(expected: String?, data: ByteArray?) {
+    fun assertPdfContains(expected: String?, data: ByteArray?) {
         val document = PDDocument.load(ByteArrayInputStream(data))
         val pdfText = PDFTextStripper().getText(document)
         document.close()
         Assert.assertTrue(String.format("PDF text (%s) does not contain expected text %s", pdfText, expected), StringUtils.contains(pdfText, expected))
+    }
+
+    /**
+     * Asserts that given PDF data does not contain expected string
+     *
+     * @param unexpected unexpected string
+     * @param data     PDF data
+     * @throws IOException thrown on PDF read failure
+     */
+    protected fun assertPdfDownloadDoesNotContain(unexpected: String?, data: ByteArray?) {
+        val document = PDDocument.load(ByteArrayInputStream(data))
+        val pdfText = PDFTextStripper().getText(document)
+        document.close()
+        Assert.assertFalse(String.format("PDF text (%s) contains unexpected text %s", pdfText, unexpected), StringUtils.contains(pdfText, unexpected))
     }
 
     /**

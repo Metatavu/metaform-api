@@ -8,9 +8,14 @@ import fi.metatavu.metaform.server.test.functional.builder.TestBuilder
 import fi.metatavu.metaform.server.test.functional.builder.auth.TestBuilderAuthentication
 import fi.metatavu.metaform.server.test.functional.builder.resources.MetaformKeycloakResource
 import fi.metatavu.metaform.server.test.functional.builder.resources.MysqlResource
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioBuilder
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioPath
+import fi.metatavu.metaform.server.test.functional.common.InvalidValueTestScenarioQuery
+import fi.metatavu.metaform.server.test.functional.common.InvalidValues
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
+import io.restassured.http.Method
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -184,14 +189,15 @@ class MetaformTestsIT : AbstractTest() {
     @Throws(Exception::class)
     fun testFindMetaformNotFound() {
         TestBuilder().use { builder ->
-            builder.systemAdmin.metaforms.assertFindFailStatus(
-                    expectedStatus = 404,
-                    metaformId = UUID.randomUUID()
+            InvalidValueTestScenarioBuilder(
+                path = "v1/metaforms/{metaformId}",
+                method = Method.DELETE,
+                token = builder.systemAdmin.token
             )
-            builder.systemAdmin.metaforms.assertFindFailStatus(
-                    expectedStatus = 404,
-                    metaformSlug = ""
-            )
+                .path(InvalidValueTestScenarioPath(name = "metaformId", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
+                .query(InvalidValueTestScenarioQuery(name = "metaformSlug", values = InvalidValues.STRING_NOT_NULL, expectedStatus = 404))
+                .build()
+                .test()
         }
     }
 
@@ -477,10 +483,14 @@ class MetaformTestsIT : AbstractTest() {
                 assertNotNull(foundDraft)
                 assertNotNull(foundDraft.id)
                 assertNotNull(createdEmailNotification.id)
-                testBuilder.systemAdmin.metaforms.delete(foundMetaform.id!!)
+
+                assertNotNull(testBuilder.systemAdmin.metaforms.list().find { form -> form.id == foundMetaform.id })
+                testBuilder.systemAdmin.metaforms.delete(
+                    metaformId = foundMetaform.id!!,
+                    immediate = false
+                )
+                assertNull(testBuilder.systemAdmin.metaforms.list().find { form -> form.id == foundMetaform.id })
                 testBuilder.systemAdmin.metaforms.assertFindFailStatus(404, metaformId = foundMetaform.id)
-                testBuilder.systemAdmin.drafts.assertFindFailStatus(404, metaformId = foundMetaform.id, draftId = createdDraft.id)
-                testBuilder.systemAdmin.emailNotifications.assertFindFailStatus(404, createdEmailNotification.id!!, foundMetaform.id)
             } finally {
                 val metaforms = testBuilder.systemAdmin.metaforms.list()
                 metaforms.forEach { metaform ->

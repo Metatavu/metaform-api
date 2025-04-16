@@ -115,6 +115,22 @@ class EmailNotificationsTestBuilderResource(
     fun assertFindFailStatus(expectedStatus: Int, emailNotificationId: UUID, metaformId: UUID) {
         try {
             api.findEmailNotification(metaformId, emailNotificationId)
+            Assert.fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            Assert.assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts that finding EmailNotification fails with given status
+     *
+     * @param expectedStatus expected status
+     * @param metaformId metaform id
+     */
+    @Throws(IOException::class)
+    fun assertListFailStatus(expectedStatus: Int, metaformId: UUID) {
+        try {
+            api.listEmailNotifications(metaformId = metaformId)
             Assert.fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             Assert.assertEquals(expectedStatus, e.statusCode)

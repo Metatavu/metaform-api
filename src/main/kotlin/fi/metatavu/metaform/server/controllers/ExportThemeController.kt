@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
+import java.io.InputStream
 
 /**
  * Controller for export theme related operations
@@ -187,6 +188,21 @@ class ExportThemeController {
      */
     fun findExportThemeFile(theme: ExportTheme, path: String): ExportThemeFile? {
         return exportThemeFileDAO.findByThemeAndPath(theme, path)
+    }
+
+    /**
+     * Finds theme file from JAR path
+     *
+     * @param path Path to theme file
+     * @return InputStream
+     */
+    fun findBaseThemeWithinJar(path: String): InputStream? {
+        println("Loading resource export-themes/$path")
+        val resource = this.javaClass.classLoader.getResourceAsStream("export-themes/$path")
+        if (resource != null) {
+            println("Loaded resource ${resource.available()}")
+        }
+        return resource
     }
 
     /**

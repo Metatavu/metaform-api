@@ -715,4 +715,32 @@
     </sql>
   </changeSet>
 
+  <changeSet id="remove-deprecated-base-themes" author="Antti Leppä">
+    <sql>
+      UPDATE
+        exporttheme childtheme
+      LEFT JOIN
+        exporttheme basetheme
+      ON
+        childtheme.parent_id = basetheme.id
+      SET
+        childtheme.parent_id = NULL
+      WHERE
+        basetheme.name = 'base'
+    </sql>
+    <sql>DELETE FROM exportthemefile WHERE theme_id IN (SELECT ID FROM exporttheme WHERE name = 'base')</sql>
+    <sql>DELETE FROM exporttheme WHERE name = 'base'</sql>
+  </changeSet>
+
+  <changeSet id="deleted-forms" author="Simeon Platonov">
+    <addColumn tableName="metaform">
+      <column name="deleted" type="boolean">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+    <update tableName="metaform">
+      <column name="deleted" valueBoolean="false"/>
+    </update>
+  </changeSet>
+
 </databaseChangeLog>
