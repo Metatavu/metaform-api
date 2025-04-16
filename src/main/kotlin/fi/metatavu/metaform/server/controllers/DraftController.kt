@@ -78,9 +78,11 @@ class DraftController {
      * Lists drafts by metaform
      *
      * @param metaform metaform
+     * @param firstResult first result
+     * @param maxResults max results
      */
-    fun listByMetaform(metaform: Metaform): List<Draft> {
-        return draftDAO.listByMetaform(metaform)
+    fun listByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<Draft> {
+        return draftDAO.listByMetaform(metaform, firstResult, maxResults)
     }
 
     /**

@@ -92,10 +92,12 @@ class EmailNotificationController {
      * Lists an email notifications from Metaform
      *
      * @param metaform metaform
+     * @param firstResult first result
+     * @param maxResults maxResults
      * @return a email notification
      */
-    fun listEmailNotificationByMetaform(metaform: Metaform): List<EmailNotification> {
-        return emailNotificationDAO.listByMetaform(metaform)
+    fun listEmailNotificationByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<EmailNotification> {
+        return emailNotificationDAO.listByMetaform(metaform, firstResult, maxResults)
     }
 
     /**
@@ -191,7 +193,7 @@ class EmailNotificationController {
      *
      * @param emailNotification email notification
      */
-    fun deleteEmailNotification(emailNotification: EmailNotification) {
+    fun deleteEmailNotification (emailNotification: EmailNotification) {
         deleteNotificationEmails(emailNotification)
         emailNotificationDAO.delete(emailNotification)
     }

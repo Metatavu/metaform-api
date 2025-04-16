@@ -65,10 +65,12 @@ class MetaformVersionController {
      * Lists versions by Metaforms
      *
      * @param metaform Metaform
+     * @param firstResult first result
+     * @param maxResults max results
      * @return item if found
      */
-    fun listMetaformVersionsByMetaform(metaform: Metaform): List<MetaformVersion> {
-        return metaformVersionDAO.listByMetaform(metaform)
+    fun listMetaformVersionsByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<MetaformVersion> {
+        return metaformVersionDAO.listByMetaform(metaform, firstResult, maxResults)
     }
 
     /**
@@ -76,7 +78,7 @@ class MetaformVersionController {
      *
      * @param metaformVersion Metaform version
      */
-    fun deleteMetaformVersion(metaformVersion: MetaformVersion) {
+    fun deleteMetaformVersion (metaformVersion: MetaformVersion) {
         metaformVersionDAO.delete(metaformVersion)
     }
 

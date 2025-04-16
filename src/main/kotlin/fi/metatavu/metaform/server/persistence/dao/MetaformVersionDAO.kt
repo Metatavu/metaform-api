@@ -50,11 +50,15 @@ class MetaformVersionDAO : AbstractDAO<MetaformVersion>() {
    * Lists Metaform version by Metaform
    *
    * @param metaform Metaform
+   * @param firstResult first result
+   * @param maxResults max results
    *
    * @return Metaform versions
    */
   fun listByMetaform(
-    metaform: Metaform
+    metaform: Metaform,
+    firstResult: Int?,
+    maxResults: Int?
   ): List<MetaformVersion> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<MetaformVersion> = criteriaBuilder.createQuery(
@@ -67,7 +71,18 @@ class MetaformVersionDAO : AbstractDAO<MetaformVersion>() {
     criteria.where(
       criteriaBuilder.equal(root.get(MetaformVersion_.metaform), metaform)
     )
-    return entityManager.createQuery(criteria).resultList
+
+    val query = entityManager.createQuery(criteria)
+
+    if (firstResult != null) {
+      query.firstResult = firstResult
+    }
+
+    if (maxResults != null) {
+      query.maxResults = maxResults
+    }
+
+    return query.resultList
   }
 
   /**

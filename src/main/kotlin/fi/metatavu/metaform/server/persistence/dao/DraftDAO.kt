@@ -56,9 +56,11 @@ class DraftDAO : AbstractDAO<Draft>() {
    * Lists drafts by Metaform
    *
    * @param metaform Metaform
+   * @param firstResult first result
+   * @param maxResults max results
    * @return list of drafts
    */
-  fun listByMetaform(metaform: Metaform): List<Draft> {
+  fun listByMetaform(metaform: Metaform, firstResult: Int?, maxResults: Int?): List<Draft> {
     val criteriaBuilder: CriteriaBuilder = entityManager.criteriaBuilder
     val criteria: CriteriaQuery<Draft> = criteriaBuilder.createQuery(
       Draft::class.java
@@ -69,6 +71,15 @@ class DraftDAO : AbstractDAO<Draft>() {
     criteria.select(root)
     criteria.where(criteriaBuilder.equal(root.get(Draft_.metaform), metaform))
     val query: TypedQuery<Draft> = entityManager.createQuery(criteria)
+
+    if (firstResult != null) {
+      query.firstResult = firstResult
+    }
+
+    if (maxResults != null) {
+      query.maxResults = maxResults
+    }
+
     return query.resultList
   }
 

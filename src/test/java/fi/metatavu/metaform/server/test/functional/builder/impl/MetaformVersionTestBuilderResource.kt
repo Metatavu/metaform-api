@@ -39,14 +39,16 @@ class MetaformVersionTestBuilderResource(
      * Creates new metaform version
      *
      * @param metaformId metaform id
-     * @param payload    payload
+     * @param payload  payload
+     * @param addClosable whether to remove this entity automatically when the test ends
      * @return created metaform version
      */
     @Throws(IOException::class)
-    fun create(metaformId: UUID, payload: MetaformVersion): MetaformVersion {
+    fun create(metaformId: UUID, payload: MetaformVersion, addClosable: Boolean = true): MetaformVersion {
         val result = api.createMetaformVersion(metaformId, payload)
         versionsMetaforms[result.id] = metaformId
-        return addClosable(result)
+        if (addClosable) addClosable(result)
+        return result
     }
 
     /**

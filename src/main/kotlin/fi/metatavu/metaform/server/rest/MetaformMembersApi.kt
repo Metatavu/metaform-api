@@ -105,8 +105,8 @@ class MetaformMembersApi: fi.metatavu.metaform.api.spec.MetaformMembersApi, Abst
 
     metaformController.findMetaformById(metaformId) ?: return createNotFound(createNotFoundMessage(METAFORM, metaformId))
 
-    val allUsers = metaformKeycloakController.listMetaformMemberManager(metaformId)
-    val adminUsers = metaformKeycloakController.listMetaformMemberAdmin(metaformId)
+    val allUsers = metaformKeycloakController.listMetaformMemberManager(metaformId, null, null)
+    val adminUsers = metaformKeycloakController.listMetaformMemberAdmin(metaformId, null, null)
     val managerUsers = allUsers.toMutableList()
     managerUsers.removeAll { adminUsers.any { adminUser -> adminUser.id == it.id } }
 
