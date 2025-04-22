@@ -760,23 +760,30 @@ class ReplyTestsIT : AbstractTest() {
     }
 
     @Test
-    fun testReplyPdfExportWithTheme() = TestBuilder().use { testBuilder ->
-        val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
-        val metaformId = metaform.id!!
-        val theme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
-        val themeId = theme.id!!
+    fun testReplyPdfExportWithTheme() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
+            val metaformId = metaform.id!!
+            val theme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val themeId = theme.id!!
 
-        testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(themeId, "reply/templates/header.ftl", "<p>MY HEADER</p>")
-        testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(themeId, "reply/templates/footer.ftl", "<p>MY FOOTER</p>")
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(themeId, "reply/templates/header.ftl", "<p>MY HEADER</p>")
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(themeId, "reply/templates/footer.ftl", "<p>MY FOOTER</p>")
 
-        testBuilder.systemAdmin.metaforms.updateMetaform(
-            metaformId,
-            metaform.copy(exportThemeId = themeId)
-        )
+            testBuilder.systemAdmin.metaforms.updateMetaform(
+                metaformId,
+                metaform.copy(exportThemeId = themeId)
+            )
 
-        val reply: Reply = testBuilder.systemAdmin.replies.create(metaformId, null, ReplyMode.UPDATE.toString(), testBuilder.systemAdmin.replies.createReplyWithData(getSimpleAllFieldsReply()))
-        val exportedReply = testBuilder.systemAdmin.replies.exportReply(metaformId, reply.id!!)
-        assertSimpleAllFieldsPdf(pdfFile = exportedReply)
+            val reply: Reply = testBuilder.systemAdmin.replies.create(metaformId, null, ReplyMode.UPDATE.toString(), testBuilder.systemAdmin.replies.createReplyWithData(getSimpleAllFieldsReply()))
+            val exportedReply = testBuilder.systemAdmin.replies.exportReply(metaformId, reply.id!!)
+            assertSimpleAllFieldsPdf(pdfFile = exportedReply)
+
+            testBuilder.systemAdmin.metaforms.updateMetaform(
+                metaformId,
+                metaform.copy(exportThemeId = null)
+            )
+        }
     }
 
     private fun assertSimpleAllFieldsPdf(pdfFile: File) {
