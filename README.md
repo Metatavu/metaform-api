@@ -1,6 +1,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/Metatavu/metaform-api/badge.svg)](https://coveralls.io/github/Metatavu/metaform-api)
 
-# Metaform API
+# Metaform API 
 
 API Service for Metaforms.
 
