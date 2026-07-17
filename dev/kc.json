@@ -530,7 +530,7 @@
       "id": "a5406617-acdb-4d79-849b-4d3c2cfa553d",
       "clientId": "account",
       "name": "${client_account}",
-      "baseUrl": "/auth/realms/test-1/account",
+      "baseUrl": "/realms/test-1/account",
       "surrogateAuthRequired": false,
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
@@ -540,7 +540,7 @@
         "view-profile"
       ],
       "redirectUris": [
-        "/auth/realms/test-1/account/*"
+        "/realms/test-1/account/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
@@ -572,13 +572,13 @@
       "id": "187d88ae-d34d-4e3f-b407-8056b5038462",
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
-      "baseUrl": "/auth/admin/test-1/console/index.html",
+      "baseUrl": "/admin/test-1/console/index.html",
       "surrogateAuthRequired": false,
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
       "secret": "**********",
       "redirectUris": [
-        "/auth/admin/test-1/console/*"
+        "/admin/test-1/console/*"
       ],
       "webOrigins": [],
       "notBefore": 0,
