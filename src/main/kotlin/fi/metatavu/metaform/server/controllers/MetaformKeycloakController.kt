@@ -818,7 +818,7 @@ class MetaformKeycloakController {
         }
 
         val groupId = keycloakClientUtils.getCreateResponseId(response) ?: throw KeycloakException("Failed to get created group id")
-        return findMetaformMemberGroup(metaformId, groupId) ?: throw KeycloakException("Failed to find the created group")
+        return adminClient.realm(realm).groups().group(groupId.toString()).toRepresentation()
     }
 
     /**
