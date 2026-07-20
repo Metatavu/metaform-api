@@ -18,6 +18,7 @@ val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 val quarkusPoiVersion: String by project
 val quarkusFreemarkerVersion: String by project
+val keycloakVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
 val wiremockVersion: String by project
 val testContainersKeycloakVersion: String by project
@@ -38,6 +39,8 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-undertow")
     implementation("io.quarkus:quarkus-cache")
+
+    implementation("org.keycloak:keycloak-admin-client:$keycloakVersion")
 
     implementation("io.quarkiverse.freemarker:quarkus-freemarker:$quarkusFreemarkerVersion")
     implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
@@ -67,6 +70,14 @@ dependencies {
     testImplementation("org.wiremock:wiremock:$wiremockVersion")
 
     kapt("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
+}
+
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.keycloak") {
+            useVersion(keycloakVersion)
+        }
+    }
 }
 
 group = "fi.metatavu.metaform"
