@@ -415,6 +415,32 @@ class MetaformTestsIT : AbstractTest() {
     }
 
     @Test
+    fun testUpdateMetaformWithValidPermissionGroups() {
+        TestBuilder().use { builder ->
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple")
+            val memberGroup = builder.systemAdmin.metaformMemberGroups.create(
+                metaform.id!!,
+                MetaformMemberGroup(
+                    displayName = "Permission group",
+                    memberIds = emptyArray()
+                )
+            )
+
+            val updatedMetaform = metaform.copy(
+                defaultPermissionGroups = PermissionGroups(
+                    viewGroupIds = emptyArray(),
+                    editGroupIds = arrayOf(memberGroup.id!!),
+                    notifyGroupIds = emptyArray()
+                )
+            )
+
+            val result = builder.systemAdmin.metaforms.updateMetaform(metaform.id, updatedMetaform)
+
+            assertTrue(arrayOf(memberGroup.id).contentEquals(result.defaultPermissionGroups?.editGroupIds))
+        }
+    }
+
+    @Test
     @Throws(Exception::class)
     fun testUpdateMetaformNullSlug() {
         TestBuilder().use { builder ->

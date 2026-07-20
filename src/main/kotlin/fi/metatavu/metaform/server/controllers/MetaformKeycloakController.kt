@@ -608,8 +608,10 @@ class MetaformKeycloakController {
      * @param id group id
      * @return found group or null if not found
      */
-    fun findGroup(id: UUID): fi.metatavu.metaform.keycloak.client.models.GroupRepresentation? {
-        return groupApi.realmGroupsIdGet(realm = realm, id = id.toString())
+    fun findGroup(id: UUID): GroupRepresentation? {
+        return adminClient.realm(realm).groups()
+            .group(id.toString())
+            .toRepresentation()
     }
 
     /**
