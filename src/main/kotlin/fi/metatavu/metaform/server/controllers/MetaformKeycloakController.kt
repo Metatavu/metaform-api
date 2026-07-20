@@ -679,10 +679,7 @@ class MetaformKeycloakController {
     fun findMetaformMemberGroup(metaformId: UUID, metaformMemberGroupId: UUID): GroupRepresentation? {
         val managerGroup = getMetaformManagerGroup(metaformId)
 
-        return adminClient.realm(realm).groups()
-            .group(managerGroup.id)
-            .toRepresentation()
-            .subGroups
+        return getGroupChildren(managerGroup.id)
             .find { group -> group.id == metaformMemberGroupId.toString() }
     }
 
@@ -695,10 +692,25 @@ class MetaformKeycloakController {
     fun listMetaformMemberGroups(metaformId: UUID): List<GroupRepresentation> {
         val managerGroup = getMetaformManagerGroup(metaformId)
 
-        return adminClient.realm(realm).groups()
-            .group(managerGroup.id)
-            .toRepresentation()
-            .subGroups
+        return getGroupChildren(managerGroup.id)
+    }
+
+    private fun getGroupChildren(groupId: String): List<GroupRepresentation> {
+        val pageSize = 100
+        var first = 0
+        val children = mutableListOf<GroupRepresentation>()
+        val groupResource = adminClient.realm(realm).groups().group(groupId)
+
+        while (true) {
+            val page = groupResource.getSubGroups(first, pageSize, false)
+            children.addAll(page)
+
+            if (page.size < pageSize) {
+                return children
+            }
+
+            first += page.size
+        }
     }
 
     /**
