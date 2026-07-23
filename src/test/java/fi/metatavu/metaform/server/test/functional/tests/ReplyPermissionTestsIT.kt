@@ -129,6 +129,54 @@ class ReplyPermissionTestsIT : AbstractTest() {
     }
 
     /**
+     * Test that a paginated completed-reply listing retains group-scoped access
+     * when the matching reply count exceeds a typical management page.
+     */
+    @Test
+    fun listManyCompletedPermissionContextReplies() {
+        TestBuilder().use { builder ->
+            val metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context-status")
+            val metaformId = metaform.id!!
+            val permittedGroup = builder.systemAdmin.metaformMemberGroups.create(
+                metaformId = metaformId,
+                payload = MetaformMemberGroup(
+                    displayName = "Permitted group",
+                    memberIds = arrayOf(USER_2_ID)
+                )
+            )
+
+            val updatedForm = setOptionGroupPermission(
+                metaform = metaform,
+                optionName = "group-2",
+                viewGroupIds = arrayOf(permittedGroup.id!!),
+                editGroupIds = arrayOf(permittedGroup.id)
+            )
+
+            builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = updatedForm)
+
+            val completedReplies = (1..100).map {
+                builder.test1.replies.create(
+                    metaformId = metaformId,
+                    replyMode = ReplyMode.CUMULATIVE.toString(),
+                    payload = builder.test1.replies.createReplyWithData(mutableMapOf(
+                        "permission-select" to "group-2",
+                        "status" to "done"
+                    ))
+                )
+            }
+
+            builder.test2.replies.assertCount(
+                expected = 10,
+                metaformId = metaformId,
+                fields = arrayOf("status:done"),
+                firstResult = 0,
+                maxResults = 10
+            )
+            Assertions.assertNotNull(builder.test2.replies.findReply(metaformId, completedReplies.first().id!!, null))
+        }
+    }
+
+    /**
      * Test that asserts that user in permission context group may see replies targeted to that group
      */
     @Test
@@ -436,9 +484,13 @@ class ReplyPermissionTestsIT : AbstractTest() {
             }
         }.toTypedArray()
 
-        val updatedFields = arrayOf(fields[0].copy(
-            options = updatedOptions
-        ))
+        val updatedFields = fields.mapIndexed { index, field ->
+            if (index == 0) {
+                field.copy(options = updatedOptions)
+            } else {
+                field
+            }
+        }.toTypedArray()
 
         val updatedSections = arrayOf(sections[0].copy(
             fields = updatedFields
