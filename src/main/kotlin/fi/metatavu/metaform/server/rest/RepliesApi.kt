@@ -635,7 +635,16 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             return replyIdAndResourceIds
         }
         val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
-        val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
+        val permittedResourceIds = resourceIds
+            .chunked(AUTHORIZATION_RESOURCE_BATCH_SIZE)
+            .flatMap { resourceIdBatch ->
+                metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIdBatch.toSet(), authorizationScope)
+            }
+            .toSet()
         return replyIdAndResourceIds.filter { reply -> permittedResourceIds.contains(reply.resourceId) }
+    }
+
+    companion object {
+        private const val AUTHORIZATION_RESOURCE_BATCH_SIZE = 20
     }
 }
