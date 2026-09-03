@@ -164,7 +164,8 @@ class ReplyDAO : AbstractDAO<Reply>() {
 
         criteria.multiselect(
                 root.get(Reply_.id).alias("id"),
-                root.get(Reply_.resourceId).alias("resourceId")
+                root.get(Reply_.resourceId).alias("resourceId"),
+                root.get(Reply_.userId).alias("userId")
         )
         criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
         val query = entityManager.createQuery(criteria)
