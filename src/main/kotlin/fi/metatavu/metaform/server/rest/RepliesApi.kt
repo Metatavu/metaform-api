@@ -653,28 +653,28 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         val userGroupIds = metaformKeycloakController.getUserGroups(userId.toString())
             .mapNotNull { group -> group.id?.let(UUID::fromString) }
             .toSet()
-        val defaultReadableGroupIds = metaformEntity.defaultPermissionGroups?.let { permissionGroups ->
-            permissionGroups.viewGroupIds.orEmpty() + permissionGroups.editGroupIds.orEmpty()
-        }.orEmpty()
+        val defaultViewGroupIds = metaformEntity.defaultPermissionGroups?.viewGroupIds.orEmpty()
+        val ownerMayView = metaformEntity.allowAnonymous != true
 
         return replyIdAndResourceIds.filter { reply ->
             if (reply.resourceId == null) {
                 return@filter false
+            }
+            if (ownerMayView && reply.userId == userId) {
+                return@filter true
             }
 
             val selectedPermissionGroups = fieldValuesByReplyId[reply.id].orEmpty()
                 .mapNotNull { field -> permissionOptionsByField[field.name]?.get(field.value)?.permissionGroups }
                 .filter(::hasPermissionGroups)
 
-            val readableGroupIds = if (selectedPermissionGroups.isEmpty()) {
-                defaultReadableGroupIds
+            val viewGroupIds = if (selectedPermissionGroups.isEmpty()) {
+                defaultViewGroupIds
             } else {
-                selectedPermissionGroups.flatMap { permissionGroups ->
-                    permissionGroups.viewGroupIds.orEmpty() + permissionGroups.editGroupIds.orEmpty()
-                }
+                selectedPermissionGroups.flatMap { permissionGroups -> permissionGroups.viewGroupIds.orEmpty() }
             }
 
-            readableGroupIds.any(userGroupIds::contains)
+            viewGroupIds.any(userGroupIds::contains)
         }
     }
 
