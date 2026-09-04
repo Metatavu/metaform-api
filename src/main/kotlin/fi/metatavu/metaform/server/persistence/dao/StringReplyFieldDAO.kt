@@ -7,6 +7,9 @@ import fi.metatavu.metaform.server.persistence.model.StringReplyField_
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
 
+/**
+ * Lightweight string field projection used when authorizing reply lists.
+ */
 data class ReplyStringFieldValue(val replyId: UUID, val name: String, val value: String?)
 
 /**
@@ -48,7 +51,10 @@ class StringReplyFieldDAO : ReplyFieldDAO<StringReplyField>() {
   }
 
   /**
-   * Lists string reply field values for the given replies and field names.
+   * Lists only the string values needed to evaluate permission-context options.
+   *
+   * Returning a projection avoids loading every reply entity before list
+   * authorization and pagination are applied.
    *
    * @param replyIds reply ids
    * @param names field names

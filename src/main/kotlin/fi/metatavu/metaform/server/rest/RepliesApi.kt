@@ -620,12 +620,19 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     /**
-     * Filters out replies without permission
+     * Filters replies to the current user's readable permission contexts.
+     *
+     * The reply list must determine the full permitted result set before applying
+     * pagination so that Total-Results remains accurate. Evaluate the configured
+     * field and default group permissions locally instead of submitting every
+     * matching reply resource to Keycloak in one UMA authorization request.
+     * Edit groups are included because editing a reply also grants read access.
      *
      * @param metaformId metaform id
+     * @param metaformEntity translated metaform containing permission contexts
      * @param replyIdAndResourceIds List<replyIdAndResourceIds>
      * @param authorizationScope scope
-     * @return filtered list
+     * @return replies readable by the current user
      */
     private fun getPermittedReplies(
             metaformId: UUID,
@@ -678,6 +685,9 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         }
     }
 
+    /**
+     * Returns whether an option defines a permission context of any kind.
+     */
     private fun hasPermissionGroups(permissionGroups: PermissionGroups?): Boolean {
         return permissionGroups?.let {
             it.viewGroupIds.orEmpty().isNotEmpty() ||

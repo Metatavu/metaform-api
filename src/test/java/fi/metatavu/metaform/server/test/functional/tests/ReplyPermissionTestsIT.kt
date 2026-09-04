@@ -128,6 +128,10 @@ class ReplyPermissionTestsIT : AbstractTest() {
         }
     }
 
+    /**
+     * Verifies that an edit-only permission context grants read access on
+     * separate reply-list pages and when opening an individual reply.
+     */
     @Test
     fun listPaginatedEditPermissionContextReplies() {
         TestBuilder().use { builder ->

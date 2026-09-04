@@ -467,6 +467,8 @@ abstract class AbstractApi {
             return false
         }
 
+        // Permission contexts may grant only reply:edit. Editors must also be able
+        // to open the reply they are allowed to modify.
         return isPermittedResourceId(reply.resourceId!!, authorizationScope) ||
             authorizationScope == AuthorizationScope.REPLY_VIEW &&
             isPermittedResourceId(reply.resourceId!!, AuthorizationScope.REPLY_EDIT)
