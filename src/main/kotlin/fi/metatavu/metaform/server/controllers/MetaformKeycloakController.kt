@@ -33,6 +33,7 @@ import org.keycloak.representations.idm.authorization.*
 import org.keycloak.representations.idm.authorization.PolicyEvaluationResponse.EvaluationResultRepresentation
 import org.slf4j.Logger
 import java.util.*
+import java.util.concurrent.TimeUnit
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.ws.rs.InternalServerErrorException
@@ -70,6 +71,14 @@ class MetaformKeycloakController {
     @Inject
     @ConfigProperty(name = "metaforms.keycloak.admin.host")
     lateinit var authServerUrl: String
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.connect-timeout")
+    lateinit var keycloakConnectTimeout: java.time.Duration
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.read-timeout")
+    lateinit var keycloakReadTimeout: java.time.Duration
 
     @Inject
     lateinit var logger: Logger
@@ -220,7 +229,12 @@ class MetaformKeycloakController {
                 .clientSecret(clientSecret)
                 .username(adminUser)
                 .password(adminPass)
-                .resteasyClient(clientBuilder.build() as ResteasyClient)
+                .resteasyClient(
+                    clientBuilder
+                        .connectTimeout(keycloakConnectTimeout.toMillis(), TimeUnit.MILLISECONDS)
+                        .readTimeout(keycloakReadTimeout.toMillis(), TimeUnit.MILLISECONDS)
+                        .build() as ResteasyClient
+                )
                 .authorization("Bearer ${token?.getAccessToken()}")
                 .build()
         }
