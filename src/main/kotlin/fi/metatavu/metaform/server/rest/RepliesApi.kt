@@ -653,7 +653,9 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         val userGroupIds = metaformKeycloakController.getUserGroups(userId.toString())
             .mapNotNull { group -> group.id?.let(UUID::fromString) }
             .toSet()
-        val defaultViewGroupIds = metaformEntity.defaultPermissionGroups?.viewGroupIds.orEmpty()
+        val defaultReadableGroupIds = metaformEntity.defaultPermissionGroups?.let { permissionGroups ->
+            permissionGroups.viewGroupIds.orEmpty() + permissionGroups.editGroupIds.orEmpty()
+        }.orEmpty()
 
         return replyIdAndResourceIds.filter { reply ->
             if (reply.resourceId == null) {
@@ -664,13 +666,15 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
                 .mapNotNull { field -> permissionOptionsByField[field.name]?.get(field.value)?.permissionGroups }
                 .filter(::hasPermissionGroups)
 
-            val viewGroupIds = if (selectedPermissionGroups.isEmpty()) {
-                defaultViewGroupIds
+            val readableGroupIds = if (selectedPermissionGroups.isEmpty()) {
+                defaultReadableGroupIds
             } else {
-                selectedPermissionGroups.flatMap { permissionGroups -> permissionGroups.viewGroupIds.orEmpty() }
+                selectedPermissionGroups.flatMap { permissionGroups ->
+                    permissionGroups.viewGroupIds.orEmpty() + permissionGroups.editGroupIds.orEmpty()
+                }
             }
 
-            viewGroupIds.any(userGroupIds::contains)
+            readableGroupIds.any(userGroupIds::contains)
         }
     }
 

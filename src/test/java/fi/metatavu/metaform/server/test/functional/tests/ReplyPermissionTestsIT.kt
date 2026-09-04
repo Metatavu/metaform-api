@@ -129,7 +129,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
     }
 
     @Test
-    fun listPaginatedPermissionContextReplies() {
+    fun listPaginatedEditPermissionContextReplies() {
         TestBuilder().use { builder ->
             val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
             val metaformId = metaform.id!!
@@ -144,12 +144,11 @@ class ReplyPermissionTestsIT : AbstractTest() {
             val updatedForm = setOptionGroupPermission(
                 metaform = metaform,
                 optionName = "group-2",
-                viewGroupIds = arrayOf(permittedGroup.id!!),
-                editGroupIds = arrayOf(permittedGroup.id)
+                editGroupIds = arrayOf(permittedGroup.id!!)
             )
             builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = updatedForm)
 
-            repeat(25) {
+            val replies = (1..25).map {
                 builder.test1.replies.create(
                     metaformId = metaformId,
                     updateExisting = null,
@@ -190,6 +189,7 @@ class ReplyPermissionTestsIT : AbstractTest() {
             Assertions.assertEquals(10, firstPage.size)
             Assertions.assertEquals(10, secondPage.size)
             Assertions.assertTrue(firstPage.map(Reply::id).intersect(secondPage.map(Reply::id).toSet()).isEmpty())
+            Assertions.assertNotNull(builder.test2.replies.findReply(metaformId, replies.first().id!!, null))
         }
     }
 

@@ -467,7 +467,9 @@ abstract class AbstractApi {
             return false
         }
 
-        return isPermittedResourceId(reply.resourceId!!, authorizationScope)
+        return isPermittedResourceId(reply.resourceId!!, authorizationScope) ||
+            authorizationScope == AuthorizationScope.REPLY_VIEW &&
+            isPermittedResourceId(reply.resourceId!!, AuthorizationScope.REPLY_EDIT)
     }
 
     /**
