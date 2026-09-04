@@ -654,14 +654,10 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             .mapNotNull { group -> group.id?.let(UUID::fromString) }
             .toSet()
         val defaultViewGroupIds = metaformEntity.defaultPermissionGroups?.viewGroupIds.orEmpty()
-        val ownerMayView = metaformEntity.allowAnonymous != true
 
         return replyIdAndResourceIds.filter { reply ->
             if (reply.resourceId == null) {
                 return@filter false
-            }
-            if (ownerMayView && reply.userId == userId) {
-                return@filter true
             }
 
             val selectedPermissionGroups = fieldValuesByReplyId[reply.id].orEmpty()

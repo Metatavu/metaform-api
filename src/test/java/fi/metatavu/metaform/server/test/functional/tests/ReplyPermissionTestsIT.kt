@@ -128,6 +128,71 @@ class ReplyPermissionTestsIT : AbstractTest() {
         }
     }
 
+    @Test
+    fun listPaginatedPermissionContextReplies() {
+        TestBuilder().use { builder ->
+            val metaform: Metaform = builder.systemAdmin.metaforms.createFromJsonFile("simple-permission-context")
+            val metaformId = metaform.id!!
+            val permittedGroup = builder.systemAdmin.metaformMemberGroups.create(
+                metaformId = metaformId,
+                payload = MetaformMemberGroup(
+                    displayName = "Permitted group",
+                    memberIds = arrayOf(USER_2_ID)
+                )
+            )
+
+            val updatedForm = setOptionGroupPermission(
+                metaform = metaform,
+                optionName = "group-2",
+                viewGroupIds = arrayOf(permittedGroup.id!!),
+                editGroupIds = arrayOf(permittedGroup.id)
+            )
+            builder.systemAdmin.metaforms.updateMetaform(id = metaformId, body = updatedForm)
+
+            repeat(25) {
+                builder.test1.replies.create(
+                    metaformId = metaformId,
+                    updateExisting = null,
+                    replyMode = ReplyMode.REVISION.toString(),
+                    payload = builder.test1.replies.createReplyWithData(createPermissionSelectReplyData("group-2"))
+                )
+            }
+
+            val firstPage = builder.test2.replies.listReplies(
+                metaformId = metaformId,
+                userId = null,
+                createdBefore = null,
+                createdAfter = null,
+                modifiedBefore = null,
+                modifiedAfter = null,
+                includeRevisions = null,
+                fields = null,
+                firstResult = 0,
+                maxResults = 10,
+                orderBy = null,
+                latestFirst = null
+            )
+            val secondPage = builder.test2.replies.listReplies(
+                metaformId = metaformId,
+                userId = null,
+                createdBefore = null,
+                createdAfter = null,
+                modifiedBefore = null,
+                modifiedAfter = null,
+                includeRevisions = null,
+                fields = null,
+                firstResult = 10,
+                maxResults = 10,
+                orderBy = null,
+                latestFirst = null
+            )
+
+            Assertions.assertEquals(10, firstPage.size)
+            Assertions.assertEquals(10, secondPage.size)
+            Assertions.assertTrue(firstPage.map(Reply::id).intersect(secondPage.map(Reply::id).toSet()).isEmpty())
+        }
+    }
+
     /**
      * Test that a paginated completed-reply listing retains group-scoped access
      * when the matching reply count exceeds a typical management page.
