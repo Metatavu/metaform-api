@@ -267,6 +267,16 @@ abstract class AbstractApi {
     }
 
     /**
+     * Constructs service unavailable response
+     *
+     * @param message message
+     * @return response
+     */
+    protected fun createServiceUnavailable(message: String?): Response {
+        return createError(Response.Status.SERVICE_UNAVAILABLE, message)
+    }
+
+    /**
      * Constructs forbidden response
      *
      * @param message message

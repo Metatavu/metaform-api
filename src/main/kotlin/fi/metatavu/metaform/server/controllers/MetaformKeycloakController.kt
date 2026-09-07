@@ -18,7 +18,9 @@ import fi.metatavu.metaform.server.keycloak.translate.KeycloakUserRepresentation
 import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.ClientBuilderWrapper
@@ -36,6 +38,8 @@ import org.keycloak.representations.idm.authorization.PolicyEvaluationResponse.E
 import org.slf4j.Logger
 import java.util.*
 import java.util.concurrent.TimeUnit
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.ws.rs.InternalServerErrorException
@@ -96,6 +100,9 @@ class MetaformKeycloakController {
 
     @Inject
     lateinit var keycloakUserRepresentationTranslator: KeycloakUserRepresentationTranslator
+
+    private lateinit var authzClient: AuthzClient
+    private lateinit var authzHttpClient: CloseableHttpClient
 
     private val keycloakConfiguration: KeycloakConfiguration
         get() {
@@ -181,6 +188,7 @@ class MetaformKeycloakController {
             // is expected behaviour
         } catch (e: Exception) {
             logger.error("Failed to get permission from Keycloak", e)
+            throw AuthzException("Failed to get permission from Keycloak", e)
         }
 
         return emptySet()
@@ -200,9 +208,13 @@ class MetaformKeycloakController {
      *
      * @return created authz client or null if client could not be created
      */
-    protected fun getAuthzClient(): AuthzClient {
-        val authzConfiguration = configuration
-        authzConfiguration.httpClient = HttpClients.custom()
+    @PostConstruct
+    fun initializeAuthzClient() {
+        val connectionManager = PoolingHttpClientConnectionManager()
+        connectionManager.maxTotal = AUTHORIZATION_HTTP_MAX_CONNECTIONS
+        connectionManager.defaultMaxPerRoute = AUTHORIZATION_HTTP_MAX_CONNECTIONS_PER_ROUTE
+        authzHttpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
             .setDefaultRequestConfig(
                 RequestConfig.custom()
                     .setConnectTimeout(keycloakConnectTimeout.toMillis().toInt())
@@ -211,7 +223,23 @@ class MetaformKeycloakController {
                     .build()
             )
             .build()
-        return AuthzClient.create(authzConfiguration)
+        authzClient = AuthzClient.create(configuration.apply { httpClient = authzHttpClient })
+    }
+
+    @PreDestroy
+    fun closeAuthzClient() {
+        if (::authzHttpClient.isInitialized) {
+            authzHttpClient.close()
+        }
+    }
+
+    /**
+     * Returns the application-scoped UMA client backed by a reusable connection pool.
+     *
+     * @return shared authorization client
+     */
+    protected fun getAuthzClient(): AuthzClient {
+        return authzClient
     }
 
     /**
@@ -1067,5 +1095,7 @@ class MetaformKeycloakController {
         private const val MANAGER_GROUP_NAME_TEMPLATE = "%s-manager"
         private const val ADMIN_GROUP_NAME_SUFFIX = "admin"
         private const val MANAGER_GROUP_NAME_SUFFIX = "manager"
+        private const val AUTHORIZATION_HTTP_MAX_CONNECTIONS = 32
+        private const val AUTHORIZATION_HTTP_MAX_CONNECTIONS_PER_ROUTE = 16
     }
 }

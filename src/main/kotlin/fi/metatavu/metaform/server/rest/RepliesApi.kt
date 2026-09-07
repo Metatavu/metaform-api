@@ -15,10 +15,12 @@ import fi.metatavu.metaform.server.rest.translate.AttachmentTranslator
 import fi.metatavu.metaform.server.rest.translate.MetaformTranslator
 import fi.metatavu.metaform.server.rest.translate.ReplyTranslator
 import fi.metatavu.metaform.server.script.FormRuntimeContext
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.apache.commons.lang3.BooleanUtils
 import org.slf4j.Logger
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.time.Duration
 import java.util.*
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
@@ -26,7 +28,10 @@ import jakarta.transaction.Transactional
 import jakarta.ws.rs.core.Response
 import java.time.OffsetDateTime
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.math.min
 
 @RequestScoped
@@ -36,6 +41,18 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     @Inject
     lateinit var logger: Logger
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.authorization.resource-batch-size", defaultValue = "100")
+    var authorizationResourceBatchSize: Int = 100
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.authorization.parallelism", defaultValue = "8")
+    var authorizationParallelism: Int = 8
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.authorization.timeout", defaultValue = "4m")
+    lateinit var authorizationTimeout: Duration
 
     @Inject
     lateinit var fieldController: FieldController
@@ -401,11 +418,16 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
                 latestFirst = latestFirst
         )
 
-        val permittedReplyIds = getPermittedReplies(
+        val permittedReplyIds = try {
+            getPermittedReplies(
                 metaformId = metaformId,
                 replyIdAndResourceIds = replyIdsAndResourceIds,
                 authorizationScope = AuthorizationScope.REPLY_VIEW
-        ).map(ReplyIdAndResourceId::id)
+            ).map(ReplyIdAndResourceId::id)
+        } catch (e: AuthzException) {
+            logger.error("Failed to authorize reply listing", e)
+            return createServiceUnavailable("Reply authorization service is unavailable")
+        }
 
         val resultCount = permittedReplyIds.count().toLong()
         val resultIds = getReplyIdList(
@@ -642,22 +664,21 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
         val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
         val authorizationToken = tokenString
-        val authorizationExecutor = Executors.newFixedThreadPool(AUTHORIZATION_PARALLELISM)
-        val readableResourceIds = try {
-            resourceIds
-                .chunked(AUTHORIZATION_RESOURCE_BATCH_SIZE)
+        val authorizationExecutor = Executors.newFixedThreadPool(authorizationParallelism)
+        val authorizationFutures = resourceIds
+                .chunked(authorizationResourceBatchSize)
                 .map { resourceIdBatch ->
                     CompletableFuture.supplyAsync({
                         val permittedViewResourceIds = metaformKeycloakController.getPermittedResourceIds(
-                            tokenString = authorizationToken,
-                            resourceIds = resourceIdBatch.toSet(),
-                            authorizationScope = authorizationScope
+                                tokenString = authorizationToken,
+                                resourceIds = resourceIdBatch.toSet(),
+                                authorizationScope = authorizationScope
                         )
                         val permittedEditResourceIds = if (authorizationScope == AuthorizationScope.REPLY_VIEW) {
                             metaformKeycloakController.getPermittedResourceIds(
-                                tokenString = authorizationToken,
-                                resourceIds = resourceIdBatch.toSet(),
-                                authorizationScope = AuthorizationScope.REPLY_EDIT
+                                    tokenString = authorizationToken,
+                                    resourceIds = resourceIdBatch.toSet(),
+                                    authorizationScope = AuthorizationScope.REPLY_EDIT
                             )
                         } else {
                             emptySet()
@@ -665,10 +686,28 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
                         permittedViewResourceIds + permittedEditResourceIds
                     }, authorizationExecutor)
                 }
+        val readableResourceIds = try {
+            CompletableFuture
+                .allOf(*authorizationFutures.toTypedArray())
+                .orTimeout(authorizationTimeout.toMillis(), TimeUnit.MILLISECONDS)
+                .join()
+            authorizationFutures
                 .flatMap { authorizationResult -> authorizationResult.join() }
                 .toSet()
+        } catch (e: CompletionException) {
+            val cause = e.cause ?: e
+            if (cause is AuthzException) {
+                throw cause
+            }
+            if (cause is TimeoutException) {
+                throw AuthzException("Reply authorization timed out", cause)
+            }
+            throw AuthzException("Reply authorization failed", cause as? Exception ?: e)
+        } catch (e: TimeoutException) {
+            throw AuthzException("Reply authorization timed out", e)
         } finally {
-            authorizationExecutor.shutdown()
+            authorizationFutures.forEach { it.cancel(true) }
+            authorizationExecutor.shutdownNow()
         }
 
         return replyIdAndResourceIds.filter { reply ->
@@ -676,8 +715,4 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         }
     }
 
-    companion object {
-        private const val AUTHORIZATION_RESOURCE_BATCH_SIZE = 20
-        private const val AUTHORIZATION_PARALLELISM = 8
-    }
 }
