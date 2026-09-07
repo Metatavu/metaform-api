@@ -43,8 +43,8 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     lateinit var logger: Logger
 
     @Inject
-    @ConfigProperty(name = "metaforms.keycloak.authorization.resource-batch-size", defaultValue = "100")
-    var authorizationResourceBatchSize: Int = 100
+    @ConfigProperty(name = "metaforms.keycloak.authorization.resource-batch-size", defaultValue = "80")
+    var authorizationResourceBatchSize: Int = 80
 
     @Inject
     @ConfigProperty(name = "metaforms.keycloak.authorization.parallelism", defaultValue = "8")
