@@ -88,7 +88,6 @@ sourceSets["test"].java {
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
-    systemProperty("api.version", "1.40")
 }
 allOpen {
     annotation("jakarta.ws.rs.Path")

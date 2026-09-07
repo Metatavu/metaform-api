@@ -401,7 +401,6 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
         val permittedReplyIds = getPermittedReplies(
                 metaformId = metaformId,
-            metaformEntity = metaformEntity,
                 replyIdAndResourceIds = replyIdsAndResourceIds,
                 authorizationScope = AuthorizationScope.REPLY_VIEW
         ).map(ReplyIdAndResourceId::id)
@@ -620,79 +619,23 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     }
 
     /**
-     * Filters replies to the current user's readable permission contexts.
-     *
-     * The reply list must determine the full permitted result set before applying
-     * pagination so that Total-Results remains accurate. Evaluate the configured
-     * field and default group permissions locally instead of submitting every
-     * matching reply resource to Keycloak in one UMA authorization request.
-     * Edit groups are included because editing a reply also grants read access.
+     * Filters out replies without permission
      *
      * @param metaformId metaform id
-     * @param metaformEntity translated metaform containing permission contexts
      * @param replyIdAndResourceIds List<replyIdAndResourceIds>
      * @param authorizationScope scope
-     * @return replies readable by the current user
+     * @return filtered list
      */
     private fun getPermittedReplies(
             metaformId: UUID,
-            metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform,
             replyIdAndResourceIds: List<ReplyIdAndResourceId>,
             authorizationScope: AuthorizationScope
     ): List<ReplyIdAndResourceId> {
         if (isMetaformAdmin(metaformId)) {
             return replyIdAndResourceIds
         }
-        val userId = loggedUserId ?: return emptyList()
-        if (isAnonymous || authorizationScope != AuthorizationScope.REPLY_VIEW) {
-            return emptyList()
-        }
-
-        val permissionOptionsByField = fieldController.getFieldMap(metaformEntity)
-            .mapValues { (_, field) -> field.options.orEmpty().associateBy { it.name } }
-            .filterValues { options -> options.values.any { option -> hasPermissionGroups(option.permissionGroups) } }
-
-        val fieldValuesByReplyId = replyController.listStringReplyFieldValues(
-            replyIds = replyIdAndResourceIds.map(ReplyIdAndResourceId::id),
-            names = permissionOptionsByField.keys
-        ).groupBy { field -> field.replyId }
-
-        val userGroupIds = metaformKeycloakController.getUserGroups(userId.toString())
-            .mapNotNull { group -> group.id?.let(UUID::fromString) }
-            .toSet()
-        val defaultReadableGroupIds = metaformEntity.defaultPermissionGroups?.let { permissionGroups ->
-            permissionGroups.viewGroupIds.orEmpty() + permissionGroups.editGroupIds.orEmpty()
-        }.orEmpty()
-
-        return replyIdAndResourceIds.filter { reply ->
-            if (reply.resourceId == null) {
-                return@filter false
-            }
-
-            val selectedPermissionGroups = fieldValuesByReplyId[reply.id].orEmpty()
-                .mapNotNull { field -> permissionOptionsByField[field.name]?.get(field.value)?.permissionGroups }
-                .filter(::hasPermissionGroups)
-
-            val readableGroupIds = if (selectedPermissionGroups.isEmpty()) {
-                defaultReadableGroupIds
-            } else {
-                selectedPermissionGroups.flatMap { permissionGroups ->
-                    permissionGroups.viewGroupIds.orEmpty() + permissionGroups.editGroupIds.orEmpty()
-                }
-            }
-
-            readableGroupIds.any(userGroupIds::contains)
-        }
-    }
-
-    /**
-     * Returns whether an option defines a permission context of any kind.
-     */
-    private fun hasPermissionGroups(permissionGroups: PermissionGroups?): Boolean {
-        return permissionGroups?.let {
-            it.viewGroupIds.orEmpty().isNotEmpty() ||
-                it.editGroupIds.orEmpty().isNotEmpty() ||
-                it.notifyGroupIds.orEmpty().isNotEmpty()
-        } == true
+        val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
+        val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIds, authorizationScope)
+        return replyIdAndResourceIds.filter { reply -> permittedResourceIds.contains(reply.resourceId) }
     }
 }

@@ -414,17 +414,6 @@ class ReplyController {
     }
 
     /**
-     * Lists string reply field values for the given replies and field names.
-     *
-     * @param replyIds reply ids
-     * @param names field names
-     * @return matching reply field values
-     */
-    fun listStringReplyFieldValues(replyIds: Collection<UUID>, names: Collection<String>): List<ReplyStringFieldValue> {
-        return stringReplyFieldDAO.listValuesByReplyIdsAndNames(replyIds, names)
-    }
-
-    /**
      * Lists replies
      *
      * @param metaform Metaform
