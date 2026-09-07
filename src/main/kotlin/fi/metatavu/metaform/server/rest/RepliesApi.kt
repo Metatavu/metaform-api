@@ -63,6 +63,9 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
         require(authorizationParallelism > 0) {
             "metaforms.keycloak.authorization.parallelism must be greater than zero"
         }
+        require(!authorizationTimeout.isZero && !authorizationTimeout.isNegative) {
+            "metaforms.keycloak.authorization.timeout must be greater than zero"
+        }
     }
 
     @Inject
