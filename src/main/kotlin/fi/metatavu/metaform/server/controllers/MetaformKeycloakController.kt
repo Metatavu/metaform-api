@@ -170,19 +170,17 @@ class MetaformKeycloakController {
         try {
             val authzClient = getAuthzClient()
             val request = AuthorizationRequest()
-            resourceIds.forEach { resourceId: UUID ->
-                request.addPermission(
-                    resourceId.toString(),
-                    authorizationScope.scopeName
-                )
+            request.metadata = AuthorizationRequest.Metadata().apply {
+                responseMode = "permissions"
             }
-            val response = authzClient.authorization(tokenString).authorize(request)
-            val irt = authzClient.protection().introspectRequestingPartyToken(response?.token)
-            val permissions = irt?.permissions
-            return permissions
-                ?.map { obj: Permission -> obj.resourceId }
-                ?.map { name: String? -> UUID.fromString(name) }
-                ?.toSet() ?: emptySet()
+            resourceIds.forEach { resourceId ->
+                request.addPermission(resourceId.toString(), authorizationScope.scopeName)
+            }
+            val permissions: List<*> = authzClient.authorization(tokenString).getPermissions(request)
+            return permissions.mapTo(mutableSetOf()) { rawPermission ->
+                val permission = objectMapper.convertValue(rawPermission, Permission::class.java)
+                UUID.fromString(requireNotNull(permission.resourceId))
+            }
         } catch (e: AuthorizationDeniedException) {
             // AuthorizationDeniedException are thrown when user does not have permission, so this
             // is expected behaviour
