@@ -401,7 +401,6 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
         val permittedReplyIds = getPermittedReplies(
                 metaformId = metaformId,
-            metaformEntity = metaformEntity,
                 replyIdAndResourceIds = replyIdsAndResourceIds,
                 authorizationScope = AuthorizationScope.REPLY_VIEW
         ).map(ReplyIdAndResourceId::id)
@@ -629,60 +628,44 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
      */
     private fun getPermittedReplies(
             metaformId: UUID,
-            metaformEntity: fi.metatavu.metaform.api.spec.model.Metaform,
             replyIdAndResourceIds: List<ReplyIdAndResourceId>,
             authorizationScope: AuthorizationScope
     ): List<ReplyIdAndResourceId> {
         if (isMetaformAdmin(metaformId)) {
             return replyIdAndResourceIds
         }
-        val userId = loggedUserId ?: return emptyList()
-        if (isAnonymous || authorizationScope != AuthorizationScope.REPLY_VIEW) {
+        if (isAnonymous) {
             return emptyList()
         }
 
-        val permissionOptionsByField = fieldController.getFieldMap(metaformEntity)
-            .mapValues { (_, field) -> field.options.orEmpty().associateBy { it.name } }
-            .filterValues { options -> options.values.any { option -> hasPermissionGroups(option.permissionGroups) } }
-
-        val fieldValuesByReplyId = replyController.listStringReplyFieldValues(
-            replyIds = replyIdAndResourceIds.map(ReplyIdAndResourceId::id),
-            names = permissionOptionsByField.keys
-        ).groupBy { field -> field.replyId }
-
-        val userGroupIds = metaformKeycloakController.getUserGroups(userId.toString())
-            .mapNotNull { group -> group.id?.let(UUID::fromString) }
+        val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
+        val readableResourceIds = resourceIds
+            .chunked(AUTHORIZATION_RESOURCE_BATCH_SIZE)
+            .flatMap { resourceIdBatch ->
+                val permittedViewResourceIds = metaformKeycloakController.getPermittedResourceIds(
+                    tokenString = tokenString,
+                    resourceIds = resourceIdBatch.toSet(),
+                    authorizationScope = authorizationScope
+                )
+                val permittedEditResourceIds = if (authorizationScope == AuthorizationScope.REPLY_VIEW) {
+                    metaformKeycloakController.getPermittedResourceIds(
+                        tokenString = tokenString,
+                        resourceIds = resourceIdBatch.toSet(),
+                        authorizationScope = AuthorizationScope.REPLY_EDIT
+                    )
+                } else {
+                    emptySet()
+                }
+                permittedViewResourceIds + permittedEditResourceIds
+            }
             .toSet()
-        val defaultViewGroupIds = metaformEntity.defaultPermissionGroups?.viewGroupIds.orEmpty()
-        val ownerMayView = metaformEntity.allowAnonymous != true
 
         return replyIdAndResourceIds.filter { reply ->
-            if (reply.resourceId == null) {
-                return@filter false
-            }
-            if (ownerMayView && reply.userId == userId) {
-                return@filter true
-            }
-
-            val selectedPermissionGroups = fieldValuesByReplyId[reply.id].orEmpty()
-                .mapNotNull { field -> permissionOptionsByField[field.name]?.get(field.value)?.permissionGroups }
-                .filter(::hasPermissionGroups)
-
-            val viewGroupIds = if (selectedPermissionGroups.isEmpty()) {
-                defaultViewGroupIds
-            } else {
-                selectedPermissionGroups.flatMap { permissionGroups -> permissionGroups.viewGroupIds.orEmpty() }
-            }
-
-            viewGroupIds.any(userGroupIds::contains)
+            reply.resourceId != null && readableResourceIds.contains(reply.resourceId)
         }
     }
 
-    private fun hasPermissionGroups(permissionGroups: PermissionGroups?): Boolean {
-        return permissionGroups?.let {
-            it.viewGroupIds.orEmpty().isNotEmpty() ||
-                it.editGroupIds.orEmpty().isNotEmpty() ||
-                it.notifyGroupIds.orEmpty().isNotEmpty()
-        } == true
+    companion object {
+        private const val AUTHORIZATION_RESOURCE_BATCH_SIZE = 20
     }
 }
