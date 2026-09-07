@@ -494,7 +494,7 @@ abstract class AbstractApi {
             val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, setOf(resourceId), authorizationScope)
             permittedResourceIds.size == 1 && resourceId == permittedResourceIds.iterator().next()
         } catch (e: AuthzException) {
-            throw WebApplicationException(createServiceUnavailable("Authorization service is unavailable"))
+            throw WebApplicationException(e, createServiceUnavailable("Authorization service is unavailable"))
         }
     }
 
