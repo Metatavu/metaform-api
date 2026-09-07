@@ -25,6 +25,8 @@ import jakarta.inject.Inject
 import jakarta.transaction.Transactional
 import jakarta.ws.rs.core.Response
 import java.time.OffsetDateTime
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 import kotlin.math.min
 
 @RequestScoped
@@ -635,16 +637,43 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             return replyIdAndResourceIds
         }
         val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
-        val permittedResourceIds = resourceIds
-            .chunked(AUTHORIZATION_RESOURCE_BATCH_SIZE)
-            .flatMap { resourceIdBatch ->
-                metaformKeycloakController.getPermittedResourceIds(tokenString, resourceIdBatch.toSet(), authorizationScope)
-            }
-            .toSet()
-        return replyIdAndResourceIds.filter { reply -> permittedResourceIds.contains(reply.resourceId) }
+        val authorizationToken = tokenString
+        val authorizationExecutor = Executors.newFixedThreadPool(AUTHORIZATION_PARALLELISM)
+        val readableResourceIds = try {
+            resourceIds
+                .chunked(AUTHORIZATION_RESOURCE_BATCH_SIZE)
+                .map { resourceIdBatch ->
+                    CompletableFuture.supplyAsync({
+                        val permittedViewResourceIds = metaformKeycloakController.getPermittedResourceIds(
+                            tokenString = authorizationToken,
+                            resourceIds = resourceIdBatch.toSet(),
+                            authorizationScope = authorizationScope
+                        )
+                        val permittedEditResourceIds = if (authorizationScope == AuthorizationScope.REPLY_VIEW) {
+                            metaformKeycloakController.getPermittedResourceIds(
+                                tokenString = authorizationToken,
+                                resourceIds = resourceIdBatch.toSet(),
+                                authorizationScope = AuthorizationScope.REPLY_EDIT
+                            )
+                        } else {
+                            emptySet()
+                        }
+                        permittedViewResourceIds + permittedEditResourceIds
+                    }, authorizationExecutor)
+                }
+                .flatMap { authorizationResult -> authorizationResult.join() }
+                .toSet()
+        } finally {
+            authorizationExecutor.shutdown()
+        }
+
+        return replyIdAndResourceIds.filter { reply ->
+            reply.resourceId != null && readableResourceIds.contains(reply.resourceId)
+        }
     }
 
     companion object {
         private const val AUTHORIZATION_RESOURCE_BATCH_SIZE = 20
+        private const val AUTHORIZATION_PARALLELISM = 8
     }
 }
