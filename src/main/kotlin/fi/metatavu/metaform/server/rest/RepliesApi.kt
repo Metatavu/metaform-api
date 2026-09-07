@@ -29,7 +29,6 @@ import jakarta.ws.rs.core.Response
 import java.time.OffsetDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.math.min
@@ -42,6 +41,9 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
 
     @Inject
     lateinit var logger: Logger
+
+    @Inject
+    lateinit var replyAuthorizationExecutor: ReplyAuthorizationExecutor
 
     @Inject
     @ConfigProperty(name = "metaforms.keycloak.authorization.resource-batch-size", defaultValue = "80")
@@ -677,11 +679,10 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             return emptyList()
         }
         val authorizationToken = tokenString
-        val authorizationExecutor = Executors.newFixedThreadPool(authorizationParallelism)
         val authorizationFutures = resourceIds
                 .chunked(authorizationResourceBatchSize)
                 .map { resourceIdBatch ->
-                    CompletableFuture.supplyAsync({
+                    replyAuthorizationExecutor.submit {
                         val permittedViewResourceIds = metaformKeycloakController.getPermittedResourceIds(
                                 tokenString = authorizationToken,
                                 resourceIds = resourceIdBatch.toSet(),
@@ -697,7 +698,7 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
                             emptySet()
                         }
                         permittedViewResourceIds + permittedEditResourceIds
-                    }, authorizationExecutor)
+                    }
                 }
         val readableResourceIds = try {
             CompletableFuture
@@ -720,7 +721,6 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             throw AuthzException("Reply authorization timed out", e)
         } finally {
             authorizationFutures.forEach { it.cancel(true) }
-            authorizationExecutor.shutdownNow()
         }
 
         return replyIdAndResourceIds.filter { reply ->
