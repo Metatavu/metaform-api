@@ -217,9 +217,9 @@ class MetaformKeycloakController {
             .setConnectionManager(connectionManager)
             .setDefaultRequestConfig(
                 RequestConfig.custom()
-                    .setConnectTimeout(keycloakConnectTimeout.toMillis().toInt())
-                    .setConnectionRequestTimeout(keycloakConnectTimeout.toMillis().toInt())
-                    .setSocketTimeout(keycloakReadTimeout.toMillis().toInt())
+                    .setConnectTimeout(keycloakConnectTimeout.toMillis().coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                    .setConnectionRequestTimeout(keycloakConnectTimeout.toMillis().coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                    .setSocketTimeout(keycloakReadTimeout.toMillis().coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
                     .build()
             )
             .build()
