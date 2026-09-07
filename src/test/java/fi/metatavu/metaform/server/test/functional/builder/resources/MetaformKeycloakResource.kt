@@ -29,7 +29,7 @@ class MetaformKeycloakResource : QuarkusTestResourceLifecycleManager {
     companion object {
         val serverAdminUser = "admin"
         val serverAdminPass = "admin"
-        val keycloak: KeycloakContainer = KeycloakContainer()
+        val keycloak: KeycloakContainer = KeycloakContainer("quay.io/keycloak/keycloak:20.0.5")
             .withAdminUsername(serverAdminUser)
             .withAdminPassword(serverAdminPass)
             .withRealmImportFile("exported-metaform-kc.json")
