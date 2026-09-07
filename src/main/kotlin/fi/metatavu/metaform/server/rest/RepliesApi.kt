@@ -33,6 +33,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.math.min
+import jakarta.annotation.PostConstruct
 
 @RequestScoped
 @Transactional
@@ -53,6 +54,16 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
     @Inject
     @ConfigProperty(name = "metaforms.keycloak.authorization.timeout", defaultValue = "4m")
     lateinit var authorizationTimeout: Duration
+
+    @PostConstruct
+    fun validateAuthorizationConfiguration() {
+        require(authorizationResourceBatchSize > 0) {
+            "metaforms.keycloak.authorization.resource-batch-size must be greater than zero"
+        }
+        require(authorizationParallelism > 0) {
+            "metaforms.keycloak.authorization.parallelism must be greater than zero"
+        }
+    }
 
     @Inject
     lateinit var fieldController: FieldController
@@ -659,6 +670,9 @@ class RepliesApi : fi.metatavu.metaform.api.spec.RepliesApi, AbstractApi() {
             return replyIdAndResourceIds
         }
         val resourceIds = replyIdAndResourceIds.mapNotNull(ReplyIdAndResourceId::resourceId).toSet()
+        if (resourceIds.isEmpty()) {
+            return emptyList()
+        }
         val authorizationToken = tokenString
         val authorizationExecutor = Executors.newFixedThreadPool(authorizationParallelism)
         val authorizationFutures = resourceIds
