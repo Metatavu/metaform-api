@@ -18,7 +18,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    runs-on: linux_x64_16_cpu_32_gb
+    runs-on: linux_x64_8_cpu_32_gb
     steps:
     - name: Resolve docker image name
       id: image_name
