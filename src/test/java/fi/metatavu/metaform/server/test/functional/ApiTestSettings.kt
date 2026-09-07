@@ -13,7 +13,7 @@ class ApiTestSettings {
          * Returns API service base path
          */
         val apiBasePath: String
-            get() = "http://localhost:8081/"
+            get() = "http://localhost:${System.getProperty("quarkus.http.test-port", "8081")}/"
 
     }
 }

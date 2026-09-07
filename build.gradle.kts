@@ -100,6 +100,9 @@ sourceSets["test"].java {
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
     systemProperty("api.version", "1.40")
+    System.getProperty("quarkus.http.test-port")?.let { testPort ->
+        systemProperty("quarkus.http.test-port", testPort)
+    }
 }
 allOpen {
     annotation("jakarta.ws.rs.Path")
