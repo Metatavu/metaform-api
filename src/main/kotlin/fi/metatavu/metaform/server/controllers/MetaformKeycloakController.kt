@@ -17,6 +17,8 @@ import fi.metatavu.metaform.server.keycloak.*
 import fi.metatavu.metaform.server.keycloak.translate.KeycloakUserRepresentationTranslator
 import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.HttpClients
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.ClientBuilderWrapper
@@ -199,7 +201,17 @@ class MetaformKeycloakController {
      * @return created authz client or null if client could not be created
      */
     protected fun getAuthzClient(): AuthzClient {
-        return AuthzClient.create(configuration)
+        val authzConfiguration = configuration
+        authzConfiguration.httpClient = HttpClients.custom()
+            .setDefaultRequestConfig(
+                RequestConfig.custom()
+                    .setConnectTimeout(keycloakConnectTimeout.toMillis().toInt())
+                    .setConnectionRequestTimeout(keycloakConnectTimeout.toMillis().toInt())
+                    .setSocketTimeout(keycloakReadTimeout.toMillis().toInt())
+                    .build()
+            )
+            .build()
+        return AuthzClient.create(authzConfiguration)
     }
 
     /**
