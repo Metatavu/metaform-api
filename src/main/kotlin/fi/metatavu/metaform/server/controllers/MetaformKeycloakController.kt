@@ -17,6 +17,10 @@ import fi.metatavu.metaform.server.keycloak.*
 import fi.metatavu.metaform.server.keycloak.translate.KeycloakUserRepresentationTranslator
 import fi.metatavu.metaform.server.rest.AbstractApi
 import org.eclipse.microprofile.config.inject.ConfigProperty
+import org.apache.http.client.config.RequestConfig
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.jboss.resteasy.client.jaxrs.ResteasyClient
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.ClientBuilderWrapper
@@ -33,6 +37,9 @@ import org.keycloak.representations.idm.authorization.*
 import org.keycloak.representations.idm.authorization.PolicyEvaluationResponse.EvaluationResultRepresentation
 import org.slf4j.Logger
 import java.util.*
+import java.util.concurrent.TimeUnit
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import jakarta.ws.rs.InternalServerErrorException
@@ -72,6 +79,14 @@ class MetaformKeycloakController {
     lateinit var authServerUrl: String
 
     @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.connect-timeout")
+    lateinit var keycloakConnectTimeout: java.time.Duration
+
+    @Inject
+    @ConfigProperty(name = "metaforms.keycloak.admin.read-timeout")
+    lateinit var keycloakReadTimeout: java.time.Duration
+
+    @Inject
     lateinit var logger: Logger
 
     @Inject
@@ -85,6 +100,9 @@ class MetaformKeycloakController {
 
     @Inject
     lateinit var keycloakUserRepresentationTranslator: KeycloakUserRepresentationTranslator
+
+    private lateinit var authzClient: AuthzClient
+    private lateinit var authzHttpClient: CloseableHttpClient
 
     private val keycloakConfiguration: KeycloakConfiguration
         get() {
@@ -152,24 +170,23 @@ class MetaformKeycloakController {
         try {
             val authzClient = getAuthzClient()
             val request = AuthorizationRequest()
-            resourceIds.forEach { resourceId: UUID ->
-                request.addPermission(
-                    resourceId.toString(),
-                    authorizationScope.scopeName
-                )
+            request.metadata = AuthorizationRequest.Metadata().apply {
+                responseMode = "permissions"
             }
-            val response = authzClient.authorization(tokenString).authorize(request)
-            val irt = authzClient.protection().introspectRequestingPartyToken(response?.token)
-            val permissions = irt?.permissions
-            return permissions
-                ?.map { obj: Permission -> obj.resourceId }
-                ?.map { name: String? -> UUID.fromString(name) }
-                ?.toSet() ?: emptySet()
+            resourceIds.forEach { resourceId ->
+                request.addPermission(resourceId.toString(), authorizationScope.scopeName)
+            }
+            val permissions: List<*> = authzClient.authorization(tokenString).getPermissions(request)
+            return permissions.mapTo(mutableSetOf()) { rawPermission ->
+                val permission = objectMapper.convertValue(rawPermission, Permission::class.java)
+                UUID.fromString(requireNotNull(permission.resourceId))
+            }
         } catch (e: AuthorizationDeniedException) {
             // AuthorizationDeniedException are thrown when user does not have permission, so this
             // is expected behaviour
         } catch (e: Exception) {
             logger.error("Failed to get permission from Keycloak", e)
+            throw AuthzException("Failed to get permission from Keycloak", e)
         }
 
         return emptySet()
@@ -189,8 +206,38 @@ class MetaformKeycloakController {
      *
      * @return created authz client or null if client could not be created
      */
+    @PostConstruct
+    fun initializeAuthzClient() {
+        val connectionManager = PoolingHttpClientConnectionManager()
+        connectionManager.maxTotal = AUTHORIZATION_HTTP_MAX_CONNECTIONS
+        connectionManager.defaultMaxPerRoute = AUTHORIZATION_HTTP_MAX_CONNECTIONS_PER_ROUTE
+        authzHttpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .setDefaultRequestConfig(
+                RequestConfig.custom()
+                    .setConnectTimeout(keycloakConnectTimeout.toMillis().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt())
+                    .setConnectionRequestTimeout(keycloakConnectTimeout.toMillis().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt())
+                    .setSocketTimeout(keycloakReadTimeout.toMillis().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt())
+                    .build()
+            )
+            .build()
+        authzClient = AuthzClient.create(configuration.apply { httpClient = authzHttpClient })
+    }
+
+    @PreDestroy
+    fun closeAuthzClient() {
+        if (::authzHttpClient.isInitialized) {
+            authzHttpClient.close()
+        }
+    }
+
+    /**
+     * Returns the application-scoped UMA client backed by a reusable connection pool.
+     *
+     * @return shared authorization client
+     */
     protected fun getAuthzClient(): AuthzClient {
-        return AuthzClient.create(configuration)
+        return authzClient
     }
 
     /**
@@ -220,7 +267,12 @@ class MetaformKeycloakController {
                 .clientSecret(clientSecret)
                 .username(adminUser)
                 .password(adminPass)
-                .resteasyClient(clientBuilder.build() as ResteasyClient)
+                .resteasyClient(
+                    clientBuilder
+                        .connectTimeout(keycloakConnectTimeout.toMillis(), TimeUnit.MILLISECONDS)
+                        .readTimeout(keycloakReadTimeout.toMillis(), TimeUnit.MILLISECONDS)
+                        .build() as ResteasyClient
+                )
                 .authorization("Bearer ${token?.getAccessToken()}")
                 .build()
         }
@@ -1027,5 +1079,7 @@ class MetaformKeycloakController {
         private const val MANAGER_GROUP_NAME_TEMPLATE = "%s-manager"
         private const val ADMIN_GROUP_NAME_SUFFIX = "admin"
         private const val MANAGER_GROUP_NAME_SUFFIX = "manager"
+        private const val AUTHORIZATION_HTTP_MAX_CONNECTIONS = 32
+        private const val AUTHORIZATION_HTTP_MAX_CONNECTIONS_PER_ROUTE = 16
     }
 }
