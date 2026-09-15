@@ -3,6 +3,7 @@ package fi.metatavu.metaform.server.rest
 import fi.metatavu.metaform.api.spec.model.BadRequest
 import fi.metatavu.metaform.server.controllers.CardAuthKeycloakController
 import fi.metatavu.metaform.server.controllers.ReplyController
+import fi.metatavu.metaform.server.exceptions.AuthzException
 import fi.metatavu.metaform.server.keycloak.AuthorizationScope
 import fi.metatavu.metaform.server.controllers.MetaformKeycloakController
 import fi.metatavu.metaform.server.persistence.model.Reply
@@ -17,6 +18,7 @@ import java.time.OffsetDateTime
 import java.util.*
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
+import jakarta.ws.rs.WebApplicationException
 import jakarta.ws.rs.core.Context
 import jakarta.ws.rs.core.Response
 import jakarta.ws.rs.core.SecurityContext
@@ -267,6 +269,16 @@ abstract class AbstractApi {
     }
 
     /**
+     * Constructs service unavailable response
+     *
+     * @param message message
+     * @return response
+     */
+    protected fun createServiceUnavailable(message: String?): Response {
+        return createError(Response.Status.SERVICE_UNAVAILABLE, message)
+    }
+
+    /**
      * Constructs forbidden response
      *
      * @param message message
@@ -478,8 +490,12 @@ abstract class AbstractApi {
      * @return whether given resource id is permitted within given scope
      */
     private fun isPermittedResourceId(resourceId: UUID, authorizationScope: AuthorizationScope): Boolean {
-        val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, setOf(resourceId), authorizationScope)
-        return permittedResourceIds.size == 1 && resourceId == permittedResourceIds.iterator().next()
+        return try {
+            val permittedResourceIds = metaformKeycloakController.getPermittedResourceIds(tokenString, setOf(resourceId), authorizationScope)
+            permittedResourceIds.size == 1 && resourceId == permittedResourceIds.iterator().next()
+        } catch (e: AuthzException) {
+            throw WebApplicationException(e, createServiceUnavailable("Authorization service is unavailable"))
+        }
     }
 
     /**

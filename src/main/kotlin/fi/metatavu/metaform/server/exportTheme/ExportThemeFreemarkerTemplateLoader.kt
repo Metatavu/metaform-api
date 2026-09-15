@@ -42,12 +42,26 @@ class ExportThemeFreemarkerTemplateLoader: TemplateLoader {
         if (exportThemeFile != null) {
             return StringReader(exportThemeFile.content)
         }
-        val baseReader = exportThemeController.findBaseThemeWithinJar(path)?.bufferedReader()
+
+        val baseTemplatePath = getBaseTemplatePatch(path)
+        val baseReader = exportThemeController.findBaseThemeWithinJar(baseTemplatePath)?.bufferedReader()
         if (baseReader != null) {
             return baseReader
         }
+
         logger.warn("Could not find export theme file {}", path)
         return StringReader(String.format("!! export theme file %s not found !!", path))
+    }
+
+    /**
+     * Resolves base template path from templatePath
+     *
+     * @param templatePath original template path
+     * @return base template path
+     */
+    private fun getBaseTemplatePatch(templatePath: String): String {
+        val themeSeparator = templatePath.indexOf('/')
+        return "base/${templatePath.substring(themeSeparator + 1)}"
     }
 
     override fun closeTemplateSource(templateSource: Any?) {

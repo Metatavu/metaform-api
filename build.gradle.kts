@@ -1,7 +1,7 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.22"
     kotlin("plugin.allopen") version "1.9.10"
     id("io.quarkus")
     id("org.openapi.generator") version "7.1.0"
@@ -18,6 +18,7 @@ val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 val quarkusPoiVersion: String by project
 val quarkusFreemarkerVersion: String by project
+val keycloakVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
 val wiremockVersion: String by project
 val testContainersKeycloakVersion: String by project
@@ -38,6 +39,8 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-undertow")
     implementation("io.quarkus:quarkus-cache")
+
+    implementation("org.keycloak:keycloak-admin-client:$keycloakVersion")
 
     implementation("io.quarkiverse.freemarker:quarkus-freemarker:$quarkusFreemarkerVersion")
     implementation("io.quarkiverse.poi:quarkus-poi:$quarkusPoiVersion")
@@ -69,6 +72,14 @@ dependencies {
     kapt("org.hibernate:hibernate-jpamodelgen:6.2.13.Final")
 }
 
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.keycloak") {
+            useVersion(keycloakVersion)
+        }
+    }
+}
+
 group = "fi.metatavu.metaform"
 version = "2.0.1-SNAPSHOT"
 
@@ -88,6 +99,10 @@ sourceSets["test"].java {
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    systemProperty("api.version", "1.40")
+    System.getProperty("quarkus.http.test-port")?.let { testPort ->
+        systemProperty("quarkus.http.test-port", testPort)
+    }
 }
 allOpen {
     annotation("jakarta.ws.rs.Path")

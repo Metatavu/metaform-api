@@ -42,7 +42,7 @@ import java.util.function.Consumer
  *
  * @author Harri Häkkinen
  */
-data class ReplyIdAndResourceId(val id: UUID, val resourceId: UUID?)
+data class ReplyIdAndResourceId(val id: UUID, val resourceId: UUID?, val userId: UUID?)
 /**
  * Controller for Replies
  */
@@ -410,7 +410,24 @@ class ReplyController {
                 fieldFilters,
                 orderByReal,
                 latestFirstReal
-        ).map { ReplyIdAndResourceId(it.get("id") as UUID, it.get("resourceId") as UUID?) }
+        ).map {
+            ReplyIdAndResourceId(
+                id = it.get("id") as UUID,
+                resourceId = it.get("resourceId") as UUID?,
+                userId = it.get("userId") as UUID?
+            )
+        }
+    }
+
+    /**
+     * Lists string reply field values for the given replies and field names.
+     *
+     * @param replyIds reply ids
+     * @param names field names
+     * @return matching reply field values
+     */
+    fun listStringReplyFieldValues(replyIds: Collection<UUID>, names: Collection<String>): List<ReplyStringFieldValue> {
+        return stringReplyFieldDAO.listValuesByReplyIdsAndNames(replyIds, names)
     }
 
     /**

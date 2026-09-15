@@ -1,5 +1,6 @@
 package fi.metatavu.metaform.server.test.functional.tests
 
+import fi.metatavu.metaform.api.client.models.ExportTheme
 import fi.metatavu.metaform.api.client.models.Metaform
 import fi.metatavu.metaform.api.client.models.Reply
 import fi.metatavu.metaform.api.client.models.ReplyOrderCriteria
@@ -21,6 +22,7 @@ import org.apache.commons.lang3.ArrayUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.io.File
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
@@ -749,85 +751,115 @@ class ReplyTestsIT : AbstractTest() {
      * tests exporting reply to metaform with all the fields present and verifies those were rendered in PDF
      */
     @Test
-    fun testReplyPdfExportFields() {
-        TestBuilder().use { tb ->
-            val metaform = tb.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
-            val replyData1: MutableMap<String, Any> = HashMap()
-            replyData1["text"] = "Test text REPLY"
-            replyData1["number"] = 100
-            replyData1["email"] = "testemail@example.com"
-            replyData1["html"] = "<p>HTML REPLY</p>"
-            replyData1["hidden"] = "Hidden value"
-            replyData1["small-text"] = "small text"
-            replyData1["url"] = "https://google.com"
-            replyData1["memo"] = "Memo REPLY"
-            replyData1["date"] = "2021-01-01"
-            replyData1["time"] = "12:00"
-            replyData1["date-time"] = "2021-01-01T12:00:00Z"
-            replyData1["radio"] = "1"
-            replyData1["select"] = "select1"
-            replyData1["autocomplete"] = "autocomplete2"
-            val tableData: List<Map<String, Any>> = listOf(
-                createSimpleTableRow("Text 1", 10.0),
-                createSimpleTableRow("Text 2", 20.0)
+    fun testReplyPdfExportFields() = TestBuilder().use { testBuilder ->
+        val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
+        val reply1: Reply = testBuilder.systemAdmin.replies.createReplyWithData(getSimpleAllFieldsReply())
+        val createdReply1: Reply = testBuilder.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
+        val exportedReply = testBuilder.systemAdmin.replies.exportReply(metaform.id, createdReply1.id!!)
+        assertSimpleAllFieldsPdf(pdfFile = exportedReply)
+    }
+
+    @Test
+    fun testReplyPdfExportWithTheme() {
+        TestBuilder().use { testBuilder ->
+            val metaform = testBuilder.systemAdmin.metaforms.createFromJsonFile("simple-all-fields")
+            val metaformId = metaform.id!!
+            val theme = testBuilder.systemAdmin.exportThemes.createSimpleExportTheme()
+            val themeId = theme.id!!
+
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(themeId, "reply/templates/header.ftl", "<p>MY HEADER</p>")
+            testBuilder.systemAdmin.exportFiles.createSimpleExportThemeFile(themeId, "reply/templates/footer.ftl", "<p>MY FOOTER</p>")
+
+            testBuilder.systemAdmin.metaforms.updateMetaform(
+                metaformId,
+                metaform.copy(exportThemeId = themeId)
             )
-            replyData1["table"] = tableData
-            replyData1["boolean"] = true
-            replyData1["checklist"] = "1"
-            val fileUpload1: FileUploadResponse = uploadResourceFile("test-image-480-320.jpg")
-            val fileUpload2: FileUploadResponse = uploadResourceFile("test-image-667-1000.jpg")
-            replyData1["files"] = arrayOf(fileUpload1.fileRef, fileUpload2.fileRef)
-            replyData1["slider"] = 300
-            val reply1: Reply = tb.systemAdmin.replies.createReplyWithData(replyData1)
-            val createdReply1: Reply = tb.systemAdmin.replies.create(metaform.id!!, null, ReplyMode.UPDATE.toString(), reply1)
-            val exportedReply = tb.systemAdmin.replies.exportReply(metaform.id, createdReply1.id!!)
-            val exportedReplyBytes = exportedReply.readBytes()
-            //FileUtils.writeByteArrayToFile(java.io.File("reply.pdf"), exportedReply.readBytes())
 
-            assertPdfContains("Simple form", exportedReplyBytes)
-            assertPdfContains("Text field", exportedReplyBytes)
-            assertPdfContains("Test text REPLY", exportedReplyBytes)
-            assertPdfContains("Number field", exportedReplyBytes)
-            assertPdfContains("100", exportedReplyBytes)
-            assertPdfContains("Email field", exportedReplyBytes)
-            assertPdfContains("testemail@example.com", exportedReplyBytes)
-            assertPdfContains("HTML field", exportedReplyBytes)
-            assertPdfContains("<p>HTML REPLY</p>", exportedReplyBytes)
-            assertPdfContains("URL field", exportedReplyBytes)
-            assertPdfContains("google", exportedReplyBytes)
-            assertPdfContains("memo field", exportedReplyBytes)
-            assertPdfContains("Memo REPLY", exportedReplyBytes)
-            assertPdfContains("date field", exportedReplyBytes)
-            assertPdfContains("2021 Jan 1", exportedReplyBytes)
-            assertPdfContains("time field", exportedReplyBytes)
-            assertPdfContains("12:00:00", exportedReplyBytes)
-            assertPdfContains("date-time field", exportedReplyBytes)
-            assertPdfContains("2021 Jan 1", exportedReplyBytes)
-            assertPdfContains("radio field", exportedReplyBytes)
-            assertPdfContains("radio1", exportedReplyBytes)
-            assertPdfContains("Table field", exportedReplyBytes)
-            assertPdfContains("Text table field", exportedReplyBytes)
-            assertPdfContains("Number table field", exportedReplyBytes)
-            assertPdfContains("Text 1", exportedReplyBytes)
-            assertPdfContains("10", exportedReplyBytes)
-            assertPdfContains("Text 2", exportedReplyBytes)
-            assertPdfContains("20", exportedReplyBytes)
-            assertPdfContains("select field", exportedReplyBytes)
-            assertPdfContains("select1", exportedReplyBytes)
+            val reply: Reply = testBuilder.systemAdmin.replies.create(metaformId, null, ReplyMode.UPDATE.toString(), testBuilder.systemAdmin.replies.createReplyWithData(getSimpleAllFieldsReply()))
+            val exportedReply = testBuilder.systemAdmin.replies.exportReply(metaformId, reply.id!!)
+            assertSimpleAllFieldsPdf(pdfFile = exportedReply)
 
-            assertPdfContains("autocomplete field", exportedReplyBytes)
-            assertPdfContains("autocomplete2", exportedReplyBytes)
-            assertPdfContains("checklist field", exportedReplyBytes)
-            assertPdfContains("[X] 1", exportedReplyBytes)
-            assertPdfContains("[_] 2", exportedReplyBytes)
-            assertPdfContains("boolean field", exportedReplyBytes)
-            assertPdfContains("[X]", exportedReplyBytes)
-            assertPdfContains("files field", exportedReplyBytes)
-            assertPdfContains("test-image-667-1000.jpg", exportedReplyBytes)
-            assertPdfContains("test-image-480-320.jpg", exportedReplyBytes)
-            assertPdfContains("slider field", exportedReplyBytes)
+            testBuilder.systemAdmin.metaforms.updateMetaform(
+                metaformId,
+                metaform.copy(exportThemeId = null)
+            )
         }
     }
+
+    private fun assertSimpleAllFieldsPdf(pdfFile: File) {
+        val exportedReplyBytes = pdfFile.readBytes()
+
+        assertPdfContains("Simple form", exportedReplyBytes)
+        assertPdfContains("Text field", exportedReplyBytes)
+        assertPdfContains("Test text REPLY", exportedReplyBytes)
+        assertPdfContains("Number field", exportedReplyBytes)
+        assertPdfContains("100", exportedReplyBytes)
+        assertPdfContains("Email field", exportedReplyBytes)
+        assertPdfContains("testemail@example.com", exportedReplyBytes)
+        assertPdfContains("HTML field", exportedReplyBytes)
+        assertPdfContains("<p>HTML REPLY</p>", exportedReplyBytes)
+        assertPdfContains("URL field", exportedReplyBytes)
+        assertPdfContains("google", exportedReplyBytes)
+        assertPdfContains("memo field", exportedReplyBytes)
+        assertPdfContains("Memo REPLY", exportedReplyBytes)
+        assertPdfContains("date field", exportedReplyBytes)
+        assertPdfContains("2021 Jan 1", exportedReplyBytes)
+        assertPdfContains("time field", exportedReplyBytes)
+        assertPdfContains("12:00:00", exportedReplyBytes)
+        assertPdfContains("date-time field", exportedReplyBytes)
+        assertPdfContains("2021 Jan 1", exportedReplyBytes)
+        assertPdfContains("radio field", exportedReplyBytes)
+        assertPdfContains("radio1", exportedReplyBytes)
+        assertPdfContains("Table field", exportedReplyBytes)
+        assertPdfContains("Text table field", exportedReplyBytes)
+        assertPdfContains("Number table field", exportedReplyBytes)
+        assertPdfContains("Text 1", exportedReplyBytes)
+        assertPdfContains("10", exportedReplyBytes)
+        assertPdfContains("Text 2", exportedReplyBytes)
+        assertPdfContains("20", exportedReplyBytes)
+        assertPdfContains("select field", exportedReplyBytes)
+        assertPdfContains("select1", exportedReplyBytes)
+
+        assertPdfContains("autocomplete field", exportedReplyBytes)
+        assertPdfContains("autocomplete2", exportedReplyBytes)
+        assertPdfContains("checklist field", exportedReplyBytes)
+        assertPdfContains("[X] 1", exportedReplyBytes)
+        assertPdfContains("[_] 2", exportedReplyBytes)
+        assertPdfContains("boolean field", exportedReplyBytes)
+        assertPdfContains("[X]", exportedReplyBytes)
+        assertPdfContains("files field", exportedReplyBytes)
+        assertPdfContains("test-image-667-1000.jpg", exportedReplyBytes)
+        assertPdfContains("test-image-480-320.jpg", exportedReplyBytes)
+        assertPdfContains("slider field", exportedReplyBytes)
+    }
+
+    private fun getSimpleAllFieldsReply() = mapOf<String, Any>(
+        "text" to "Test text REPLY",
+        "number" to 100,
+        "email" to "testemail@example.com",
+        "html" to "<p>HTML REPLY</p>",
+        "hidden" to "Hidden value",
+        "small-text" to "small text",
+        "url" to "https://google.com",
+        "memo" to "Memo REPLY",
+        "date" to "2021-01-01",
+        "time" to "12:00",
+        "date-time" to "2021-01-01T12:00:00Z",
+        "radio" to "1",
+        "select" to "select1",
+        "autocomplete" to "autocomplete2",
+        "table" to listOf(
+            createSimpleTableRow("Text 1", 10.0),
+            createSimpleTableRow("Text 2", 20.0)
+        ),
+        "boolean" to true,
+        "checklist" to "1",
+        "files" to arrayOf(
+            uploadResourceFile("test-image-480-320.jpg").fileRef,
+            uploadResourceFile("test-image-667-1000.jpg").fileRef
+        ),
+        "slider" to 300
+    )
 
     /**
      * Cleans replies using system admin privileges

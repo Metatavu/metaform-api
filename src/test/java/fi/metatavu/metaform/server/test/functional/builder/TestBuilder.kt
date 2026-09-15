@@ -35,7 +35,9 @@ import java.util.UUID
 class TestBuilder : AbstractAccessTokenTestBuilder<ApiClient>() {
 
     private var anonymousTokenCached: TestBuilderAuthentication? = null
-    private val serverUrl = ConfigProvider.getConfig().getValue("metaforms.keycloak.admin.host", String::class.java)
+    private val serverUrl = ConfigProvider.getConfig()
+        .getValue("metaforms.keycloak.admin.host", String::class.java)
+        .removeSuffix("/")
     var metatavuAdmin = createTestBuilderAuthentication("metatavu-admin", "admin")
     var systemAdmin = createTestBuilderAuthentication("system-admin", "test")
     var test1 = createTestBuilderAuthentication("test1.realm1", "test")
