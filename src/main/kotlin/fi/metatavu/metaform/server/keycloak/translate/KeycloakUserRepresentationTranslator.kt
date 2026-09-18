@@ -22,9 +22,14 @@ class KeycloakUserRepresentationTranslator {
             lastName = entity.lastName,
             email = entity.email,
             emailVerified = true,
-            username = entity.username,
-            id = entity.id.toString(),
+            username = normalizeUsername(entity.username),
             enabled = true
         )
+    }
+
+    private fun normalizeUsername(username: String): String {
+        return username
+            .replace(Regex("[^\\p{L}\\p{N}._@-]+"), "-")
+            .trim('-')
     }
 }

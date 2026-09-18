@@ -220,7 +220,7 @@ class UsersTestsIT: AbstractTest() {
             val userToCreate = testBuilder.systemAdmin.users.createUserWithoutIDP(firstName = "update-test")
             val createdUser = testBuilder.systemAdmin.users.create(userToCreate)
             val userToUpdate = createdUser.copy(
-                username = userToCreate.displayName.plus(" 78912345601"),
+                username = userToCreate.displayName.plus("-78912345601"),
                 federatedIdentities = arrayOf(
                     UserFederatedIdentity(
                         source = UserFederationSource.CARD,
@@ -236,7 +236,7 @@ class UsersTestsIT: AbstractTest() {
             val updatedUser2 = testBuilder.systemAdmin.users.updateUser(
                 userId = userToUpdate.id,
                 user = userToUpdate.copy(
-                    username = "testi update-test",
+                    username = "testi-update-test",
                     federatedIdentities = emptyArray()
                 )
             )
@@ -245,7 +245,7 @@ class UsersTestsIT: AbstractTest() {
             Assertions.assertEquals(createdUser.id, updatedUser1.id)
             Assertions.assertFalse(updatedUser1.federatedIdentities!!.isEmpty())
             Assertions.assertTrue(updatedUser2.federatedIdentities!!.isEmpty())
-            Assertions.assertEquals(updatedUser2.displayName, "testi update-test")
+            Assertions.assertEquals(updatedUser2.displayName, "testi-update-test")
 
             testBuilder.systemAdmin.users.clean(createdUser)
         }
